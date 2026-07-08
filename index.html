@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ClassKru — Connected Classroom System</title>
+  <link rel="stylesheet" href="style.css?v=73">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- LINE Seed Sans TH (OFL, via jsDelivr) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lazywasabi/thai-web-fonts@7/fonts/LINESeedSansTH/LINESeedSansTH.css">
+  <!-- HugeIcons (นำร่อง: sidebar + เมนูมือถือ) -->
+  <link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css">
+  <script>
+    // HugeIcons ใช้ codepoint ช่วง CJK เป็น glyph — ก่อนฟอนต์ไอคอนโหลดเสร็จ เบราว์เซอร์จะเรนเดอร์เป็น
+    // "ตัวอักษรจีน" ด้วยฟอนต์สำรอง. ซ่อนไอคอนไว้ก่อนแล้วค่อยเผยเมื่อฟอนต์พร้อม (มี safety timeout กันค้าง)
+    (function () {
+      function ready() { document.documentElement.classList.add('icons-ready'); }
+      if (document.fonts && document.fonts.load) {
+        document.fonts.load('1em "hgi-stroke-rounded"').then(ready).catch(ready);
+        setTimeout(ready, 3000); // เผยเสมอแม้ฟอนต์โหลดช้า/ล้มเหลว
+      } else { ready(); }
+    })();
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-overlay" class="modal-overlay show" style="z-index:10000;backdrop-filter:none;background:linear-gradient(160deg,#f0fdf4 0%,#ffffff 50%,#f0fdf4 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:24px;">
+    <div style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;">
+
+      <!-- Logo -->
+      <img src="logo.png" style="width:160px;height:auto;object-fit:contain;display:block;margin-bottom:-8px;">
+
+      <!-- Heading -->
+      <h2 style="font-size:1.55rem;font-weight:800;color:var(--text-main);text-align:center;letter-spacing:-0.3px;margin:0 0 8px;">เข้าสู่ระบบ ClassKru</h2>
+      <p style="font-size:0.88rem;color:var(--text-muted);text-align:center;margin:0 0 28px;line-height:1.8;">เช็กชื่อเร็ว สอนเต็มที่<br>จัดการห้องเรียน ได้ในคลิกเดียว</p>
+
+      <!-- Card form -->
+      <div style="background:white;border-radius:20px;padding:24px;box-shadow:0 2px 20px rgba(0,0,0,0.08);width:100%;display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Email field -->
+        <div style="width:100%;">
+          <label style="font-size:0.82rem;font-weight:600;color:var(--text-main);display:block;margin-bottom:7px;">อีเมล</label>
+          <div style="position:relative;">
+            <i class="hgi-stroke hgi-mail-01" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;pointer-events:none;"></i>
+            <input type="email" id="login-email" class="form-control" placeholder="teacher@school.ac.th" autocomplete="email"
+              style="width:100%;box-sizing:border-box;padding:13px 14px 13px 40px;border-radius:12px;font-size:0.95rem;"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('login-password').focus();}">
+          </div>
+        </div>
+
+        <!-- Password field -->
+        <div style="width:100%;">
+          <label style="font-size:0.82rem;font-weight:600;color:var(--text-main);display:block;margin-bottom:7px;">รหัสผ่าน</label>
+          <div style="position:relative;">
+            <i class="hgi-stroke hgi-lock-password" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;pointer-events:none;"></i>
+            <input type="password" id="login-password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="current-password"
+              style="width:100%;box-sizing:border-box;padding:13px 44px 13px 40px;border-radius:12px;font-size:0.95rem;"
+              onkeydown="if(event.key==='Enter')loginWithPassword()">
+            <button type="button" onclick="togglePasswordVisibility()" id="btn-toggle-pw" title="แสดง/ซ่อนรหัสผ่าน"
+              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);padding:6px;font-size:0.95rem;"><i class="hgi-stroke hgi-view"></i></button>
+          </div>
+        </div>
+
+        <!-- Login button -->
+        <button class="btn btn-primary" onclick="loginWithPassword()" id="btn-login"
+          style="width:100%;padding:14px;font-size:1rem;font-weight:700;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <i class="hgi-stroke hgi-login-03"></i> เข้าสู่ระบบ
+        </button>
+
+        <div id="login-status" style="font-size:0.85rem;font-weight:600;min-height:16px;text-align:center;"></div>
+
+        <!-- Sign up -->
+        <div style="font-size:0.85rem;color:var(--text-muted);text-align:center;">
+          ยังไม่มีบัญชี? <span onclick="signUpWithPassword()" style="color:var(--primary);font-weight:700;cursor:pointer;">สมัครใช้งานฟรี</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help button -->
+    <div id="help-fab" style="position:fixed;bottom:24px;right:24px;width:38px;height:38px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,0.15);cursor:pointer;">?</div>
+  </div>
+
+  <!-- MAIN APP SHELL -->
+  <div id="main-app" style="display:none;">
+
+    <!-- SIDEBAR (Desktop only — hidden on mobile via CSS) -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-brand">
+        <img src="logo.png" alt="ClassKru" style="height:64px;width:auto;object-fit:contain;">
+      </div>
+      <nav class="sidebar-menu">
+        <button class="nav-item active" data-screen="dashboard" onclick="navigateToWebScreen('dashboard')"><i class="hgi-stroke hgi-home-01"></i><span>หน้าหลัก</span></button>
+        <button class="nav-item" data-screen="classrooms" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>ห้องเรียนวิชาสอน</span></button>
+        <button class="nav-item" data-screen="students" onclick="navigateToWebScreen('students')" style="display:none;"><i class="hgi-stroke hgi-user-multiple"></i><span>จัดการรายชื่อเด็ก</span></button>
+        <button class="nav-item" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอนประจำสัปดาห์</span></button>
+        <button class="nav-item" data-screen="attendance" onclick="navigateToWebScreen('attendance')" style="display:none;"><i class="hgi-stroke hgi-table"></i><span>Attendance Matrix</span></button>
+        <button class="nav-item" data-screen="reports" onclick="navigateToWebScreen('reports')"><i class="hgi-stroke hgi-pie-chart"></i><span>รายงานวิเคราะห์ผล</span></button>
+        <button class="nav-item" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่าระบบ</span></button>
+      </nav>
+      <div class="sidebar-profile" onclick="navigateToWebScreen('settings')" style="cursor:pointer;">
+        <img src="logo.png" id="sidebar-profile-img" alt="Profile" style="object-fit:contain; background-color:white; padding: 2px;">
+        <div class="profile-info"><span class="profile-name" id="sidebar-profile-name">คุณครู</span><span class="profile-role" id="sidebar-profile-email">teacher@school.com</span></div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <div class="app-content">
+
+        <!-- DASHBOARD -->
+        <div id="web-screen-dashboard" class="fade-in">
+          <!-- DATE & STATUS ROW (compact) -->
+          <div class="home-date-status-row">
+            <div class="home-date-card" id="home-date-card" style="position:relative;cursor:pointer;" onclick="toggleHomeCalendar()">
+              <div class="home-day-name" id="home-day-name">วันจันทร์</div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="home-date-big" id="home-date-big">15 มิ.ย.</div>
+              </div>
+              <div class="home-year" id="home-year">พ.ศ. 2569</div>
+              <!-- Calendar Popup -->
+              <div id="home-calendar-popup" class="home-calendar-popup" style="display:none;"></div>
+            </div>
+            <div class="home-status-badge" id="home-status-badge">
+              <div class="home-status-label" id="home-status-label">คาบนี้</div>
+              <div class="home-status-value" id="home-status-value">ว่าง</div>
+            </div>
+          </div>
+
+          <!-- NEXT CLASS CARD -->
+          <div id="home-next-card-area" style="margin-bottom:12px;"></div>
+
+          <!-- UNCHECKED WARNING -->
+          <div id="home-unchecked-card" style="display:none;margin-bottom:12px;"></div>
+
+          <!-- TODAY SCHEDULE -->
+          <div class="card" style="padding:0;overflow:hidden;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border-color);">
+              <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:0.9rem;">
+                <i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);"></i> <span id="home-schedule-title">ตารางสอนวันนี้</span>
+              </div>
+              <div id="home-today-count" class="status-badge" style="background:var(--primary-light);color:var(--primary);border:none;font-size:0.7rem;padding:3px 8px;">0 คาบ</div>
+            </div>
+            <div id="home-schedule-list" style="display:flex;flex-direction:column;"></div>
+          </div>
+        </div>
+
+        <!-- CLASSROOMS -->
+        <div id="web-screen-classrooms" class="fade-in" style="display:none;">
+          <div class="card" style="margin-bottom:20px;flex-direction:row;justify-content:space-between;align-items:center;padding:20px 24px;flex-wrap:wrap;gap:12px;">
+            <div><div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-school" style="color:var(--primary)"></i> ห้องเรียนวิชาสอน</div><p class="subtitle" style="margin-top:4px;">สร้างรายวิชาและจัดการห้องเรียน</p></div>
+            <button class="btn btn-primary" id="btn-add-class-header" onclick="openClassModal()"><i class="hgi-stroke hgi-add-01"></i> เพิ่มห้องเรียน</button>
+          </div>
+          <div id="web-classrooms-grid" class="class-cards-grid"></div>
+        </div>
+
+        <!-- STUDENTS -->
+        <div id="web-screen-students" class="fade-in" style="display:none;">
+          <div class="card" style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <button class="btn-back" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button>
+                <div class="card-title" style="margin-bottom:0;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary)"></i> จัดการรายชื่อนักเรียน</div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <select id="web-student-class-filter" class="form-control" style="max-width:220px;appearance:auto;" onchange="renderWebStudents()"><option value="">-- กรุณาเลือกห้องเรียน --</option></select>
+                <input type="text" id="web-student-search-input" class="form-control" placeholder="ค้นหาชื่อ/รหัส..." style="max-width:200px;" oninput="renderWebStudents()">
+              </div>
+            </div>
+          </div>
+          <div id="web-students-content-area" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+              <div class="subtitle" id="web-students-count-label">พบ 0 คน</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn" style="background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);" onclick="openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
+                <button class="btn" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
+                <button class="btn btn-danger" onclick="deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i> ลบทั้งหมด</button>
+              </div>
+            </div>
+            <div class="card" style="padding:0;overflow-x:auto;">
+              <table class="web-table" id="web-students-table">
+                <thead><tr>
+                  <th style="width:60px;text-align:center;">เลขที่</th><th style="width:100px;text-align:center;">รหัส</th><th>ชื่อ-นามสกุล</th>
+                  <th>หมายเหตุ</th><th style="width:120px;text-align:center;">จัดการ</th>
+                </tr></thead>
+                <tbody id="web-students-list"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="web-students-empty-state" style="text-align:center;padding:40px;color:var(--text-muted);">
+            <i class="hgi-stroke hgi-teaching" style="font-size:3rem;margin-bottom:16px;color:var(--border-color);"></i>
+            <h3>กรุณาเลือกห้องเรียน</h3>
+            <p>โปรดเลือกห้องเรียนจากเมนูด้านบนเพื่อดูและจัดการรายชื่อนักเรียน</p>
+          </div>
+        </div>
+
+        <!-- TIMETABLE -->
+        <div id="web-screen-timetable" class="fade-in" style="display:none;">
+          <!-- Desktop header + grid -->
+          <div class="desktop-only">
+            <div class="card" style="margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                <div>
+                  <div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary)"></i> ตารางสอนประจำสัปดาห์</div>
+                  <p class="subtitle" style="margin-top:4px;">กำหนดคาบเรียน รองรับ Week A/B</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span id="timetable-period-count" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);"></span>
+                  <div class="week-toggle-container">
+                    <button class="btn-week-toggle active" id="btn-week-a" onclick="switchTimetableWeek('A')">Week A</button>
+                    <button class="btn-week-toggle" id="btn-week-b" onclick="switchTimetableWeek('B')">Week B</button>
+                  </div>
+                  <button class="btn" style="padding:8px 16px;font-size:0.8rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="openTimetableImport()">
+                    <i class="hgi-stroke hgi-google-sheet"></i> นำเข้าตารางสอน
+                  </button>
+                  <button class="btn btn-primary" style="padding:8px 16px;font-size:0.8rem;" onclick="openPeriodSettings()">
+                    <i class="hgi-stroke hgi-clock-01"></i> จัดการคาบ
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="padding:24px;overflow-x:auto;"><div id="web-timetable-matrix-container" class="timetable-matrix-table"></div></div>
+          </div>
+
+          <!-- Mobile view: all 5 days vertical -->
+          <div class="mobile-only" style="padding:0 2px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+              <div>
+                <div style="font-size:1.05rem;font-weight:800;color:var(--text-main);"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);margin-right:6px;"></i>ตารางสอน</div>
+                <div id="m-tt-summary" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;"></div>
+              </div>
+              <div style="display:flex;gap:6px;">
+                <button class="btn-week-toggle active" id="m-btn-week-a" onclick="switchTimetableWeek('A')" style="font-size:0.72rem;padding:5px 10px;">Week A</button>
+                <button class="btn-week-toggle" id="m-btn-week-b" onclick="switchTimetableWeek('B')" style="font-size:0.72rem;padding:5px 10px;">Week B</button>
+              </div>
+            </div>
+            <button class="btn" style="width:100%;margin-bottom:14px;padding:10px;font-size:0.85rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="openTimetableImport()">
+              <i class="hgi-stroke hgi-google-sheet"></i> นำเข้าตารางสอนจาก Excel
+            </button>
+            <div id="m-timetable-days"></div>
+          </div>
+        </div>
+
+        <!-- ATTENDANCE MATRIX -->
+        <div id="web-screen-attendance" class="fade-in" style="display:none;">
+          <div class="card" style="margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+              <div class="card-title"><i class="hgi-stroke hgi-table" style="color:var(--primary)"></i> Attendance Matrix</div>
+              <div style="display:flex;gap:10px;align-items:center;">
+                <select id="web-attendance-class-select" class="form-control" style="appearance:auto;min-width:180px;" onchange="loadWebAttendanceMatrix()"></select>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="padding:20px;overflow-x:auto;"><table class="web-table matrix-table" id="web-attendance-matrix-table"></table></div>
+          <div style="display:flex;gap:16px;margin-top:14px;font-size:0.75rem;color:var(--text-muted);font-weight:700;justify-content:center;flex-wrap:wrap;">
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--color-present);margin-right:6px;"></span>มา</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--color-late);margin-right:6px;"></span>สาย</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--color-absent);margin-right:6px;"></span>ขาด</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--color-leave);margin-right:6px;"></span>ลา</span>
+          </div>
+        </div>
+
+        <!-- REPORTS -->
+        <div id="web-screen-reports" class="fade-in" style="display:none;">
+          <div id="web-reports-selection-view">
+            <div class="card" style="margin-bottom:20px;"><div class="card-title" style="font-size:1.15rem;"><i class="hgi-stroke hgi-pie-chart" style="color:var(--primary)"></i> รายงานวิเคราะห์ผล</div><p class="subtitle">เลือกวิชาเพื่อดูสถิติเชิงลึก</p></div>
+            <div id="web-reports-class-list" class="class-cards-grid"></div>
+          </div>
+          <div id="web-reports-detail-view" style="display:none;">
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;"><button class="btn-back" onclick="goBackToWebReportsSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div><h3 id="web-rep-detail-class-title" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn" style="padding:8px 14px;font-size:0.82rem;background:#eef2ff;color:#3949ab;border:1px solid #c5cae9;" onclick="printReport()"><i class="hgi-stroke hgi-printer"></i> <span class="hide-mobile">พิมพ์ / </span>PDF</button><button class="btn" style="padding:8px 14px;font-size:0.82rem;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;" onclick="exportAttendanceExcel()"><i class="hgi-stroke hgi-google-sheet"></i> <span class="hide-mobile">Export </span>Excel</button></div></div></div>
+            <div id="ck-print-header"></div>
+            <div class="report-tabs" style="margin-bottom:20px;max-width:500px;">
+              <button class="report-tab-item active" data-tab="today" onclick="switchWebReportTab('today')">วันนี้</button>
+              <button class="report-tab-item" data-tab="weekly" onclick="switchWebReportTab('weekly')">รายคาบ</button>
+              <button class="report-tab-item" data-tab="term" onclick="switchWebReportTab('term')">รายภาค</button>
+              <button class="report-tab-item" data-tab="overall" onclick="switchWebReportTab('overall')">ภาพรวม</button>
+            </div>
+            <div id="web-rep-content-today" class="web-rep-panel fade-in">
+              <div class="report-grid-2col"><div class="card"><div style="position:relative;margin-bottom:4px;"><button id="rep-date-btn" onclick="toggleRepCalendar()" class="rep-date-label-btn"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);"></i> <span id="web-rep-today-date-label">วันนี้</span> <i class="hgi-stroke hgi-arrow-down-01" style="font-size:0.7rem;margin-left:2px;"></i></button><div id="rep-calendar-popup" class="home-calendar-popup" style="display:none;left:0;right:auto;"></div></div><div class="summary-bar" id="web-rep-today-pills" style="margin:12px 0;"></div><div class="progress-container"><div class="progress-label-row"><span>สัดส่วนมาเรียน</span><span id="web-rep-today-pct">0%</span></div><div class="progress-bar-bg" style="height:10px;border-radius:5px;"><div class="progress-bar-fill" id="web-rep-today-progress" style="width:0%"></div></div></div></div><div class="card" style="justify-content:center;text-align:center;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:12px;">สถานะห้องเรียน</div><div id="web-rep-today-status-badge" class="warning-badge text-center" style="font-size:1.05rem;padding:12px;border-radius:12px;font-weight:800;">ปกติ</div></div></div>
+              <div class="card" id="web-rep-today-abnormal-card" style="display:none;margin-top:16px;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:12px;">นักเรียนผิดปกติ</div><div id="web-rep-today-abnormal-list" class="abnormal-list-grid"></div></div>
+            </div>
+            <div id="web-rep-content-weekly" class="web-rep-panel fade-in" style="display:none;">
+              <div class="report-grid-2col"><div class="card"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:4px;">สรุปภาพรวมทุกคาบ</div><div class="subtitle" style="margin-bottom:16px;">คาบเรียนทั้งหมด: <strong id="web-rep-weekly-lessons">0 คาบ</strong></div><div class="summary-bar" id="web-rep-weekly-pills"></div></div><div class="card" style="background:var(--primary-light);border-color:var(--primary-light-border);justify-content:center;"><div style="font-weight:700;color:var(--primary);font-size:1.05rem;margin-bottom:8px;"><i class="hgi-stroke hgi-idea-01"></i> ภาพรวมการเข้าเรียน</div><div id="web-rep-weekly-insights" style="font-size:0.9rem;line-height:1.6;"></div></div></div>
+              <div class="card" style="margin-top:16px;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;">สถิติการเข้าเรียนรายคาบ</div><div class="weekly-trend-chart" id="web-rep-weekly-trend-chart" style="overflow-x:auto;"></div></div>
+            </div>
+            <div id="web-rep-content-term" class="web-rep-panel fade-in" style="display:none;">
+              <div class="card" style="margin-top:16px;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:12px;">สถานะการเข้าเรียนรายคน<span style="font-size:0.75rem;font-weight:400;margin-left:8px;display:inline-flex;flex-wrap:wrap;gap:10px;align-items:center;vertical-align:middle;"><span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:13px;height:13px;border-radius:50%;background:var(--color-present);display:inline-block;"></span>มา</span><span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:13px;height:13px;border-radius:50%;background:var(--color-late);display:inline-block;"></span>สาย</span><span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:13px;height:13px;border-radius:50%;background:var(--color-absent);display:inline-block;"></span>ขาด</span><span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:13px;height:13px;border-radius:50%;background:var(--color-leave);display:inline-block;"></span>ลา</span><span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:13px;height:13px;border-radius:50%;background:#e5e5ea;display:inline-block;"></span>ไม่มีข้อมูล</span></span></div><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><div id="web-rep-term-heatmap-grid"></div></div></div>
+            </div>
+            <div id="web-rep-content-overall" class="web-rep-panel fade-in" style="display:none;">
+              <div class="report-grid-3col">
+                <div class="card" style="text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 12px;"><span style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;">Class Health Score</span><div style="position:relative;width:120px;height:120px;margin-bottom:12px;"><svg width="120" height="120" class="radial-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="var(--border-color)" stroke-width="8" fill="transparent"/><circle cx="50" cy="50" r="40" stroke="var(--tab-overall-accent)" stroke-width="8" fill="transparent" id="web-rep-overall-circle" class="radial-fill"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;"><span style="font-size:1.65rem;font-weight:800;" id="web-rep-overall-pct">0%</span></div></div><span class="warning-badge" id="web-rep-overall-health-badge" style="font-size:0.85rem;padding:6px 16px;border-radius:20px;font-weight:700;">ปกติ</span></div>
+                <div class="card" style="justify-content:center;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;">สถิติสะสม</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-absent);" id="web-rep-overall-absent">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">ขาดสะสม</div></div><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-late-text);" id="web-rep-overall-late">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">สายสะสม</div></div></div></div>
+                <div class="card" style="background:var(--tab-overall-bg);border-color:var(--tab-overall-accent);justify-content:center;"><div style="font-weight:700;color:var(--tab-overall-accent);font-size:1rem;margin-bottom:10px;"><i class="hgi-stroke hgi-alert-02"></i> วิเคราะห์ความเสี่ยง</div><div id="web-rep-overall-insights" style="font-size:0.85rem;line-height:1.6;"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div id="web-screen-settings" class="fade-in" style="display:none;">
+          <div class="settings-stack">
+
+            <!-- ข้อมูลส่วนตัว -->
+            <div class="settings-section">
+              <div class="settings-section-title">ข้อมูลส่วนตัว</div>
+              <div class="card settings-profile-card">
+                <div class="settings-avatar-wrap" onclick="document.getElementById('profile-upload').click()">
+                  <img src="logo.png" id="settings-profile-img" alt="Profile">
+                  <div class="settings-avatar-cam"><i class="hgi-stroke hgi-camera-01"></i></div>
+                </div>
+                <input type="file" id="profile-upload" accept="image/*" style="display:none;" onchange="handleProfileUpload(event)">
+                <div class="settings-profile-info">
+                  <label class="settings-field-label" for="settings-name-input">ชื่อที่แสดง</label>
+                  <input type="text" id="settings-name-input" class="form-control" placeholder="เช่น ครูสมชาย" onchange="saveTeacherName(this.value)">
+                  <div class="settings-email-row"><i class="hgi-stroke hgi-mail-01"></i> <span id="web-settings-profile-email">teacher@school.com</span></div>
+                  <span id="web-settings-profile-name" style="display:none;"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- บัญชีและความปลอดภัย -->
+            <div class="settings-section">
+              <div class="settings-section-title">บัญชีและความปลอดภัย</div>
+              <div class="card settings-list">
+                <div class="settings-row" onclick="openChangePasswordModal()">
+                  <span class="settings-row-label"><i class="hgi-stroke hgi-square-lock-02" style="color:var(--primary);"></i> เปลี่ยนรหัสผ่าน</span>
+                  <i class="hgi-stroke hgi-arrow-right-01 settings-row-arrow"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- จัดการข้อมูล -->
+            <div class="settings-section">
+              <div class="settings-section-title">จัดการข้อมูล</div>
+              <div class="card settings-list">
+                <div class="settings-row settings-row-danger" onclick="deleteAllDataEverywhere()">
+                  <span class="settings-row-label"><i class="hgi-stroke hgi-delete-02"></i> ล้างข้อมูลทั้งหมด (รีเซ็ต)</span>
+                  <i class="hgi-stroke hgi-arrow-right-01 settings-row-arrow"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- ออกจากระบบ -->
+            <div class="settings-section">
+              <div class="card settings-list">
+                <div class="settings-row settings-row-logout" onclick="logoutTeacher()">
+                  <span class="settings-row-label"><i class="hgi-stroke hgi-logout-03"></i> ออกจากระบบ</span>
+                  <i class="hgi-stroke hgi-arrow-right-01 settings-row-arrow"></i>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MOBILE BOTTOM NAV (visible on small screens only via CSS) -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+      <button class="mob-nav-btn active" data-screen="dashboard" onclick="navigateToWebScreen('dashboard')"><i class="hgi-stroke hgi-home-01"></i><span>หน้าหลัก</span></button>
+      <button class="mob-nav-btn" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
+      <button class="mob-nav-btn checkin-btn" data-screen="classrooms" onclick="mobileCheckinTap()"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
+      <button class="mob-nav-btn" data-screen="reports" onclick="navigateToWebScreen('reports')"><i class="hgi-stroke hgi-pie-chart"></i><span>รายงาน</span></button>
+      <button class="mob-nav-btn" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่า</span></button>
+    </nav>
+
+    <!-- ปุ่มคู่มือการใช้งาน (เล่นทัวร์สอนใช้งานซ้ำได้ทุกเมื่อ) -->
+    <button class="tour-fab" onclick="startMainTour()" aria-label="คู่มือการใช้งาน" title="คู่มือการใช้งาน"><i class="hgi-stroke hgi-help-circle"></i></button>
+
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- SWIPE ATTENDANCE OVERLAY (Full-Screen Check-in Mode)  -->
+  <!-- ===================================================== -->
+  <div id="swipe-overlay" class="swipe-overlay">
+    <!-- Tier 2: class card -->
+    <div class="swipe-class-card">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button class="btn-back" onclick="closeSwipeAttendance()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button>
+        <div>
+          <h3 id="swipe-class-title" style="font-size:1.25rem;font-weight:800;color:var(--text-main);line-height:1.2;display:flex;align-items:center;gap:8px;">วิชา</h3>
+          <span class="subtitle" id="swipe-class-meta" style="display:none;">0 คน</span>
+        </div>
+      </div>
+      <div class="header-actions" style="gap:8px;justify-content:flex-end;">
+        <div style="position:relative;">
+          <button class="btn" id="swipe-date-btn" style="background:var(--bg-card);border:1px solid var(--border-color);font-size:0.8rem;padding:6px 12px;display:flex;align-items:center;gap:6px;" onclick="toggleSwipeCalendar()">
+            <i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);"></i>
+            <span id="swipe-date-display">...</span>
+            <i class="hgi-stroke hgi-arrow-down-01" style="font-size:0.65rem;color:var(--text-muted);"></i>
+          </button>
+          <div id="swipe-calendar-popup" class="home-calendar-popup" style="display:none;top:42px;right:0;left:auto;z-index:200;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="swipe-compact-header">
+      <div class="swipe-summary-pills" id="swipe-summary-pills">
+        <div class="s-pill present"><span class="s-pill-num" id="swipe-cnt-present">0</span><span class="s-pill-label">มา</span></div>
+        <div class="s-pill late"><span class="s-pill-num" id="swipe-cnt-late">0</span><span class="s-pill-label">สาย</span></div>
+        <div class="s-pill absent"><span class="s-pill-num" id="swipe-cnt-absent">0</span><span class="s-pill-label">ขาด</span></div>
+        <div class="s-pill leave"><span class="s-pill-num" id="swipe-cnt-leave">0</span><span class="s-pill-label">ลา</span></div>
+      </div>
+      <div class="swipe-progress">
+        <div class="swipe-progress-bar"><div class="swipe-progress-fill" id="swipe-progress-fill"></div></div>
+        <div class="swipe-progress-actions">
+          <button class="swipe-mini-btn primary" onclick="setAllSwipePresent()"><i class="hgi-stroke hgi-tick-02"></i> มาทุกคน</button>
+          <span class="swipe-progress-checked">เช็คแล้ว <span id="swipe-checked-count">0</span> / <span id="swipe-total-count">0</span></span>
+          <button class="swipe-mini-btn danger" onclick="clearSwipeChecks()"><i class="hgi-stroke hgi-delete-02"></i> ล้างข้อมูล</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MOBILE VIEW (Swipe Cards) -->
+    <div id="swipe-mobile-view" class="mobile-only-flex" style="flex:1;flex-direction:column;overflow:hidden;">
+      <!-- SWIPE CARD AREA -->
+      <div class="swipe-card-area" id="swipe-card-area" style="flex:1;">
+        <div class="swipe-card" id="swipe-card"
+          onclick="onSwipeCardTap(event)"
+          ontouchstart="onSwipeTouchStart(event)"
+          ontouchmove="onSwipeTouchMove(event)"
+          ontouchend="onSwipeTouchEnd(event)">
+          <div class="swipe-card-header">
+            <span class="swipe-card-no" id="swipe-card-no"></span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="swipe-card-code" id="swipe-card-code"></span>
+              <button class="swipe-card-edit" id="swipe-card-edit" onclick="editCurrentSwipeStudent(event)" title="แก้ไขข้อมูลนักเรียน"><i class="hgi-stroke hgi-edit-02"></i></button>
+            </div>
+          </div>
+          <div class="swipe-card-divider"></div>
+          <div class="swipe-card-avatar" id="swipe-card-avatar"></div>
+          <div class="swipe-card-nick-label" id="swipe-card-nick-label">ชื่อเล่น</div>
+          <div class="swipe-card-name" id="swipe-card-name"></div>
+          <div class="swipe-card-stats" id="swipe-card-stats"></div>
+        </div>
+        <!-- Done state -->
+        <div class="swipe-done-state" id="swipe-done-state" style="display:none;">
+          <i class="hgi-stroke hgi-checkmark-circle-02" style="font-size:3rem;color:var(--primary);margin-bottom:12px;"></i>
+          <h3>เช็คชื่อครบทุกคนแล้ว!</h3>
+          <button class="btn btn-primary" style="margin-top:16px;padding:12px 24px;" onclick="saveSwipeAttendance()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกผลเข้าเรียน</button>
+        </div>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="swipe-action-buttons">
+        <button class="swipe-btn late" onclick="markSwipeStatus('late')"><i class="hgi-stroke hgi-clock-01"></i><span>สาย</span></button>
+        <button class="swipe-btn absent" onclick="markSwipeStatus('absent')"><i class="hgi-stroke hgi-cancel-01"></i><span>ขาด</span></button>
+        <button class="swipe-btn present" onclick="markSwipeStatus('present')"><i class="hgi-stroke hgi-tick-02"></i><span>มา</span></button>
+        <button class="swipe-btn leave" onclick="markSwipeStatus('leave')"><i class="hgi-stroke hgi-file-02"></i><span>ลา</span></button>
+        <button class="swipe-btn undo" onclick="undoSwipe()"><i class="hgi-stroke hgi-arrow-reload-horizontal"></i><span>ย้อน</span></button>
+      </div>
+    </div>
+
+    <!-- DESKTOP VIEW (Modern List) -->
+    <div id="swipe-desktop-view" class="desktop-only-flex" style="flex:1;flex-direction:column;overflow:hidden;padding:24px 32px;background:var(--bg-app);">
+      <div class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:none;">
+        <div style="padding:16px 24px;border-bottom:1px solid var(--border-color);background:var(--bg-card);display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:10px;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary);"></i> รายชื่อนักเรียน</h3>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:0.85rem;color:var(--text-muted);"><i class="hgi-stroke hgi-information-circle"></i> คลิกเลือกสถานะที่ต้องการ</span>
+            <button class="btn" style="padding:8px 14px;font-size:0.85rem;background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);display:inline-flex;align-items:center;gap:6px;" onclick="addStudentFromSwipe()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
+            <button class="btn" style="padding:8px 14px;font-size:0.85rem;background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;display:inline-flex;align-items:center;gap:6px;" onclick="importStudentsFromSwipe()"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้านักเรียน</button>
+          </div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:0;background:#fbfbfd;">
+          <!-- Header Row -->
+          <div class="d-student-header-row">
+            <div style="width:50px;text-align:center;">เลขที่</div>
+            <div style="width:90px;text-align:center;">รหัส</div>
+            <div style="flex:2;">ชื่อ-นามสกุล</div>
+            <div style="flex:3;text-align:center;">สถานะวันนี้</div>
+            <div style="flex:1.5;text-align:center;">ขาด/ลาสะสม</div>
+            <div style="flex:1.5;">หมายเหตุ</div>
+            <div style="width:84px;text-align:center;">จัดการ</div>
+          </div>
+          <div id="swipe-desktop-table-body" class="desktop-student-grid" style="padding: 0 16px 16px 16px;">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="modal-class" onclick="if(event.target===this) closeClassModal()"><div class="bottom-sheet"><div class="modal-header"><h3>เพิ่มวิชา/ห้องเรียน</h3><button class="btn btn-text" onclick="closeClassModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div class="form-group"><label for="input-subject-name">ชื่อวิชา</label><input type="text" id="input-subject-name" class="form-control" placeholder="เช่น วิทยาศาสตร์"></div><div class="form-group"><label for="input-class-name">ห้องเรียน</label><input type="text" id="input-class-name" class="form-control" placeholder="เช่น ม.1/2"></div><div class="form-group"><label>สีประจำห้อง</label><div id="class-color-picker" style="display:grid;grid-template-columns:repeat(15,1fr);gap:7px;width:100%;place-items:center;"></div></div><div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closeClassModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="btn-class-submit" onclick="saveClass()" style="flex:2;">เพิ่มห้องเรียน</button></div></div></div>
+
+  <div class="modal-overlay" id="modal-student" onclick="if(event.target===this) closeStudentModal()" style="z-index:9000;">
+    <div class="bottom-sheet" style="width:480px;max-width:95vw;">
+      <div class="modal-header"><h3 id="modal-student-title">เพิ่มนักเรียน</h3><button class="btn btn-text" onclick="closeStudentModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div class="form-group" style="margin-bottom:0;"><label for="input-student-no">เลขที่</label><input type="number" id="input-student-no" class="form-control" placeholder="เช่น 1" min="1"></div>
+        <div class="form-group" style="margin-bottom:0;"><label for="input-student-code">รหัสประจำตัว</label><input type="text" id="input-student-code" class="form-control" placeholder="เช่น 12345"></div>
+      </div>
+      <div class="form-group"><label for="input-student-name">ชื่อ-นามสกุล</label><input type="text" id="input-student-name" class="form-control" placeholder="เช่น นายสมเกียรติ รักเรียน"></div>
+      <div class="form-group"><label for="input-student-nickname">ชื่อเล่น <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ)</span></label><input type="text" id="input-student-nickname" class="form-control" placeholder="ไม่บังคับ"></div>
+      <div class="form-group"><label for="input-student-comment">หมายเหตุ <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ)</span></label><textarea id="input-student-comment" class="form-control" rows="2" placeholder="บันทึกของครู..."></textarea></div>
+      <div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closeStudentModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="btn-student-submit" onclick="saveStudent()" style="flex:2;">เพิ่ม</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-direct-excel" onclick="if(event.target===this) closeDirectExcelModal()" style="z-index:9000;">
+    <div class="bottom-sheet">
+      <div class="modal-header">
+        <h3><i class="hgi-stroke hgi-google-sheet" style="color:var(--primary);"></i> นำเข้าจาก Excel</h3>
+        <button class="btn btn-text" onclick="closeDirectExcelModal()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">ลากไฟล์ .xlsx หรือ .csv มาวางในกรอบด้านล่างนี้ได้เลย หรือคลิกเพื่อเลือกไฟล์ ระบบจะดึงรายชื่อเข้าห้องเรียนนี้ทันที</p>
+
+      <div style="background:var(--primary-light);border:1px solid var(--primary-light-border);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:0.82rem;color:var(--text-main);">ไม่รู้ว่าไฟล์ต้องมีคอลัมน์อะไร? โหลดเทมเพลตไปกรอกได้เลย</span>
+        <button class="btn" onclick="downloadStudentsTemplate()" style="font-size:0.82rem;padding:8px 14px;background:var(--bg-card);border:1px solid var(--primary-light-border);color:var(--primary);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+          <i class="hgi-stroke hgi-file-download"></i> ดาวน์โหลดเทมเพลต (.xlsx)
+        </button>
+      </div>
+
+      <div id="direct-excel-dropzone" class="card dropzone" style="border:2px dashed var(--border-color);text-align:center;padding:40px;cursor:pointer;background-color:var(--bg-light);transition:all 0.2s ease;" onclick="document.getElementById('direct-class-excel-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleExcelDrop(event, 'direct-class-excel-input')">
+        <i class="hgi-stroke hgi-cloud-upload" style="font-size:3rem;color:var(--primary);margin-bottom:16px;pointer-events:none;"></i>
+        <div style="font-size:1.1rem;font-weight:700;pointer-events:none;">ลากไฟล์มาวางที่นี่</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;pointer-events:none;">หรือคลิกเพื่อเลือกไฟล์จากเครื่อง (.xlsx, .csv)</div>
+      </div>
+      
+      <div style="display:flex;gap:10px;margin-top:24px;">
+        <button class="btn" onclick="closeDirectExcelModal()" style="width:100%;">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- นำเข้าตารางสอนจาก Excel (ย้ายมาจากเมนู Excel Import เดิม) -->
+  <div class="modal-overlay" id="modal-timetable-import" onclick="if(event.target===this) closeTimetableImport()" style="z-index:9000;">
+    <div class="bottom-sheet" style="width:640px;max-width:95vw;max-height:90vh;overflow-y:auto;">
+      <div class="modal-header">
+        <h3><i class="hgi-stroke hgi-calendar-add-01" style="color:var(--primary);"></i> นำเข้าตารางสอนจาก Excel</h3>
+        <button class="btn btn-text" onclick="closeTimetableImport()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">อัปโหลดไฟล์ตารางสอน (.xlsx / .csv) แล้วจับคู่คอลัมน์ วัน/คาบ/ห้องเรียน/วิชา ระบบจะสร้างคาบเรียนให้อัตโนมัติ</p>
+
+      <div style="background:var(--primary-light);border:1px solid var(--primary-light-border);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <span style="font-size:0.82rem;color:var(--text-main);">ไม่รู้ว่าไฟล์ต้องมีคอลัมน์อะไร? โหลดเทมเพลตไปกรอกได้เลย</span>
+        <button class="btn" onclick="downloadTimetableTemplate()" style="font-size:0.82rem;padding:8px 14px;background:var(--bg-card);border:1px solid var(--primary-light-border);color:var(--primary);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
+          <i class="hgi-stroke hgi-file-download"></i> ดาวน์โหลดเทมเพลต (.xlsx)
+        </button>
+      </div>
+
+      <div id="dropzone-excel-timetable" class="card dropzone" style="border:2px dashed var(--border-color);text-align:center;padding:40px;cursor:pointer;background-color:var(--bg-light);transition:all 0.2s ease;" onclick="document.getElementById('web-excel-timetable-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleExcelDrop(event, 'web-excel-timetable-input')">
+        <input type="file" id="web-excel-timetable-input" style="display:none;" accept=".xlsx,.xls,.csv" onchange="handleExcelTimetableUpload(event)">
+        <i class="hgi-stroke hgi-cloud-upload" style="font-size:3rem;color:var(--primary);margin-bottom:16px;pointer-events:none;"></i>
+        <div style="font-size:1.1rem;font-weight:700;pointer-events:none;">ลากไฟล์ตารางสอนมาวางที่นี่</div>
+        <div style="font-size:0.8rem;color:var(--text-muted);margin-top:8px;pointer-events:none;">หรือคลิกเพื่อเลือกไฟล์จากเครื่อง (.xlsx, .csv)</div>
+      </div>
+
+      <div id="excel-timetable-mapping-area" class="card" style="display:none;margin-top:20px;">
+        <div class="card-title"><i class="hgi-stroke hgi-exchange-01" style="color:var(--primary)"></i> จับคู่คอลัมน์ตารางสอน</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin:16px 0;">
+          <div class="form-group"><label for="map-table-day">วัน</label><select id="map-table-day" class="form-control" style="appearance:auto;"></select></div>
+          <div class="form-group"><label for="map-table-period">คาบ</label><select id="map-table-period" class="form-control" style="appearance:auto;"></select></div>
+          <div class="form-group"><label for="map-table-class">ห้องเรียน</label><select id="map-table-class" class="form-control" style="appearance:auto;"></select></div>
+          <div class="form-group"><label for="map-table-subject">วิชา</label><select id="map-table-subject" class="form-control" style="appearance:auto;"></select></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;border-top:1px solid var(--border-color);padding-top:20px;"><button class="btn btn-primary" onclick="confirmTimetableExcelImport()"><i class="hgi-stroke hgi-tick-02"></i> ยืนยันสร้างตาราง</button></div>
+        <div style="margin-top:20px;overflow-x:auto;"><h4 style="margin-bottom:8px;">Preview:</h4><table class="web-table" id="excel-timetable-preview-table" style="font-size:0.8rem;"></table></div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:24px;">
+        <button class="btn" onclick="closeTimetableImport()" style="width:100%;">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WELCOME / ONBOARDING (เด้งเฉพาะครั้งแรกที่ยังไม่มีห้อง) -->
+  <div class="modal-overlay" id="modal-welcome" style="z-index:12050;">
+    <div class="bottom-sheet" style="width:420px;max-width:95vw;text-align:center;">
+      <img src="logo.png" class="welcome-hero" alt="ClassKru">
+      <h3 style="font-size:1.35rem;font-weight:800;margin:0 0 8px;">ยินดีต้อนรับสู่ ClassKru 🎉</h3>
+      <p style="font-size:0.92rem;color:var(--text-muted);line-height:1.7;margin:0 0 8px;">มาลองตั้งค่าห้องแรกกันใน <b style="color:var(--text-main);">3 ขั้นง่ายๆ</b><br>ใช้เวลาไม่ถึง 2 นาที เดี๋ยวพาทำทีละขั้น</p>
+      <div style="background:var(--primary-light);border:1px solid var(--primary-light-border);border-radius:12px;padding:10px 14px;margin:12px 0 20px;font-size:0.82rem;color:var(--primary);font-weight:600;">
+        <i class="hgi-stroke hgi-idea-01"></i> อยากเช็คชื่อเลย? ไม่ต้องทำตารางสอนก่อนก็ได้
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-primary" onclick="startMainTour()" style="width:100%;padding:14px;font-weight:700;"><i class="hgi-stroke hgi-rocket-01"></i> เริ่มเลย พาทำทีละขั้น</button>
+        <button class="btn" onclick="skipOnboarding()" style="width:100%;color:var(--text-muted);">ข้ามไปก่อน</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OCR SCAN MODAL -->
+  <div class="modal-overlay" id="modal-ocr-scan" onclick="if(event.target===this) closeOcrModal()" style="z-index:660;">
+    <div class="bottom-sheet" style="width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;">
+      <div class="modal-header">
+        <h3><i class="hgi-stroke hgi-camera-01" style="color:var(--primary);"></i> สแกนรายชื่อจากรูปภาพ</h3>
+        <button class="btn btn-text" onclick="closeOcrModal()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px;">ถ่ายรูปหรืออัปโหลดรูปภาพรายชื่อนักเรียน (เอกสาร, กระดาษ, หน้าจอ) ระบบจะสแกนและแยกชื่อ-นามสกุลให้อัตโนมัติ</p>
+      <div id="ocr-step-upload">
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+          <button class="btn btn-primary" style="flex:1;padding:12px;" onclick="document.getElementById('ocr-camera-input').click()"><i class="hgi-stroke hgi-camera-01"></i> ถ่ายรูป</button>
+          <button class="btn" style="flex:1;padding:12px;border:1px solid var(--border-color);" onclick="document.getElementById('ocr-file-input').click()"><i class="hgi-stroke hgi-image-01"></i> เลือกรูปภาพ</button>
+        </div>
+        <input type="file" id="ocr-camera-input" accept="image/*" capture="environment" style="display:none;" onchange="handleOcrImageSelect(event)">
+        <input type="file" id="ocr-file-input" accept="image/*" style="display:none;" onchange="handleOcrImageSelect(event)">
+        <div id="ocr-preview-area" style="display:none;margin-bottom:16px;">
+          <img id="ocr-preview-img" style="width:100%;border-radius:12px;border:1px solid var(--border-color);">
+        </div>
+      </div>
+      <div id="ocr-step-processing" style="display:none;text-align:center;padding:40px 20px;">
+        <div style="width:60px;height:60px;border:4px solid var(--border-color);border-top-color:var(--primary);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;"></div>
+        <p style="font-weight:700;font-size:1rem;margin-bottom:8px;">กำลังสแกนข้อความ...</p>
+        <p style="font-size:0.85rem;color:var(--text-muted);" id="ocr-progress-text">เตรียมตัว...</p>
+        <div style="width:100%;background:var(--border-color);border-radius:4px;height:6px;margin-top:16px;overflow:hidden;">
+          <div id="ocr-progress-bar" style="width:0%;height:100%;background:var(--primary);border-radius:4px;transition:width 0.3s;"></div>
+        </div>
+      </div>
+      <div id="ocr-step-results" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-weight:700;"><i class="hgi-stroke hgi-task-01" style="color:var(--primary);"></i> พบรายชื่อ <span id="ocr-found-count">0</span> คน</span>
+          <button class="btn" style="padding:4px 10px;font-size:0.75rem;" onclick="ocrSelectAll()"><i class="hgi-stroke hgi-tick-double-01"></i> เลือกทั้งหมด</button>
+        </div>
+        <div id="ocr-names-list" style="max-height:300px;overflow-y:auto;border:1px solid var(--border-color);border-radius:10px;padding:8px;"></div>
+        <div style="display:flex;gap:10px;margin-top:20px;">
+          <button class="btn" onclick="resetOcrModal()" style="flex:1;"><i class="hgi-stroke hgi-arrow-reload-horizontal"></i> สแกนใหม่</button>
+          <button class="btn btn-primary" onclick="confirmOcrImport()" style="flex:2;"><i class="hgi-stroke hgi-tick-02"></i> นำเข้ารายชื่อที่เลือก</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;" id="ocr-close-btn">
+        <button class="btn" onclick="closeOcrModal()" style="width:100%;">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-change-password" onclick="if(event.target===this) closeChangePasswordModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:420px;max-width:95vw;"><div class="modal-header"><h3>เปลี่ยนรหัสผ่าน</h3><button class="btn btn-text" onclick="closeChangePasswordModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
+    <div class="form-group"><label for="cp-new">รหัสผ่านใหม่</label><input type="password" id="cp-new" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="new-password"></div>
+    <div class="form-group"><label for="cp-confirm">ยืนยันรหัสผ่านใหม่</label><input type="password" id="cp-confirm" class="form-control" placeholder="พิมพ์อีกครั้ง" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitChangePassword()"></div>
+    <div id="cp-status" style="font-size:0.85rem;font-weight:600;min-height:16px;text-align:center;margin-bottom:8px;"></div>
+    <div style="display:flex;gap:10px;"><button class="btn" onclick="closeChangePasswordModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="cp-submit" onclick="submitChangePassword()" style="flex:2;"><i class="hgi-stroke hgi-tick-02"></i> บันทึกรหัสใหม่</button></div>
+  </div></div>
+
+  <div class="modal-overlay" id="modal-period" onclick="if(event.target===this) closePeriodModal()"><div class="bottom-sheet"><div class="modal-header"><h3 id="modal-period-title">แก้ไขคาบเรียน</h3><button class="btn btn-text" onclick="closePeriodModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;" id="modal-period-info">วันจันทร์ · คาบ 5</div><div class="form-group"><label for="input-period-subject">วิชา</label><select id="input-period-subject" class="form-control" style="appearance:auto;" onchange="filterPeriodClassBySubject()"><option value="">-- เลือก --</option></select></div><div class="form-group"><label for="input-period-class">ห้อง</label><select id="input-period-class" class="form-control" style="appearance:auto;"><option value="">-- เลือก --</option></select></div><div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closePeriodModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-danger" id="btn-period-delete" onclick="deletePeriodSlot()" style="flex:1;display:none;">ลบ</button><button class="btn btn-primary" onclick="savePeriodSlot()" style="flex:2;">บันทึก</button></div></div></div>
+
+  <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;max-width:95vw;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;"><div style="padding:10px;border-radius:10px;background:var(--color-present-bg);color:var(--color-present);text-align:center;"><strong style="font-size:1.25rem;" id="student-detail-present">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">มา</span></div><div style="padding:10px;border-radius:10px;background:var(--color-late-bg);color:var(--color-late-text);text-align:center;"><strong style="font-size:1.25rem;" id="student-detail-late">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">สาย</span></div><div style="padding:10px;border-radius:10px;background:var(--color-absent-bg);color:var(--color-absent);text-align:center;"><strong style="font-size:1.25rem;" id="student-detail-absent">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">ขาด</span></div><div style="padding:10px;border-radius:10px;background:var(--color-leave-bg);color:var(--color-leave);text-align:center;"><strong style="font-size:1.25rem;" id="student-detail-leave">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">ลา</span></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+  <div class="form-group" style="margin:0;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">เลขที่</label><input id="student-detail-no" type="number" class="form-control" style="font-size:0.9rem;padding:8px 10px;" min="1"></div>
+  <div class="form-group" style="margin:0;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">รหัสประจำตัว</label><input id="student-detail-code" type="text" class="form-control" style="font-size:0.9rem;padding:8px 10px;" placeholder="เช่น 12345"></div>
+</div>
+<div class="form-group" style="margin-bottom:10px;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">ชื่อ-นามสกุล</label><input id="student-detail-fullname" type="text" class="form-control" style="font-size:0.9rem;padding:8px 10px;"></div>
+<div class="form-group" style="margin-bottom:12px;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">ชื่อเล่น</label><input id="student-detail-nickname" type="text" class="form-control" style="font-size:0.9rem;padding:8px 10px;" placeholder="ไม่บังคับ"></div>
+<div class="form-group"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);" for="student-detail-comment">หมายเหตุ</label><textarea id="student-detail-comment" class="form-control" style="height:56px;font-size:0.85rem;" placeholder="บันทึกของครู..."></textarea></div>
+<div style="display:flex;gap:10px;margin-top:20px;"><button class="btn" style="flex:1;" onclick="closeStudentDetailModal()">ยกเลิก</button><button class="btn btn-primary" style="flex:2;" onclick="saveStudentDetailChanges()">บันทึก</button></div></div></div>
+
+  <!-- PERIOD SETTINGS MODAL -->
+  <div class="modal-overlay" id="modal-period-settings" onclick="if(event.target===this) closePeriodSettings()">
+    <div class="bottom-sheet" style="width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;">
+      <div class="modal-header">
+        <h3><i class="hgi-stroke hgi-clock-01" style="color:var(--primary);"></i> ตั้งค่าคาบเรียน</h3>
+        <button class="btn btn-text" onclick="closePeriodSettings()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+
+      <div class="form-group">
+        <label for="ps-start-time">เวลาเริ่มคาบแรก</label>
+        <input type="time" id="ps-start-time" class="form-control" value="08:30" oninput="renderPeriodPreview()">
+      </div>
+
+      <div class="form-group">
+        <label>ความยาวแต่ละคาบ (นาที)</label>
+        <div class="ps-chip-group">
+          <button class="ps-chip ps-dur-chip" data-val="45" onclick="selectPsDuration(45,this)">45 นาที</button>
+          <button class="ps-chip ps-dur-chip active" data-val="50" onclick="selectPsDuration(50,this)">50 นาที</button>
+          <button class="ps-chip ps-dur-chip" data-val="55" onclick="selectPsDuration(55,this)">55 นาที</button>
+          <button class="ps-chip ps-dur-chip" data-val="60" onclick="selectPsDuration(60,this)">60 นาที</button>
+          <button class="ps-chip ps-dur-chip" data-val="custom" onclick="selectPsDuration('custom',this)">กำหนดเอง</button>
+        </div>
+        <div id="ps-custom-dur-wrap" style="display:none;align-items:center;gap:8px;margin-top:10px;">
+          <input type="number" id="ps-custom-dur" class="form-control" style="width:90px;" min="10" max="120" value="50" oninput="renderPeriodPreview()">
+          <span style="font-size:0.82rem;color:var(--text-muted);"> นาที</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>พักระหว่างคาบ (นาที)</label>
+        <div class="ps-chip-group">
+          <button class="ps-chip ps-brk-chip active" data-val="0" onclick="selectPsBreak(0,this)">ไม่มี</button>
+          <button class="ps-chip ps-brk-chip" data-val="5" onclick="selectPsBreak(5,this)">5 นาที</button>
+          <button class="ps-chip ps-brk-chip" data-val="10" onclick="selectPsBreak(10,this)">10 นาที</button>
+          <button class="ps-chip ps-brk-chip" data-val="15" onclick="selectPsBreak(15,this)">15 นาที</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>จำนวนคาบต่อวัน</label>
+        <div class="ps-count-control">
+          <button class="ps-count-btn" onclick="adjustPsCount(-1)">−</button>
+          <input type="number" id="ps-count" class="ps-count-input" min="1" max="16" value="7" oninput="renderPeriodPreview()">
+          <button class="ps-count-btn plus" onclick="adjustPsCount(1)">+</button>
+        </div>
+      </div>
+
+      <div class="ps-preview-box">
+        <div style="font-size:0.78rem;font-weight:800;color:var(--primary);margin-bottom:10px;letter-spacing:0.3px;display:flex;align-items:center;gap:6px;"><i class="hgi-stroke hgi-clock-01"></i> ตัวอย่างเวลาคาบ</div>
+        <div id="ps-preview"></div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:20px;">
+        <button class="btn" style="flex:1;" onclick="closePeriodSettings()">ยกเลิก</button>
+        <button class="btn btn-primary" style="flex:2;" onclick="savePeriodSettings()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Hidden file input for direct class Excel import -->
+  <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
+
+  <script defer src="app.js?v=73"></script>
+</body>
+</html>

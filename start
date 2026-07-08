@@ -1,0 +1,29 @@
+#!/bin/sh
+# ใช้: ./start "ชื่องานที่จะทำวันนี้"
+# ตัวอย่าง: ./start "เพิ่มหน้ารายงานรายเดือน"
+
+if [ -z "$1" ]; then
+  echo "❌ ต้องใส่ชื่องาน"
+  echo "   ตัวอย่าง: ./start \"เพิ่มหน้ารายงานรายเดือน\""
+  exit 1
+fi
+
+# ตรวจว่ายังมีงานค้างอยู่ไหม
+CURRENT=$(git branch --show-current)
+if [ "$CURRENT" != "main" ]; then
+  echo "⚠️  ยังอยู่ branch '$CURRENT' อยู่"
+  echo "   รัน ./done ก่อน ถ้างานเดิมเสร็จแล้ว"
+  echo "   หรือ 'git checkout main' ถ้าจะทิ้งงานเดิม"
+  exit 1
+fi
+
+# สร้างชื่อ branch จากวันที่ + ชื่องาน (ภาษาไทยได้)
+DATE=$(date +%m%d)
+SLUG=$(echo "$1" | tr ' ' '-')
+BRANCH="work/${DATE}-${SLUG}"
+
+git checkout -b "$BRANCH" 2>/dev/null
+echo ""
+echo "✅ เริ่มงาน: $1"
+echo "   branch: $BRANCH"
+echo "   แก้ไฟล์ได้เลย → commit → ./done เมื่อเสร็จ"

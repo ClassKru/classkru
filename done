@@ -1,0 +1,32 @@
+#!/bin/sh
+# ใช้: ./done
+# merge branch ปัจจุบันกลับ main แล้ว deploy อัตโนมัติ
+
+CURRENT=$(git branch --show-current)
+
+if [ "$CURRENT" = "main" ]; then
+  echo "⚠️  อยู่ที่ main อยู่แล้ว ไม่มีอะไรให้ merge"
+  exit 0
+fi
+
+# ถ้ายังมีไฟล์ที่ยังไม่ commit
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "⚠️  ยังมีไฟล์ที่ยังไม่ได้ commit:"
+  git status -s
+  echo ""
+  echo "   commit ก่อนด้วย: git add . && git commit -m \"...\""
+  exit 1
+fi
+
+echo "🔀 Merge '$CURRENT' → main..."
+git checkout main 2>/dev/null
+git merge --no-ff "$CURRENT" -m "merge: $CURRENT
+
+Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
+
+# ลบ branch ที่ทำเสร็จแล้ว
+git branch -d "$CURRENT"
+
+echo ""
+echo "✅ งานเสร็จ + merge แล้ว"
+echo "   🚀 Deploy กำลังทำงาน... (จาก post-commit hook)"
