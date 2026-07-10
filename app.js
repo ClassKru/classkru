@@ -169,7 +169,8 @@ function onLoginSuccess(email) {
   // เช็ค onboarding หลัง sync cloud เสร็จ (กันเข้าใจผิดว่าไม่มีห้องทั้งที่ cloud มีข้อมูล)
   syncBackgroundCloud(email).finally(() => maybeStartOnboarding());
   updateHeaderDate();
-  navigateToWebScreen('dashboard');
+  // เข้าหน้าตาม deep-link ถ้ามี (เช่นเปิดจาก LINE OA มาที่ #reports) ไม่งั้นหน้าหลัก
+  navigateToWebScreen(pendingDeepLink || 'dashboard');
 
   setInterval(() => {
     const activeEmail = localStorage.getItem('classmanager_email');
@@ -380,10 +381,36 @@ async function submitChangePassword() {
   setTimeout(closeChangePasswordModal, 900);
 }
 
+// ==================== URL ROUTING (#hash) — รองรับ LINE OA ลิงก์เข้าหน้าตรงๆ ====================
+// หน้าที่ลิงก์เข้าได้จาก URL เช่น classkru-kohl.vercel.app/#reports
+const ROUTABLE_SCREENS = ['dashboard','classrooms','students','timetable','attendance','reports','settings'];
+
+// อ่านชื่อหน้าจาก URL hash เช่น "#reports" → "reports" (คืน null ถ้าไม่มี/ไม่ถูกต้อง)
+function getScreenFromHash() {
+  const raw = (location.hash || '').replace(/^#/, '').trim();
+  return ROUTABLE_SCREENS.includes(raw) ? raw : null;
+}
+
+// หน้าที่ผู้ใช้ "ลิงก์เข้ามา" ตอนเปิดแอป (เช่นจาก LINE OA) — อ่านครั้งเดียวตอนโหลด
+// ใช้ให้ deep-link ชนะ activeWebScreen ที่ค้างใน cloud state ตอน sync ครั้งแรก
+// จะถูกล้างเป็น null ทันทีที่ผู้ใช้เปลี่ยนไปหน้าอื่นเอง (กัน sync กระตุกกลับ)
+let pendingDeepLink = getScreenFromHash();
+
+// LINE OA แตะเมนูซ้ำ / กดปุ่ม back ของเบราว์เซอร์ → เปลี่ยนหน้าตาม hash
+window.addEventListener('hashchange', () => {
+  const mainApp = document.getElementById('main-app');
+  if (!mainApp || mainApp.style.display === 'none') return; // ยังไม่ล็อกอิน ไม่ต้องทำอะไร
+  const screen = getScreenFromHash();
+  if (screen && screen !== appState.activeWebScreen) navigateToWebScreen(screen);
+});
+
 // ==================== NAVIGATION ====================
 function navigateToWebScreen(screenId) {
   // เมนู 'excel' ถูกตัดออกแล้ว (นำเข้าตารางสอนย้ายไปหน้าตารางสอน) — กัน state เก่าที่ค้าง
   if (screenId === 'excel') screenId = 'timetable';
+
+  // ผู้ใช้เปลี่ยนไปหน้าอื่นที่ไม่ใช่ deep-link แล้ว → ยกเลิก deep-link (กัน sync ดึงกลับ)
+  if (pendingDeepLink && screenId !== pendingDeepLink) pendingDeepLink = null;
 
   // ถ้ากำลังอยู่หน้าเช็คชื่อ (overlay) แล้วกดเมนู sidebar → ปิด overlay ก่อน
   const swipeOverlay = document.getElementById('swipe-overlay');
@@ -393,6 +420,10 @@ function navigateToWebScreen(screenId) {
 
   appState.activeWebScreen = screenId;
   saveStateLocalOnly(false);
+
+  // อัปเดต URL hash ให้ตรงหน้า (แชร์ลิงก์ได้ / กด back ได้ / LINE OA ลิงก์ตรง)
+  // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
+  if (location.hash !== '#' + screenId) location.hash = screenId;
 
   const screens = ['dashboard','classrooms','students','timetable','attendance','reports','settings'];
   screens.forEach(s => {
@@ -3065,7 +3096,8 @@ async function syncBackgroundCloud(email) {
         appState = cloudState;
         saveStateLocalOnly(false);
         updateProfileImages();
-        navigateToWebScreen(appState.activeWebScreen || 'dashboard');
+        // deep-link (LINE OA) ชนะ activeWebScreen ที่ค้างใน cloud — แต่ถ้าผู้ใช้เปลี่ยนหน้าเองแล้ว pendingDeepLink=null
+        navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard');
       } else if (localModified > cloudModified) {
         await pushStateToCloudDirectly(email, appState);
       }
