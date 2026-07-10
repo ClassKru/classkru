@@ -3478,6 +3478,7 @@ const Tour = {
       ? `<button class="btn btn-primary" style="padding:8px 18px;font-size:0.85rem;" onclick="Tour.next()">${last ? 'เสร็จสิ้น' : 'ถัดไป'}</button>`
       : `<button style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;text-decoration:underline;" onclick="Tour.next()">ข้ามขั้นนี้ →</button>`;
     const hint = gated ? '<span style="font-size:0.78rem;color:var(--primary);font-weight:700;"><i class="hgi-stroke hgi-cursor-magic-selection-02"></i> ทำตามขั้นตอนได้เลย</span>' : '';
+    const backBtn = this.i > 0 ? `<button onclick="Tour.prev()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:3px;"><i class="hgi-stroke hgi-arrow-left-01"></i> ย้อนกลับ</button>` : '<span></span>';
     bubble.innerHTML =
       `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <span style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">ขั้นที่ ${n}/${total}</span>
@@ -3485,7 +3486,8 @@ const Tour = {
       </div>` +
       (step.title ? `<div style="font-weight:800;font-size:1rem;margin-bottom:6px;color:var(--text-main);">${step.title}</div>` : '') +
       `<div style="font-size:0.87rem;color:var(--text-main);line-height:1.65;">${body}</div>` +
-      `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;">${hint}<div style="margin-left:auto;">${advBtn}</div></div>`;
+      (hint ? `<div style="margin-top:12px;">${hint}</div>` : '') +
+      `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;">${backBtn}<div style="margin-left:auto;">${advBtn}</div></div>`;
     bubble.style.display = 'block';
     const bw = bubble.offsetWidth, bh = bubble.offsetHeight, W = window.innerWidth, H = window.innerHeight, m = 12;
     let bx, by;
@@ -3526,6 +3528,12 @@ const Tour = {
     if (step && step.advance === 'action:' + name) setTimeout(() => this.next(), 400);
   },
 
+  prev() {
+    if (this.i <= 0) return;
+    this.i -= 2; // next() จะ +1 → กลับไปขั้นก่อนหน้า
+    this.next();
+  },
+
   skip() { this.end(false); },
 
   end(completed) {
@@ -3558,18 +3566,22 @@ const MAIN_TOUR_STEPS = [
   { target: '[onclick="addStudentFromSwipe()"]', title: 'เพิ่มรายชื่อนักเรียน',
     body: 'เพิ่มนักเรียนได้ 2 แบบ: <b>พิมพ์เอง</b> ทีละคน หรือ <b>นำเข้าจาก Excel</b> — ลองเพิ่มสัก 1 คนดู',
     advance: 'action:student-added' },
-  // ลองเช็คจริง 1 คน (มือถือ) — เน้นว่า "แตะปุ่ม = เช็คชื่อ"
-  { target: '.swipe-action-buttons', title: 'ลองเช็คชื่อดู!', mobileOnly: true, before: ensureCheckinOpen,
-    body: 'แตะปุ่มด้านล่างเพื่อบันทึกสถานะของนักเรียนที่แสดงบนการ์ด<br>(<b style="color:var(--color-present)">มา</b> / สาย / ขาด / ลา)<br><br>👇 <b>ลองเช็คสัก 1 คน</b> — พอเป็นแล้วที่เหลือง่ายมาก!',
-    advance: 'action:attendance-marked' },
-  // ลองเช็คจริง 1 คน (คอม)
-  { target: '.d-col-status', title: 'ลองเช็คชื่อดู!', desktopOnly: true, before: ensureCheckinOpen,
-    body: 'กดปุ่มสถานะในแถวของนักเรียน (<b style="color:var(--color-present)">มา</b> / สาย / ขาด / ลา) เพื่อบันทึกการเข้าเรียน<br><br>👉 <b>ลองเช็คสัก 1 คน</b> — พอเป็นแล้วที่เหลือง่ายมาก!',
-    advance: 'action:attendance-marked' },
+  // วิธีเช็คชื่อ (มือถือ) แบบ 1: ปัดการ์ด — ไฮไลต์การ์ด + สัญลักษณ์ทิศ (ไม่บังคับเช็คจริง)
+  { target: '#swipe-card', title: 'วิธีที่ 1: ปัดการ์ด', mobileOnly: true, before: ensureCheckinOpen,
+    body: 'ปัดหรือแตะการ์ดของนักเรียนที่แสดงอยู่:<div style="display:flex;justify-content:space-around;text-align:center;margin-top:14px;font-weight:800;font-size:0.82rem;"><div style="color:var(--color-leave)"><div style="font-size:1.6rem;line-height:1">←</div>ปัดซ้าย<br>ลา</div><div style="color:var(--color-present)"><div style="font-size:1.6rem;line-height:1">👆</div>แตะ<br>มา</div><div style="color:var(--color-absent)"><div style="font-size:1.6rem;line-height:1">→</div>ปัดขวา<br>ขาด</div></div>' },
+  // วิธีเช็คชื่อ (มือถือ) แบบ 2: ปุ่มด้านล่าง — ไฮไลต์ (วงๆ) ที่แถบปุ่ม
+  { target: '.swipe-action-buttons', title: 'วิธีที่ 2: กดปุ่มด้านล่าง', mobileOnly: true, before: ensureCheckinOpen,
+    body: 'ไม่ถนัดปัด? กดปุ่มเหล่านี้เพื่อเลือกสถานะได้เลย:<br><b style="color:var(--color-present)">มา</b> · <b style="color:var(--color-late-text)">สาย</b> · <b style="color:var(--color-absent)">ขาด</b> · <b style="color:var(--color-leave)">ลา</b><br>ปุ่ม “ย้อน” ไว้แก้ถ้ากดพลาด' },
+  // วิธีเช็คชื่อ (คอม) — แค่อธิบาย ไม่บังคับเช็คจริง
+  { target: '.d-col-status', title: 'วิธีเช็คชื่อ', desktopOnly: true, before: ensureCheckinOpen,
+    body: 'แต่ละแถวมีปุ่มสถานะ กดเพื่อบันทึกการเข้าเรียนของนักเรียน:<br><b style="color:var(--color-present)">มา</b> / สาย / ขาด / ลา' },
   // สอนลงตารางสอนเอง (คอม) — แตะช่องในตาราง แล้วเลือกวิชา/ห้องที่เพิ่งสร้าง
   { nav: 'timetable', target: '#web-timetable-matrix-container td[onclick^="openPeriodModal"]', title: 'ลงตารางสอน (ไม่บังคับ)', desktopOnly: true,
     body: 'แตะช่องในตารางเพื่อลงคาบสอน แล้วเลือก<b>วิชา/ห้อง</b>ที่คุณเพิ่งสร้าง<br><br>ลงไว้แล้วหน้าแรกจะ<b>เตือนคาบถัดไป</b>ให้อัตโนมัติ · ยังไม่พร้อมก็ข้ามได้',
     advance: 'action:period-added' },
+  // แนะนำปุ่มลัดบนหน้าตาราง (Week A/B + จัดการคาบ) — แค่ให้รู้จัก เดี๋ยวครูกลับมาปรับเองทีหลัง
+  { target: '#tt-desktop-controls', title: 'ปุ่มลัดบนหน้าตาราง', desktopOnly: true,
+    body: 'รู้จักไว้นิดหน่อย เดี๋ยวกลับมาปรับทีหลังได้:<br>• <b>Week A / B</b> — สลับตารางสัปดาห์คู่/คี่ (ถ้าโรงเรียนใช้ระบบนี้)<br>• <b>จัดการคาบ</b> — ตั้งเวลาเริ่ม จำนวนคาบ และเวลาพัก' },
   // ตารางสอน (มือถือ) — หน้ามือถือดูอย่างเดียว ลงคาบทำบนคอม
   { nav: 'timetable', title: 'ตารางสอน (ไม่บังคับ)', mobileOnly: true,
     body: 'ถ้าลงตารางสอนไว้ หน้าแรกจะ<b>เตือนคาบถัดไป</b>ให้อัตโนมัติ<br><br>💡 แนะนำจัดตารางบน<b>คอมพิวเตอร์</b> (แตะช่องลงคาบได้ง่ายกว่า) · ยังไม่พร้อมก็ข้ามได้ เช็คชื่อได้เลย' },
