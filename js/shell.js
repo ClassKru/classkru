@@ -42,7 +42,7 @@ function navigateToWebScreen(screenId) {
   // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
   if (location.hash !== '#' + screenId) location.hash = screenId;
 
-  const screens = ['dashboard','classrooms','students','timetable','attendance','reports','settings'];
+  const screens = ['dashboard','classrooms','students','timetable','attendance','scores','reports','settings'];
   screens.forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = s === screenId ? 'block' : 'none';
@@ -66,6 +66,7 @@ function navigateToWebScreen(screenId) {
     students: ['จัดการรายชื่อเด็ก', 'เพิ่ม ลบ แก้ไข ย้ายห้อง'],
     timetable: ['ตารางสอนสัปดาห์', 'กำหนดคาบเรียนรองรับ Week A/B'],
     attendance: ['Attendance Matrix', 'ประวัติเข้าเรียนรายคาบ'],
+    scores: ['เก็บคะแนน', 'กรอกคะแนน รวมผล ตัดเกรดอัตโนมัติ'],
     reports: ['รายงานวิเคราะห์ผล', 'สถิติเชิงลึกรายห้องเรียน'],
     settings: ['ตั้งค่าระบบ', 'จัดการผู้ใช้งาน & รีเซ็ต']
   };
@@ -80,6 +81,7 @@ function navigateToWebScreen(screenId) {
   else if (screenId === 'students') renderWebStudents();
   else if (screenId === 'timetable') renderWebTimetable();
   else if (screenId === 'attendance') loadWebAttendanceMatrix();
+  else if (screenId === 'scores') renderWebScores();
   else if (screenId === 'reports') renderWebReports();
 }
 
