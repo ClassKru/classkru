@@ -79,11 +79,8 @@ function openRandomNameTool() {
     ov.onclick = (e) => { if (e.target === ov) closeRandomName(); };
     document.body.appendChild(ov);
   }
-  ov.innerHTML = `<div class="bottom-sheet rn-sheet">
-      <div class="modal-header">
-        <h3><i class="hgi-stroke hgi-shuffle" style="color:var(--primary);margin-right:6px;"></i>สุ่มรายชื่อ</h3>
-        <button class="btn btn-text" onclick="closeRandomName()"><i class="hgi-stroke hgi-cancel-01"></i></button>
-      </div>
+  ov.innerHTML = `<div class="rn-fullscreen">
+      <button class="rn-close" onclick="closeRandomName()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
       <div class="rn-seg-wrap">
         <button class="rn-seg on" data-mode="all" onclick="_rnSetMode('all')">ทั้งห้อง <b id="rn-count-all">0</b></button>
         <button class="rn-seg" data-mode="present" onclick="_rnSetMode('present')">เฉพาะคนมา <b id="rn-count-present">0</b></button>
@@ -91,10 +88,13 @@ function openRandomNameTool() {
       <div class="rn-stage">
         <div class="rn-reveal-no" id="rn-reveal-no">–</div>
         <div class="rn-reveal-name" id="rn-reveal-name">กดสุ่มเลย</div>
+        <div class="rn-reveal-full" id="rn-reveal-full"></div>
         <div class="rn-hint" id="rn-hint">เลขที่ · ชื่อ จะเด้งขึ้นตรงนี้</div>
       </div>
-      <button class="btn btn-primary rn-spin" id="rn-spin" onclick="_rnSpin()"><i class="hgi-stroke hgi-shuffle"></i> สุ่ม</button>
-      <label class="rn-nodup-row"><input type="checkbox" id="rn-nodup" checked> สุ่มไม่ซ้ำ (จนครบห้องแล้วเริ่มใหม่)</label>
+      <div class="rn-controls">
+        <button class="btn btn-primary rn-spin" id="rn-spin" onclick="_rnSpin()"><i class="hgi-stroke hgi-shuffle"></i> สุ่ม</button>
+        <label class="rn-nodup-row"><input type="checkbox" id="rn-nodup" checked> สุ่มไม่ซ้ำ (จนครบห้องแล้วเริ่มใหม่)</label>
+      </div>
     </div>`;
   ov.classList.add('show');
   _rnRenderCounts();
@@ -131,13 +131,19 @@ function _rnSpin() {
   const spin = document.getElementById('rn-spin');
   const noEl = document.getElementById('rn-reveal-no');
   const nameEl = document.getElementById('rn-reveal-name');
+  const fullEl = document.getElementById('rn-reveal-full');
   const ticks = 16;
   let i = 0;
   spin.disabled = true; spin.style.opacity = '.6';
   const step = () => {
     const r = pool[Math.floor(Math.random() * pool.length)];
+    // โชว์ชื่อเล่น ถ้าไม่มีใช้ชื่อจริงคำแรก (เหมือนการ์ดเช็คชื่อ) + ชื่อเต็มตัวรอง
+    const nick = (r.nickname || '').trim();
+    const firstName = (r.name || '').trim().split(/\s+/)[0] || '';
+    const display = nick || firstName || '(ไม่มีชื่อ)';
     noEl.textContent = (r.no !== null && r.no !== undefined && r.no !== '') ? r.no : '–';
-    nameEl.textContent = r.name || '(ไม่มีชื่อ)';
+    nameEl.textContent = display;
+    if (fullEl) fullEl.textContent = (r.name && r.name !== display) ? r.name : '';
     i++;
     if (i >= ticks) {
       spin.disabled = false; spin.style.opacity = '1';

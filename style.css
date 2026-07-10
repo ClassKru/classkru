@@ -2063,19 +2063,29 @@ body {
 .tint-pink   { background: #FBEAF0; color: #993556; }
 .tint-gray   { background: #F1EFE8; color: #5F5E5A; }
 
-/* สุ่มรายชื่อ */
-.rn-sheet { width: 380px; max-width: 100%; }
-.rn-seg-wrap { display: flex; gap: 6px; background: var(--bg-app, #f5f7fa); padding: 4px; border-radius: 12px; margin-bottom: 18px; }
-.rn-seg { flex: 1; border: none; background: transparent; border-radius: 9px; padding: 9px 0; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+/* สุ่มรายชื่อ — เต็มจอ (โชว์นักเรียนหน้าชั้น/โปรเจกเตอร์) */
+.rn-fullscreen {
+  position: relative; width: 100%; height: 100%; min-height: 100dvh; background: var(--bg-card);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 28px;
+}
+.rn-close {
+  position: absolute; top: 18px; right: 18px; width: 46px; height: 46px; border-radius: 50%;
+  border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-muted);
+  font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.rn-seg-wrap { display: flex; gap: 6px; background: var(--bg-app, #f5f7fa); padding: 4px; border-radius: 12px; width: min(440px, 92%); }
+.rn-seg { flex: 1; border: none; background: transparent; border-radius: 9px; padding: 10px 0; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit; }
 .rn-seg.on { background: var(--primary); color: #fff; }
 .rn-seg b { opacity: .8; font-weight: 700; margin-left: 2px; }
-.rn-stage { background: var(--primary-light); border-radius: 14px; padding: 26px 16px; text-align: center; margin-bottom: 16px; }
+.rn-stage { text-align: center; }
 .rn-reveal-no {
-  width: 62px; height: 62px; margin: 0 auto 12px; border-radius: 50%; background: var(--primary);
-  color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800;
+  width: 96px; height: 96px; margin: 0 auto 22px; border-radius: 50%; background: var(--primary);
+  color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: 800;
 }
-.rn-reveal-name { font-size: 1.5rem; font-weight: 800; color: var(--primary-hover); min-height: 34px; line-height: 1.2; }
-.rn-hint { font-size: 0.75rem; color: var(--primary); margin-top: 6px; min-height: 18px; }
-.rn-spin { width: 100%; font-size: 1.05rem; padding: 14px 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-.rn-nodup-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer; }
-.rn-nodup-row input { width: 16px; height: 16px; accent-color: var(--primary); }
+.rn-reveal-name { font-size: clamp(2.6rem, 9vw, 5.5rem); font-weight: 800; color: var(--primary-hover); line-height: 1.05; }
+.rn-reveal-full { font-size: clamp(1rem, 3vw, 1.6rem); color: var(--text-muted); margin-top: 10px; min-height: 26px; }
+.rn-hint { font-size: 0.9rem; color: var(--primary); margin-top: 16px; min-height: 20px; }
+.rn-controls { display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(440px, 92%); }
+.rn-spin { width: 100%; font-size: 1.3rem; padding: 18px 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.rn-nodup-row { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text-muted); cursor: pointer; }
+.rn-nodup-row input { width: 18px; height: 18px; accent-color: var(--primary); }
