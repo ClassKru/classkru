@@ -3,8 +3,9 @@
 เอกสารนี้บอกว่า **ใครดูแลไฟล์ไหน** เพื่อให้หลายคนทำงานพร้อมกันได้โดยไม่ชนกัน
 อ่านให้จบก่อนเริ่มแก้โค้ดครั้งแรก
 
-> **หมายเหตุ:** โครงไฟล์ด้านล่างเป็นเป้าหมายหลัง "แยกไฟล์" (เฟส 2) เสร็จ
-> ระหว่างที่ยังไม่แยก โค้ดทั้งหมดอยู่ใน `app.js` / `style.css` / `index.html`
+> **สถานะ:** แยกไฟล์ JS เสร็จแล้ว (เฟส 2) — โค้ดอยู่ในโฟลเดอร์ `js/`
+> การแยกทำแบบ "byte-identical" (ต่อไฟล์ทั้งหมดกลับ = `app.js` เดิมเป๊ะ) → พฤติกรรมไม่เปลี่ยน
+> **สำคัญ:** `js/core.js` ต้องโหลดก่อนเสมอ (มีตัวแปร/ค่าคงที่รวมที่ไฟล์อื่นใช้)
 
 ---
 
@@ -19,27 +20,33 @@
 
 ---
 
-## 📁 ไฟล์ JavaScript
+## 📁 ไฟล์ JavaScript (โฟลเดอร์ `js/`) — โหลดเรียงตามนี้
 
 | ไฟล์ | คุมอะไร | เจ้าของหลัก |
 |---|---|---|
-| `shared.js` 🔒 | state, Supabase client, sync cloud, `showToast`, `showConfirm`, utils กลาง | **ร่วม** (Supakit เป็นหัวหน้าไฟล์) |
-| `auth.js` | login overlay, login flow, session, `onAuthStateChange` | **Supakit** |
-| `app-shell.js` 🔒 | `navigateToWebScreen`, sidebar / bottom-nav, header, routing `#hash` | **ร่วม** (Supakit คุม) |
-| `dashboard.js` | หน้าหลัก, ปฏิทิน | เดฟใหม่ |
-| `classrooms.js` | ห้องเรียนวิชาสอน | เดฟใหม่ |
-| `students.js` | จัดการรายชื่อเด็ก, mapping | เดฟใหม่ |
-| `timetable.js` | ตารางสอน, นำเข้าตารางสอน | เดฟใหม่ |
-| `attendance.js` | เช็คชื่อ / swipe / attendance matrix | เดฟใหม่ |
-| `reports.js` | รายงานวิเคราะห์ผล (weekly/term/overall) | เดฟใหม่ |
-| `settings.js` | ตั้งค่าระบบ, จัดการผู้ใช้ | เดฟใหม่ |
+| `js/core.js` 🔒 | ตัวแปร/ค่าคงที่รวม (`appState`, วันเดือน, สีการ์ด), Supabase config, boot (`DOMContentLoaded`) | **ร่วม** (Supakit คุม) — **โหลดก่อนเสมอ** |
+| `js/auth.js` 🔒 | login / signup / google, เปลี่ยนรหัสผ่าน, โปรไฟล์, `onLoginSuccess` (+ util วันที่) | **Supakit** |
+| `js/shell.js` 🔒 | routing `#hash` (`getScreenFromHash`, `navigateToWebScreen`), นำเข้าตารางสอน (เปิด/ปิด) | **ร่วม** (Supakit คุม) |
+| `js/dashboard.js` | หน้าหลัก + ปฏิทิน | เดฟใหม่ |
+| `js/classrooms.js` | ห้องเรียนวิชาสอน | เดฟใหม่ |
+| `js/students.js` | จัดการรายชื่อเด็ก | เดฟใหม่ |
+| `js/timetable.js` | ตารางสอน + ตั้งค่าคาบ | เดฟใหม่ |
+| `js/reports.js` | รายงาน (today/weekly/term/overall) + นำเข้า/ส่งออก Excel + mapping | เดฟใหม่ |
+| `js/attendance.js` | เช็คชื่อ / swipe / attendance matrix (+ `showToast`/`showConfirm` shared UI) | เดฟใหม่ |
+| `js/shared-utils.js` 🔒 | modal ห้อง/เด็ก, color picker, ลบข้อมูล, `initAppState`, sync cloud, logout | **ร่วม** (Supakit คุม) |
+| `js/extras.js` | OCR สแกนรายชื่อ, `isMobileView`, onboarding tour | เดฟใหม่ |
+
+> **หมายเหตุความไม่บริสุทธิ์:** การแยกทำแบบ byte-identical (ไม่สลับลำดับโค้ด เพื่อความปลอดภัยสูงสุด)
+> จึงมี util ร่วมบางตัวติดอยู่ในไฟล์ที่ไม่ตรงหน้าที่เป๊ะ เช่น `showToast`/`showConfirm` อยู่ใน `attendance.js`
+> ถ้าจะแตะพวกนี้ให้ถือเป็น "ของร่วม" (ทักก่อน) แม้จะอยู่ในไฟล์ของเดฟ
 
 ## 🎨 ไฟล์ CSS
 
 | ไฟล์ | คุมอะไร | เจ้าของหลัก |
 |---|---|---|
-| `base.css` 🔒 | ตัวแปรสี (`--primary`...), reset, layout, ปุ่ม/การ์ดร่วม | **ร่วม** (Supakit คุม) |
-| `screens.css` | สไตล์เฉพาะแต่ละหน้า | **เดฟใหม่ (งานตกแต่ง)** |
+| `style.css` 🔒 | สไตล์ทั้งหมด (ยังไม่แยก — รอเฟส 2b) | **ร่วม — ทักก่อนแก้** |
+
+> การแยก CSS (`base.css` + `screens.css`) จะทำเป็น PR แยกทีหลัง
 
 ## 📄 ไฟล์ HTML
 
@@ -51,11 +58,13 @@
 
 ## 🔒 ไฟล์ร่วม = ต้องทักก่อนแตะ
 
-มีแค่ 4 ไฟล์นี้เท่านั้น:
+ไฟล์เหล่านี้เท่านั้น:
 
-- `shared.js`
-- `app-shell.js`
-- `base.css`
+- `js/core.js`
+- `js/auth.js`
+- `js/shell.js`
+- `js/shared-utils.js`
+- `style.css`
 - `index.html`
 
 ที่เหลือ **ต่างคนต่างลุยได้เลย** ไม่ต้องรอกัน
