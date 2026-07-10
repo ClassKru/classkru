@@ -1620,6 +1620,61 @@ body {
 .d-status-btn.late { border-color: var(--color-late); background: var(--color-late-bg); color: var(--color-late-text); box-shadow: 0 2px 6px rgba(210,160,40,0.22), inset 0 1px 0 rgba(255,255,255,0.5); }
 
 /* ========================================== */
+/* ===  ตารางคะแนน (เข้าชุดกับตารางรายชื่อ) === */
+/* ========================================== */
+.score-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.9rem; }
+.score-matrix-table th, .score-matrix-table td { padding: 11px 10px; }
+.score-matrix-table thead th {
+  font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
+  background: #fafbfc; border-bottom: 1px solid var(--border-color); white-space: nowrap;
+}
+.score-matrix-table thead .sc-bucket-head {
+  color: var(--primary); background: var(--primary-light);
+  border-bottom: 1px solid var(--primary-light-border); font-size: 0.82rem;
+}
+.score-matrix-table .sc-item-head { cursor: pointer; transition: var(--transition-normal); }
+.score-matrix-table .sc-item-head:hover { background: var(--primary-light); color: var(--primary); }
+.score-matrix-table tbody td { border-bottom: 1px solid var(--border-color); }
+.score-matrix-table tbody tr:last-child td { border-bottom: none; }
+.score-matrix-table tbody tr { transition: var(--transition-normal); }
+.score-matrix-table tbody tr:hover td { background: #f7faf9; }
+
+/* คอลัมน์ชื่อ (ตรึงซ้าย) — โทนเดียวกับ .d-col-name */
+.score-matrix-table .sc-sticky {
+  position: sticky; left: 0; z-index: 2; background: var(--bg-card);
+  text-align: left; font-weight: 700; color: var(--text-main); font-size: 0.92rem; white-space: nowrap;
+}
+.score-matrix-table tbody tr:hover .sc-sticky { background: #f7faf9; }
+.score-matrix-table .sc-sticky .sc-no { color: var(--text-muted); font-weight: 400; margin-right: 4px; }
+
+/* อินพุตคะแนน — ลอกจาก .d-code-input */
+.score-cell-input {
+  width: 58px; text-align: center; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border-color); border-radius: 8px; padding: 7px 4px;
+  font-size: 0.88rem; font-weight: 600; color: var(--text-main); background: #fbfbfd;
+  transition: var(--transition-normal);
+}
+.score-cell-input::placeholder { color: #c7c7cc; }
+.score-cell-input:hover { border-color: #d1d1d6; background: #fff; }
+.score-cell-input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px var(--primary-light); }
+
+/* คอลัมน์สรุป */
+.score-matrix-table .sc-total { text-align: center; font-weight: 800; font-size: 0.98rem; color: var(--text-main); background: var(--primary-light); }
+.score-matrix-table .sc-att { text-align: center; font-weight: 700; font-size: 0.84rem; }
+.score-matrix-table .sc-grade { text-align: center; white-space: nowrap; }
+.sc-grade-val { font-weight: 800; font-size: 0.98rem; margin-right: 6px; }
+.sc-ov-tag { font-size: 0.62rem; color: var(--color-late-text); font-weight: 700; }
+
+/* select เกรด — เข้าชุด ไม่ใช้ default OS */
+.score-grade-sel {
+  border: 1px solid var(--border-color); border-radius: 8px; padding: 5px 8px;
+  font-size: 0.78rem; font-weight: 600; color: var(--text-main); background: #fff;
+  cursor: pointer; transition: var(--transition-normal);
+}
+.score-grade-sel:hover { border-color: #d1d1d6; }
+.score-grade-sel:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+/* ========================================== */
 /* ===  PERIOD SETTINGS MODAL  ============= */
 /* ========================================== */
 

@@ -180,30 +180,30 @@ function renderScoreMatrix(c) {
   }
 
   // แถวหัว 2 ชั้น: ชั้นบน = ช่อง (bucket) + น้ำหนัก, ชั้นล่าง = รายการ
-  let head1 = '<tr><th class="sc-sticky" rowspan="2" style="min-width:150px;text-align:left;">นักเรียน</th>';
+  let head1 = '<tr><th class="sc-sticky" rowspan="2" style="min-width:160px;">นักเรียน</th>';
   let head2 = '<tr>';
   groups.forEach(g => {
     const w = Number(sc.config.ratio[g.b.key]) || 0;
-    head1 += `<th colspan="${g.items.length}" style="text-align:center;background:#f6f7fb;">${g.b.label} <span style="font-weight:400;font-size:0.7rem;color:var(--text-muted);">(${w}%)</span></th>`;
+    head1 += `<th class="sc-bucket-head" colspan="${g.items.length}">${g.b.label} <span style="font-weight:400;">${w}%</span></th>`;
     g.items.forEach(it => {
-      head2 += `<th style="text-align:center;min-width:64px;cursor:pointer;" title="แก้ไขรายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">
-        <div style="font-size:0.72rem;font-weight:700;white-space:nowrap;">${escapeScore(it.name)}</div>
-        <div style="font-size:0.66rem;color:var(--text-muted);font-weight:400;">/${it.max}</div>
+      head2 += `<th class="sc-item-head" style="text-align:center;min-width:66px;" title="แก้ไขรายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">
+        <div style="white-space:nowrap;">${escapeScore(it.name)}</div>
+        <div style="font-weight:400;color:var(--text-muted);">เต็ม ${it.max}</div>
       </th>`;
     });
   });
-  head1 += `<th rowspan="2" style="text-align:center;min-width:66px;background:#eef2ff;">รวม<div style="font-size:0.66rem;font-weight:400;">(100)</div></th>
-    <th rowspan="2" style="text-align:center;min-width:64px;">เวลาเรียน</th>
-    <th rowspan="2" style="text-align:center;min-width:118px;">เกรด</th></tr>`;
+  head1 += `<th rowspan="2" style="text-align:center;min-width:74px;">รวม<div style="font-weight:400;font-size:0.66rem;">(100)</div></th>
+    <th rowspan="2" style="text-align:center;min-width:70px;">เวลาเรียน</th>
+    <th rowspan="2" style="text-align:center;min-width:132px;">เกรด</th></tr>`;
   head2 += '</tr>';
 
   let body = '<tbody>';
   c.students.forEach(s => {
-    body += `<tr><td class="sc-sticky" style="text-align:left;font-weight:700;font-size:0.82rem;white-space:nowrap;"><span style="color:var(--text-muted);font-weight:400;">${s.no || '-'}.</span> ${escapeScore(s.name)}</td>`;
+    body += `<tr><td class="sc-sticky"><span class="sc-no">${s.no || '-'}.</span>${escapeScore(s.name)}</td>`;
     groups.forEach(g => {
       g.items.forEach(it => {
         const v = (sc.marks[it.id] || {})[s.id];
-        body += `<td style="text-align:center;padding:2px;"><input type="number" class="score-cell-input" value="${v === undefined || v === null ? '' : v}" min="0" max="${it.max}" step="0.5"
+        body += `<td style="text-align:center;"><input type="number" class="score-cell-input" value="${v === undefined || v === null ? '' : v}" min="0" max="${it.max}" step="0.5" placeholder="–"
           onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this.value)"></td>`;
       });
     });
@@ -212,7 +212,7 @@ function renderScoreMatrix(c) {
   });
   body += '</tbody>';
 
-  wrap.innerHTML = `<table class="score-matrix-table">${head1}${head2}${body}</table>`;
+  wrap.innerHTML = `<table class="score-matrix-table"><thead>${head1}${head2}</thead>${body}</table>`;
 }
 
 // เซลล์สรุปท้ายแถว (รวม / เวลาเรียน / เกรด) — id ต่อคน เพื่ออัปเดตแบบไม่ re-render ทั้งตาราง
@@ -222,9 +222,9 @@ function scoreSummaryCells(c, s) {
   const attMin = c.scores.config.attendanceMin;
   const attTxt = att === null ? '-' : `${att}%`;
   const isMs = att !== null && att < attMin;
-  return `<td id="sc-total-${s.id}" style="text-align:center;font-weight:800;background:#f7f9ff;">${r.total}</td>
-    <td id="sc-att-${s.id}" style="text-align:center;font-size:0.8rem;font-weight:700;color:${isMs ? 'var(--color-absent)' : 'var(--text-main)'};">${attTxt}${isMs ? ' <span style="font-size:0.66rem;">(มส.)</span>' : ''}</td>
-    <td id="sc-grade-${s.id}" style="text-align:center;">${gradeCellHtml(c, s)}</td>`;
+  return `<td id="sc-total-${s.id}" class="sc-total">${r.total}</td>
+    <td id="sc-att-${s.id}" class="sc-att" style="color:${isMs ? 'var(--color-absent)' : 'var(--text-main)'};">${attTxt}${isMs ? ' <span style="font-size:0.66rem;">(มส.)</span>' : ''}</td>
+    <td id="sc-grade-${s.id}" class="sc-grade">${gradeCellHtml(c, s)}</td>`;
 }
 
 function gradeCellHtml(c, s) {
@@ -233,9 +233,9 @@ function gradeCellHtml(c, s) {
   const eff = ov || auto;
   let opts = `<option value="">อัตโนมัติ (${auto})</option>`;
   SCORE_GRADES.forEach(g => { opts += `<option value="${g}" ${ov === g ? 'selected' : ''}>${g}</option>`; });
-  const ovMark = ov ? ' <span style="font-size:0.62rem;color:var(--color-late-text);">แก้แล้ว</span>' : '';
-  return `<span style="font-weight:800;font-size:0.95rem;margin-right:6px;">${eff}</span>${ovMark}
-    <select class="score-grade-sel" onchange="setGradeOverride('${c.id}','${s.id}',this.value)" style="font-size:0.72rem;padding:2px 4px;">${opts}</select>`;
+  const ovMark = ov ? ' <span class="sc-ov-tag">แก้แล้ว</span>' : '';
+  return `<span class="sc-grade-val">${eff}</span>${ovMark}
+    <select class="score-grade-sel" onchange="setGradeOverride('${c.id}','${s.id}',this.value)">${opts}</select>`;
 }
 
 // อัปเดตเฉพาะเซลล์สรุปของนักเรียนคนเดียว (กันเสียโฟกัส/ตำแหน่ง scroll)
