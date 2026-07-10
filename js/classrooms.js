@@ -21,9 +21,12 @@ function renderWebClassrooms() {
           <span class="subtitle ck-class-sub" style="display:block;">${c.className} · <span style="font-weight:700;color:var(--text-main);">${c.students.length}</span> คน</span>
         </div>
       </div>
-      <div style="padding:0 18px 14px;text-align:center;">
-        <button class="btn ck-checkin-btn" style="display:inline-flex;padding:10px 40px;font-size:0.9rem;justify-content:center;border-radius:var(--radius-sm);background:${col.text};color:#fff;border:none;font-weight:700;" onclick="openSwipeAttendance('${c.id}')">
+      <div style="padding:0 18px 14px;display:flex;gap:8px;">
+        <button class="btn ck-checkin-btn ck-cardaction-btn" style="flex:1;display:inline-flex;align-items:center;gap:6px;padding:10px 12px;font-size:0.9rem;justify-content:center;border-radius:var(--radius-sm);background:${col.text};color:#fff;border:1.5px solid ${col.text};font-weight:700;" onclick="openSwipeAttendance('${c.id}')">
           <i class="hgi-stroke hgi-task-done-01"></i> เช็คชื่อ
+        </button>
+        <button class="btn ck-cardaction-btn" style="flex:1;display:inline-flex;align-items:center;gap:6px;padding:10px 12px;font-size:0.9rem;justify-content:center;border-radius:var(--radius-sm);background:#fff;color:${col.text};border:1.5px solid ${col.text};font-weight:700;" onclick="openClassScores('${c.id}')">
+          <i class="hgi-stroke hgi-award-01"></i> คะแนน
         </button>
       </div>
       <div class="desktop-only-flex" style="gap:1px;border-top:1px solid var(--border-color);">

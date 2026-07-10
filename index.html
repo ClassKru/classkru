@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="style.css?v=83">
+  <link rel="stylesheet" href="style.css?v=89">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -303,6 +303,18 @@
           </div>
         </div>
 
+        <!-- SCORES (เก็บคะแนน) -->
+        <div id="web-screen-scores" class="fade-in" style="display:none;">
+          <div id="web-scores-selection-view">
+            <div class="card" style="margin-bottom:20px;"><div class="card-title" style="font-size:1.15rem;"><i class="hgi-stroke hgi-award-01" style="color:var(--primary)"></i> เก็บคะแนน</div><p class="subtitle">เลือกวิชาเพื่อกรอกคะแนนและตัดเกรด</p></div>
+            <div id="web-scores-class-list" class="class-cards-grid"></div>
+          </div>
+          <div id="web-scores-detail-view" style="display:none;">
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button><button class="btn btn-primary" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreItemModal(scoreCurrentClassId,null)"><i class="hgi-stroke hgi-plus-sign"></i> เพิ่มรายการคะแนน</button></div></div></div>
+            <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
+          </div>
+        </div>
+
         <!-- SETTINGS -->
         <div id="web-screen-settings" class="fade-in" style="display:none;">
           <div class="settings-stack">
@@ -497,6 +509,40 @@
   </div>
 
   <!-- MODALS -->
+  <div class="modal-overlay" id="modal-score-item" onclick="if(event.target===this) closeScoreItemModal()" style="z-index:9000;">
+    <div class="bottom-sheet" style="width:460px;max-width:95vw;">
+      <div class="modal-header"><h3>เพิ่มรายการคะแนน</h3><button class="btn btn-text" onclick="closeScoreItemModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
+      <div class="form-group"><label for="input-score-name">ชื่อรายการ</label><input type="text" id="input-score-name" class="form-control" placeholder="เช่น ใบงานที่ 1, Quiz บทที่ 2"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div class="form-group" style="margin-bottom:0;"><label for="input-score-bucket">ช่องคะแนน (ปพ.5)</label><select id="input-score-bucket" class="form-control"></select></div>
+        <div class="form-group" style="margin-bottom:0;"><label for="input-score-type">ประเภท</label><select id="input-score-type" class="form-control"></select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div class="form-group" style="margin-bottom:0;"><label for="input-score-max">คะแนนเต็ม</label><input type="number" id="input-score-max" class="form-control" placeholder="เช่น 10" min="1" step="0.5"></div>
+        <div class="form-group" style="margin-bottom:0;"><label for="input-score-date">วันที่ <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ)</span></label><input type="date" id="input-score-date" class="form-control"></div>
+      </div>
+      <div class="form-group"><label for="input-score-note">หมายเหตุ <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ)</span></label><input type="text" id="input-score-note" class="form-control" placeholder="บันทึกของครู..."></div>
+      <div style="display:flex;gap:10px;margin-top:20px;"><button class="btn btn-danger" id="btn-score-item-delete" onclick="deleteScoreItem()" style="display:none;"><i class="hgi-stroke hgi-delete-02"></i> ลบ</button><button class="btn" onclick="closeScoreItemModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="btn-score-item-submit" onclick="saveScoreItem()" style="flex:2;">เพิ่ม</button></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-score-settings" onclick="if(event.target===this) closeScoreSettingsModal()" style="z-index:9000;">
+    <div class="bottom-sheet" style="width:480px;max-width:95vw;">
+      <div class="modal-header"><h3>ตั้งค่าคะแนน &amp; เกรด</h3><button class="btn btn-text" onclick="closeScoreSettingsModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
+      <div class="form-group"><label style="display:flex;justify-content:space-between;align-items:center;">สัดส่วนคะแนน (ปพ.5) <span id="ratio-sum-label" style="font-size:0.8rem;font-weight:800;">รวม 100%</span></label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">ก่อนกลางภาค</span><input type="number" id="input-ratio-before" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">กลางภาค</span><input type="number" id="input-ratio-mid" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">หลังกลางภาค</span><input type="number" id="input-ratio-after" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">ปลายภาค</span><input type="number" id="input-ratio-final" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
+        </div>
+      </div>
+      <div class="form-group"><label>เกณฑ์ตัดเกรด (คะแนนขั้นต่ำของแต่ละเกรด)</label><div id="grade-cut-inputs" style="display:flex;flex-direction:column;gap:7px;"></div></div>
+      <div class="form-group"><label for="input-att-min">เวลาเรียนขั้นต่ำ (ต่ำกว่านี้ = มส.)</label><div style="display:flex;align-items:center;gap:8px;"><input type="number" id="input-att-min" class="form-control" style="width:90px;" min="0" max="100"><span style="font-size:0.85rem;color:var(--text-muted);">%</span></div></div>
+      <div style="display:flex;gap:10px;margin-top:20px;"><button class="btn" onclick="closeScoreSettingsModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" onclick="saveScoreSettings()" style="flex:2;">บันทึก</button></div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modal-class" onclick="if(event.target===this) closeClassModal()"><div class="bottom-sheet"><div class="modal-header"><h3>เพิ่มวิชา/ห้องเรียน</h3><button class="btn btn-text" onclick="closeClassModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div class="form-group"><label for="input-subject-name">ชื่อวิชา</label><input type="text" id="input-subject-name" class="form-control" placeholder="เช่น วิทยาศาสตร์"></div><div class="form-group"><label for="input-class-name">ห้องเรียน</label><input type="text" id="input-class-name" class="form-control" placeholder="เช่น ม.1/2"></div><div class="form-group"><label>สีประจำห้อง</label><div id="class-color-picker" style="display:grid;grid-template-columns:repeat(15,1fr);gap:7px;width:100%;place-items:center;"></div></div><div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closeClassModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="btn-class-submit" onclick="saveClass()" style="flex:2;">เพิ่มห้องเรียน</button></div></div></div>
 
   <div class="modal-overlay" id="modal-student" onclick="if(event.target===this) closeStudentModal()" style="z-index:9000;">
@@ -722,17 +768,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=83"></script>
-  <script defer src="js/auth.js?v=83"></script>
-  <script defer src="js/shell.js?v=83"></script>
-  <script defer src="js/dashboard.js?v=83"></script>
-  <script defer src="js/classrooms.js?v=83"></script>
-  <script defer src="js/students.js?v=83"></script>
-  <script defer src="js/timetable.js?v=83"></script>
-  <script defer src="js/reports.js?v=83"></script>
-  <script defer src="js/attendance.js?v=83"></script>
-  <script defer src="js/tools.js?v=83"></script>
-  <script defer src="js/shared-utils.js?v=83"></script>
-  <script defer src="js/extras.js?v=83"></script>
+  <script defer src="js/core.js?v=89"></script>
+  <script defer src="js/auth.js?v=89"></script>
+  <script defer src="js/shell.js?v=89"></script>
+  <script defer src="js/dashboard.js?v=89"></script>
+  <script defer src="js/classrooms.js?v=89"></script>
+  <script defer src="js/students.js?v=89"></script>
+  <script defer src="js/timetable.js?v=89"></script>
+  <script defer src="js/reports.js?v=89"></script>
+  <script defer src="js/attendance.js?v=89"></script>
+  <script defer src="js/scores.js?v=89"></script>
+  <script defer src="js/tools.js?v=89"></script>
+  <script defer src="js/shared-utils.js?v=89"></script>
+  <script defer src="js/extras.js?v=89"></script>
 </body>
 </html>
