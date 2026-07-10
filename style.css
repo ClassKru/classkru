@@ -15,8 +15,10 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
 .tour-mask { position: fixed; background: rgba(17,24,39,0.58); z-index: 12000; transition: all 0.2s ease; }
 .tour-ring { position: fixed; z-index: 12001; border-radius: 12px; box-shadow: 0 0 0 3px var(--primary), 0 0 0 7px rgba(29,158,117,0.28); pointer-events: none; transition: all 0.2s ease; }
 .tour-bubble { position: fixed; z-index: 12002; width: 300px; max-width: calc(100vw - 24px); background: var(--bg-card); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.28); padding: 16px 18px; }
-.tour-fab { position: fixed; bottom: 90px; right: 20px; z-index: 900; width: 46px; height: 46px; border-radius: 50%; background: var(--primary); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.2); cursor: pointer; }
+.tour-fab { position: fixed; bottom: 90px; right: 20px; z-index: 900; width: 46px; height: 46px; border-radius: 50%; background: var(--primary); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.2); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
 @media (min-width: 769px) { .tour-fab { bottom: 24px; right: 24px; } }
+.tour-fab:hover { animation: fab-bounce 0.7s ease infinite; box-shadow: 0 8px 22px rgba(29,158,117,0.4); }
+@keyframes fab-bounce { 0%, 100% { transform: translateY(0) scale(1.06); } 35% { transform: translateY(-7px) scale(1.06); } 65% { transform: translateY(-2px) scale(1.06); } }
 .welcome-hero { width: 96px; height: auto; margin: 0 auto 4px; display: block; }
 
 :root {
@@ -1259,6 +1261,46 @@ body {
 }
 
 .swipe-card.dragging { transition: none; cursor: grabbing; }
+
+/* ไกด์ถาวรบนการ์ด (บอกว่าปัด/แตะได้) */
+.swipe-card-guide {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-color);
+  width: 100%;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ป้ายข้อความบอกทิศตอนลากการ์ด (guideline ตอนปัด) — ใช้ child element เลี่ยงชน ::after เดิม */
+.swipe-hint-badge {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) scale(0.8);
+  padding: 7px 16px;
+  border-radius: 24px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  opacity: 0;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+.swipe-hint-badge.right {
+  right: 14px;
+  background: var(--color-absent-bg);
+  color: var(--color-absent);
+  border: 2px solid var(--color-absent);
+}
+.swipe-hint-badge.left {
+  left: 14px;
+  background: var(--color-leave-bg);
+  color: var(--color-leave);
+  border: 2px solid var(--color-leave);
+}
+.swipe-card.hint-right .swipe-hint-badge.right { opacity: 1; transform: translateY(-50%) scale(1); }
+.swipe-card.hint-left .swipe-hint-badge.left { opacity: 1; transform: translateY(-50%) scale(1); }
 
 .swipe-card.swipe-out-right {
   transition: transform 0.35s ease, opacity 0.35s ease;

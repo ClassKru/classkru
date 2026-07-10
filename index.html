@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<!-- CI test: GitHub -> Vercel auto-deploy verified 2026-07-10 -->
 <html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="style.css?v=73">
+  <link rel="stylesheet" href="style.css?v=78">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -211,7 +210,7 @@
                   <div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary)"></i> ตารางสอนประจำสัปดาห์</div>
                   <p class="subtitle" style="margin-top:4px;">กำหนดคาบเรียน รองรับ Week A/B</p>
                 </div>
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <div id="tt-desktop-controls" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                   <span id="timetable-period-count" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);"></span>
                   <div class="week-toggle-container">
                     <button class="btn-week-toggle active" id="btn-week-a" onclick="switchTimetableWeek('A')">Week A</button>
@@ -428,6 +427,8 @@
           ontouchstart="onSwipeTouchStart(event)"
           ontouchmove="onSwipeTouchMove(event)"
           ontouchend="onSwipeTouchEnd(event)">
+          <div class="swipe-hint-badge left">ลา</div>
+          <div class="swipe-hint-badge right">ขาด</div>
           <div class="swipe-card-header">
             <span class="swipe-card-no" id="swipe-card-no"></span>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -440,6 +441,7 @@
           <div class="swipe-card-nick-label" id="swipe-card-nick-label">ชื่อเล่น</div>
           <div class="swipe-card-name" id="swipe-card-name"></div>
           <div class="swipe-card-stats" id="swipe-card-stats"></div>
+          <div class="swipe-card-guide"><b style="color:var(--color-leave)">← ปัดซ้าย = ลา</b> · แตะ = <b style="color:var(--color-present)">มา</b> · <b style="color:var(--color-absent)">ปัดขวา = ขาด →</b></div>
         </div>
         <!-- Done state -->
         <div class="swipe-done-state" id="swipe-done-state" style="display:none;">
@@ -714,6 +716,6 @@
   <!-- Hidden file input for direct class Excel import -->
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
-  <script defer src="app.js?v=73"></script>
+  <script defer src="app.js?v=78"></script>
 </body>
 </html>
