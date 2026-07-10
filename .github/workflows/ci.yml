@@ -1,0 +1,66 @@
+name: CI
+
+# ป้องกัน "พิมพ์ JS ผิดแล้วเว็บครูล่มทั้งเว็บ"
+# รันทุก PR และทุกครั้งที่ push เข้า main
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  syntax-check:
+    name: ตรวจ syntax ทุกไฟล์
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: ตรวจ JavaScript syntax (node --check)
+        run: |
+          set -e
+          FAILED=0
+          # ตรวจทุกไฟล์ .js ยกเว้น _archive และ .git
+          while IFS= read -r f; do
+            echo "· ตรวจ $f"
+            if ! node --check "$f"; then
+              echo "❌ syntax พังที่ $f"
+              FAILED=1
+            fi
+          done < <(find . -name '*.js' -not -path './_archive/*' -not -path './.git/*' -not -path './node_modules/*')
+          if [ "$FAILED" -ne 0 ]; then
+            echo "พบ syntax error — ห้าม merge จนกว่าจะแก้"
+            exit 1
+          fi
+          echo "✅ JS syntax ผ่านหมด"
+
+      - name: ตรวจไฟล์หลักครบ (index.html ต้องมีและไม่ว่าง)
+        run: |
+          set -e
+          test -s index.html || { echo "❌ index.html หายหรือว่างเปล่า"; exit 1; }
+          echo "✅ index.html ครบ"
+
+      - name: ตรวจ <script> ใน index.html ชี้ไปไฟล์ที่มีจริง
+        run: |
+          set -e
+          MISSING=0
+          # ดึง src ของ <script> ที่เป็น local (ไม่ใช่ http/cdn) — ตัด ?v=... ออกก่อนเช็ค
+          for src in $(grep -oE '<script[^>]*src="[^"]+"' index.html | grep -oE 'src="[^"]+"' | sed 's/src="//;s/"//' | grep -vE '^https?://'); do
+            file="${src%%\?*}"
+            if [ ! -f "$file" ]; then
+              echo "❌ index.html เรียก <script src=\"$src\"> แต่ไฟล์ไม่มีจริง"
+              MISSING=1
+            fi
+          done
+          # ตรวจ <link rel=stylesheet> local ด้วย — ตัด ?v=... ออกก่อนเช็ค
+          for href in $(grep -oE '<link[^>]*href="[^"]+"' index.html | grep -oE 'href="[^"]+"' | sed 's/href="//;s/"//' | grep -vE '^https?://'); do
+            file="${href%%\?*}"
+            if [ ! -f "$file" ]; then
+              echo "❌ index.html เรียก <link href=\"$href\"> แต่ไฟล์ไม่มีจริง"
+              MISSING=1
+            fi
+          done
+          if [ "$MISSING" -ne 0 ]; then exit 1; fi
+          echo "✅ ทุก <script>/<link> ในหน้า ชี้ไปไฟล์ที่มีจริง"
