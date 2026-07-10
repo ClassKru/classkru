@@ -98,10 +98,25 @@ body {
 
 .sidebar-brand {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 8px 12px;
-  margin-bottom: 24px;
+  gap: 0;
+  padding: 4px 12px 16px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border-color);
+}
+.sidebar-brand .sidebar-logo {
+  height: 84px;
+  width: auto;
+  object-fit: contain;
+}
+.sidebar-brand .sidebar-tagline {
+  margin-top: -8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
 }
 
 .sidebar-menu {
@@ -1984,7 +1999,7 @@ body {
 /* ========================================== */
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar { width: 208px; padding: 20px 12px; }
-  .sidebar-brand img { height: 52px !important; }
+  .sidebar-brand .sidebar-logo { height: 68px !important; }
   .sidebar-menu .nav-item { font-size: 0.85rem; padding: 9px 12px; gap: 10px; }
   .main-content { margin-left: 208px; }
   .app-content { padding: 18px; }
