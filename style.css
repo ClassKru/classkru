@@ -2026,3 +2026,56 @@ body {
   #ck-print-header { display: block !important; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
+
+/* ========================================== */
+/* เครื่องมือช่วยสอน (Teaching Tools Hub)        */
+/* ========================================== */
+.tools-hub-sheet { width: 560px; max-width: 100%; }
+.tools-hub-sub { margin: -6px 0 16px; font-size: 0.82rem; color: var(--text-muted); }
+.tools-hub-foot { margin: 16px 0 0; font-size: 0.72rem; color: var(--text-muted); text-align: center; }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 11px; }
+.tool-card {
+  position: relative; background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 14px; padding: 15px 12px; text-align: center; cursor: pointer;
+  transition: all .18s cubic-bezier(.4,0,.2,1);
+}
+.tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md, 0 4px 16px rgba(0,0,0,.08)); }
+.tool-card.ready { background: var(--primary-light); border: 1.5px solid var(--primary); }
+.tool-card.soon { opacity: .68; cursor: default; border-style: dashed; }
+.tool-card.soon:hover { transform: none; border-color: var(--border-color); box-shadow: none; }
+.tool-card .tool-icon {
+  width: 42px; height: 42px; border-radius: 11px; display: inline-flex;
+  align-items: center; justify-content: center; margin-bottom: 9px; font-size: 21px;
+}
+.tool-card .tool-name { font-size: 0.9rem; font-weight: 700; color: var(--text-main); }
+.tool-card.ready .tool-name { color: var(--primary-hover); }
+.tool-card .tool-desc { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.tool-soon-badge {
+  position: absolute; top: 8px; right: 8px; font-size: 0.62rem; background: var(--bg-card);
+  border: 1px solid var(--border-color); color: var(--text-muted); padding: 1px 7px; border-radius: 20px;
+}
+/* tint ของไอคอนแต่ละเครื่องมือ (มินิมอล เขียวเป็นแกน) */
+.tint-green  { background: var(--primary); color: #fff; }
+.tint-blue   { background: #E6F1FB; color: #185FA5; }
+.tint-amber  { background: #FAEEDA; color: #854F0B; }
+.tint-coral  { background: #FAECE7; color: #993C1D; }
+.tint-purple { background: #EEEDFE; color: #534AB7; }
+.tint-pink   { background: #FBEAF0; color: #993556; }
+.tint-gray   { background: #F1EFE8; color: #5F5E5A; }
+
+/* สุ่มรายชื่อ */
+.rn-sheet { width: 380px; max-width: 100%; }
+.rn-seg-wrap { display: flex; gap: 6px; background: var(--bg-app, #f5f7fa); padding: 4px; border-radius: 12px; margin-bottom: 18px; }
+.rn-seg { flex: 1; border: none; background: transparent; border-radius: 9px; padding: 9px 0; font-size: 0.82rem; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+.rn-seg.on { background: var(--primary); color: #fff; }
+.rn-seg b { opacity: .8; font-weight: 700; margin-left: 2px; }
+.rn-stage { background: var(--primary-light); border-radius: 14px; padding: 26px 16px; text-align: center; margin-bottom: 16px; }
+.rn-reveal-no {
+  width: 62px; height: 62px; margin: 0 auto 12px; border-radius: 50%; background: var(--primary);
+  color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800;
+}
+.rn-reveal-name { font-size: 1.5rem; font-weight: 800; color: var(--primary-hover); min-height: 34px; line-height: 1.2; }
+.rn-hint { font-size: 0.75rem; color: var(--primary); margin-top: 6px; min-height: 18px; }
+.rn-spin { width: 100%; font-size: 1.05rem; padding: 14px 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.rn-nodup-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer; }
+.rn-nodup-row input { width: 16px; height: 16px; accent-color: var(--primary); }

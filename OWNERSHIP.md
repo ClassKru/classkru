@@ -35,6 +35,7 @@
 | `js/attendance.js` | เช็คชื่อ / swipe / attendance matrix (+ `showToast`/`showConfirm` shared UI) | เดฟใหม่ |
 | `js/shared-utils.js` 🔒 | modal ห้อง/เด็ก, color picker, ลบข้อมูล, `initAppState`, sync cloud, logout | **ร่วม** (Supakit คุม) |
 | `js/extras.js` | OCR สแกนรายชื่อ, `isMobileView`, onboarding tour | เดฟใหม่ |
+| `js/tools.js` | เครื่องมือช่วยสอน (registry): ฮับ + สุ่มรายชื่อ — **เพิ่มเครื่องมือใหม่ที่นี่** | เดฟใหม่ |
 
 > **หมายเหตุความไม่บริสุทธิ์:** การแยกทำแบบ byte-identical (ไม่สลับลำดับโค้ด เพื่อความปลอดภัยสูงสุด)
 > จึงมี util ร่วมบางตัวติดอยู่ในไฟล์ที่ไม่ตรงหน้าที่เป๊ะ เช่น `showToast`/`showConfirm` อยู่ใน `attendance.js`
