@@ -1,0 +1,328 @@
+/* 
+  =========================================
+  ClassKru — Responsive Connected Platform
+  =========================================
+  Apple Glassmorphism • สีเขียวพาสเทล
+  Desktop = Sidebar Layout
+  Mobile = Bottom Nav + Swipe Attendance
+*/
+
+/* ซ่อน glyph ไอคอนจนกว่า icon font (HugeIcons) จะพร้อม — กัน flash ตัวอักษร CJK ตอนโหลดแรก
+   ใช้ visibility:hidden (คงพื้นที่ layout, ไม่มี rule สีอื่นมาแข่ง cascade) */
+html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
+
+/* ===== Onboarding tour (coach marks) ===== */
+.tour-mask { position: fixed; background: rgba(17,24,39,0.58); z-index: 12000; transition: all 0.2s ease; }
+.tour-ring { position: fixed; z-index: 12001; border-radius: 12px; box-shadow: 0 0 0 3px var(--primary), 0 0 0 7px rgba(29,158,117,0.28); pointer-events: none; transition: all 0.2s ease; }
+.tour-bubble { position: fixed; z-index: 12002; width: 300px; max-width: calc(100vw - 24px); background: var(--bg-card); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.28); padding: 16px 18px; }
+.tour-fab { position: fixed; bottom: 90px; right: 20px; z-index: 900; width: 46px; height: 46px; border-radius: 50%; background: var(--primary); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.2); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+@media (min-width: 769px) { .tour-fab { bottom: 24px; right: 24px; } }
+.tour-fab:hover { animation: fab-bounce 0.7s ease infinite; box-shadow: 0 8px 22px rgba(29,158,117,0.4); }
+@keyframes fab-bounce { 0%, 100% { transform: translateY(0) scale(1.06); } 35% { transform: translateY(-7px) scale(1.06); } 65% { transform: translateY(-2px) scale(1.06); } }
+.welcome-hero { width: 96px; height: auto; margin: 0 auto 4px; display: block; }
+
+:root {
+  --primary: #1d9e75;
+  --primary-hover: #158860;
+  --primary-light: #ecf9f6;
+  --primary-light-border: #b3e5d8;
+  
+  --bg-app: #f7f7f5;
+  --bg-card: #ffffff;
+  --bg-light: #f0f0ee;
+  --text-main: #2f2f2e;
+  --text-muted: #7a7a76;
+  --border-color: #e6e6e2;
+
+  --color-present: #22a565;
+  --color-present-bg: #e8f4ec;
+  --color-late: #e0a81a;
+  --color-late-text: #a9750a;
+  --color-late-bg: #fdf5e3;
+  --color-absent: #e5544b;
+  --color-absent-bg: #fdecea;
+  --color-leave: #3b7fd4;
+  --color-leave-bg: #eaf1fb;
+
+  --tab-today-accent: #22a565;
+  --tab-today-bg: #e8f4ec;
+  --tab-weekly-accent: #3b7fd4;
+  --tab-weekly-bg: #eaf1fb;
+  --tab-term-accent: #8b5cf6;
+  --tab-term-bg: #f5f3ff;
+  --tab-overall-accent: #f97316;
+  --tab-overall-bg: #fff7ed;
+
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.07), 0 2px 8px rgba(15,23,42,0.05);
+  --shadow-md: 0 4px 12px rgba(15,23,42,0.10), 0 1px 3px rgba(15,23,42,0.06);
+  --shadow-lg: 0 10px 28px rgba(15,23,42,0.13), 0 4px 10px rgba(15,23,42,0.07);
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --transition-normal: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "LINE Seed Sans TH", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Sarabun", "Outfit", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ========================================== */
+/* SIDEBAR LAYOUT (Desktop)                    */
+/* ========================================== */
+.sidebar {
+  width: 250px;
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border-color);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  z-index: 100;
+  transition: var(--transition-normal);
+}
+
+.sidebar-brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  padding: 4px 12px 16px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border-color);
+}
+.sidebar-brand .sidebar-logo {
+  height: 84px;
+  width: auto;
+  object-fit: contain;
+}
+.sidebar-brand .sidebar-tagline {
+  margin-top: -8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+.sidebar-menu .nav-item {
+  width: 100%;
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition: var(--transition-normal);
+}
+
+.sidebar-menu .nav-item i { font-size: 1.1rem; width: 20px; }
+.sidebar-menu .nav-item:hover { background-color: #fafafa; color: var(--text-main); }
+.sidebar-menu .nav-item.active { background-color: #e8f4ec; color: var(--primary); font-weight: 700; }
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+  border-radius: var(--radius-sm);
+  transition: var(--transition-normal);
+}
+.sidebar-profile:hover { background-color: #fafafa; }
+.sidebar-profile img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.profile-info { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+.profile-name { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+.profile-role { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ========================================== */
+/* MAIN CONTENT AREA                           */
+/* ========================================== */
+.main-content {
+  margin-left: 250px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0; /* กัน flex item ขยายตามเนื้อหากว้าง (เช่น ตารางสอนคาบเยอะ) → ให้ card scroll แทนหน้าจอล้น */
+  transition: var(--transition-normal);
+}
+
+.app-header {
+  background-color: var(--bg-card);
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.app-title-container h2 { font-size: 1.25rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+.app-title-container .subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+.header-actions { display: flex; align-items: center; gap: 14px; }
+.header-date { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+
+.app-content {
+  padding: 24px;
+  flex-grow: 1;
+}
+
+/* ========================================== */
+/* GENERIC CARD / UTILITIES                    */
+/* ========================================== */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-normal);
+  animation: fadeIn 0.35s ease;
+  box-shadow: var(--shadow-sm);
+}
+.card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: rgba(29,158,117,0.18);
+}
+/* การ์ดห้องเรียน: hover ขึ้นกรอบสีประจำห้อง + เงาเด้ง + ยกตัว */
+.ck-class-card:hover {
+  border-color: var(--cc, var(--primary));
+  box-shadow: 0 12px 30px rgba(0,0,0,0.14);
+  transform: translateY(-4px);
+}
+/* จุดสีหน้าชื่อวิชา: มือถือแสดง (บรรทัดชั้นเยื้อง 20px), คอมซ่อนจุดและรีเซ็ตการเยื้อง */
+.ck-class-card .ck-class-sub { margin-left: 20px; }
+@media (min-width: 769px) {
+  .ck-class-card .ck-class-dot { display: none; }
+  .ck-class-card .ck-class-sub { margin-left: 0; }
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: var(--transition-normal);
+}
+
+.btn:hover { filter: brightness(0.97); }
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(29,158,117,0.25);
+}
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  box-shadow: 0 4px 14px rgba(29,158,117,0.35);
+}
+
+.btn-danger {
+  background-color: var(--color-absent-bg);
+  color: var(--color-absent);
+  border-color: #ffc7c4;
+}
+
+.ck-card-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 5px 4px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.ck-card-btn i { font-size: 0.82rem; }
+.ck-card-btn:hover { background: var(--bg-hover, #f5f5f7); color: var(--text-main); }
+.ck-card-btn.danger { color: var(--text-secondary); }
+.ck-card-btn.danger:hover { color: var(--color-absent); border-color: #ffc7c4; background: var(--color-absent-bg); }
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: var(--transition-normal);
+}
+.btn-text:hover { color: var(--text-main); }
+
+.form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+.form-group label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+.form-control {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  outline: none;
+  transition: var(--transition-normal);
+  background-color: var(--bg-card);
+}
+.form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(52,199,89,0.15); }
+

@@ -1,0 +1,353 @@
+/* HOME SCREEN                                 */
+/* ========================================== */
+.home-date-status-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 14px;
+  gap: 12px;
+}
+
+.home-date-card {
+  background: linear-gradient(135deg, #1d9e75 0%, #0d8a5f 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 13px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(13,138,95,0.28);
+  position: relative;
+  transition: var(--transition-normal);
+}
+.home-date-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(13,138,95,0.38);
+}
+
+.home-day-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 4px;
+}
+
+.home-date-big {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.home-year {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  margin-top: 4px;
+}
+
+/* Calendar Popup */
+.home-calendar-popup {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 300;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 16px;
+  width: 300px;
+  animation: fadeIn 0.2s ease;
+}
+
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.cal-header-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.cal-nav-btn {
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-normal);
+}
+.cal-nav-btn:hover { background: var(--bg-app); color: var(--text-main); }
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  text-align: center;
+}
+
+.cal-dow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.cal-day {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  color: var(--text-main);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cal-day:hover { background: var(--primary-light); }
+.cal-day.today { background: var(--primary); color: #fff; font-weight: 800; }
+.cal-day.selected { background: #8b5cf6; color: #fff; font-weight: 800; }
+.cal-day.other-month { color: var(--border-color); }
+.cal-day.weekend { color: var(--color-absent); }
+.cal-day.has-class { position: relative; }
+.cal-day.has-class::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+.cal-day.today.has-class::after, .cal-day.selected.has-class::after { background: #fff; }
+
+.cal-today-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  border: 1.5px solid #ddd6fe;
+  background: #f5f3ff;
+  color: #7c3aed;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+.cal-today-btn:hover { background: #ede9fe; }
+
+.home-status-badge {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.home-stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px;
+  border-radius: 12px;
+  text-align: center;
+}
+.home-stat-cell strong {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.home-stat-cell span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-top: 4px;
+  display: block;
+}
+.home-stat-present { background: var(--color-present-bg); color: var(--color-present); }
+.home-stat-late    { background: var(--color-late-bg);    color: var(--color-late-text); }
+.home-stat-absent  { background: var(--color-absent-bg);  color: var(--color-absent); }
+.home-stat-leave   { background: var(--color-leave-bg);   color: var(--color-leave); }
+
+/* keep legacy class names for backward-compat */
+.home-status-badge.ongoing { border-color: var(--color-leave); }
+.home-status-badge.free    { border-color: var(--primary); }
+.home-status-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+.home-status-value { font-size: 1.15rem; font-weight: 800; color: var(--text-main); }
+
+/* Next class card */
+.home-next-card {
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  animation: fadeIn 0.4s ease;
+}
+
+.home-next-card:hover { filter: brightness(0.97); }
+.home-next-card:active { transform: scale(0.99); }
+
+.home-next-card.is-ongoing {
+  background: linear-gradient(135deg, #007aff, #0055d4);
+  color: #fff;
+}
+
+.home-next-card.is-upcoming {
+  background: linear-gradient(135deg, #7c80f0, #6366e0);
+  color: #fff;
+}
+
+.home-next-card.is-done {
+  background: var(--color-present-bg);
+  border: 1.5px solid var(--primary-light-border);
+  color: var(--primary);
+}
+
+.home-next-card .next-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.home-next-card .next-subject {
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.home-next-card .next-meta {
+  font-size: 0.82rem;
+  opacity: 0.88;
+}
+
+.home-next-card .next-action-btn {
+  align-self: flex-start;
+  background: rgba(255,255,255,0.25);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition-normal);
+}
+
+.home-next-card.is-done .next-action-btn {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.home-next-card .next-action-btn:hover { filter: brightness(1.1); }
+
+/* Unchecked warning */
+.home-unchecked-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #fff7ed;
+  border: 1.5px solid #fed7aa;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.home-unchecked-card:hover { filter: brightness(0.98); }
+
+/* Schedule row */
+.home-schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.home-schedule-row:last-child { border-bottom: none; }
+
+.home-schedule-row:hover { background: var(--row-hover, var(--primary-light)); }
+.home-schedule-row.is-now { background: linear-gradient(90deg, #e2f5e8, transparent); }
+
+.home-schedule-time {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 44px;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.home-schedule-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.home-schedule-dot.present { background: var(--color-present); }
+.home-schedule-dot.absent { background: var(--color-absent); }
+.home-schedule-dot.leave { background: var(--color-leave); }
+.home-schedule-dot.unchecked { background: var(--border-color); }
+.home-schedule-dot.ongoing { background: var(--color-leave); box-shadow: 0 0 0 3px rgba(0,122,255,0.2); }
+
+.home-schedule-info { flex: 1; }
+
+.home-schedule-subject {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.home-schedule-class {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.home-schedule-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+/* Mobile tweaks for home */
+@media (max-width: 768px) {
+  .home-date-card { max-width: 100%; padding: 7px 14px; }
+  .home-date-big { font-size: 1.56rem; }
+  .home-next-card .next-subject { font-size: 1.05rem; }
+  .home-calendar-popup { width: 280px; left: 0; right: auto; }
+}
+
