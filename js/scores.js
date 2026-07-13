@@ -68,6 +68,14 @@ function ensureScores(c) {
   return c.scores;
 }
 
+// จำกัดคะแนนไม่ให้เกินเต็ม/ติดลบ (ใช้ทั้งตอนแสดง/คำนวณ/บันทึก) — คืน '' ถ้าว่าง
+function clampMark(v, max) {
+  if (v === undefined || v === null || v === '') return '';
+  const n = Number(v);
+  if (isNaN(n)) return '';
+  return Math.max(0, Math.min(n, Number(max) || 0));
+}
+
 // ==================== คำนวณ ====================
 // รวมคะแนนถ่วงน้ำหนักตาม ratio → เต็ม 100
 function computeStudentScore(c, sid) {
@@ -80,7 +88,7 @@ function computeStudentScore(c, sid) {
     items.forEach(i => {
       max += Number(i.max) || 0;
       const m = (sc.marks[i.id] || {})[sid];
-      if (m !== undefined && m !== null) { raw += Number(m); has = true; }
+      if (m !== undefined && m !== null) { raw += clampMark(m, i.max) || 0; has = true; }
     });
     const weight = Number(sc.config.ratio[cat.key]) || 0;
     const scaled = max > 0 ? (raw / max) * weight : 0;
@@ -210,20 +218,19 @@ function renderScoreMatrix(c) {
   let head2 = '<tr>';
   groups.forEach(g => {
     const w = Number(sc.config.ratio[g.cat.key]) || 0;
-    head1 += `<th class="sc-bucket-head" colspan="${g.items.length}">${g.cat.label} <span style="font-weight:400;">${w}%</span></th>`;
-    g.items.forEach(({ it, phase }) => {
+    head1 += `<th class="sc-bucket-head sc-cat-start" colspan="${g.items.length}">${g.cat.label} <span style="font-weight:400;">${w}%</span></th>`;
+    g.items.forEach(({ it, phase }, idx) => {
       const badge = phase ? `<div class="sc-phase-badge">${phase.short}</div>` : '';
-      head2 += `<th class="sc-item-head" style="text-align:center;min-width:66px;" title="แก้ไขรายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">
+      head2 += `<th class="sc-item-head${idx === 0 ? ' sc-cat-start' : ''}" style="text-align:center;min-width:52px;" title="แก้ไขรายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">
         <div style="white-space:nowrap;">${escapeScore(it.name)}</div>
         ${badge}
         <div style="font-weight:400;color:var(--text-muted);">เต็ม ${it.max}</div>
       </th>`;
     });
   });
-  head1 += `<th rowspan="2" style="text-align:center;min-width:74px;">รวม<div style="font-weight:400;font-size:0.66rem;">(100)</div></th>
-    <th rowspan="2" style="text-align:center;min-width:70px;">เวลาเรียน</th>
-    <th rowspan="2" style="text-align:center;min-width:132px;">เกรด</th>
-    <th class="sc-c-manage" rowspan="2" style="min-width:90px;">จัดการ</th></tr>`;
+  head1 += `<th rowspan="2" style="text-align:center;min-width:56px;">รวม<div style="font-weight:400;font-size:0.66rem;">(100)</div></th>
+    <th rowspan="2" style="text-align:center;min-width:54px;">เกรด</th>
+    <th class="sc-c-manage" rowspan="2" style="min-width:74px;">จัดการ</th></tr>`;
   head2 += '</tr>';
 
   let body = '<tbody>';
@@ -233,10 +240,10 @@ function renderScoreMatrix(c) {
       + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
       + `<td class="sc-c-name">${escapeScore(s.name)}</td>`;
     groups.forEach(g => {
-      g.items.forEach(({ it }) => {
-        const v = (sc.marks[it.id] || {})[s.id];
-        body += `<td style="text-align:center;"><input type="number" class="score-cell-input" value="${v === undefined || v === null ? '' : v}" min="0" max="${it.max}" step="0.5" placeholder="–"
-          onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this.value)"></td>`;
+      g.items.forEach(({ it }, idx) => {
+        const v = clampMark((sc.marks[it.id] || {})[s.id], it.max);
+        body += `<td style="text-align:center;"${idx === 0 ? ' class="sc-cat-start"' : ''}><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
+          onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;
       });
     });
     body += scoreSummaryCells(c, s);
@@ -251,27 +258,19 @@ function renderScoreMatrix(c) {
   wrap.innerHTML = `<table class="score-matrix-table"><thead>${head1}${head2}</thead>${body}</table>`;
 }
 
-// เซลล์สรุปท้ายแถว (รวม / เวลาเรียน / เกรด) — id ต่อคน เพื่ออัปเดตแบบไม่ re-render ทั้งตาราง
+// เซลล์สรุปท้ายแถว (รวม / เกรด) — id ต่อคน เพื่ออัปเดตแบบไม่ re-render ทั้งตาราง
 function scoreSummaryCells(c, s) {
   const r = computeStudentScore(c, s.id);
-  const att = studentAttendancePct(c, s.id);
-  const attMin = c.scores.config.attendanceMin;
-  const attTxt = att === null ? '-' : `${att}%`;
-  const isMs = att !== null && att < attMin;
   return `<td id="sc-total-${s.id}" class="sc-total">${r.total}</td>
-    <td id="sc-att-${s.id}" class="sc-att" style="color:${isMs ? 'var(--color-absent)' : 'var(--text-main)'};">${attTxt}${isMs ? ' <span style="font-size:0.66rem;">(มส.)</span>' : ''}</td>
     <td id="sc-grade-${s.id}" class="sc-grade">${gradeCellHtml(c, s)}</td>`;
 }
 
+// เกรดที่คำนวณได้ (override ยังใช้ได้จากข้อมูลเดิม แต่ไม่มีตัวแก้ inline แล้ว — ปรับเกณฑ์ที่หน้าตั้งค่า)
 function gradeCellHtml(c, s) {
   const ov = ensureScores(c).gradeOverride[s.id];
-  const auto = computeStudentScore(c, s.id).grade;
-  const eff = ov || auto;
-  let opts = `<option value="">อัตโนมัติ (${auto})</option>`;
-  SCORE_GRADES.forEach(g => { opts += `<option value="${g}" ${ov === g ? 'selected' : ''}>${g}</option>`; });
+  const eff = ov || computeStudentScore(c, s.id).grade;
   const ovMark = ov ? ' <span class="sc-ov-tag">แก้แล้ว</span>' : '';
-  return `<span class="sc-grade-val">${eff}</span>${ovMark}
-    <select class="score-grade-sel" onchange="setGradeOverride('${c.id}','${s.id}',this.value)">${opts}</select>`;
+  return `<span class="sc-grade-val">${eff}</span>${ovMark}`;
 }
 
 // อัปเดตเฉพาะเซลล์สรุปของนักเรียนคนเดียว (กันเสียโฟกัส/ตำแหน่ง scroll)
@@ -286,16 +285,15 @@ function updateScoreRow(c, sid) {
 }
 
 // ==================== แก้ไขคะแนน ====================
-function setScoreMark(classId, itemId, sid, val) {
+function setScoreMark(classId, itemId, sid, el) {
   const c = appState.classes.find(x => x.id === classId);
   if (!c) return;
   const sc = ensureScores(c);
   const item = sc.items.find(i => i.id === itemId);
-  let n = (val === '' || val === null) ? null : Number(val);
-  if (n !== null) {
-    if (isNaN(n)) n = null;
-    else n = Math.max(0, item ? Math.min(n, Number(item.max)) : n);
-  }
+  const raw = (el && typeof el === 'object') ? el.value : el;   // รับ element (เขียนค่ากลับได้) หรือค่าตรง
+  const clamped = clampMark(raw, item ? item.max : Infinity);
+  const n = clamped === '' ? null : clamped;
+  if (el && typeof el === 'object') el.value = n === null ? '' : n;  // กันช่องโชว์ค่าเกินเต็ม
   if (!sc.marks[itemId]) sc.marks[itemId] = {};
   if (n === null) delete sc.marks[itemId][sid];
   else sc.marks[itemId][sid] = n;

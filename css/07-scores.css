@@ -1,8 +1,10 @@
 /* ========================================== */
 /* ===  ตารางคะแนน (เข้าชุดกับตารางรายชื่อ) === */
 /* ========================================== */
-.score-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.9rem; }
-.score-matrix-table th, .score-matrix-table td { padding: 11px 10px; }
+.score-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; }
+.score-matrix-table th, .score-matrix-table td { padding: 6px 7px; }
+/* เส้นขั้นระหว่างหมวด (ระหว่างภาค | กลางภาค | ปลายภาค) — อยู่ทั้งหัวและตัว จึงต่อเป็นเส้นเดียว */
+.score-matrix-table .sc-cat-start { border-left: 2px solid var(--border-color); }
 .score-matrix-table thead th {
   font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
   background: #fafbfc; border-bottom: 1px solid var(--border-color); white-space: nowrap;
@@ -28,11 +30,11 @@
 .score-matrix-table .sc-c-manage { text-align: center; white-space: nowrap; }
 .score-matrix-table .sc-manage-actions { display: flex; justify-content: center; align-items: center; gap: 6px; }
 
-/* อินพุตคะแนน — ลอกจาก .d-code-input */
+/* อินพุตคะแนน — ลอกจาก .d-code-input (กระชับลงเพื่อลดพื้นที่ว่าง) */
 .score-cell-input {
-  width: 58px; text-align: center; font-variant-numeric: tabular-nums;
-  border: 1px solid var(--border-color); border-radius: 8px; padding: 7px 4px;
-  font-size: 0.88rem; font-weight: 600; color: var(--text-main); background: #fbfbfd;
+  width: 44px; text-align: center; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border-color); border-radius: 7px; padding: 5px 3px;
+  font-size: 0.85rem; font-weight: 600; color: var(--text-main); background: #fbfbfd;
   transition: var(--transition-normal);
 }
 .score-cell-input::placeholder { color: #c7c7cc; }
