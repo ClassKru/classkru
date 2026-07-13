@@ -216,9 +216,11 @@ function renderScoreMatrix(c) {
     + '<th class="sc-c-code" rowspan="2">รหัส</th>'
     + '<th class="sc-c-name" rowspan="2">ชื่อ-นามสกุล</th>';
   let head2 = '<tr>';
+  const sumW = SCORE_CATS.reduce((a, cat) => a + (Number(sc.config.ratio[cat.key]) || 0), 0);
   groups.forEach(g => {
     const w = Number(sc.config.ratio[g.cat.key]) || 0;
-    head1 += `<th class="sc-bucket-head sc-cat-start" colspan="${g.items.length}">${g.cat.label} <span style="font-weight:400;">${w}%</span></th>`;
+    head1 += `<th class="sc-bucket-head sc-cat-start" colspan="${g.items.length}">${g.cat.label}
+      <input type="number" class="sc-weight-input" value="${w}" min="0" max="100" title="แก้สัดส่วน % (คลิกพิมพ์)" onclick="event.stopPropagation()" onchange="setCatWeight('${c.id}','${g.cat.key}',this)">%</th>`;
     g.items.forEach(({ it, phase }, idx) => {
       const badge = phase ? `<div class="sc-phase-badge">${phase.short}</div>` : '';
       head2 += `<th class="sc-item-head${idx === 0 ? ' sc-cat-start' : ''}" style="text-align:center;min-width:52px;" title="แก้ไขรายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">
@@ -228,7 +230,7 @@ function renderScoreMatrix(c) {
       </th>`;
     });
   });
-  head1 += `<th rowspan="2" style="text-align:center;min-width:56px;">รวม<div style="font-weight:400;font-size:0.66rem;">(100)</div></th>
+  head1 += `<th rowspan="2" style="text-align:center;min-width:56px;">รวม<div style="font-weight:400;font-size:0.66rem;color:${sumW === 100 ? 'inherit' : 'var(--color-absent)'};">(${sumW})</div></th>
     <th rowspan="2" style="text-align:center;min-width:54px;">เกรด</th>
     <th class="sc-c-manage" rowspan="2" style="min-width:74px;">จัดการ</th></tr>`;
   head2 += '</tr>';
@@ -299,6 +301,22 @@ function setScoreMark(classId, itemId, sid, el) {
   else sc.marks[itemId][sid] = n;
   saveState();
   updateScoreRow(c, sid);
+}
+
+// แก้สัดส่วน % ของหมวด inline จากหัวตาราง (เตือนไม่บล็อกถ้ารวม≠100)
+function setCatWeight(classId, catKey, el) {
+  const c = appState.classes.find(x => x.id === classId);
+  if (!c) return;
+  const cfg = ensureScores(c).config;
+  let v = Number(el.value);
+  if (isNaN(v) || v < 0) v = 0;
+  if (v > 100) v = 100;
+  el.value = v;
+  cfg.ratio[catKey] = v;
+  saveState();
+  renderScoreMatrix(c);
+  const sum = SCORE_CATS.reduce((a, cat) => a + (Number(cfg.ratio[cat.key]) || 0), 0);
+  if (sum !== 100) showToast(`สัดส่วนรวม ${sum}% (ควรเป็น 100%)`, 'warning');
 }
 
 function setGradeOverride(classId, sid, val) {
