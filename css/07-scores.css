@@ -29,8 +29,8 @@
 .sc-item-max-input { -moz-appearance: textfield; appearance: textfield; }
 .sc-item-more { border: none; background: transparent; color: #c7c7cc; cursor: pointer; padding: 0; font-size: 0.72rem; line-height: 1; flex-shrink: 0; }
 .sc-item-more:hover { color: var(--primary); }
-/* แท็กระยะ (ก่อน/หลังกลางภาค) บนหัวรายการคะแนนเก็บ */
-.sc-phase-badge { display: block; width: fit-content; max-width: 100%; font-size: 0.58rem; font-weight: 700; color: var(--primary); background: var(--primary-light); border-radius: 5px; padding: 1px 5px; margin: 2px auto 0; white-space: nowrap; }
+/* หัวกลุ่มย่อยระยะ (ก่อน/หลังกลางภาค) ใต้ "คะแนนเก็บ" — โทนอ่อนกว่าหัวหมวด */
+.score-matrix-table thead .sc-phase-head { background: #eef5f2; color: var(--text-muted); font-weight: 700; font-size: 0.72rem; border-bottom: 1px solid var(--border-color); text-align: center; white-space: nowrap; }
 /* ช่องแก้สัดส่วน % inline บนหัวหมวด (แก้ได้เลยไม่ต้องเปิดตั้งค่า) */
 .sc-weight-input { width: 32px; text-align: center; font-weight: 700; font-size: 0.78rem; color: var(--primary); background: #fff; border: 1px solid var(--primary-light-border); border-radius: 6px; padding: 2px 2px; font-variant-numeric: tabular-nums; cursor: text; }
 .sc-weight-input:hover { border-color: var(--primary); }

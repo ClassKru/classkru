@@ -192,17 +192,18 @@ function renderScoreMatrix(c) {
     return;
   }
 
-  // จัดกลุ่มตาม 3 หมวด; คะแนนเก็บเรียงตามระยะ (ก่อน→หลัง) พร้อมแนบระยะไว้โชว์แท็ก
-  const groups = SCORE_CATS
-    .map(cat => {
-      const items = cat.phased
-        ? SCORE_PHASES.flatMap(ph => sc.items.filter(i => i.bucket === ph.key).map(it => ({ it, phase: ph })))
-        : sc.items.filter(i => cat.buckets.includes(i.bucket)).map(it => ({ it, phase: null }));
-      return { cat, items };
-    })
-    .filter(g => g.items.length > 0);
+  // จัดกลุ่มแบบ ปพ.5: คะแนนเก็บ (ก่อน/หลังกลางภาค) | สอบกลางภาค | สอบปลายภาค
+  const disp = [];
+  SCORE_PHASES.forEach(ph => {
+    const items = sc.items.filter(i => i.bucket === ph.key);
+    if (items.length) disp.push({ kind: 'collect', label: ph.label, items });
+  });
+  [['mid', 'สอบกลางภาค'], ['final', 'สอบปลายภาค']].forEach(([bk, label]) => {
+    const items = sc.items.filter(i => i.bucket === bk);
+    if (items.length) disp.push({ kind: 'exam', catKey: bk, label, items });
+  });
 
-  if (groups.length === 0) {
+  if (disp.length === 0) {
     wrap.innerHTML = `<div class="empty-state" style="padding:32px 16px;">
       <i class="hgi-stroke hgi-task-add-01" style="font-size:2rem;display:block;margin-bottom:10px;opacity:0.5;"></i>
       ยังไม่มีรายการคะแนน<br><span style="font-size:0.82rem;">กด "เพิ่มรายการคะแนน" ด้านบนเพื่อเริ่ม เช่น ใบงานที่ 1, Quiz, สอบปลายภาค</span>
@@ -210,30 +211,55 @@ function renderScoreMatrix(c) {
     return;
   }
 
-  // แถวหัว 2 ชั้น: ชั้นบน = ช่อง (bucket) + น้ำหนัก, ชั้นล่าง = รายการ
-  let head1 = '<tr>'
-    + '<th class="sc-c-no" rowspan="2">เลขที่</th>'
-    + '<th class="sc-c-code" rowspan="2">รหัส</th>'
-    + '<th class="sc-c-name" rowspan="2">ชื่อ-นามสกุล</th>';
-  let head2 = '<tr>';
+  const collectGroups = disp.filter(g => g.kind === 'collect');
+  const examGroups = disp.filter(g => g.kind === 'exam');
+  const collectCount = collectGroups.reduce((a, g) => a + g.items.length, 0);
+  const hasPhaseRow = collectGroups.length > 0;
+  const totalRows = hasPhaseRow ? 3 : 2;
   const sumW = SCORE_CATS.reduce((a, cat) => a + (Number(sc.config.ratio[cat.key]) || 0), 0);
-  groups.forEach(g => {
-    const w = Number(sc.config.ratio[g.cat.key]) || 0;
-    head1 += `<th class="sc-bucket-head sc-cat-start" colspan="${g.items.length}">${g.cat.label} <input type="number" class="sc-weight-input" value="${w}" min="0" max="100" title="แก้สัดส่วน % (คลิกพิมพ์)" onclick="event.stopPropagation()" onchange="setCatWeight('${c.id}','${g.cat.key}',this)">%</th>`;
-    g.items.forEach(({ it, phase }, idx) => {
-      const badge = phase ? `<div class="sc-phase-badge">${phase.short}</div>` : '';
-      const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
-      head2 += `<th class="sc-item-head${idx === 0 ? ' sc-cat-start' : ''}">
-        <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
-        ${badge}
-        <div class="sc-item-max-row"><span class="sc-item-max-lbl">เต็ม</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
-      </th>`;
-    });
+
+  // ช่องแก้สัดส่วน % ของหมวด (collect/mid/final) — วางบนหัวกลุ่มบนสุด
+  const wInput = (catKey) => {
+    const w = Number(sc.config.ratio[catKey]) || 0;
+    return `<input type="number" class="sc-weight-input" value="${w}" min="0" max="100" title="แก้สัดส่วน % (คลิกพิมพ์)" onclick="event.stopPropagation()" onchange="setCatWeight('${c.id}','${catKey}',this)">%`;
+  };
+
+  // รายการเรียงตามบล็อก (ก่อน→หลัง→กลาง→ปลาย) + ธงเริ่มบล็อก (ไว้ตีเส้นขั้น)
+  const ordered = [];
+  disp.forEach(g => g.items.forEach((it, idx) => ordered.push({ it, groupStart: idx === 0 })));
+
+  // ---- หัวตาราง 3 ชั้นแบบ ปพ.5 ----
+  const nameCols = `<th class="sc-c-no" rowspan="${totalRows}">เลขที่</th><th class="sc-c-code" rowspan="${totalRows}">รหัส</th><th class="sc-c-name" rowspan="${totalRows}">ชื่อ-นามสกุล</th>`;
+  const sumCols = `<th rowspan="${totalRows}" style="text-align:center;min-width:56px;">รวม<div style="font-weight:400;font-size:0.66rem;color:${sumW === 100 ? 'inherit' : 'var(--color-absent)'};">(${sumW})</div></th>
+    <th rowspan="${totalRows}" style="text-align:center;min-width:54px;">เกรด</th>
+    <th class="sc-c-manage" rowspan="${totalRows}" style="min-width:74px;">จัดการ</th>`;
+
+  // ชั้น 1: หมวดบนสุด (คะแนนเก็บ คลุมก่อน+หลัง | สอบกลางภาค | สอบปลายภาค) + สัดส่วน %
+  let r1 = '<tr>' + nameCols;
+  if (collectCount > 0) r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${collectCount}">คะแนนเก็บ ${wInput('collect')}</th>`;
+  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${g.items.length}" rowspan="${hasPhaseRow ? 2 : 1}">${g.label} ${wInput(g.catKey)}</th>`; });
+  r1 += sumCols + '</tr>';
+
+  // ชั้น 2: ระยะย่อยใต้คะแนนเก็บ (ก่อนกลางภาค | หลังกลางภาค)
+  let r2 = '';
+  if (hasPhaseRow) {
+    r2 = '<tr>';
+    collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${g.items.length}">${g.label}</th>`; });
+    r2 += '</tr>';
+  }
+
+  // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) — ไม่มี badge แล้ว (ระยะอยู่หัวกลุ่ม)
+  let r3 = '<tr>';
+  ordered.forEach(({ it, groupStart }) => {
+    const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
+    r3 += `<th class="sc-item-head${groupStart ? ' sc-cat-start' : ''}">
+      <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
+      <div class="sc-item-max-row"><span class="sc-item-max-lbl">เต็ม</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
+    </th>`;
   });
-  head1 += `<th rowspan="2" style="text-align:center;min-width:56px;">รวม<div style="font-weight:400;font-size:0.66rem;color:${sumW === 100 ? 'inherit' : 'var(--color-absent)'};">(${sumW})</div></th>
-    <th rowspan="2" style="text-align:center;min-width:54px;">เกรด</th>
-    <th class="sc-c-manage" rowspan="2" style="min-width:74px;">จัดการ</th></tr>`;
-  head2 += '</tr>';
+  r3 += '</tr>';
+
+  const thead = r1 + r2 + r3;
 
   let body = '<tbody>';
   c.students.forEach((s, index) => {
@@ -241,12 +267,10 @@ function renderScoreMatrix(c) {
       + `<td class="sc-c-no">${s.no || (index + 1)}</td>`
       + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
       + `<td class="sc-c-name">${escapeScore(s.name)}</td>`;
-    groups.forEach(g => {
-      g.items.forEach(({ it }, idx) => {
-        const v = clampMark((sc.marks[it.id] || {})[s.id], it.max);
-        body += `<td style="text-align:center;"${idx === 0 ? ' class="sc-cat-start"' : ''}><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
-          onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;
-      });
+    ordered.forEach(({ it, groupStart }) => {
+      const v = clampMark((sc.marks[it.id] || {})[s.id], it.max);
+      body += `<td style="text-align:center;"${groupStart ? ' class="sc-cat-start"' : ''}><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
+        onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;
     });
     body += scoreSummaryCells(c, s);
     body += `<td class="sc-c-manage"><div class="sc-manage-actions">
@@ -257,7 +281,7 @@ function renderScoreMatrix(c) {
   });
   body += '</tbody>';
 
-  wrap.innerHTML = `<table class="score-matrix-table"><thead>${head1}${head2}</thead>${body}</table>`;
+  wrap.innerHTML = `<table class="score-matrix-table">${thead ? `<thead>${thead}</thead>` : ''}${body}</table>`;
 }
 
 // เซลล์สรุปท้ายแถว (รวม / เกรด) — id ต่อคน เพื่ออัปเดตแบบไม่ re-render ทั้งตาราง
