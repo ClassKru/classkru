@@ -1,0 +1,338 @@
+/* ========================================== */
+/* ===  RESPONSIVE MOBILE LAYOUT  =========== */
+/* ========================================== */
+
+@media (max-width: 768px) {
+  .desktop-only-flex { display: none !important; }
+  .mobile-only-flex { display: flex !important; }
+  .desktop-only { display: none !important; }
+  .mobile-only { display: block !important; }
+
+  /* Hide sidebar on mobile */
+  .sidebar { display: none !important; }
+
+  /* Swipe overlay fullscreen on mobile (no sidebar) */
+  .swipe-overlay { left: 0; }
+
+  /* Full width content */
+  .main-content {
+    margin-left: 0 !important;
+    padding-bottom: 72px; /* space for bottom nav */
+  }
+
+  .app-header {
+    padding: 12px 16px;
+    top: 0;
+  }
+
+  .app-title-container h2 { font-size: 1.05rem; }
+  .header-date { display: none; }
+
+  .app-content { padding: 16px 12px; }
+
+  /* Show bottom nav */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-top: 1px solid rgba(229,229,234,0.6);
+    box-shadow: 0 -4px 16px rgba(15,23,42,0.07);
+    height: 68px;
+    padding: 6px 0 env(safe-area-inset-bottom, 8px);
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .mob-nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: var(--transition-normal);
+    padding: 4px 0;
+  }
+
+  .mob-nav-btn i { font-size: 1.25rem; }
+  .mob-nav-btn span { font-size: 0.62rem; font-weight: 700; }
+  .mob-nav-btn.active { color: var(--primary); }
+
+  .mob-nav-btn.checkin-btn i {
+    background: var(--primary);
+    color: #fff;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 14px rgba(29,158,117,0.4);
+    margin-top: -10px;
+  }
+
+  .mob-nav-btn.checkin-btn.active i {
+    background: var(--primary-hover);
+  }
+
+  /* Responsive grids */
+  .dashboard-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .report-grid-2col { grid-template-columns: 1fr; }
+  .report-grid-3col { grid-template-columns: 1fr; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .class-cards-grid { grid-template-columns: 1fr; }
+
+  /* Modal กลางจอบนมือถือ (มีขอบจาก padding ของ overlay) */
+  .bottom-sheet {
+    width: 100%;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Swipe overlay adjustments */
+  .swipe-card { width: 280px; padding: 24px 20px 20px; }
+  .swipe-btn i { width: 50px; height: 50px; font-size: 1.15rem; }
+  .swipe-action-buttons { gap: 8px; padding: 12px 16px 20px; }
+  .s-pill { padding: 8px 10px; min-width: 60px; }
+  .s-pill-num { font-size: 1.3rem; }
+  .s-pill-label { font-size: 0.72rem; }
+}
+
+@media (max-width: 420px) {
+  .dashboard-stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 14px; }
+  .stat-num { font-size: 1.3rem; }
+  .swipe-card { width: 260px; }
+  .swipe-summary-pills { gap: 4px; }
+  .s-pill { padding: 7px 8px; }
+  .s-pill-num { font-size: 1.2rem; }
+  .s-pill-label { font-size: 0.68rem; }
+}
+
+
+/* ========================================== */
+/* ===  TOAST NOTIFICATION  ================= */
+/* ========================================== */
+.ck-toast-container {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.ck-toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+  background: #1c1c1e;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  animation: toastIn 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: 90vw;
+  white-space: normal;
+  text-align: center;
+}
+
+.ck-toast.success { background: #1c1c1e; }
+.ck-toast.error   { background: #3a1a1a; border: 1px solid var(--color-absent); }
+.ck-toast.warning { background: #2e2000; border: 1px solid #f59e0b; }
+.ck-toast.info    { background: #0d2040; border: 1px solid var(--color-leave); }
+.ck-toast.fade-out { animation: toastOut 0.3s ease forwards; }
+
+@keyframes toastIn  { from { opacity:0; transform:translateY(12px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+@keyframes toastOut { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-8px); } }
+
+/* ========================================== */
+/* ===  CONFIRM DIALOG  ===================== */
+/* ========================================== */
+.ck-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(4px);
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.ck-confirm-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  width: 320px;
+  max-width: 90vw;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.25s ease;
+}
+
+.ck-confirm-icon { font-size: 2rem; text-align: center; margin-bottom: 12px; }
+.ck-confirm-title { font-size: 1rem; font-weight: 800; color: var(--text-main); text-align: center; margin-bottom: 8px; }
+.ck-confirm-msg { font-size: 0.82rem; color: var(--text-muted); text-align: center; line-height: 1.6; margin-bottom: 20px; }
+.ck-confirm-btns { display: flex; gap: 10px; }
+.ck-confirm-btns button { flex: 1; padding: 10px; border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); transition: var(--transition-normal); }
+.ck-confirm-btns .ck-confirm-ok { background: var(--color-absent); color: #fff; border-color: var(--color-absent); }
+.ck-confirm-btns .ck-confirm-ok.safe { background: var(--primary); border-color: var(--primary); }
+
+/* Dropzone */
+.dropzone.dragover {
+  background-color: var(--primary-light) !important;
+  border-color: var(--primary) !important;
+  transform: scale(1.02);
+}
+
+/* Spinner animation for OCR */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* OCR name item */
+.ocr-name-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.ocr-name-item:hover {
+  background: var(--bg-light);
+}
+.ocr-name-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+.ocr-name-item .ocr-name-text {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.ocr-name-item .ocr-name-no {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 28px;
+  text-align: center;
+}
+
+/* ========================================== */
+/* TABLET (769–1024px) — บีบ sidebar + grid ให้พอดีจอกลาง */
+/* ========================================== */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar { width: 208px; padding: 20px 12px; }
+  .sidebar-brand .sidebar-logo { height: 68px !important; }
+  .sidebar-menu .nav-item { font-size: 0.85rem; padding: 9px 12px; gap: 10px; }
+  .main-content { margin-left: 208px; }
+  .app-content { padding: 18px; }
+  .report-grid-3col { grid-template-columns: 1fr 1fr; }
+}
+
+/* ========================================== */
+/* PRINT / PDF — รายงานการเข้าเรียนหน้าสะอาด    */
+/* ========================================== */
+#ck-print-header { display: none; }
+#ck-print-header .ck-print-brand { font-size: 0.75rem; font-weight: 700; color: var(--primary); letter-spacing: 0.02em; }
+#ck-print-header .ck-print-title { font-size: 1.5rem; font-weight: 800; margin: 4px 0 6px; color: #111; }
+#ck-print-header .ck-print-sub { font-size: 0.85rem; color: #555; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 18px; }
+
+@media print {
+  @page { size: A4 portrait; margin: 14mm; }
+  html, body { background: #fff !important; }
+  #app-sidebar, .sidebar, #mobile-bottom-nav, .mobile-bottom-nav, #help-fab,
+  .rep-detail-header-card, #web-screen-reports .report-tabs,
+  .rep-date-label-btn, #rep-calendar-popup, .term-tl-edit { display: none !important; }
+  .main-content { margin-left: 0 !important; padding: 0 !important; }
+  .app-content { padding: 0 !important; }
+  .card { box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; }
+  #ck-print-header { display: block !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
+
+/* ========================================== */
+/* เครื่องมือช่วยสอน (Teaching Tools Hub)        */
+/* ========================================== */
+.tools-hub-sheet { width: 560px; max-width: 100%; }
+.tools-hub-sub { margin: -6px 0 16px; font-size: 0.82rem; color: var(--text-muted); }
+.tools-hub-foot { margin: 16px 0 0; font-size: 0.72rem; color: var(--text-muted); text-align: center; }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: 11px; }
+.tool-card {
+  position: relative; background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 14px; padding: 15px 12px; text-align: center; cursor: pointer;
+  transition: all .18s cubic-bezier(.4,0,.2,1);
+}
+.tool-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-md, 0 4px 16px rgba(0,0,0,.08)); }
+.tool-card.ready { background: var(--primary-light); border: 1.5px solid var(--primary); }
+.tool-card.soon { opacity: .68; cursor: default; border-style: dashed; }
+.tool-card.soon:hover { transform: none; border-color: var(--border-color); box-shadow: none; }
+.tool-card .tool-icon {
+  width: 42px; height: 42px; border-radius: 11px; display: inline-flex;
+  align-items: center; justify-content: center; margin-bottom: 9px; font-size: 21px;
+}
+.tool-card .tool-name { font-size: 0.9rem; font-weight: 700; color: var(--text-main); }
+.tool-card.ready .tool-name { color: var(--primary-hover); }
+.tool-card .tool-desc { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.tool-soon-badge {
+  position: absolute; top: 8px; right: 8px; font-size: 0.62rem; background: var(--bg-card);
+  border: 1px solid var(--border-color); color: var(--text-muted); padding: 1px 7px; border-radius: 20px;
+}
+/* tint ของไอคอนแต่ละเครื่องมือ (มินิมอล เขียวเป็นแกน) */
+.tint-green  { background: var(--primary); color: #fff; }
+.tint-blue   { background: #E6F1FB; color: #185FA5; }
+.tint-amber  { background: #FAEEDA; color: #854F0B; }
+.tint-coral  { background: #FAECE7; color: #993C1D; }
+.tint-purple { background: #EEEDFE; color: #534AB7; }
+.tint-pink   { background: #FBEAF0; color: #993556; }
+.tint-gray   { background: #F1EFE8; color: #5F5E5A; }
+
+/* สุ่มรายชื่อ — เต็มจอ (โชว์นักเรียนหน้าชั้น/โปรเจกเตอร์) */
+.rn-fullscreen {
+  position: relative; width: 100%; height: 100%; min-height: 100dvh; background: var(--bg-card);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 28px;
+}
+.rn-close {
+  position: absolute; top: 18px; right: 18px; width: 46px; height: 46px; border-radius: 50%;
+  border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-muted);
+  font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.rn-seg-wrap { display: flex; gap: 6px; background: var(--bg-app, #f5f7fa); padding: 4px; border-radius: 12px; width: min(440px, 92%); }
+.rn-seg { flex: 1; border: none; background: transparent; border-radius: 9px; padding: 10px 0; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+.rn-seg.on { background: var(--primary); color: #fff; }
+.rn-seg b { opacity: .8; font-weight: 700; margin-left: 2px; }
+.rn-stage { text-align: center; }
+.rn-reveal-no {
+  width: 96px; height: 96px; margin: 0 auto 22px; border-radius: 50%; background: var(--primary);
+  color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: 800;
+}
+.rn-reveal-name { font-size: clamp(2.6rem, 9vw, 5.5rem); font-weight: 800; color: var(--primary-hover); line-height: 1.05; }
+.rn-reveal-full { font-size: clamp(1rem, 3vw, 1.6rem); color: var(--text-muted); margin-top: 10px; min-height: 26px; }
+.rn-hint { font-size: 0.9rem; color: var(--primary); margin-top: 16px; min-height: 20px; }
+.rn-controls { display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(440px, 92%); }
+.rn-spin { width: 100%; font-size: 1.3rem; padding: 18px 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.rn-nodup-row { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text-muted); cursor: pointer; }
+.rn-nodup-row input { width: 18px; height: 18px; accent-color: var(--primary); }

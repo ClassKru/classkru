@@ -1,0 +1,149 @@
+/* ========================================== */
+/* DASHBOARD STATS & GRIDS                     */
+/* ========================================== */
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card { text-align: center; padding: 20px; border-radius: var(--radius-md); }
+.stat-num { font-size: 1.6rem; font-weight: 800; margin-top: 8px; }
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+
+.progress-container { margin-top: 8px; }
+.progress-label-row { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+.progress-bar-bg { width: 100%; height: 8px; background-color: var(--bg-app); border-radius: 4px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #10b981); border-radius: 4px; transition: width 0.5s ease; }
+
+.class-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.summary-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.summary-pill {
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+.warning-badge { display: inline-block; }
+
+/* ========================================== */
+/* TIMETABLE MATRIX TABLE                      */
+/* ========================================== */
+.timetable-matrix-table table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px;
+}
+
+.timetable-matrix-table th,
+.timetable-matrix-table td {
+  text-align: center;
+  padding: 12px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.timetable-matrix-table th {
+  background-color: #eef1f5;
+  color: #475569;
+  border: 1px solid #dfe3e9;
+}
+
+.ck-cardaction-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s; }
+.ck-cardaction-btn:hover { transform: scale(1.06); box-shadow: 0 6px 16px rgba(0,0,0,0.16); }
+.ck-cardaction-btn:active { transform: scale(1.0); }
+
+.timetable-matrix-table td {
+  background-color: #f9f9fb;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: var(--transition-normal);
+  height: 64px;
+  vertical-align: middle;
+}
+
+.timetable-matrix-table td:hover { background-color: #f0f0ee; }
+
+.timetable-matrix-table td.has-class {
+  background-color: var(--primary-light);
+  color: var(--text-main);
+  border-color: var(--primary-light-border);
+}
+
+.timetable-matrix-table td.is-now {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  animation: blinker 2s infinite;
+}
+
+.week-toggle-container { display: flex; gap: 4px; }
+.btn-week-toggle {
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: var(--transition-normal);
+}
+.btn-week-toggle.active {
+  background-color: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+/* ========================================== */
+/* WEB TABLE                                   */
+/* ========================================== */
+.web-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.web-table th, .web-table td {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.web-table th {
+  background-color: #f9f9fb;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.web-table tbody tr:nth-child(even) { background-color: #fafafa; }
+.web-table tbody tr:hover { background-color: var(--primary-light); }
+
+.matrix-table td {
+  text-align: center;
+  width: 40px;
+  height: 40px;
+  padding: 4px;
+}
+
