@@ -7,13 +7,21 @@
  * คะแนน key ด้วย student.id เดิม → forward-compatible กับ Student Master อนาคต
  */
 
-// ช่องคะแนนตาม ปพ.5 (bucket) — ลำดับคงที่
-const SCORE_BUCKETS = [
-  { key: 'before', label: 'ก่อนกลางภาค' },
-  { key: 'mid',    label: 'กลางภาค' },
-  { key: 'after',  label: 'หลังกลางภาค' },
-  { key: 'final',  label: 'ปลายภาค' }
+// โครงคะแนนตาม ปพ.5: 3 หมวดน้ำหนัก (ระหว่างภาค/กลางภาค/ปลายภาค)
+// item.bucket เดิม (before/after/mid/final) เข้ารหัส หมวด+ระยะ ในตัวเดียว → ไม่ต้องย้ายข้อมูล
+//   before = เก็บ(ระหว่างภาค)+ก่อนกลางภาค · after = เก็บ+หลังกลางภาค · mid = สอบกลางภาค · final = สอบปลายภาค
+const SCORE_CATS = [
+  { key: 'collect', label: 'ระหว่างภาค', buckets: ['before', 'after'], phased: true },
+  { key: 'mid',     label: 'กลางภาค',    buckets: ['mid'],             phased: false },
+  { key: 'final',   label: 'ปลายภาค',    buckets: ['final'],           phased: false }
 ];
+// ระยะของคะแนนเก็บ (แท็กรายการในหมวดระหว่างภาค → รวมก่อน/หลังกลางภาคตาม ปพ.5)
+const SCORE_PHASES = [
+  { key: 'before', label: 'ก่อนกลางภาค', short: 'ก่อนกลาง' },
+  { key: 'after',  label: 'หลังกลางภาค', short: 'หลังกลาง' }
+];
+// map bucket → หมวด (ใช้ตอนเปิด modal แก้ไขรายการ)
+const BUCKET_TO_CAT = { before: 'collect', after: 'collect', mid: 'mid', final: 'final' };
 
 // ประเภทรายการคะแนน (ใช้เป็น tag/ไอคอน ไม่ผูกการคำนวณ)
 const SCORE_TYPES = [
@@ -29,7 +37,7 @@ const SCORE_GRADES = ['4', '3.5', '3', '2.5', '2', '1.5', '1', '0'];
 
 function defaultScoreConfig() {
   return {
-    ratio: { before: 25, mid: 20, after: 25, final: 30 },
+    ratio: { collect: 70, mid: 10, final: 20 },
     gradeCut: [
       { min: 80, g: '4' }, { min: 75, g: '3.5' }, { min: 70, g: '3' }, { min: 65, g: '2.5' },
       { min: 60, g: '2' }, { min: 55, g: '1.5' }, { min: 50, g: '1' }, { min: 0, g: '0' }
@@ -43,6 +51,15 @@ function ensureScores(c) {
   if (!c.scores) c.scores = { config: defaultScoreConfig(), items: [], marks: {}, gradeOverride: {} };
   if (!c.scores.config) c.scores.config = defaultScoreConfig();
   if (!c.scores.config.ratio) c.scores.config.ratio = defaultScoreConfig().ratio;
+  // migrate สัดส่วนเก่า (before/mid/after/final) → ใหม่ (collect/mid/final): ระหว่างภาค = ก่อน+หลัง
+  const _r = c.scores.config.ratio;
+  if (_r.collect === undefined && (_r.before !== undefined || _r.after !== undefined)) {
+    c.scores.config.ratio = {
+      collect: (Number(_r.before) || 0) + (Number(_r.after) || 0),
+      mid: Number(_r.mid) || 0,
+      final: Number(_r.final) || 0
+    };
+  }
   if (!c.scores.config.gradeCut) c.scores.config.gradeCut = defaultScoreConfig().gradeCut;
   if (typeof c.scores.config.attendanceMin !== 'number') c.scores.config.attendanceMin = 60;
   if (!c.scores.items) c.scores.items = [];
@@ -55,23 +72,23 @@ function ensureScores(c) {
 // รวมคะแนนถ่วงน้ำหนักตาม ratio → เต็ม 100
 function computeStudentScore(c, sid) {
   const sc = ensureScores(c);
-  const buckets = {};
+  const cats = {};
   let total = 0;
-  SCORE_BUCKETS.forEach(b => {
-    const items = sc.items.filter(i => i.bucket === b.key);
+  SCORE_CATS.forEach(cat => {
+    const items = sc.items.filter(i => cat.buckets.includes(i.bucket));
     let raw = 0, max = 0, has = false;
     items.forEach(i => {
       max += Number(i.max) || 0;
       const m = (sc.marks[i.id] || {})[sid];
       if (m !== undefined && m !== null) { raw += Number(m); has = true; }
     });
-    const weight = Number(sc.config.ratio[b.key]) || 0;
+    const weight = Number(sc.config.ratio[cat.key]) || 0;
     const scaled = max > 0 ? (raw / max) * weight : 0;
-    buckets[b.key] = { raw, max, scaled, has, weight };
+    cats[cat.key] = { raw, max, scaled, has, weight };
     total += scaled;
   });
   total = Math.round(total * 100) / 100;
-  return { buckets, total, grade: gradeFromScore(sc.config, total) };
+  return { cats, total, grade: gradeFromScore(sc.config, total) };
 }
 
 function gradeFromScore(cfg, score) {
@@ -167,8 +184,14 @@ function renderScoreMatrix(c) {
     return;
   }
 
-  const groups = SCORE_BUCKETS
-    .map(b => ({ b, items: sc.items.filter(i => i.bucket === b.key) }))
+  // จัดกลุ่มตาม 3 หมวด; คะแนนเก็บเรียงตามระยะ (ก่อน→หลัง) พร้อมแนบระยะไว้โชว์แท็ก
+  const groups = SCORE_CATS
+    .map(cat => {
+      const items = cat.phased
+        ? SCORE_PHASES.flatMap(ph => sc.items.filter(i => i.bucket === ph.key).map(it => ({ it, phase: ph })))
+        : sc.items.filter(i => cat.buckets.includes(i.bucket)).map(it => ({ it, phase: null }));
+      return { cat, items };
+    })
     .filter(g => g.items.length > 0);
 
   if (groups.length === 0) {
@@ -186,11 +209,13 @@ function renderScoreMatrix(c) {
     + '<th class="sc-c-name" rowspan="2">ชื่อ-นามสกุล</th>';
   let head2 = '<tr>';
   groups.forEach(g => {
-    const w = Number(sc.config.ratio[g.b.key]) || 0;
-    head1 += `<th class="sc-bucket-head" colspan="${g.items.length}">${g.b.label} <span style="font-weight:400;">${w}%</span></th>`;
-    g.items.forEach(it => {
+    const w = Number(sc.config.ratio[g.cat.key]) || 0;
+    head1 += `<th class="sc-bucket-head" colspan="${g.items.length}">${g.cat.label} <span style="font-weight:400;">${w}%</span></th>`;
+    g.items.forEach(({ it, phase }) => {
+      const badge = phase ? `<div class="sc-phase-badge">${phase.short}</div>` : '';
       head2 += `<th class="sc-item-head" style="text-align:center;min-width:66px;" title="แก้ไขรายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">
         <div style="white-space:nowrap;">${escapeScore(it.name)}</div>
+        ${badge}
         <div style="font-weight:400;color:var(--text-muted);">เต็ม ${it.max}</div>
       </th>`;
     });
@@ -208,7 +233,7 @@ function renderScoreMatrix(c) {
       + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
       + `<td class="sc-c-name">${escapeScore(s.name)}</td>`;
     groups.forEach(g => {
-      g.items.forEach(it => {
+      g.items.forEach(({ it }) => {
         const v = (sc.marks[it.id] || {})[s.id];
         body += `<td style="text-align:center;"><input type="number" class="score-cell-input" value="${v === undefined || v === null ? '' : v}" min="0" max="${it.max}" step="0.5" placeholder="–"
           onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this.value)"></td>`;
@@ -325,13 +350,27 @@ function openScoreItemModal(classId, itemId) {
 
   const typeSel = document.getElementById('input-score-type');
   typeSel.innerHTML = SCORE_TYPES.map(t => `<option value="${t.v}" ${it && it.type === t.v ? 'selected' : ''}>${t.label}</option>`).join('');
-  const bucketSel = document.getElementById('input-score-bucket');
-  bucketSel.innerHTML = SCORE_BUCKETS.map(b => `<option value="${b.key}" ${it && it.bucket === b.key ? 'selected' : ''}>${b.label}</option>`).join('');
+  // หมวด (เก็บ/กลาง/ปลาย) + ระยะ (เฉพาะคะแนนเก็บ) — แปลงจาก bucket เดิม
+  const curBucket = it ? it.bucket : 'before';
+  const curCat = BUCKET_TO_CAT[curBucket] || 'collect';
+  const curPhase = curBucket === 'after' ? 'after' : 'before';
+  document.getElementById('input-score-cat').innerHTML =
+    SCORE_CATS.map(cat => `<option value="${cat.key}" ${cat.key === curCat ? 'selected' : ''}>${cat.label}</option>`).join('');
+  document.getElementById('input-score-phase').innerHTML =
+    SCORE_PHASES.map(ph => `<option value="${ph.key}" ${ph.key === curPhase ? 'selected' : ''}>${ph.label}</option>`).join('');
+  onScoreCatChange();
 
   document.querySelector('#modal-score-item h3').innerText = it ? 'แก้ไขรายการคะแนน' : 'เพิ่มรายการคะแนน';
   document.getElementById('btn-score-item-delete').style.display = it ? 'inline-flex' : 'none';
   document.getElementById('btn-score-item-submit').innerText = it ? 'บันทึก' : 'เพิ่ม';
   document.getElementById('modal-score-item').classList.add('show');
+}
+
+// แสดง/ซ่อนช่องเลือกระยะ (ก่อน/หลังกลางภาค) — เฉพาะหมวดระหว่างภาค (คะแนนเก็บ)
+function onScoreCatChange() {
+  const cat = document.getElementById('input-score-cat').value;
+  const wrap = document.getElementById('score-phase-wrap');
+  if (wrap) wrap.style.display = cat === 'collect' ? '' : 'none';
 }
 
 function closeScoreItemModal() {
@@ -348,7 +387,10 @@ function saveScoreItem() {
   if (!name) { showToast('กรุณากรอกชื่อรายการ', 'warning'); return; }
   if (!max || max <= 0) { showToast('คะแนนเต็มต้องมากกว่า 0', 'warning'); return; }
   const type = document.getElementById('input-score-type').value;
-  const bucket = document.getElementById('input-score-bucket').value;
+  const cat = document.getElementById('input-score-cat').value;
+  const phase = document.getElementById('input-score-phase').value;
+  // รวมหมวด+ระยะ → bucket เดิม (คงรูปแบบข้อมูล): เก็บ→before/after, กลาง→mid, ปลาย→final
+  const bucket = cat === 'collect' ? (phase === 'after' ? 'after' : 'before') : cat;
   const date = document.getElementById('input-score-date').value;
   const note = document.getElementById('input-score-note').value.trim();
 
@@ -383,9 +425,8 @@ function openScoreSettingsModal() {
   const c = appState.classes.find(x => x.id === scoreCurrentClassId);
   if (!c) return;
   const cfg = ensureScores(c).config;
-  document.getElementById('input-ratio-before').value = cfg.ratio.before;
+  document.getElementById('input-ratio-collect').value = cfg.ratio.collect;
   document.getElementById('input-ratio-mid').value = cfg.ratio.mid;
-  document.getElementById('input-ratio-after').value = cfg.ratio.after;
   document.getElementById('input-ratio-final').value = cfg.ratio.final;
   document.getElementById('input-att-min').value = cfg.attendanceMin;
   renderGradeCutInputs(cfg);
@@ -406,7 +447,7 @@ function renderGradeCutInputs(cfg) {
 }
 
 function updateRatioSum() {
-  const sum = ['before', 'mid', 'after', 'final']
+  const sum = ['collect', 'mid', 'final']
     .reduce((a, k) => a + (Number(document.getElementById('input-ratio-' + k).value) || 0), 0);
   const el = document.getElementById('ratio-sum-label');
   el.innerText = `รวม ${sum}%`;
@@ -418,12 +459,11 @@ function saveScoreSettings() {
   if (!c) return;
   const cfg = ensureScores(c).config;
   const ratio = {
-    before: Number(document.getElementById('input-ratio-before').value) || 0,
+    collect: Number(document.getElementById('input-ratio-collect').value) || 0,
     mid: Number(document.getElementById('input-ratio-mid').value) || 0,
-    after: Number(document.getElementById('input-ratio-after').value) || 0,
     final: Number(document.getElementById('input-ratio-final').value) || 0
   };
-  const sum = ratio.before + ratio.mid + ratio.after + ratio.final;
+  const sum = ratio.collect + ratio.mid + ratio.final;
   if (sum !== 100) { showToast('สัดส่วนคะแนนต้องรวมได้ 100%', 'warning'); return; }
   cfg.ratio = ratio;
   cfg.attendanceMin = Number(document.getElementById('input-att-min').value) || 0;
