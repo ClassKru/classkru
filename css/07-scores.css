@@ -13,22 +13,24 @@
   color: var(--primary); background: var(--primary-light);
   border-bottom: 1px solid var(--primary-light-border); font-size: 0.82rem;
 }
-.score-matrix-table .sc-item-head { transition: var(--transition-normal); vertical-align: top; }
-/* ช่องแก้ชื่อรายการ inline — ดูเหมือนข้อความ แต่คลิกพิมพ์แก้ได้ */
-.sc-item-name-input { width: 100%; max-width: 84px; text-align: center; font-weight: 700; font-size: 0.76rem; color: var(--text-main); border: 1px solid transparent; border-radius: 5px; padding: 2px 3px; background: transparent; }
+/* หัวรายการ = สแต็กแนวตั้ง 3 บรรทัด (ชื่อ / ระยะ / เต็ม+เฟือง) คุมกว้างไม่ให้ล้นคอลัมน์ */
+.score-matrix-table .sc-item-head { transition: var(--transition-normal); vertical-align: top; width: 78px; min-width: 78px; max-width: 78px; box-sizing: border-box; }
+/* ชื่อรายการ — ดูเหมือนข้อความ คลิกพิมพ์แก้ได้ บรรทัดเดียว ยาวเกินเลื่อนในช่อง */
+.sc-item-name-input { display: block; width: 100%; box-sizing: border-box; text-align: center; text-overflow: ellipsis; font-weight: 700; font-size: 0.74rem; color: var(--text-main); border: 1px solid transparent; border-radius: 5px; padding: 2px 3px; background: transparent; }
 .sc-item-name-input:hover { border-color: var(--border-color); background: #fff; }
-.sc-item-name-input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 2px var(--primary-light); }
-/* แถวคะแนนเต็ม + ปุ่มตั้งค่ารายการ */
-.sc-item-max-row { font-weight: 400; color: var(--text-muted); font-size: 0.68rem; display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 1px; }
-.sc-item-max-input { width: 32px; text-align: center; font-size: 0.7rem; font-weight: 600; color: var(--text-main); border: 1px solid transparent; border-radius: 4px; padding: 1px 2px; background: transparent; font-variant-numeric: tabular-nums; }
+.sc-item-name-input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 2px var(--primary-light); text-overflow: clip; }
+/* แถวคะแนนเต็ม + ปุ่มตั้งค่า — บรรทัดล่างสุด */
+.sc-item-max-row { font-weight: 400; color: var(--text-muted); font-size: 0.66rem; display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 2px; }
+.sc-item-max-lbl { white-space: nowrap; }
+.sc-item-max-input { width: 30px; text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--text-main); border: 1px solid transparent; border-radius: 4px; padding: 1px 2px; background: transparent; font-variant-numeric: tabular-nums; }
 .sc-item-max-input:hover { border-color: var(--border-color); background: #fff; }
 .sc-item-max-input:focus { outline: none; border-color: var(--primary); background: #fff; }
 .sc-item-max-input::-webkit-outer-spin-button, .sc-item-max-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .sc-item-max-input { -moz-appearance: textfield; appearance: textfield; }
-.sc-item-more { border: none; background: transparent; color: #c7c7cc; cursor: pointer; padding: 0 1px; font-size: 0.74rem; line-height: 1; }
+.sc-item-more { border: none; background: transparent; color: #c7c7cc; cursor: pointer; padding: 0; font-size: 0.72rem; line-height: 1; flex-shrink: 0; }
 .sc-item-more:hover { color: var(--primary); }
 /* แท็กระยะ (ก่อน/หลังกลางภาค) บนหัวรายการคะแนนเก็บ */
-.sc-phase-badge { display: inline-block; font-size: 0.6rem; font-weight: 700; color: var(--primary); background: var(--primary-light); border-radius: 5px; padding: 1px 6px; margin: 2px 0; }
+.sc-phase-badge { display: block; width: fit-content; max-width: 100%; font-size: 0.58rem; font-weight: 700; color: var(--primary); background: var(--primary-light); border-radius: 5px; padding: 1px 5px; margin: 2px auto 0; white-space: nowrap; }
 /* ช่องแก้สัดส่วน % inline บนหัวหมวด (แก้ได้เลยไม่ต้องเปิดตั้งค่า) */
 .sc-weight-input { width: 32px; text-align: center; font-weight: 700; font-size: 0.78rem; color: var(--primary); background: #fff; border: 1px solid var(--primary-light-border); border-radius: 6px; padding: 2px 2px; font-variant-numeric: tabular-nums; cursor: text; }
 .sc-weight-input:hover { border-color: var(--primary); }

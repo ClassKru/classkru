@@ -223,10 +223,10 @@ function renderScoreMatrix(c) {
     g.items.forEach(({ it, phase }, idx) => {
       const badge = phase ? `<div class="sc-phase-badge">${phase.short}</div>` : '';
       const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
-      head2 += `<th class="sc-item-head${idx === 0 ? ' sc-cat-start' : ''}" style="min-width:72px;">
+      head2 += `<th class="sc-item-head${idx === 0 ? ' sc-cat-start' : ''}">
         <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
         ${badge}
-        <div class="sc-item-max-row">เต็ม <input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
+        <div class="sc-item-max-row"><span class="sc-item-max-lbl">เต็ม</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
       </th>`;
     });
   });
