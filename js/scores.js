@@ -180,7 +180,10 @@ function renderScoreMatrix(c) {
   }
 
   // แถวหัว 2 ชั้น: ชั้นบน = ช่อง (bucket) + น้ำหนัก, ชั้นล่าง = รายการ
-  let head1 = '<tr><th class="sc-sticky" rowspan="2" style="min-width:160px;">นักเรียน</th>';
+  let head1 = '<tr>'
+    + '<th class="sc-c-no" rowspan="2">เลขที่</th>'
+    + '<th class="sc-c-code" rowspan="2">รหัส</th>'
+    + '<th class="sc-c-name" rowspan="2">ชื่อ-นามสกุล</th>';
   let head2 = '<tr>';
   groups.forEach(g => {
     const w = Number(sc.config.ratio[g.b.key]) || 0;
@@ -194,12 +197,16 @@ function renderScoreMatrix(c) {
   });
   head1 += `<th rowspan="2" style="text-align:center;min-width:74px;">รวม<div style="font-weight:400;font-size:0.66rem;">(100)</div></th>
     <th rowspan="2" style="text-align:center;min-width:70px;">เวลาเรียน</th>
-    <th rowspan="2" style="text-align:center;min-width:132px;">เกรด</th></tr>`;
+    <th rowspan="2" style="text-align:center;min-width:132px;">เกรด</th>
+    <th class="sc-c-manage" rowspan="2" style="min-width:90px;">จัดการ</th></tr>`;
   head2 += '</tr>';
 
   let body = '<tbody>';
-  c.students.forEach(s => {
-    body += `<tr><td class="sc-sticky"><span class="sc-no">${s.no || '-'}.</span>${escapeScore(s.name)}</td>`;
+  c.students.forEach((s, index) => {
+    body += `<tr>`
+      + `<td class="sc-c-no">${s.no || (index + 1)}</td>`
+      + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
+      + `<td class="sc-c-name">${escapeScore(s.name)}</td>`;
     groups.forEach(g => {
       g.items.forEach(it => {
         const v = (sc.marks[it.id] || {})[s.id];
@@ -208,6 +215,10 @@ function renderScoreMatrix(c) {
       });
     });
     body += scoreSummaryCells(c, s);
+    body += `<td class="sc-c-manage"><div class="sc-manage-actions">
+      <button class="d-manage-btn" title="แก้ไขข้อมูล" onclick="currentClassId='${c.id}';openStudentDetailModal('${s.id}','${c.id}')"><i class="hgi-stroke hgi-edit-02"></i></button>
+      <button class="d-manage-btn danger" title="ลบรายชื่อ" onclick="deleteStudentFromScores('${c.id}','${s.id}')"><i class="hgi-stroke hgi-delete-02"></i></button>
+    </div></td>`;
     body += '</tr>';
   });
   body += '</tbody>';
@@ -275,6 +286,25 @@ function setGradeOverride(classId, sid, val) {
   else sc.gradeOverride[sid] = val;
   saveState();
   updateScoreRow(c, sid);
+}
+
+// ลบนักเรียนจากหน้าคะแนน — ลบจาก c.students ชุดเดียว → ลิ้งกับเช็คชื่ออัตโนมัติ + ล้างคะแนน/override ของคนนั้น
+function deleteStudentFromScores(classId, sid) {
+  const c = appState.classes.find(x => x.id === classId);
+  if (!c) return;
+  const s = c.students.find(x => x.id === sid);
+  if (!s) return;
+  showConfirm(`ลบ "${s.name}" ออกจากห้องนี้? ข้อมูลเช็คชื่อและคะแนนของคนนี้จะหายไปด้วย`, () => {
+    c.students = c.students.filter(x => x.id !== sid);
+    c.students.forEach((st, i) => st.no = i + 1);
+    Object.keys(c.attendance || {}).forEach(d => { delete c.attendance[d][sid]; });
+    const sc = ensureScores(c);
+    Object.keys(sc.marks).forEach(itemId => { delete sc.marks[itemId][sid]; });
+    delete sc.gradeOverride[sid];
+    saveState();
+    showToast('ลบนักเรียนแล้ว', 'success');
+    renderScoreMatrix(c);
+  }, { title: `ลบ "${s.name}"?`, icon: '🗑️', okText: 'ลบ' });
 }
 
 // ==================== รายการคะแนน (item CRUD) ====================

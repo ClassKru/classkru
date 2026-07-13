@@ -236,6 +236,9 @@ function saveStudentDetailChanges() {
   const swipeOverlay = document.getElementById('swipe-overlay');
   if (swipeOverlay && swipeOverlay.classList.contains('show')) {
     refreshSwipeIfOpen();
+  } else if (appState.activeWebScreen === 'scores' && typeof scoreCurrentClassId !== 'undefined' && scoreCurrentClassId) {
+    // แก้จากหน้าคะแนน → refresh ตารางคะแนน (ชื่อ/รหัส/เลขที่อัปเดต ลิ้งกับข้อมูลชุดเดียว)
+    renderScoreMatrix(c);
   } else {
     renderWebStudents();
   }
