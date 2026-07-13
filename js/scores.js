@@ -23,6 +23,14 @@ const SCORE_PHASES = [
 // map bucket → หมวด (ใช้ตอนเปิด modal แก้ไขรายการ)
 const BUCKET_TO_CAT = { before: 'collect', after: 'collect', mid: 'mid', final: 'final' };
 
+// น้ำหนักแยกราย bucket ตาม ปพ.5 (ก่อน+หลัง+กลาง+ปลาย = 100) — คะแนนเก็บ = ก่อน+หลัง
+const SCORE_WK = [
+  { key: 'before', label: 'ก่อนกลางภาค', group: 'collect' },
+  { key: 'after',  label: 'หลังกลางภาค', group: 'collect' },
+  { key: 'mid',    label: 'สอบกลางภาค',  group: 'exam' },
+  { key: 'final',  label: 'สอบปลายภาค',  group: 'exam' }
+];
+
 // ประเภทรายการคะแนน (ใช้เป็น tag/ไอคอน ไม่ผูกการคำนวณ)
 const SCORE_TYPES = [
   { v: 'assign',    label: 'งาน/ชิ้นงาน' },
@@ -37,7 +45,7 @@ const SCORE_GRADES = ['4', '3.5', '3', '2.5', '2', '1.5', '1', '0'];
 
 function defaultScoreConfig() {
   return {
-    ratio: { collect: 70, mid: 10, final: 20 },
+    ratio: { before: 40, after: 30, mid: 10, final: 20 },
     gradeCut: [
       { min: 80, g: '4' }, { min: 75, g: '3.5' }, { min: 70, g: '3' }, { min: 65, g: '2.5' },
       { min: 60, g: '2' }, { min: 55, g: '1.5' }, { min: 50, g: '1' }, { min: 0, g: '0' }
@@ -51,14 +59,13 @@ function ensureScores(c) {
   if (!c.scores) c.scores = { config: defaultScoreConfig(), items: [], marks: {}, gradeOverride: {} };
   if (!c.scores.config) c.scores.config = defaultScoreConfig();
   if (!c.scores.config.ratio) c.scores.config.ratio = defaultScoreConfig().ratio;
-  // migrate สัดส่วนเก่า (before/mid/after/final) → ใหม่ (collect/mid/final): ระหว่างภาค = ก่อน+หลัง
+  // ให้ ratio เป็น 4 น้ำหนักราย bucket (before/after/mid/final) เสมอ
   const _r = c.scores.config.ratio;
-  if (_r.collect === undefined && (_r.before !== undefined || _r.after !== undefined)) {
-    c.scores.config.ratio = {
-      collect: (Number(_r.before) || 0) + (Number(_r.after) || 0),
-      mid: Number(_r.mid) || 0,
-      final: Number(_r.final) || 0
-    };
+  if (_r.collect !== undefined && _r.before === undefined) {
+    // จากช่วงทดสอบ 3-key (collect) → ยกไปไว้ที่ก่อนกลางภาค, หลัง=0 (ครูมาปรับเอง)
+    c.scores.config.ratio = { before: Number(_r.collect) || 0, after: 0, mid: Number(_r.mid) || 0, final: Number(_r.final) || 0 };
+  } else {
+    ['before', 'after', 'mid', 'final'].forEach(k => { if (typeof _r[k] !== 'number') _r[k] = 0; });
   }
   if (!c.scores.config.gradeCut) c.scores.config.gradeCut = defaultScoreConfig().gradeCut;
   if (typeof c.scores.config.attendanceMin !== 'number') c.scores.config.attendanceMin = 60;
@@ -82,17 +89,17 @@ function computeStudentScore(c, sid) {
   const sc = ensureScores(c);
   const cats = {};
   let total = 0;
-  SCORE_CATS.forEach(cat => {
-    const items = sc.items.filter(i => cat.buckets.includes(i.bucket));
+  SCORE_WK.forEach(b => {
+    const items = sc.items.filter(i => i.bucket === b.key);
     let raw = 0, max = 0, has = false;
     items.forEach(i => {
       max += Number(i.max) || 0;
       const m = (sc.marks[i.id] || {})[sid];
       if (m !== undefined && m !== null) { raw += clampMark(m, i.max) || 0; has = true; }
     });
-    const weight = Number(sc.config.ratio[cat.key]) || 0;
+    const weight = Number(sc.config.ratio[b.key]) || 0;
     const scaled = max > 0 ? (raw / max) * weight : 0;
-    cats[cat.key] = { raw, max, scaled, has, weight };
+    cats[b.key] = { raw, max, scaled, has, weight };
     total += scaled;
   });
   total = Math.round(total * 100) / 100;
@@ -192,70 +199,58 @@ function renderScoreMatrix(c) {
     return;
   }
 
-  // จัดกลุ่มแบบ ปพ.5: คะแนนเก็บ (ก่อน/หลังกลางภาค) | สอบกลางภาค | สอบปลายภาค
-  const disp = [];
-  SCORE_PHASES.forEach(ph => {
-    const items = sc.items.filter(i => i.bucket === ph.key);
-    if (items.length) disp.push({ kind: 'collect', label: ph.label, items });
-  });
-  [['mid', 'สอบกลางภาค'], ['final', 'สอบปลายภาค']].forEach(([bk, label]) => {
-    const items = sc.items.filter(i => i.bucket === bk);
-    if (items.length) disp.push({ kind: 'exam', catKey: bk, label, items });
-  });
+  // จัดกลุ่มแบบ ปพ.5 — แสดงครบ 4 บล็อกเสมอ (ว่างก็มีปุ่มเพิ่ม): คะแนนเก็บ(ก่อน/หลัง) | สอบกลางภาค | สอบปลายภาค
+  const disp = SCORE_WK.map(b => ({ key: b.key, label: b.label, group: b.group, items: sc.items.filter(i => i.bucket === b.key) }));
+  const collectGroups = disp.filter(g => g.group === 'collect');
+  const examGroups = disp.filter(g => g.group === 'exam');
+  const cspan = (g) => g.items.length || 1;                       // บล็อกว่าง = 1 คอลัมน์ placeholder
+  const collectCount = collectGroups.reduce((a, g) => a + cspan(g), 0);
+  const collectW = (Number(sc.config.ratio.before) || 0) + (Number(sc.config.ratio.after) || 0);
+  const sumW = SCORE_WK.reduce((a, b) => a + (Number(sc.config.ratio[b.key]) || 0), 0);
 
-  if (disp.length === 0) {
-    wrap.innerHTML = `<div class="empty-state" style="padding:32px 16px;">
-      <i class="hgi-stroke hgi-task-add-01" style="font-size:2rem;display:block;margin-bottom:10px;opacity:0.5;"></i>
-      ยังไม่มีรายการคะแนน<br><span style="font-size:0.82rem;">กด "เพิ่มรายการคะแนน" ด้านบนเพื่อเริ่ม เช่น ใบงานที่ 1, Quiz, สอบปลายภาค</span>
-    </div>`;
-    return;
-  }
-
-  const collectGroups = disp.filter(g => g.kind === 'collect');
-  const examGroups = disp.filter(g => g.kind === 'exam');
-  const collectCount = collectGroups.reduce((a, g) => a + g.items.length, 0);
-  const hasPhaseRow = collectGroups.length > 0;
-  const totalRows = hasPhaseRow ? 3 : 2;
-  const sumW = SCORE_CATS.reduce((a, cat) => a + (Number(sc.config.ratio[cat.key]) || 0), 0);
-
-  // ช่องแก้สัดส่วน % ของหมวด (collect/mid/final) — วางบนหัวกลุ่มบนสุด
-  const wInput = (catKey) => {
-    const w = Number(sc.config.ratio[catKey]) || 0;
-    return `<input type="number" class="sc-weight-input" value="${w}" min="0" max="100" title="แก้สัดส่วน % (คลิกพิมพ์)" onclick="event.stopPropagation()" onchange="setCatWeight('${c.id}','${catKey}',this)">%`;
+  // ช่องแก้สัดส่วน % ราย bucket (ก่อน/หลัง/กลาง/ปลาย) — คลิกพิมพ์
+  const wInput = (bk) => {
+    const w = Number(sc.config.ratio[bk]) || 0;
+    return `<input type="number" class="sc-weight-input" value="${w}" min="0" max="100" title="แก้สัดส่วน % (คลิกพิมพ์)" onclick="event.stopPropagation()" onchange="setCatWeight('${c.id}','${bk}',this)">%`;
   };
 
-  // รายการเรียงตามบล็อก (ก่อน→หลัง→กลาง→ปลาย) + ธงเริ่มบล็อก (ไว้ตีเส้นขั้น)
-  const ordered = [];
-  disp.forEach(g => g.items.forEach((it, idx) => ordered.push({ it, groupStart: idx === 0 })));
+  // คอลัมน์เรียง (รวม placeholder ของบล็อกว่าง) + ธงเริ่มบล็อก (ไว้ตีเส้นขั้น)
+  const cols = [];
+  disp.forEach(g => {
+    if (g.items.length) g.items.forEach((it, idx) => cols.push({ g, it, groupStart: idx === 0 }));
+    else cols.push({ g, placeholder: true, groupStart: true });
+  });
 
   // ---- หัวตาราง 3 ชั้นแบบ ปพ.5 ----
-  const nameCols = `<th class="sc-c-no" rowspan="${totalRows}">เลขที่</th><th class="sc-c-code" rowspan="${totalRows}">รหัส</th><th class="sc-c-name" rowspan="${totalRows}">ชื่อ-นามสกุล</th>`;
-  const sumCols = `<th rowspan="${totalRows}" style="text-align:center;min-width:56px;">รวม<div style="font-weight:400;font-size:0.66rem;color:${sumW === 100 ? 'inherit' : 'var(--color-absent)'};">(${sumW})</div></th>
-    <th rowspan="${totalRows}" style="text-align:center;min-width:54px;">เกรด</th>
-    <th class="sc-c-manage" rowspan="${totalRows}" style="min-width:74px;">จัดการ</th>`;
+  const nameCols = `<th class="sc-c-no" rowspan="3">เลขที่</th><th class="sc-c-code" rowspan="3">รหัส</th><th class="sc-c-name" rowspan="3">ชื่อ-นามสกุล</th>`;
+  const sumCols = `<th rowspan="3" style="text-align:center;min-width:56px;">รวม<div style="font-weight:400;font-size:0.66rem;color:${sumW === 100 ? 'inherit' : 'var(--color-absent)'};">(${sumW})</div></th>
+    <th rowspan="3" style="text-align:center;min-width:54px;">เกรด</th>
+    <th class="sc-c-manage" rowspan="3" style="min-width:74px;">จัดการ</th>`;
 
-  // ชั้น 1: หมวดบนสุด (คะแนนเก็บ คลุมก่อน+หลัง | สอบกลางภาค | สอบปลายภาค) + สัดส่วน %
-  let r1 = '<tr>' + nameCols;
-  if (collectCount > 0) r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${collectCount}">คะแนนเก็บ ${wInput('collect')}</th>`;
-  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${g.items.length}" rowspan="${hasPhaseRow ? 2 : 1}">${g.label} ${wInput(g.catKey)}</th>`; });
+  // ชั้น 1: คะแนนเก็บ (คลุมก่อน+หลัง, โชว์ % รวมอ่านอย่างเดียว) | สอบกลางภาค % | สอบปลายภาค %
+  let r1 = '<tr>' + nameCols
+    + `<th class="sc-bucket-head sc-cat-start" colspan="${collectCount}">คะแนนเก็บ <span class="sc-w-readonly">${collectW}%</span></th>`;
+  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${cspan(g)}" rowspan="2">${g.label} ${wInput(g.key)}</th>`; });
   r1 += sumCols + '</tr>';
 
-  // ชั้น 2: ระยะย่อยใต้คะแนนเก็บ (ก่อนกลางภาค | หลังกลางภาค)
-  let r2 = '';
-  if (hasPhaseRow) {
-    r2 = '<tr>';
-    collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${g.items.length}">${g.label}</th>`; });
-    r2 += '</tr>';
-  }
+  // ชั้น 2: ระยะย่อย + สัดส่วน % แยก ก่อน/หลังกลางภาค
+  let r2 = '<tr>';
+  collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${cspan(g)}">${g.label} ${wInput(g.key)}</th>`; });
+  r2 += '</tr>';
 
-  // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) — ไม่มี badge แล้ว (ระยะอยู่หัวกลุ่ม)
+  // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) หรือปุ่ม + ถ้าบล็อกว่าง
   let r3 = '<tr>';
-  ordered.forEach(({ it, groupStart }) => {
-    const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
-    r3 += `<th class="sc-item-head${groupStart ? ' sc-cat-start' : ''}">
-      <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
-      <div class="sc-item-max-row"><span class="sc-item-max-lbl">เต็ม</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
-    </th>`;
+  cols.forEach(({ g, it, placeholder, groupStart }) => {
+    const cs = groupStart ? ' sc-cat-start' : '';
+    if (placeholder) {
+      r3 += `<th class="sc-item-head sc-item-empty${cs}"><button class="sc-add-item-btn" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button></th>`;
+    } else {
+      const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
+      r3 += `<th class="sc-item-head${cs}">
+        <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
+        <div class="sc-item-max-row"><span class="sc-item-max-lbl">เต็ม</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
+      </th>`;
+    }
   });
   r3 += '</tr>';
 
@@ -267,7 +262,8 @@ function renderScoreMatrix(c) {
       + `<td class="sc-c-no">${s.no || (index + 1)}</td>`
       + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
       + `<td class="sc-c-name">${escapeScore(s.name)}</td>`;
-    ordered.forEach(({ it, groupStart }) => {
+    cols.forEach(({ it, placeholder, groupStart }) => {
+      if (placeholder) { body += `<td class="sc-cell-empty${groupStart ? ' sc-cat-start' : ''}"></td>`; return; }
       const v = clampMark((sc.marks[it.id] || {})[s.id], it.max);
       body += `<td style="text-align:center;"${groupStart ? ' class="sc-cat-start"' : ''}><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
         onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;
@@ -281,7 +277,7 @@ function renderScoreMatrix(c) {
   });
   body += '</tbody>';
 
-  wrap.innerHTML = `<table class="score-matrix-table">${thead ? `<thead>${thead}</thead>` : ''}${body}</table>`;
+  wrap.innerHTML = `<table class="score-matrix-table"><thead>${thead}</thead>${body}</table>`;
 }
 
 // เซลล์สรุปท้ายแถว (รวม / เกรด) — id ต่อคน เพื่ออัปเดตแบบไม่ re-render ทั้งตาราง
@@ -339,7 +335,7 @@ function setCatWeight(classId, catKey, el) {
   cfg.ratio[catKey] = v;
   saveState();
   renderScoreMatrix(c);
-  const sum = SCORE_CATS.reduce((a, cat) => a + (Number(cfg.ratio[cat.key]) || 0), 0);
+  const sum = SCORE_WK.reduce((a, b) => a + (Number(cfg.ratio[b.key]) || 0), 0);
   if (sum !== 100) showToast(`สัดส่วนรวม ${sum}% (ควรเป็น 100%)`, 'warning');
 }
 
@@ -400,7 +396,7 @@ function setItemMax(classId, itemId, el) {
 // ==================== รายการคะแนน (item CRUD) ====================
 let editingScoreItemId = null;
 
-function openScoreItemModal(classId, itemId) {
+function openScoreItemModal(classId, itemId, presetBucket) {
   scoreCurrentClassId = classId;
   editingScoreItemId = itemId || null;
   const c = appState.classes.find(x => x.id === classId);
@@ -416,7 +412,7 @@ function openScoreItemModal(classId, itemId) {
   const typeSel = document.getElementById('input-score-type');
   typeSel.innerHTML = SCORE_TYPES.map(t => `<option value="${t.v}" ${it && it.type === t.v ? 'selected' : ''}>${t.label}</option>`).join('');
   // หมวด (เก็บ/กลาง/ปลาย) + ระยะ (เฉพาะคะแนนเก็บ) — แปลงจาก bucket เดิม
-  const curBucket = it ? it.bucket : 'before';
+  const curBucket = it ? it.bucket : (presetBucket || 'before');
   const curCat = BUCKET_TO_CAT[curBucket] || 'collect';
   const curPhase = curBucket === 'after' ? 'after' : 'before';
   document.getElementById('input-score-cat').innerHTML =
@@ -490,7 +486,8 @@ function openScoreSettingsModal() {
   const c = appState.classes.find(x => x.id === scoreCurrentClassId);
   if (!c) return;
   const cfg = ensureScores(c).config;
-  document.getElementById('input-ratio-collect').value = cfg.ratio.collect;
+  document.getElementById('input-ratio-before').value = cfg.ratio.before;
+  document.getElementById('input-ratio-after').value = cfg.ratio.after;
   document.getElementById('input-ratio-mid').value = cfg.ratio.mid;
   document.getElementById('input-ratio-final').value = cfg.ratio.final;
   document.getElementById('input-att-min').value = cfg.attendanceMin;
@@ -512,7 +509,7 @@ function renderGradeCutInputs(cfg) {
 }
 
 function updateRatioSum() {
-  const sum = ['collect', 'mid', 'final']
+  const sum = ['before', 'after', 'mid', 'final']
     .reduce((a, k) => a + (Number(document.getElementById('input-ratio-' + k).value) || 0), 0);
   const el = document.getElementById('ratio-sum-label');
   el.innerText = `รวม ${sum}%`;
@@ -524,11 +521,12 @@ function saveScoreSettings() {
   if (!c) return;
   const cfg = ensureScores(c).config;
   const ratio = {
-    collect: Number(document.getElementById('input-ratio-collect').value) || 0,
+    before: Number(document.getElementById('input-ratio-before').value) || 0,
+    after: Number(document.getElementById('input-ratio-after').value) || 0,
     mid: Number(document.getElementById('input-ratio-mid').value) || 0,
     final: Number(document.getElementById('input-ratio-final').value) || 0
   };
-  const sum = ratio.collect + ratio.mid + ratio.final;
+  const sum = ratio.before + ratio.after + ratio.mid + ratio.final;
   if (sum !== 100) { showToast('สัดส่วนคะแนนต้องรวมได้ 100%', 'warning'); return; }
   cfg.ratio = ratio;
   cfg.attendanceMin = Number(document.getElementById('input-att-min').value) || 0;

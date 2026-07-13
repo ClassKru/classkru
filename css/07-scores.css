@@ -1,7 +1,8 @@
 /* ========================================== */
 /* ===  ตารางคะแนน (เข้าชุดกับตารางรายชื่อ) === */
 /* ========================================== */
-.score-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; }
+/* width:auto = คอลัมน์ขนาดพอดีเนื้อหา ไม่ยืดเต็มจอตอนรายการน้อย (เพิ่มรายการค่อยขยาย) */
+.score-matrix-table { width: auto; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; }
 .score-matrix-table th, .score-matrix-table td { padding: 5px 4px; }
 /* เส้นขั้นระหว่างหมวด (ระหว่างภาค | กลางภาค | ปลายภาค) — อยู่ทั้งหัวและตัว จึงต่อเป็นเส้นเดียว */
 .score-matrix-table .sc-cat-start { border-left: 2px solid var(--border-color); }
@@ -29,6 +30,13 @@
 .sc-item-max-input { -moz-appearance: textfield; appearance: textfield; }
 .sc-item-more { border: none; background: transparent; color: #c7c7cc; cursor: pointer; padding: 0; font-size: 0.72rem; line-height: 1; flex-shrink: 0; }
 .sc-item-more:hover { color: var(--primary); }
+/* % รวมคะแนนเก็บ (อ่านอย่างเดียว บนหัว "คะแนนเก็บ") */
+.sc-w-readonly { font-weight: 400; }
+/* บล็อกว่าง (ยังไม่มีรายการ) — ปุ่ม + เพิ่มรายการในระยะนั้น */
+.score-matrix-table .sc-item-empty { vertical-align: middle; text-align: center; min-width: 52px; }
+.sc-add-item-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px dashed var(--primary-light-border); background: var(--primary-light); color: var(--primary); cursor: pointer; font-size: 0.85rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+.sc-add-item-btn:hover { border-style: solid; border-color: var(--primary); }
+.score-matrix-table td.sc-cell-empty { background: #fafbfc; }
 /* หัวกลุ่มย่อยระยะ (ก่อน/หลังกลางภาค) ใต้ "คะแนนเก็บ" — โทนอ่อนกว่าหัวหมวด */
 .score-matrix-table thead .sc-phase-head { background: #eef5f2; color: var(--text-muted); font-weight: 700; font-size: 0.72rem; border-bottom: 1px solid var(--border-color); text-align: center; white-space: nowrap; }
 /* ช่องแก้สัดส่วน % inline บนหัวหมวด (แก้ได้เลยไม่ต้องเปิดตั้งค่า) */
