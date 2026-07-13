@@ -222,10 +222,11 @@ function renderScoreMatrix(c) {
     head1 += `<th class="sc-bucket-head sc-cat-start" colspan="${g.items.length}">${g.cat.label} <input type="number" class="sc-weight-input" value="${w}" min="0" max="100" title="แก้สัดส่วน % (คลิกพิมพ์)" onclick="event.stopPropagation()" onchange="setCatWeight('${c.id}','${g.cat.key}',this)">%</th>`;
     g.items.forEach(({ it, phase }, idx) => {
       const badge = phase ? `<div class="sc-phase-badge">${phase.short}</div>` : '';
-      head2 += `<th class="sc-item-head${idx === 0 ? ' sc-cat-start' : ''}" style="text-align:center;min-width:52px;" title="แก้ไขรายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">
-        <div style="white-space:nowrap;">${escapeScore(it.name)}</div>
+      const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
+      head2 += `<th class="sc-item-head${idx === 0 ? ' sc-cat-start' : ''}" style="min-width:72px;">
+        <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
         ${badge}
-        <div style="font-weight:400;color:var(--text-muted);">เต็ม ${it.max}</div>
+        <div class="sc-item-max-row">เต็ม <input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
       </th>`;
     });
   });
@@ -345,6 +346,31 @@ function deleteStudentFromScores(classId, sid) {
     showToast('ลบนักเรียนแล้ว', 'success');
     renderScoreMatrix(c);
   }, { title: `ลบ "${s.name}"?`, icon: '🗑️', okText: 'ลบ' });
+}
+
+// แก้ชื่อรายการ inline จากหัวตาราง (ลิงก์ข้อมูลเดียวกับ modal/ตั้งค่า)
+function setItemName(classId, itemId, el) {
+  const c = appState.classes.find(x => x.id === classId);
+  if (!c) return;
+  const it = ensureScores(c).items.find(i => i.id === itemId);
+  if (!it) return;
+  const v = el.value.trim();
+  if (!v) { el.value = it.name; showToast('ชื่อรายการห้ามว่าง', 'warning'); return; }
+  it.name = v;
+  saveState();  // ชื่อไม่กระทบคำนวณ → ไม่ต้อง re-render
+}
+
+// แก้คะแนนเต็ม inline จากหัวตาราง → clamp คะแนน/รวม/เกรดใหม่
+function setItemMax(classId, itemId, el) {
+  const c = appState.classes.find(x => x.id === classId);
+  if (!c) return;
+  const it = ensureScores(c).items.find(i => i.id === itemId);
+  if (!it) return;
+  const v = Number(el.value);
+  if (isNaN(v) || v <= 0) { el.value = it.max; showToast('คะแนนเต็มต้องมากกว่า 0', 'warning'); return; }
+  it.max = v;
+  saveState();
+  renderScoreMatrix(c);
 }
 
 // ==================== รายการคะแนน (item CRUD) ====================
