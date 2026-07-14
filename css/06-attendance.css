@@ -551,3 +551,46 @@
 .d-status-btn.leave { border-color: var(--color-leave); background: var(--color-leave-bg); color: var(--color-leave); box-shadow: 0 2px 6px rgba(60,110,220,0.2), inset 0 1px 0 rgba(255,255,255,0.5); }
 .d-status-btn.late { border-color: var(--color-late); background: var(--color-late-bg); color: var(--color-late-text); box-shadow: 0 2px 6px rgba(210,160,40,0.22), inset 0 1px 0 rgba(255,255,255,0.5); }
 
+
+/* ===== แถบเตือนเช็คชื่อผิดวัน / คาบเสริม ===== */
+.swipe-schedule-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 16px 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  background: #FEF3E2;
+  border: 1px solid #F6C77A;
+  color: #92610A;
+}
+.swipe-schedule-warning > i { font-size: 1.15rem; flex-shrink: 0; }
+.swipe-schedule-warning > span { flex: 1; min-width: 0; }
+.swipe-schedule-warning > button {
+  flex-shrink: 0;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.swipe-schedule-warning > button:hover { background: rgba(146,97,10,0.1); }
+.swipe-schedule-warning > button:active { transform: translateY(1px); }
+
+.swipe-schedule-warning.is-extra {
+  background: var(--color-present-bg, #E8F5EC);
+  border-color: var(--color-present, #22A05A);
+  color: var(--color-present, #1B7C45);
+}
+.swipe-schedule-warning.is-extra > button:hover { background: rgba(34,160,90,0.12); }
+
+@media (min-width: 769px) {
+  .swipe-schedule-warning { margin: 0 32px 10px; }
+}
