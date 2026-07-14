@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=92">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=92">
-  <link rel="stylesheet" href="css/03-reports.css?v=92">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=92">
-  <link rel="stylesheet" href="css/05-home.css?v=92">
-  <link rel="stylesheet" href="css/06-attendance.css?v=92">
-  <link rel="stylesheet" href="css/07-scores.css?v=92">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=92">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=101">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=101">
+  <link rel="stylesheet" href="css/03-reports.css?v=101">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=101">
+  <link rel="stylesheet" href="css/05-home.css?v=101">
+  <link rel="stylesheet" href="css/06-attendance.css?v=101">
+  <link rel="stylesheet" href="css/07-scores.css?v=101">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=101">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -521,9 +521,10 @@
       <div class="modal-header"><h3>เพิ่มรายการคะแนน</h3><button class="btn btn-text" onclick="closeScoreItemModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
       <div class="form-group"><label for="input-score-name">ชื่อรายการ</label><input type="text" id="input-score-name" class="form-control" placeholder="เช่น ใบงานที่ 1, Quiz บทที่ 2"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-        <div class="form-group" style="margin-bottom:0;"><label for="input-score-bucket">ช่องคะแนน (ปพ.5)</label><select id="input-score-bucket" class="form-control"></select></div>
+        <div class="form-group" style="margin-bottom:0;"><label for="input-score-cat">หมวดคะแนน (ปพ.5)</label><select id="input-score-cat" class="form-control" onchange="onScoreCatChange()"></select></div>
         <div class="form-group" style="margin-bottom:0;"><label for="input-score-type">ประเภท</label><select id="input-score-type" class="form-control"></select></div>
       </div>
+      <div class="form-group" id="score-phase-wrap"><label for="input-score-phase">ระยะ <span style="color:var(--text-muted);font-weight:400;">(คะแนนเก็บ)</span></label><select id="input-score-phase" class="form-control"></select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
         <div class="form-group" style="margin-bottom:0;"><label for="input-score-max">คะแนนเต็ม</label><input type="number" id="input-score-max" class="form-control" placeholder="เช่น 10" min="1" step="0.5"></div>
         <div class="form-group" style="margin-bottom:0;"><label for="input-score-date">วันที่ <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ)</span></label><input type="date" id="input-score-date" class="form-control"></div>
@@ -537,11 +538,11 @@
     <div class="bottom-sheet" style="width:480px;max-width:95vw;">
       <div class="modal-header"><h3>ตั้งค่าคะแนน &amp; เกรด</h3><button class="btn btn-text" onclick="closeScoreSettingsModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
       <div class="form-group"><label style="display:flex;justify-content:space-between;align-items:center;">สัดส่วนคะแนน (ปพ.5) <span id="ratio-sum-label" style="font-size:0.8rem;font-weight:800;">รวม 100%</span></label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">ก่อนกลางภาค</span><input type="number" id="input-ratio-before" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
-          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">กลางภาค</span><input type="number" id="input-ratio-mid" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
-          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">หลังกลางภาค</span><input type="number" id="input-ratio-after" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
-          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">ปลายภาค</span><input type="number" id="input-ratio-final" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">คะแนนเก็บ · ก่อนกลางภาค</span><input type="number" id="input-ratio-before" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">คะแนนเก็บ · หลังกลางภาค</span><input type="number" id="input-ratio-after" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">สอบกลางภาค</span><input type="number" id="input-ratio-mid" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:0.8rem;flex:1;">สอบปลายภาค</span><input type="number" id="input-ratio-final" class="form-control" style="width:70px;padding:6px 8px;" min="0" max="100" oninput="updateRatioSum()"><span style="font-size:0.8rem;">%</span></div>
         </div>
       </div>
       <div class="form-group"><label>เกณฑ์ตัดเกรด (คะแนนขั้นต่ำของแต่ละเกรด)</label><div id="grade-cut-inputs" style="display:flex;flex-direction:column;gap:7px;"></div></div>
@@ -775,18 +776,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=92"></script>
-  <script defer src="js/auth.js?v=92"></script>
-  <script defer src="js/shell.js?v=92"></script>
-  <script defer src="js/dashboard.js?v=92"></script>
-  <script defer src="js/classrooms.js?v=92"></script>
-  <script defer src="js/students.js?v=92"></script>
-  <script defer src="js/timetable.js?v=92"></script>
-  <script defer src="js/reports.js?v=92"></script>
-  <script defer src="js/attendance.js?v=92"></script>
-  <script defer src="js/scores.js?v=92"></script>
-  <script defer src="js/tools.js?v=92"></script>
-  <script defer src="js/shared-utils.js?v=92"></script>
-  <script defer src="js/extras.js?v=92"></script>
+  <script defer src="js/core.js?v=101"></script>
+  <script defer src="js/auth.js?v=101"></script>
+  <script defer src="js/shell.js?v=101"></script>
+  <script defer src="js/dashboard.js?v=101"></script>
+  <script defer src="js/classrooms.js?v=101"></script>
+  <script defer src="js/students.js?v=101"></script>
+  <script defer src="js/timetable.js?v=101"></script>
+  <script defer src="js/reports.js?v=101"></script>
+  <script defer src="js/attendance.js?v=101"></script>
+  <script defer src="js/scores.js?v=101"></script>
+  <script defer src="js/tools.js?v=101"></script>
+  <script defer src="js/shared-utils.js?v=101"></script>
+  <script defer src="js/extras.js?v=101"></script>
 </body>
 </html>

@@ -1,8 +1,11 @@
 /* ========================================== */
 /* ===  ตารางคะแนน (เข้าชุดกับตารางรายชื่อ) === */
 /* ========================================== */
-.score-matrix-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.9rem; }
-.score-matrix-table th, .score-matrix-table td { padding: 11px 10px; }
+/* width:auto = คอลัมน์ขนาดพอดีเนื้อหา ไม่ยืดเต็มจอตอนรายการน้อย (เพิ่มรายการค่อยขยาย) */
+.score-matrix-table { width: auto; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; }
+.score-matrix-table th, .score-matrix-table td { padding: 5px 4px; }
+/* เส้นขั้นระหว่างหมวด (ระหว่างภาค | กลางภาค | ปลายภาค) — อยู่ทั้งหัวและตัว จึงต่อเป็นเส้นเดียว */
+.score-matrix-table .sc-cat-start { border-left: 2px solid var(--border-color); }
 .score-matrix-table thead th {
   font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
   background: #fafbfc; border-bottom: 1px solid var(--border-color); white-space: nowrap;
@@ -11,8 +14,37 @@
   color: var(--primary); background: var(--primary-light);
   border-bottom: 1px solid var(--primary-light-border); font-size: 0.82rem;
 }
-.score-matrix-table .sc-item-head { cursor: pointer; transition: var(--transition-normal); }
-.score-matrix-table .sc-item-head:hover { background: var(--primary-light); color: var(--primary); }
+/* หัวรายการ = สแต็กแนวตั้ง 3 บรรทัด (ชื่อ / ระยะ / เต็ม+เฟือง) คุมกว้างไม่ให้ล้นคอลัมน์ */
+.score-matrix-table .sc-item-head { transition: var(--transition-normal); vertical-align: top; width: 78px; min-width: 78px; max-width: 78px; box-sizing: border-box; }
+/* ชื่อรายการ — ดูเหมือนข้อความ คลิกพิมพ์แก้ได้ บรรทัดเดียว ยาวเกินเลื่อนในช่อง */
+.sc-item-name-input { display: block; width: 100%; box-sizing: border-box; text-align: center; text-overflow: ellipsis; font-weight: 700; font-size: 0.74rem; color: var(--text-main); border: 1px solid transparent; border-radius: 5px; padding: 2px 3px; background: transparent; }
+.sc-item-name-input:hover { border-color: var(--border-color); background: #fff; }
+.sc-item-name-input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 2px var(--primary-light); text-overflow: clip; }
+/* แถวคะแนนเต็ม + ปุ่มตั้งค่า — บรรทัดล่างสุด */
+.sc-item-max-row { font-weight: 400; color: var(--text-muted); font-size: 0.66rem; display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 2px; }
+.sc-item-max-lbl { white-space: nowrap; }
+.sc-item-max-input { width: 30px; text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--text-main); border: 1px solid transparent; border-radius: 4px; padding: 1px 2px; background: transparent; font-variant-numeric: tabular-nums; }
+.sc-item-max-input:hover { border-color: var(--border-color); background: #fff; }
+.sc-item-max-input:focus { outline: none; border-color: var(--primary); background: #fff; }
+.sc-item-max-input::-webkit-outer-spin-button, .sc-item-max-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.sc-item-max-input { -moz-appearance: textfield; appearance: textfield; }
+.sc-item-more { border: none; background: transparent; color: #c7c7cc; cursor: pointer; padding: 0; font-size: 0.72rem; line-height: 1; flex-shrink: 0; }
+.sc-item-more:hover { color: var(--primary); }
+/* % รวมคะแนนเก็บ (อ่านอย่างเดียว บนหัว "คะแนนเก็บ") */
+.sc-w-readonly { font-weight: 400; }
+/* บล็อกว่าง (ยังไม่มีรายการ) — ปุ่ม + เพิ่มรายการในระยะนั้น */
+.score-matrix-table .sc-item-empty { vertical-align: middle; text-align: center; min-width: 52px; }
+.sc-add-item-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px dashed var(--primary-light-border); background: var(--primary-light); color: var(--primary); cursor: pointer; font-size: 0.85rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
+.sc-add-item-btn:hover { border-style: solid; border-color: var(--primary); }
+.score-matrix-table td.sc-cell-empty { background: #fafbfc; }
+/* หัวกลุ่มย่อยระยะ (ก่อน/หลังกลางภาค) ใต้ "คะแนนเก็บ" — โทนอ่อนกว่าหัวหมวด */
+.score-matrix-table thead .sc-phase-head { background: #eef5f2; color: var(--text-muted); font-weight: 700; font-size: 0.72rem; border-bottom: 1px solid var(--border-color); text-align: center; white-space: nowrap; }
+/* ช่องแก้สัดส่วน % inline บนหัวหมวด (แก้ได้เลยไม่ต้องเปิดตั้งค่า) */
+.sc-weight-input { width: 32px; text-align: center; font-weight: 700; font-size: 0.78rem; color: var(--primary); background: #fff; border: 1px solid var(--primary-light-border); border-radius: 6px; padding: 2px 2px; font-variant-numeric: tabular-nums; cursor: text; }
+.sc-weight-input:hover { border-color: var(--primary); }
+.sc-weight-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
+.sc-weight-input::-webkit-outer-spin-button, .sc-weight-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.sc-weight-input { -moz-appearance: textfield; appearance: textfield; }
 .score-matrix-table tbody td { border-bottom: 1px solid var(--border-color); }
 .score-matrix-table tbody tr:last-child td { border-bottom: none; }
 .score-matrix-table tbody tr { transition: var(--transition-normal); }
@@ -26,16 +58,20 @@
 .score-matrix-table .sc-c-manage { text-align: center; white-space: nowrap; }
 .score-matrix-table .sc-manage-actions { display: flex; justify-content: center; align-items: center; gap: 6px; }
 
-/* อินพุตคะแนน — ลอกจาก .d-code-input */
+/* อินพุตคะแนน — ลอกจาก .d-code-input (กระชับลงเพื่อลดพื้นที่ว่าง) */
 .score-cell-input {
-  width: 58px; text-align: center; font-variant-numeric: tabular-nums;
-  border: 1px solid var(--border-color); border-radius: 8px; padding: 7px 4px;
-  font-size: 0.88rem; font-weight: 600; color: var(--text-main); background: #fbfbfd;
+  width: 36px; text-align: center; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 1px;
+  font-size: 0.82rem; font-weight: 600; color: var(--text-main); background: #fbfbfd;
   transition: var(--transition-normal);
 }
 .score-cell-input::placeholder { color: #c7c7cc; }
 .score-cell-input:hover { border-color: #d1d1d6; background: #fff; }
 .score-cell-input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px var(--primary-light); }
+/* ซ่อนลูกศรขึ้นลงของ input number (กรอกด้วยแป้นพิมพ์ ไม่ต้องใช้ spinner) */
+.score-cell-input::-webkit-outer-spin-button,
+.score-cell-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.score-cell-input { -moz-appearance: textfield; appearance: textfield; }
 
 /* คอลัมน์สรุป */
 .score-matrix-table .sc-total { text-align: center; font-weight: 800; font-size: 0.98rem; color: var(--text-main); background: var(--primary-light); }
