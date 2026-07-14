@@ -1,3 +1,77 @@
+// ==================== SCHEDULE GUARD (กันเช็คชื่อผิดวัน) ====================
+// วันในสัปดาห์ที่ห้องนี้มีคาบตามตาราง (เทียบเฉพาะ dow ไม่ผูก Week A/B เพื่อไม่เตือนพร่ำเพรื่อ)
+function classScheduledDoWs(classId) {
+  const set = new Set();
+  (appState.timetable || []).forEach(t => { if (t.classId === classId) set.add(t.dow); });
+  return set;
+}
+
+function isClassScheduledOn(classId, dateObj) {
+  return classScheduledDoWs(classId).has(dateObj.getDay());
+}
+
+// อนุญาตให้เช็คไหม: มีคาบตามตาราง หรือเคยยืนยันเป็นคาบเสริมของวันนั้นแล้ว
+function isSwipeDateAllowed() {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c) return true;
+  const dObj = swipeSelectedDate || getNowDate();
+  if (isClassScheduledOn(swipeClassId, dObj)) return true;
+  const dateKey = getTodayString(dObj);
+  return !!(c.extraDays && c.extraDays[dateKey]);
+}
+
+// เรียกก่อนบันทึกทุกครั้ง: ถ้าวันนี้ไม่มีคาบและยังไม่ยืนยันคาบเสริม → ถามยืนยันก่อน
+function ensureSwipeDateAllowed(onOk) {
+  if (isSwipeDateAllowed()) { onOk(); return; }
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c) return;
+  const dObj = swipeSelectedDate || getNowDate();
+  const dateKey = getTodayString(dObj);
+  const dayName = (typeof DAY_NAMES !== 'undefined') ? DAY_NAMES[dObj.getDay()] : '';
+  showConfirm(
+    `<b>${dayName}</b> ห้องนี้ไม่มีคาบสอนตามตารางเรียน<br>ต้องการบันทึกเป็น <b>คาบเสริม / ชดเชย</b> ใช่หรือไม่?`,
+    () => {
+      if (!c.extraDays) c.extraDays = {};
+      c.extraDays[dateKey] = true;
+      saveState();
+      updateSwipeScheduleWarning();
+      onOk();
+    },
+    { title: 'ไม่มีคาบตามตาราง', icon: '<i class="hgi-stroke hgi-alert-02" style="color:#F59E0B;"></i>', okText: 'ใช่ เพิ่มเป็นคาบเสริม', okSafe: true }
+  );
+}
+
+// แถบเตือน/สถานะคาบเสริม เหนือการ์ดเช็คชื่อ
+function updateSwipeScheduleWarning() {
+  const el = document.getElementById('swipe-schedule-warning');
+  if (!el) return;
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c) { el.style.display = 'none'; return; }
+  const dObj = swipeSelectedDate || getNowDate();
+  const dateKey = getTodayString(dObj);
+  if (isClassScheduledOn(swipeClassId, dObj)) { el.style.display = 'none'; return; }
+  const isExtra = !!(c.extraDays && c.extraDays[dateKey]);
+  el.style.display = 'flex';
+  if (isExtra) {
+    el.className = 'swipe-schedule-warning is-extra';
+    el.innerHTML = `<i class="hgi-stroke hgi-calendar-add-01"></i><span>วันนี้บันทึกเป็น <b>คาบเสริม / ชดเชย</b></span><button onclick="cancelSwipeExtraDay()">ยกเลิกคาบเสริม</button>`;
+  } else {
+    el.className = 'swipe-schedule-warning';
+    el.innerHTML = `<i class="hgi-stroke hgi-alert-02"></i><span>วันนี้ห้องนี้ <b>ไม่มีคาบสอนตามตาราง</b> — เช็กว่าเลือกวันถูกไหม</span><button onclick="ensureSwipeDateAllowed(updateSwipeScheduleWarning)">เพิ่มเป็นคาบเสริม</button>`;
+  }
+}
+
+function cancelSwipeExtraDay() {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c || !c.extraDays) return;
+  const dateKey = getTodayString(swipeSelectedDate || getNowDate());
+  showConfirm('ยกเลิกการบันทึกวันนี้เป็นคาบเสริม? (ผลเช็คชื่อที่บันทึกไว้จะยังอยู่)', () => {
+    delete c.extraDays[dateKey];
+    saveState();
+    updateSwipeScheduleWarning();
+  }, { title: 'ยกเลิกคาบเสริม', icon: '<i class="hgi-stroke hgi-calendar-remove-01"></i>', okText: 'ยกเลิกคาบเสริม' });
+}
+
 function toggleSwipeCalendar() {
   const popup = document.getElementById('swipe-calendar-popup');
   if (!popup) return;
@@ -50,6 +124,8 @@ function renderSwipeCalendar() {
   ['อา','จ','อ','พ','พฤ','ศ','ส'].forEach(d => { html += `<div class="cal-dow">${d}</div>`; });
   for (let i = 0; i < startDow; i++) html += '<div></div>';
 
+  const scheduledDoWs = classScheduledDoWs(swipeClassId);
+
   for (let d = 1; d <= daysInMonth; d++) {
     const dObj = new Date(swipeCalViewYear, swipeCalViewMonth, d);
     const dStr = getTodayString(dObj);
@@ -57,11 +133,13 @@ function renderSwipeCalendar() {
     const isWknd = dow === 0 || dow === 6;
     const isTdy = dStr === todayStr;
     const isSel = dStr === selectedStr && !isTdy;
+    const hasCls = scheduledDoWs.has(dow);
 
     let cls = 'cal-day';
     if (isTdy) cls += ' today';
     else if (isSel) cls += ' selected';
     if (isWknd && !isTdy && !isSel) cls += ' weekend';
+    if (hasCls) cls += ' has-class';
 
     html += `<div class="${cls}" onclick="selectSwipeCalDate(${swipeCalViewYear},${swipeCalViewMonth},${d});event.stopPropagation();">${d}</div>`;
   }
@@ -130,6 +208,7 @@ function openSwipeAttendance(classId, forDate) {
 
   renderSwipeCard();
   updateSwipeSummary();
+  updateSwipeScheduleWarning();
   Tour.action('opened-checkin');
 }
 
@@ -232,6 +311,7 @@ function loadSwipeForDate() {
   swipeStudentIndex = 0;
   renderSwipeCard();
   updateSwipeSummary();
+  updateSwipeScheduleWarning();
 }
 
 function renderSwipeCard() {
@@ -420,6 +500,7 @@ function deleteStudentFromSwipe(studentId) {
 function setDesktopStudentStatus(studentId, status) {
   const c = appState.classes.find(x => x.id === swipeClassId);
   if (!c) return;
+  if (!isSwipeDateAllowed()) { ensureSwipeDateAllowed(() => setDesktopStudentStatus(studentId, status)); return; }
 
   // Set the status
   swipeResults[studentId] = status;
@@ -479,6 +560,7 @@ function updateSwipeSummary() {
 function markSwipeStatus(status) {
   const c = appState.classes.find(x => x.id === swipeClassId);
   if (!c) return;
+  if (!isSwipeDateAllowed()) { ensureSwipeDateAllowed(() => markSwipeStatus(status)); return; }
 
   // Find current visible student
   const student = c.students[swipeStudentIndex];
@@ -527,6 +609,7 @@ function undoSwipe() {
 function setAllSwipePresent() {
   const c = appState.classes.find(x => x.id === swipeClassId);
   if (!c) return;
+  if (!isSwipeDateAllowed()) { ensureSwipeDateAllowed(setAllSwipePresent); return; }
   showConfirm(`เปลี่ยนสถานะนักเรียนทั้ง ${c.students.length} คน เป็น "มา" ทั้งหมด?`, () => {
     // ทับสถานะทุกคนเป็น "มา" (รวมที่ตั้ง ขาด/สาย/ลา ไว้)
     c.students.forEach(s => {
