@@ -192,7 +192,7 @@ function renderScoreMatrix(c) {
   const disp = SCORE_WK.map(b => ({ key: b.key, label: b.label, group: b.group, items: sc.items.filter(i => i.bucket === b.key) }));
   const collectGroups = disp.filter(g => g.group === 'collect');
   const examGroups = disp.filter(g => g.group === 'exam');
-  const cspan = (g) => g.items.length || 1;                       // บล็อกว่าง = 1 คอลัมน์ placeholder
+  const cspan = (g) => g.items.length + 1;                        // +1 = แถบเพิ่มรายการ (add-bar) ท้ายบล็อก
   const collectCount = collectGroups.reduce((a, g) => a + cspan(g), 0);
   const collectW = (Number(sc.config.ratio.before) || 0) + (Number(sc.config.ratio.after) || 0);
   const sumW = SCORE_WK.reduce((a, b) => a + (Number(sc.config.ratio[b.key]) || 0), 0);
@@ -203,11 +203,12 @@ function renderScoreMatrix(c) {
     return `<input type="number" class="sc-weight-input" value="${w}" min="0" max="100" title="แก้สัดส่วน % (คลิกพิมพ์)" onclick="event.stopPropagation()" onchange="setCatWeight('${c.id}','${bk}',this)">%`;
   };
 
-  // คอลัมน์เรียง (รวม placeholder ของบล็อกว่าง) + ธงเริ่มบล็อก (ไว้ตีเส้นขั้น)
+  // คอลัมน์เรียง: รายการทั้งหมดของบล็อก แล้วปิดท้ายด้วย "แถบเพิ่ม" (add-bar) 1 คอลัมน์เสมอ
+  // groupStart = ธงเริ่มบล็อก (ไว้ตีเส้นขั้น) — บล็อกว่างจะเหลือแค่ add-bar เป็นคอลัมน์แรก
   const cols = [];
   disp.forEach(g => {
-    if (g.items.length) g.items.forEach((it, idx) => cols.push({ g, it, groupStart: idx === 0, groupEnd: idx === g.items.length - 1 }));
-    else cols.push({ g, placeholder: true, groupStart: true, groupEnd: true });
+    g.items.forEach((it, idx) => cols.push({ g, it, groupStart: idx === 0 }));
+    cols.push({ g, addBar: true, groupStart: g.items.length === 0 });
   });
 
   // ---- หัวตาราง 3 ชั้นแบบ ปพ.5 ----
@@ -227,19 +228,17 @@ function renderScoreMatrix(c) {
   collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${cspan(g)}">${g.label} ${wInput(g.key)}</th>`; });
   r2 += '</tr>';
 
-  // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) หรือปุ่ม + ถ้าบล็อกว่าง
+  // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) + แถบเพิ่ม (ปุ่ม +) ปิดท้ายทุกบล็อก
   let r3 = '<tr>';
-  cols.forEach(({ g, it, placeholder, groupStart, groupEnd }) => {
+  cols.forEach(({ g, it, addBar, groupStart }) => {
     const cs = groupStart ? ' sc-cat-start' : '';
-    if (placeholder) {
-      r3 += `<th class="sc-item-head sc-item-empty${cs}"><button class="sc-add-item-btn" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button></th>`;
+    if (addBar) {
+      r3 += `<th class="sc-item-head sc-add-bar${cs}"><button class="sc-add-item-btn" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button></th>`;
     } else {
       const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
-      // ปุ่ม + ท้ายรายการสุดท้ายของบล็อก (ขวาสุด) — เพิ่มรายการถัดไปในบล็อกเดียวกันได้ทันที
-      const addAtEnd = groupEnd ? `<button class="sc-head-add" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button>` : '';
       r3 += `<th class="sc-item-head${cs}">
         <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
-        <div class="sc-item-max-row"><span class="sc-item-max-lbl">เต็ม</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button>${addAtEnd}</div>
+        <div class="sc-item-max-row"><span class="sc-item-max-lbl">เต็ม</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
       </th>`;
     }
   });
@@ -253,8 +252,8 @@ function renderScoreMatrix(c) {
       + `<td class="sc-c-no">${s.no || (index + 1)}</td>`
       + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
       + `<td class="sc-c-name">${escapeScore(s.name)}</td>`;
-    cols.forEach(({ it, placeholder, groupStart }) => {
-      if (placeholder) { body += `<td class="sc-cell-empty${groupStart ? ' sc-cat-start' : ''}"></td>`; return; }
+    cols.forEach(({ it, addBar, groupStart }) => {
+      if (addBar) { body += `<td class="sc-cell-addbar${groupStart ? ' sc-cat-start' : ''}"></td>`; return; }
       const v = clampMark((sc.marks[it.id] || {})[s.id], it.max);
       body += `<td style="text-align:center;"${groupStart ? ' class="sc-cat-start"' : ''}><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
         onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;
