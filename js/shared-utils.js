@@ -309,8 +309,23 @@ function initAppState() {
     if (!appState.periodSettings) {
       appState.periodSettings = { startTime: '08:30', duration: 50, breakTime: 0, count: 7 };
     }
+    pruneEmptyAttendance();
   }
   else { initAppStateDefault(); }
+}
+
+// ลบ record เช็คชื่อที่ว่างเปล่า (ไม่มีนักเรียนสักคน) — กันรายงานนับเป็น "คาบ 0%" ค้าง
+// เกิดจากโค้ดเก่าที่เก็บ c.attendance[date] = {} ตอนล้าง/ยกเลิกเช็ค. คืน true ถ้ามีการลบ
+function pruneEmptyAttendance() {
+  let changed = false;
+  (appState.classes || []).forEach(c => {
+    if (!c.attendance) return;
+    Object.keys(c.attendance).forEach(d => {
+      const rec = c.attendance[d];
+      if (!rec || Object.keys(rec).length === 0) { delete c.attendance[d]; changed = true; }
+    });
+  });
+  return changed;
 }
 
 function initAppStateDefault() {
@@ -385,6 +400,7 @@ async function syncBackgroundCloud(email) {
       // Pull from cloud if it's newer, or if we have no classes locally but cloud does
       if (cloudModified > localModified || (cloudState.classes && cloudState.classes.length > 0 && appState.classes.length === 0)) {
         appState = cloudState;
+        pruneEmptyAttendance();
         saveStateLocalOnly(false);
         updateProfileImages();
         // deep-link (LINE OA) ชนะ activeWebScreen ที่ค้างใน cloud — แต่ถ้าผู้ใช้เปลี่ยนหน้าเองแล้ว pendingDeepLink=null
@@ -459,6 +475,7 @@ async function forcePullFromCloud() {
     if (error && error.code !== 'PGRST116') throw error;
     if (data && data.state) {
       appState = data.state;
+      pruneEmptyAttendance();
       appState.lastModified = Date.now(); // Stamp it so it becomes the latest local
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
       showToast('ดาวน์โหลดข้อมูลจาก Cloud สำเร็จ! 🎉', 'success', 1500);
