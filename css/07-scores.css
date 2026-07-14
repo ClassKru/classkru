@@ -36,9 +36,10 @@
 .score-matrix-table .sc-item-empty { vertical-align: middle; text-align: center; min-width: 52px; }
 .sc-add-item-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px dashed var(--primary-light-border); background: var(--primary-light); color: var(--primary); cursor: pointer; font-size: 0.85rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
 .sc-add-item-btn:hover { border-style: solid; border-color: var(--primary); }
-/* แถบเพิ่มรายการ (add-bar) — คอลัมน์แคบปิดท้ายทุกบล็อก มีปุ่ม + อยู่ตรงหัว, ตัวแถบไล่ลงมาเป็นเส้นบางๆ */
-.score-matrix-table thead th.sc-add-bar { width: 36px; min-width: 36px; background: var(--primary-light); vertical-align: middle; text-align: center; padding: 4px; }
-.score-matrix-table td.sc-cell-addbar { width: 36px; min-width: 36px; background: var(--primary-light); opacity: 0.55; }
+/* ปุ่ม + ลอยเกาะขอบขวาของรายการสุดท้ายในบล็อก — ไม่กินคอลัมน์ (ตารางแคบลง) */
+.score-matrix-table th.sc-item-last { position: relative; }
+.sc-add-float { position: absolute; right: -13px; top: 50%; transform: translateY(-50%); z-index: 6; width: 24px; height: 24px; border-radius: 50%; border: 1px dashed var(--primary-light-border); background: #fff; color: var(--primary); cursor: pointer; font-size: 0.82rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.14); }
+.sc-add-float:hover { background: var(--primary); color: #fff; border-color: var(--primary); border-style: solid; }
 .score-matrix-table td.sc-cell-empty { background: #fafbfc; }
 /* ป้ายหมวดคะแนน read-only ใน modal เพิ่มรายการ (แทน dropdown — fix ตามบล็อกที่กด) */
 .score-bucket-chip { padding: 9px 12px; border-radius: 8px; background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 0.85rem; border: 1px solid var(--primary-light-border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
