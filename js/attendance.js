@@ -393,10 +393,12 @@ function renderSwipeCard() {
   document.getElementById('swipe-card-code').innerText = student.studentCode ? `รหัส ${student.studentCode}` : '';
   // avatar: ชื่อเล่น ถ้ามี, ไม่มีก็ใช้ชื่อจริงคำแรก. ป้าย "ชื่อเล่น" โชว์เฉพาะตอนมีชื่อเล่นจริง
   const nick = (student.nickname || '').trim();
-  const firstName = (student.name || '').trim().split(/\s+/)[0] || '';
-  document.getElementById('swipe-card-avatar').innerText = nick || firstName;
+  const seatNo = student.no || (swipeStudentIndex + 1);
+  // ชื่อเล่นถ้ามี, ไม่มีก็แสดงเลขที่ (เลขล้วนในวง) แทนชื่อจริงคำแรกแบบเดิม
+  document.getElementById('swipe-card-avatar').innerText = nick || seatNo;
   const nickLabel = document.getElementById('swipe-card-nick-label');
-  nickLabel.style.display = nick ? 'block' : 'none';
+  nickLabel.innerText = nick ? 'ชื่อเล่น' : 'เลขที่';
+  nickLabel.style.display = 'block';
   document.getElementById('swipe-card-name').innerText = student.name;
   document.getElementById('swipe-card-stats').innerHTML = `
     <span class="sc-stat present">มา ${histPresent}</span>
@@ -648,7 +650,13 @@ function autoSaveAttendance() {
       finalResult[s.id] = swipeResults[s.id];
     }
   });
-  c.attendance[date] = finalResult;
+  // ถ้าไม่มีการเช็คเหลืออยู่เลย (เช่น ยกเลิก/ล้างหมด) → ลบ key วันที่ทิ้ง
+  // ไม่งั้นจะเหลือ record ว่างค้าง แล้วรายงานนับเป็น "คาบ 0%" (ข้อมูลไม่ซิงก์)
+  if (Object.keys(finalResult).length === 0) {
+    delete c.attendance[date];
+  } else {
+    c.attendance[date] = finalResult;
+  }
 
   saveState();
   // showSaveToast(); // ซ่อน toast "บันทึกแล้ว" ตามที่ผู้ใช้ต้องการ (auto-save เงียบ)
