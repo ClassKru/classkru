@@ -10,18 +10,7 @@
 // โครงคะแนนตาม ปพ.5: 3 หมวดน้ำหนัก (ระหว่างภาค/กลางภาค/ปลายภาค)
 // item.bucket เดิม (before/after/mid/final) เข้ารหัส หมวด+ระยะ ในตัวเดียว → ไม่ต้องย้ายข้อมูล
 //   before = เก็บ(ระหว่างภาค)+ก่อนกลางภาค · after = เก็บ+หลังกลางภาค · mid = สอบกลางภาค · final = สอบปลายภาค
-const SCORE_CATS = [
-  { key: 'collect', label: 'ระหว่างภาค', buckets: ['before', 'after'], phased: true },
-  { key: 'mid',     label: 'กลางภาค',    buckets: ['mid'],             phased: false },
-  { key: 'final',   label: 'ปลายภาค',    buckets: ['final'],           phased: false }
-];
-// ระยะของคะแนนเก็บ (แท็กรายการในหมวดระหว่างภาค → รวมก่อน/หลังกลางภาคตาม ปพ.5)
-const SCORE_PHASES = [
-  { key: 'before', label: 'ก่อนกลางภาค', short: 'ก่อนกลาง' },
-  { key: 'after',  label: 'หลังกลางภาค', short: 'หลังกลาง' }
-];
-// map bucket → หมวด (ใช้ตอนเปิด modal แก้ไขรายการ)
-const BUCKET_TO_CAT = { before: 'collect', after: 'collect', mid: 'mid', final: 'final' };
+// หมวด/ระยะ fix ตามบล็อกที่กดเพิ่ม (ดู scoreBucketLabel) — ไม่มี dropdown เลือกแล้ว
 
 // น้ำหนักแยกราย bucket ตาม ปพ.5 (ก่อน+หลัง+กลาง+ปลาย = 100) — คะแนนเก็บ = ก่อน+หลัง
 const SCORE_WK = [
@@ -213,6 +202,8 @@ function renderScoreMatrix(c) {
     const w = Number(sc.config.ratio[bk]) || 0;
     return `<input type="number" class="sc-weight-input" value="${w}" min="0" max="100" title="แก้สัดส่วน % (คลิกพิมพ์)" onclick="event.stopPropagation()" onchange="setCatWeight('${c.id}','${bk}',this)">%`;
   };
+  // ปุ่ม + ถาวรที่หัวบล็อก — เพิ่มรายการเข้าบล็อกนั้นได้ตลอด (ไม่ต้องเพิ่มคอลัมน์)
+  const addBtn = (bk) => `<button class="sc-head-add" title="เพิ่มรายการในบล็อกนี้" onclick="event.stopPropagation();openScoreItemModal('${c.id}',null,'${bk}')"><i class="hgi-stroke hgi-add-01"></i></button>`;
 
   // คอลัมน์เรียง (รวม placeholder ของบล็อกว่าง) + ธงเริ่มบล็อก (ไว้ตีเส้นขั้น)
   const cols = [];
@@ -230,12 +221,12 @@ function renderScoreMatrix(c) {
   // ชั้น 1: คะแนนเก็บ (คลุมก่อน+หลัง, โชว์ % รวมอ่านอย่างเดียว) | สอบกลางภาค % | สอบปลายภาค %
   let r1 = '<tr>' + nameCols
     + `<th class="sc-bucket-head sc-cat-start" colspan="${collectCount}">คะแนนเก็บ <span class="sc-w-readonly">${collectW}%</span></th>`;
-  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${cspan(g)}" rowspan="2">${g.label} ${wInput(g.key)}</th>`; });
+  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${cspan(g)}" rowspan="2">${g.label} ${wInput(g.key)} ${addBtn(g.key)}</th>`; });
   r1 += sumCols + '</tr>';
 
   // ชั้น 2: ระยะย่อย + สัดส่วน % แยก ก่อน/หลังกลางภาค
   let r2 = '<tr>';
-  collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${cspan(g)}">${g.label} ${wInput(g.key)}</th>`; });
+  collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${cspan(g)}">${g.label} ${wInput(g.key)} ${addBtn(g.key)}</th>`; });
   r2 += '</tr>';
 
   // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) หรือปุ่ม + ถ้าบล็อกว่าง
@@ -395,6 +386,12 @@ function setItemMax(classId, itemId, el) {
 
 // ==================== รายการคะแนน (item CRUD) ====================
 let editingScoreItemId = null;
+let editingScoreBucket = 'before';   // หมวด/ระยะ fix ตามบล็อกที่กดเพิ่ม (แทน dropdown)
+
+// ป้ายหมวดคะแนน (ปพ.5) จาก bucket — โชว์เป็น read-only ใน modal
+function scoreBucketLabel(bk) {
+  return { before: 'คะแนนเก็บ · ก่อนกลางภาค', after: 'คะแนนเก็บ · หลังกลางภาค', mid: 'สอบกลางภาค', final: 'สอบปลายภาค' }[bk] || bk;
+}
 
 function openScoreItemModal(classId, itemId, presetBucket) {
   scoreCurrentClassId = classId;
@@ -411,27 +408,14 @@ function openScoreItemModal(classId, itemId, presetBucket) {
 
   const typeSel = document.getElementById('input-score-type');
   typeSel.innerHTML = SCORE_TYPES.map(t => `<option value="${t.v}" ${it && it.type === t.v ? 'selected' : ''}>${t.label}</option>`).join('');
-  // หมวด (เก็บ/กลาง/ปลาย) + ระยะ (เฉพาะคะแนนเก็บ) — แปลงจาก bucket เดิม
-  const curBucket = it ? it.bucket : (presetBucket || 'before');
-  const curCat = BUCKET_TO_CAT[curBucket] || 'collect';
-  const curPhase = curBucket === 'after' ? 'after' : 'before';
-  document.getElementById('input-score-cat').innerHTML =
-    SCORE_CATS.map(cat => `<option value="${cat.key}" ${cat.key === curCat ? 'selected' : ''}>${cat.label}</option>`).join('');
-  document.getElementById('input-score-phase').innerHTML =
-    SCORE_PHASES.map(ph => `<option value="${ph.key}" ${ph.key === curPhase ? 'selected' : ''}>${ph.label}</option>`).join('');
-  onScoreCatChange();
+  // หมวด fix ตามบล็อกที่กด (หรือ bucket เดิมของรายการ) — ไม่มี dropdown ให้เลือกแล้ว
+  editingScoreBucket = it ? it.bucket : (presetBucket || 'before');
+  document.getElementById('score-bucket-label').innerText = scoreBucketLabel(editingScoreBucket);
 
   document.querySelector('#modal-score-item h3').innerText = it ? 'แก้ไขรายการคะแนน' : 'เพิ่มรายการคะแนน';
   document.getElementById('btn-score-item-delete').style.display = it ? 'inline-flex' : 'none';
   document.getElementById('btn-score-item-submit').innerText = it ? 'บันทึก' : 'เพิ่ม';
   document.getElementById('modal-score-item').classList.add('show');
-}
-
-// แสดง/ซ่อนช่องเลือกระยะ (ก่อน/หลังกลางภาค) — เฉพาะหมวดระหว่างภาค (คะแนนเก็บ)
-function onScoreCatChange() {
-  const cat = document.getElementById('input-score-cat').value;
-  const wrap = document.getElementById('score-phase-wrap');
-  if (wrap) wrap.style.display = cat === 'collect' ? '' : 'none';
 }
 
 function closeScoreItemModal() {
@@ -448,10 +432,8 @@ function saveScoreItem() {
   if (!name) { showToast('กรุณากรอกชื่อรายการ', 'warning'); return; }
   if (!max || max <= 0) { showToast('คะแนนเต็มต้องมากกว่า 0', 'warning'); return; }
   const type = document.getElementById('input-score-type').value;
-  const cat = document.getElementById('input-score-cat').value;
-  const phase = document.getElementById('input-score-phase').value;
-  // รวมหมวด+ระยะ → bucket เดิม (คงรูปแบบข้อมูล): เก็บ→before/after, กลาง→mid, ปลาย→final
-  const bucket = cat === 'collect' ? (phase === 'after' ? 'after' : 'before') : cat;
+  // หมวด/ระยะ fix ตามบล็อกที่กดเพิ่ม (bucket = before/after/mid/final เดิม — คงรูปแบบข้อมูล)
+  const bucket = editingScoreBucket;
   const date = document.getElementById('input-score-date').value;
   const note = document.getElementById('input-score-note').value.trim();
 

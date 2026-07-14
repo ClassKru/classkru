@@ -36,7 +36,12 @@
 .score-matrix-table .sc-item-empty { vertical-align: middle; text-align: center; min-width: 52px; }
 .sc-add-item-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px dashed var(--primary-light-border); background: var(--primary-light); color: var(--primary); cursor: pointer; font-size: 0.85rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
 .sc-add-item-btn:hover { border-style: solid; border-color: var(--primary); }
+/* ปุ่ม + ถาวรที่หัวบล็อก (เพิ่มรายการได้ตลอด ไม่ต้องมีคอลัมน์ว่าง) */
+.sc-head-add { width: 20px; height: 20px; margin-left: 3px; border-radius: 50%; border: 1px solid var(--primary-light-border); background: #fff; color: var(--primary); cursor: pointer; font-size: 0.7rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+.sc-head-add:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 .score-matrix-table td.sc-cell-empty { background: #fafbfc; }
+/* ป้ายหมวดคะแนน read-only ใน modal เพิ่มรายการ (แทน dropdown — fix ตามบล็อกที่กด) */
+.score-bucket-chip { padding: 9px 12px; border-radius: 8px; background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 0.85rem; border: 1px solid var(--primary-light-border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* หัวกลุ่มย่อยระยะ (ก่อน/หลังกลางภาค) ใต้ "คะแนนเก็บ" — โทนอ่อนกว่าหัวหมวด */
 .score-matrix-table thead .sc-phase-head { background: #eef5f2; color: var(--text-muted); font-weight: 700; font-size: 0.72rem; border-bottom: 1px solid var(--border-color); text-align: center; white-space: nowrap; }
 /* ช่องแก้สัดส่วน % inline บนหัวหมวด (แก้ได้เลยไม่ต้องเปิดตั้งค่า) */

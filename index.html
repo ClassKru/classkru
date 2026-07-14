@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=101">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=101">
-  <link rel="stylesheet" href="css/03-reports.css?v=101">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=101">
-  <link rel="stylesheet" href="css/05-home.css?v=101">
-  <link rel="stylesheet" href="css/06-attendance.css?v=101">
-  <link rel="stylesheet" href="css/07-scores.css?v=101">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=101">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=102">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=102">
+  <link rel="stylesheet" href="css/03-reports.css?v=102">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=102">
+  <link rel="stylesheet" href="css/05-home.css?v=102">
+  <link rel="stylesheet" href="css/06-attendance.css?v=102">
+  <link rel="stylesheet" href="css/07-scores.css?v=102">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=102">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -317,7 +317,7 @@
             <div id="web-scores-class-list" class="class-cards-grid"></div>
           </div>
           <div id="web-scores-detail-view" style="display:none;">
-            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button><button class="btn btn-primary" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreItemModal(scoreCurrentClassId,null)"><i class="hgi-stroke hgi-plus-sign"></i> เพิ่มรายการคะแนน</button></div></div></div>
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
             <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
           </div>
         </div>
@@ -521,10 +521,9 @@
       <div class="modal-header"><h3>เพิ่มรายการคะแนน</h3><button class="btn btn-text" onclick="closeScoreItemModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
       <div class="form-group"><label for="input-score-name">ชื่อรายการ</label><input type="text" id="input-score-name" class="form-control" placeholder="เช่น ใบงานที่ 1, Quiz บทที่ 2"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-        <div class="form-group" style="margin-bottom:0;"><label for="input-score-cat">หมวดคะแนน (ปพ.5)</label><select id="input-score-cat" class="form-control" onchange="onScoreCatChange()"></select></div>
+        <div class="form-group" style="margin-bottom:0;"><label>หมวดคะแนน (ปพ.5)</label><div id="score-bucket-label" class="score-bucket-chip"></div></div>
         <div class="form-group" style="margin-bottom:0;"><label for="input-score-type">ประเภท</label><select id="input-score-type" class="form-control"></select></div>
       </div>
-      <div class="form-group" id="score-phase-wrap"><label for="input-score-phase">ระยะ <span style="color:var(--text-muted);font-weight:400;">(คะแนนเก็บ)</span></label><select id="input-score-phase" class="form-control"></select></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
         <div class="form-group" style="margin-bottom:0;"><label for="input-score-max">คะแนนเต็ม</label><input type="number" id="input-score-max" class="form-control" placeholder="เช่น 10" min="1" step="0.5"></div>
         <div class="form-group" style="margin-bottom:0;"><label for="input-score-date">วันที่ <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ)</span></label><input type="date" id="input-score-date" class="form-control"></div>
@@ -776,18 +775,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=101"></script>
-  <script defer src="js/auth.js?v=101"></script>
-  <script defer src="js/shell.js?v=101"></script>
-  <script defer src="js/dashboard.js?v=101"></script>
-  <script defer src="js/classrooms.js?v=101"></script>
-  <script defer src="js/students.js?v=101"></script>
-  <script defer src="js/timetable.js?v=101"></script>
-  <script defer src="js/reports.js?v=101"></script>
-  <script defer src="js/attendance.js?v=101"></script>
-  <script defer src="js/scores.js?v=101"></script>
-  <script defer src="js/tools.js?v=101"></script>
-  <script defer src="js/shared-utils.js?v=101"></script>
-  <script defer src="js/extras.js?v=101"></script>
+  <script defer src="js/core.js?v=102"></script>
+  <script defer src="js/auth.js?v=102"></script>
+  <script defer src="js/shell.js?v=102"></script>
+  <script defer src="js/dashboard.js?v=102"></script>
+  <script defer src="js/classrooms.js?v=102"></script>
+  <script defer src="js/students.js?v=102"></script>
+  <script defer src="js/timetable.js?v=102"></script>
+  <script defer src="js/reports.js?v=102"></script>
+  <script defer src="js/attendance.js?v=102"></script>
+  <script defer src="js/scores.js?v=102"></script>
+  <script defer src="js/tools.js?v=102"></script>
+  <script defer src="js/shared-utils.js?v=102"></script>
+  <script defer src="js/extras.js?v=102"></script>
 </body>
 </html>
