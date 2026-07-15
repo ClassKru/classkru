@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=114">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=114">
-  <link rel="stylesheet" href="css/03-reports.css?v=114">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=114">
-  <link rel="stylesheet" href="css/05-home.css?v=114">
-  <link rel="stylesheet" href="css/06-attendance.css?v=114">
-  <link rel="stylesheet" href="css/07-scores.css?v=114">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=114">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=115">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=115">
+  <link rel="stylesheet" href="css/03-reports.css?v=115">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=115">
+  <link rel="stylesheet" href="css/05-home.css?v=115">
+  <link rel="stylesheet" href="css/06-attendance.css?v=115">
+  <link rel="stylesheet" href="css/07-scores.css?v=115">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=115">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -500,15 +500,7 @@
     <!-- DESKTOP VIEW (Modern List) -->
     <div id="swipe-desktop-view" class="desktop-only-flex" style="flex:1;flex-direction:column;overflow:hidden;padding:24px 24px;background:var(--bg-app);">
       <div class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:none;">
-        <div style="padding:16px 24px;border-bottom:1px solid var(--border-color);background:var(--bg-card);display:flex;justify-content:space-between;align-items:center;">
-          <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:10px;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary);"></i> รายชื่อนักเรียน</h3>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:0.85rem;color:var(--text-muted);"><i class="hgi-stroke hgi-information-circle"></i> คลิกเลือกสถานะที่ต้องการ</span>
-            <button class="btn" style="padding:8px 14px;font-size:0.85rem;background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);display:inline-flex;align-items:center;gap:6px;" onclick="addStudentFromSwipe()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
-            <button class="btn" style="padding:8px 14px;font-size:0.85rem;background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;display:inline-flex;align-items:center;gap:6px;" onclick="importStudentsFromSwipe()"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้านักเรียน</button>
-          </div>
-        </div>
-        <div style="flex:1;overflow-y:auto;padding:0;background:#fbfbfd;">
+        <div style="flex:1;overflow-y:auto;padding:12px 0 0;background:#fbfbfd;">
           <!-- Header Row -->
           <div class="d-student-header-row">
             <div style="width:50px;text-align:center;">เลขที่</div>
@@ -787,18 +779,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=114"></script>
-  <script defer src="js/auth.js?v=114"></script>
-  <script defer src="js/shell.js?v=114"></script>
-  <script defer src="js/dashboard.js?v=114"></script>
-  <script defer src="js/classrooms.js?v=114"></script>
-  <script defer src="js/students.js?v=114"></script>
-  <script defer src="js/timetable.js?v=114"></script>
-  <script defer src="js/reports.js?v=114"></script>
-  <script defer src="js/attendance.js?v=114"></script>
-  <script defer src="js/scores.js?v=114"></script>
-  <script defer src="js/tools.js?v=114"></script>
-  <script defer src="js/shared-utils.js?v=114"></script>
-  <script defer src="js/extras.js?v=114"></script>
+  <script defer src="js/core.js?v=115"></script>
+  <script defer src="js/auth.js?v=115"></script>
+  <script defer src="js/shell.js?v=115"></script>
+  <script defer src="js/dashboard.js?v=115"></script>
+  <script defer src="js/classrooms.js?v=115"></script>
+  <script defer src="js/students.js?v=115"></script>
+  <script defer src="js/timetable.js?v=115"></script>
+  <script defer src="js/reports.js?v=115"></script>
+  <script defer src="js/attendance.js?v=115"></script>
+  <script defer src="js/scores.js?v=115"></script>
+  <script defer src="js/tools.js?v=115"></script>
+  <script defer src="js/shared-utils.js?v=115"></script>
+  <script defer src="js/extras.js?v=115"></script>
 </body>
 </html>
