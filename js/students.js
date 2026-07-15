@@ -46,17 +46,19 @@ function renderWebStudents() {
   document.getElementById('web-students-count-label').innerText = `พบ ${filteredStudents.length} คน`;
 
   filteredStudents.forEach(s => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td style="text-align:center;font-weight:700;">${s.no || '-'}</td>
-      <td style="text-align:center;"><input class="d-code-input" type="text" value="${String(s.studentCode||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}" placeholder="-" onchange="setStudentCodeInline('${targetClass.id}','${s.id}',this.value)"></td>
-      <td style="font-weight:700;">${s.name}</td>
-      <td style="color:var(--text-muted);font-size:0.8rem;">${s.comment || '-'}</td>
-      <td style="text-align:center;">
-        <button class="btn" title="แก้ไขข้อมูล" style="padding:4px 8px;font-size:0.72rem;" onclick="currentClassId='${targetClass.id}';openStudentDetailModal('${s.id}','${targetClass.id}')"><i class="hgi-stroke hgi-edit-02"></i></button>
-        <button class="btn btn-danger" style="padding:4px 8px;font-size:0.72rem;" onclick="currentClassId='${targetClass.id}';deleteStudent('${s.id}')"><i class="hgi-stroke hgi-delete-02"></i></button>
-      </td>`;
-    container.appendChild(tr);
+    const codeEsc = String(s.studentCode || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    const row = document.createElement('div');
+    row.className = 'd-student-row';
+    row.innerHTML = `
+      <div class="d-col-no">${s.no || '-'}</div>
+      <div class="d-col-code"><input class="d-code-input" type="text" value="${codeEsc}" placeholder="-" onchange="setStudentCodeInline('${targetClass.id}','${s.id}',this.value)"></div>
+      <div class="d-col-name">${s.name}</div>
+      <div class="d-col-note" style="color:var(--text-muted);font-size:0.8rem;">${s.comment || '-'}</div>
+      <div class="d-col-manage">
+        <button class="d-manage-btn" title="แก้ไขข้อมูล" onclick="currentClassId='${targetClass.id}';openStudentDetailModal('${s.id}','${targetClass.id}')"><i class="hgi-stroke hgi-edit-02"></i></button>
+        <button class="d-manage-btn danger" title="ลบนักเรียน" onclick="currentClassId='${targetClass.id}';deleteStudent('${s.id}')"><i class="hgi-stroke hgi-delete-02"></i></button>
+      </div>`;
+    container.appendChild(row);
   });
 }
 
