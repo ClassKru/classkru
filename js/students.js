@@ -16,16 +16,19 @@ function renderWebStudents() {
   filter.innerHTML = optionsHtml;
   filter.value = currentVal;
 
-  // Toggle empty state
+  // Toggle empty state + แถบแท็บภายในห้อง (โชว์เมื่อเลือกห้องแล้วเท่านั้น)
+  const stTab = document.getElementById('students-classtab-holder');
   if (!filter.value) {
     contentArea.style.display = 'none';
     emptyState.style.display = 'block';
     currentClassId = null;
+    if (stTab) stTab.innerHTML = '';
     return;
   } else {
     contentArea.style.display = 'block';
     emptyState.style.display = 'none';
     currentClassId = filter.value;
+    if (stTab) stTab.innerHTML = renderClassTabBar(filter.value, 'students');
   }
 
   container.innerHTML = '';

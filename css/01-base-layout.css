@@ -302,6 +302,89 @@ body {
 .ck-card-btn.danger { color: var(--text-secondary); }
 .ck-card-btn.danger:hover { color: var(--color-absent); border-color: #ffc7c4; background: var(--color-absent-bg); }
 
+/* ปุ่ม ⋮ บนหัวการ์ด + เมนู overflow (แก้ไข/นำเข้า/สถิติ/ลบ) */
+.ck-class-menu-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 6px;
+  margin: -4px -6px 0 0;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: background 0.15s, color 0.15s;
+}
+.ck-class-menu-btn:hover { background: var(--bg-light); color: var(--text-main); }
+.ck-class-menu {
+  position: absolute;
+  z-index: 1200;
+  min-width: 172px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: ckMenuIn 0.13s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes ckMenuIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+.ck-class-menu button {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--text-main);
+}
+.ck-class-menu button i { font-size: 1rem; width: 18px; text-align: center; color: var(--text-secondary); }
+.ck-class-menu button:hover { background: var(--bg-light); }
+.ck-class-menu button.danger { color: var(--color-absent); }
+.ck-class-menu button.danger i { color: var(--color-absent); }
+.ck-class-menu button.danger:hover { background: var(--color-absent-bg); }
+
+/* แถบแท็บภายในห้อง (detail tabs) — เสียบใต้หัวจอทุกหน้า */
+.ck-classtab-bar {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  background: var(--bg-light);
+  border-radius: 14px;
+  padding: 4px;
+  margin: 0 auto 16px;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.ck-classtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding: 8px 18px;
+  border-radius: 11px;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.ck-classtab i { font-size: 1rem; }
+.ck-classtab:not(.active):hover { background: rgba(0, 0, 0, 0.045); color: var(--text-main); }
+
 .btn-text {
   background: none;
   border: none;

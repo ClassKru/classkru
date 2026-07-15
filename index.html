@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=107">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=107">
-  <link rel="stylesheet" href="css/03-reports.css?v=107">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=107">
-  <link rel="stylesheet" href="css/05-home.css?v=107">
-  <link rel="stylesheet" href="css/06-attendance.css?v=107">
-  <link rel="stylesheet" href="css/07-scores.css?v=107">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=107">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=110">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=110">
+  <link rel="stylesheet" href="css/03-reports.css?v=110">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=110">
+  <link rel="stylesheet" href="css/05-home.css?v=110">
+  <link rel="stylesheet" href="css/06-attendance.css?v=110">
+  <link rel="stylesheet" href="css/07-scores.css?v=110">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=110">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -182,6 +182,7 @@
               </div>
             </div>
           </div>
+          <div id="students-classtab-holder"></div>
           <div id="web-students-content-area" style="display:none;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
               <div class="subtitle" id="web-students-count-label">พบ 0 คน</div>
@@ -282,6 +283,7 @@
           </div>
           <div id="web-reports-detail-view" style="display:none;">
             <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;"><button class="btn-back" onclick="goBackToWebReportsSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div><h3 id="web-rep-detail-class-title" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn" style="padding:8px 14px;font-size:0.82rem;background:#eef2ff;color:#3949ab;border:1px solid #c5cae9;" onclick="printReport()"><i class="hgi-stroke hgi-printer"></i> <span class="hide-mobile">พิมพ์ / </span>PDF</button><button class="btn" style="padding:8px 14px;font-size:0.82rem;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;" onclick="exportAttendanceExcel()"><i class="hgi-stroke hgi-google-sheet"></i> <span class="hide-mobile">Export </span>Excel</button></div></div></div>
+            <div id="reports-classtab-holder"></div>
             <div id="ck-print-header"></div>
             <div class="report-tabs" style="margin-bottom:20px;max-width:500px;">
               <button class="report-tab-item active" data-tab="today" onclick="switchWebReportTab('today')">วันนี้</button>
@@ -318,6 +320,7 @@
           </div>
           <div id="web-scores-detail-view" style="display:none;">
             <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
+            <div id="scores-classtab-holder"></div>
             <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
           </div>
         </div>
@@ -424,6 +427,8 @@
         </div>
       </div>
     </div>
+
+    <div id="checkin-classtab-holder" style="padding:12px 16px 0;"></div>
 
     <div class="swipe-compact-header">
       <div class="swipe-summary-pills" id="swipe-summary-pills">
@@ -777,18 +782,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=107"></script>
-  <script defer src="js/auth.js?v=107"></script>
-  <script defer src="js/shell.js?v=107"></script>
-  <script defer src="js/dashboard.js?v=107"></script>
-  <script defer src="js/classrooms.js?v=107"></script>
-  <script defer src="js/students.js?v=107"></script>
-  <script defer src="js/timetable.js?v=107"></script>
-  <script defer src="js/reports.js?v=107"></script>
-  <script defer src="js/attendance.js?v=107"></script>
-  <script defer src="js/scores.js?v=107"></script>
-  <script defer src="js/tools.js?v=107"></script>
-  <script defer src="js/shared-utils.js?v=107"></script>
-  <script defer src="js/extras.js?v=107"></script>
+  <script defer src="js/core.js?v=110"></script>
+  <script defer src="js/auth.js?v=110"></script>
+  <script defer src="js/shell.js?v=110"></script>
+  <script defer src="js/dashboard.js?v=110"></script>
+  <script defer src="js/classrooms.js?v=110"></script>
+  <script defer src="js/students.js?v=110"></script>
+  <script defer src="js/timetable.js?v=110"></script>
+  <script defer src="js/reports.js?v=110"></script>
+  <script defer src="js/attendance.js?v=110"></script>
+  <script defer src="js/scores.js?v=110"></script>
+  <script defer src="js/tools.js?v=110"></script>
+  <script defer src="js/shared-utils.js?v=110"></script>
+  <script defer src="js/extras.js?v=110"></script>
 </body>
 </html>

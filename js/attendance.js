@@ -203,6 +203,9 @@ function openSwipeAttendance(classId, forDate) {
     `<span style="width:12px;height:12px;border-radius:50%;background:${swipeCol.text};flex-shrink:0;"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${c.subject} (${c.className})</span>`;
   document.getElementById('swipe-class-meta').innerText = `${c.students.length} คน`;
 
+  const ckTab = document.getElementById('checkin-classtab-holder');
+  if (ckTab) ckTab.innerHTML = renderClassTabBar(classId, 'checkin');
+
   // Show overlay
   document.getElementById('swipe-overlay').classList.add('show');
 

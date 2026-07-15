@@ -175,6 +175,8 @@ function viewClassScores(classId) {
   const col = getClassColor(c.id);
   document.getElementById('web-scores-detail-title').innerHTML =
     `<span style="width:12px;height:12px;border-radius:50%;background:${col.text};flex-shrink:0;"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${c.subject} (${c.className})</span>`;
+  const scTab = document.getElementById('scores-classtab-holder');
+  if (scTab) scTab.innerHTML = renderClassTabBar(classId, 'scores');
   renderScoreMatrix(c);
 }
 
