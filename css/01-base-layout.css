@@ -385,6 +385,10 @@ body {
 .ck-classtab i { font-size: 1rem; }
 .ck-classtab:not(.active):hover { background: rgba(0, 0, 0, 0.045); color: var(--text-main); }
 
+/* ชื่อนักเรียนที่กดดูสรุปได้ */
+.ck-student-name-link { cursor: pointer; transition: color 0.15s; }
+.ck-student-name-link:hover { color: var(--primary); text-decoration: underline; }
+
 .btn-text {
   background: none;
   border: none;

@@ -207,6 +207,49 @@ function openStudentDetailModal(studentId, classId) {
 
 function closeStudentDetailModal() { document.getElementById('modal-student-detail').classList.remove('show'); }
 
+// modal สรุปนักเรียน (ดูข้อมูล view-only): เข้าเรียน + คะแนน/เกรด — คนละอันกับหน้าแก้ไข
+function openStudentSummaryModal(studentId, classId) {
+  const c = appState.classes.find(x => x.id === (classId || currentClassId));
+  if (!c) return;
+  const s = c.students.find(x => x.id === studentId);
+  if (!s) return;
+
+  document.getElementById('student-summary-name').innerText = s.nickname ? `${s.name} (${s.nickname})` : s.name;
+  document.getElementById('student-summary-class').innerText = `${c.subject} (${c.className})`;
+
+  // นับเข้าเรียน (เหมือนหน้าแก้ไข)
+  let p = 0, l = 0, a = 0, lv = 0;
+  Object.keys(c.attendance || {}).forEach(d => {
+    const st = (c.attendance[d] || {})[studentId];
+    if (st === 'present') p++; else if (st === 'late') l++; else if (st === 'absent') a++; else if (st === 'leave') lv++;
+  });
+  document.getElementById('student-summary-present').innerText = p;
+  document.getElementById('student-summary-late').innerText = l;
+  document.getElementById('student-summary-absent').innerText = a;
+  document.getElementById('student-summary-leave').innerText = lv;
+  const pct = (typeof studentAttendancePct === 'function') ? studentAttendancePct(c, studentId) : null;
+  document.getElementById('student-summary-attpct').innerText = (pct !== null && !isNaN(pct)) ? `เวลาเรียน ${pct}%` : '';
+
+  // คะแนน + เกรด (ปพ.5) — reuse computeStudentScore
+  const sc = computeStudentScore(c, studentId);
+  const grade = (typeof effectiveGrade === 'function') ? effectiveGrade(c, studentId) : sc.grade;
+  document.getElementById('student-summary-total').innerText = sc.total;
+  document.getElementById('student-summary-grade').innerText = grade;
+  const r1 = v => Math.round(v * 10) / 10;
+  const collect = r1(sc.cats.before.scaled + sc.cats.after.scaled);
+  const anyScore = ['before', 'after', 'mid', 'final'].some(k => sc.cats[k].has);
+  document.getElementById('student-summary-breakdown').innerHTML = anyScore
+    ? `<span>เก็บ <b style="color:var(--text-main);">${collect}</b></span><span>กลางภาค <b style="color:var(--text-main);">${r1(sc.cats.mid.scaled)}</b></span><span>ปลายภาค <b style="color:var(--text-main);">${r1(sc.cats.final.scaled)}</b></span>`
+    : `<span>ยังไม่มีการกรอกคะแนน</span>`;
+
+  // ปุ่มสะพานไปหน้าแก้ไข
+  document.getElementById('student-summary-edit-btn').onclick = function () { closeStudentSummaryModal(); openStudentDetailModal(studentId, c.id); };
+
+  document.getElementById('modal-student-summary').classList.add('show');
+}
+
+function closeStudentSummaryModal() { document.getElementById('modal-student-summary').classList.remove('show'); }
+
 // แก้รหัสประจำตัวแบบ inline จากช่องในตาราง (เช็คชื่อ/จัดการรายชื่อ) — เขียนลงฟิลด์เดียวกับ modal
 function setStudentCodeInline(classId, studentId, val) {
   const c = appState.classes.find(x => x.id === classId);

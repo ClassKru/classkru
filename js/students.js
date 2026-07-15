@@ -52,7 +52,7 @@ function renderWebStudents() {
     row.innerHTML = `
       <div class="d-col-no">${s.no || '-'}</div>
       <div class="d-col-code"><input class="d-code-input" type="text" value="${codeEsc}" placeholder="-" onchange="setStudentCodeInline('${targetClass.id}','${s.id}',this.value)"></div>
-      <div class="d-col-name">${s.name}</div>
+      <div class="d-col-name ck-student-name-link" onclick="openStudentSummaryModal('${s.id}','${targetClass.id}')" title="ดูข้อมูล เข้าเรียน/คะแนน">${s.name}</div>
       <div class="d-col-note" style="color:var(--text-muted);font-size:0.8rem;">${s.comment || '-'}</div>
       <div class="d-col-manage">
         <button class="d-manage-btn" title="แก้ไขข้อมูล" onclick="currentClassId='${targetClass.id}';openStudentDetailModal('${s.id}','${targetClass.id}')"><i class="hgi-stroke hgi-edit-02"></i></button>

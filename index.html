@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=115">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=115">
-  <link rel="stylesheet" href="css/03-reports.css?v=115">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=115">
-  <link rel="stylesheet" href="css/05-home.css?v=115">
-  <link rel="stylesheet" href="css/06-attendance.css?v=115">
-  <link rel="stylesheet" href="css/07-scores.css?v=115">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=115">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=116">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=116">
+  <link rel="stylesheet" href="css/03-reports.css?v=116">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=116">
+  <link rel="stylesheet" href="css/05-home.css?v=116">
+  <link rel="stylesheet" href="css/06-attendance.css?v=116">
+  <link rel="stylesheet" href="css/07-scores.css?v=116">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=116">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -716,6 +716,35 @@
 <div class="form-group"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);" for="student-detail-comment">หมายเหตุ</label><textarea id="student-detail-comment" class="form-control" style="height:56px;font-size:0.85rem;" placeholder="บันทึกของครู..."></textarea></div>
 <div style="display:flex;gap:10px;margin-top:20px;"><button class="btn" style="flex:1;" onclick="closeStudentDetailModal()">ยกเลิก</button><button class="btn btn-primary" style="flex:2;" onclick="saveStudentDetailChanges()">บันทึก</button></div></div></div>
 
+  <!-- STUDENT SUMMARY MODAL (ดูข้อมูล: เข้าเรียน + คะแนน/เกรด — คนละอันกับหน้าแก้ไข) -->
+  <div class="modal-overlay" id="modal-student-summary" onclick="if(event.target===this) closeStudentSummaryModal()" style="z-index:9000;">
+    <div class="bottom-sheet" style="width:480px;max-width:95vw;">
+      <div class="modal-header"><h3 id="student-summary-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentSummaryModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
+      <div id="student-summary-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:18px;"></div>
+
+      <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;">การเข้าเรียน</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:6px;">
+        <div style="padding:10px;border-radius:10px;background:var(--color-present-bg);color:var(--color-present);text-align:center;"><strong style="font-size:1.25rem;" id="student-summary-present">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">มา</span></div>
+        <div style="padding:10px;border-radius:10px;background:var(--color-late-bg);color:var(--color-late-text);text-align:center;"><strong style="font-size:1.25rem;" id="student-summary-late">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">สาย</span></div>
+        <div style="padding:10px;border-radius:10px;background:var(--color-absent-bg);color:var(--color-absent);text-align:center;"><strong style="font-size:1.25rem;" id="student-summary-absent">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">ขาด</span></div>
+        <div style="padding:10px;border-radius:10px;background:var(--color-leave-bg);color:var(--color-leave);text-align:center;"><strong style="font-size:1.25rem;" id="student-summary-leave">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">ลา</span></div>
+      </div>
+      <div id="student-summary-attpct" style="font-size:0.78rem;color:var(--text-muted);text-align:right;margin-bottom:18px;min-height:14px;"></div>
+
+      <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;">คะแนน (ปพ.5)</div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <div style="flex:2;background:var(--bg-light);border-radius:12px;padding:12px 16px;display:flex;align-items:baseline;gap:6px;"><span style="font-size:1.6rem;font-weight:800;color:var(--text-main);" id="student-summary-total">0</span><span style="font-size:0.8rem;color:var(--text-muted);">/ 100</span></div>
+        <div style="flex:1;background:var(--primary-light);border-radius:12px;padding:12px;text-align:center;"><div style="font-size:1.6rem;font-weight:800;color:var(--primary);" id="student-summary-grade">-</div><div style="font-size:0.65rem;font-weight:700;color:var(--primary);">เกรด</div></div>
+      </div>
+      <div id="student-summary-breakdown" style="font-size:0.8rem;color:var(--text-muted);display:flex;gap:16px;flex-wrap:wrap;"></div>
+
+      <div style="display:flex;gap:10px;margin-top:22px;">
+        <button class="btn" style="flex:1;" onclick="closeStudentSummaryModal()">ปิด</button>
+        <button class="btn btn-primary" style="flex:1;" id="student-summary-edit-btn"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button>
+      </div>
+    </div>
+  </div>
+
   <!-- PERIOD SETTINGS MODAL -->
   <div class="modal-overlay" id="modal-period-settings" onclick="if(event.target===this) closePeriodSettings()">
     <div class="bottom-sheet" style="width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;">
@@ -779,18 +808,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=115"></script>
-  <script defer src="js/auth.js?v=115"></script>
-  <script defer src="js/shell.js?v=115"></script>
-  <script defer src="js/dashboard.js?v=115"></script>
-  <script defer src="js/classrooms.js?v=115"></script>
-  <script defer src="js/students.js?v=115"></script>
-  <script defer src="js/timetable.js?v=115"></script>
-  <script defer src="js/reports.js?v=115"></script>
-  <script defer src="js/attendance.js?v=115"></script>
-  <script defer src="js/scores.js?v=115"></script>
-  <script defer src="js/tools.js?v=115"></script>
-  <script defer src="js/shared-utils.js?v=115"></script>
-  <script defer src="js/extras.js?v=115"></script>
+  <script defer src="js/core.js?v=116"></script>
+  <script defer src="js/auth.js?v=116"></script>
+  <script defer src="js/shell.js?v=116"></script>
+  <script defer src="js/dashboard.js?v=116"></script>
+  <script defer src="js/classrooms.js?v=116"></script>
+  <script defer src="js/students.js?v=116"></script>
+  <script defer src="js/timetable.js?v=116"></script>
+  <script defer src="js/reports.js?v=116"></script>
+  <script defer src="js/attendance.js?v=116"></script>
+  <script defer src="js/scores.js?v=116"></script>
+  <script defer src="js/tools.js?v=116"></script>
+  <script defer src="js/shared-utils.js?v=116"></script>
+  <script defer src="js/extras.js?v=116"></script>
 </body>
 </html>
