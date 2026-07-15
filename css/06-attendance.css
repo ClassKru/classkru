@@ -43,7 +43,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 20px 32px 0;
+  margin: 20px 24px 0;
   padding: 16px 20px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -91,7 +91,7 @@
 @media (min-width: 769px) {
   .swipe-overlay { background: var(--bg-app); }
   .swipe-compact-header {
-    margin: 16px 32px 0;
+    margin: 16px 24px 0;
     padding: 12px 20px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -592,5 +592,5 @@
 .swipe-schedule-warning.is-extra > button:hover { background: rgba(34,160,90,0.12); }
 
 @media (min-width: 769px) {
-  .swipe-schedule-warning { margin: 0 32px 10px; }
+  .swipe-schedule-warning { margin: 0 24px 10px; }
 }
