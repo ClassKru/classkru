@@ -1,3 +1,17 @@
+// แตะ "นักเรียน" บน bottom nav มือถือ — เลือกห้องก่อน (ล้อ mobileCheckinTap)
+// 1 ห้อง = เลือกให้เลย · หลายห้อง = เข้าหน้าแล้วใช้ dropdown เลือก
+function mobileStudentsTap() {
+  if (appState.classes.length === 0) {
+    showToast('กรุณาเพิ่มห้องเรียนก่อน', 'info');
+    navigateToWebScreen('classrooms');
+    return;
+  }
+  if (appState.classes.length === 1) {
+    window.__forceStudentClassId = appState.classes[0].id;
+  }
+  navigateToWebScreen('students');
+}
+
 function renderWebStudents() {
   const container = document.getElementById('web-students-list');
   const filter = document.getElementById('web-student-class-filter');

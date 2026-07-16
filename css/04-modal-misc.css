@@ -39,6 +39,12 @@
   to { transform: scale(1); opacity: 1; }
 }
 
+/* bottom sheet มือถือ สไลด์ขึ้นจากล่าง */
+@keyframes ckSheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
