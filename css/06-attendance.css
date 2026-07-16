@@ -495,8 +495,8 @@
 .d-code-input:focus { border-color: var(--primary); background: #fff; color: var(--text-main); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
 .d-col-name { flex: 2; font-weight: 700; font-size: 0.95rem; color: var(--text-main); }
 .d-col-status { flex: 3; display: flex; justify-content: center; gap: 8px; }
-.d-col-stats { flex: 1.5; text-align: center; font-size: 0.8rem; font-weight: 700; color: var(--primary); display:flex; align-items:center; justify-content:center; gap:8px;}
-.d-col-note { flex: 1.5; }
+.d-col-stats { flex: 2.4; text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--primary); display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;}
+.d-col-note { flex: 1; }
 .d-col-manage { width: 84px; display: flex; justify-content: center; gap: 6px; }
 .d-manage-btn {
   width: 32px; height: 32px;
