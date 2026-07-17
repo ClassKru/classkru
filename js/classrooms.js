@@ -90,7 +90,7 @@ function renderClassTabBar(classId, active) {
   ];
   const btns = tabs.map(t => {
     const on = t.key === active;
-    const style = on ? `background:${col.text};color:#fff;` : '';
+    const style = on ? `background:#fff;color:${col.text};border-color:${col.border};box-shadow:0 1px 3px rgba(0,0,0,0.07);` : '';
     return `<button class="ck-classtab${on ? ' active' : ''}" style="${style}" onclick="switchClassTab('${t.key}','${classId}')"><i class="hgi-stroke ${t.icon}"></i><span>${t.label}</span></button>`;
   }).join('');
   return `<div class="ck-classtab-bar">${btns}</div>`;
