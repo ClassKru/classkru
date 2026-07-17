@@ -254,6 +254,8 @@ function openStudentSummaryModal(studentId, classId) {
 
   // ปุ่มสะพานไปหน้าแก้ไข
   document.getElementById('student-summary-edit-btn').onclick = function () { closeStudentSummaryModal(); openStudentDetailModal(studentId, c.id); };
+  // ปุ่มลบนักเรียน (ทางลบหลักบนมือถือ — แถวไม่มีปุ่มลบแล้ว)
+  document.getElementById('student-summary-delete-btn').onclick = function () { currentClassId = c.id; closeStudentSummaryModal(); deleteStudent(studentId); };
 
   document.getElementById('modal-student-summary').classList.add('show');
 }
