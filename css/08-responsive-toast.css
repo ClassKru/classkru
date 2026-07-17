@@ -85,6 +85,46 @@
     background: var(--primary-hover);
   }
 
+  /* แถบแท็บภายในห้อง — ซ่อนบนมือถือ (ใช้ bottom nav แทน) */
+  .ck-classtab-bar { display: none !important; }
+
+  /* หน้านักเรียน — หัวจอกระชับ: ตัวเลือก/ค้นหาเต็มกว้าง */
+  .students-head-controls { width: 100%; }
+  .students-head-controls .form-control { max-width: 100% !important; flex: 1 1 100%; }
+  .students-action-btns .btn { flex: 1 1 auto; justify-content: center; }
+
+  /* หน้านักเรียน — ตารางล้นจอ → การ์ดแถวแบบมือถือ (ไม่ต้องเลื่อนแนวนอน) */
+  #students-mw { min-width: 0 !important; }
+  #web-screen-students .d-student-header-row { display: none; }
+  #web-screen-students .desktop-student-grid { padding: 0 12px 12px 12px !important; gap: 10px; }
+  #web-screen-students .d-student-row {
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 12px 14px;
+    row-gap: 8px;
+    border-radius: 12px;
+  }
+  #web-screen-students .d-col-no {
+    order: 1; width: auto; min-width: 30px;
+    background: var(--bg-light); border-radius: 8px;
+    padding: 3px 9px; font-size: 0.9rem;
+  }
+  #web-screen-students .d-col-name { order: 2; flex: 1 1 0; min-width: 0; padding-left: 10px; font-size: 1rem; line-height: 1.35; }
+  #web-screen-students .d-col-manage { order: 3; width: auto; gap: 8px; }
+  #web-screen-students .d-manage-btn { width: 36px; height: 36px; }
+  #web-screen-students .d-col-code {
+    order: 4; flex-basis: 100%; width: 100%; text-align: left;
+    display: flex; align-items: center; gap: 6px;
+  }
+  #web-screen-students .d-col-code::before {
+    content: "รหัส"; font-size: 0.72rem; font-weight: 700; color: var(--text-muted);
+  }
+  #web-screen-students .d-code-input {
+    width: auto; max-width: 150px; text-align: left;
+    border-color: var(--border-color); background: #fff;
+  }
+  #web-screen-students .d-col-note { display: none; }
+
   /* Responsive grids */
   .dashboard-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .dashboard-grid { grid-template-columns: 1fr; }

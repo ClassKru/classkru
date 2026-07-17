@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=119">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=119">
-  <link rel="stylesheet" href="css/03-reports.css?v=119">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=119">
-  <link rel="stylesheet" href="css/05-home.css?v=119">
-  <link rel="stylesheet" href="css/06-attendance.css?v=119">
-  <link rel="stylesheet" href="css/07-scores.css?v=119">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=119">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=121">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=121">
+  <link rel="stylesheet" href="css/03-reports.css?v=121">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=121">
+  <link rel="stylesheet" href="css/05-home.css?v=121">
+  <link rel="stylesheet" href="css/06-attendance.css?v=121">
+  <link rel="stylesheet" href="css/07-scores.css?v=121">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=121">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -176,7 +176,7 @@
                 <button class="btn-back" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button>
                 <div class="card-title" style="margin-bottom:0;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary)"></i> จัดการรายชื่อนักเรียน</div>
               </div>
-              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+              <div class="students-head-controls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
                 <select id="web-student-class-filter" class="form-control" style="max-width:220px;appearance:auto;padding-top:6px;padding-bottom:6px;" onchange="renderWebStudents()"><option value="">-- กรุณาเลือกห้องเรียน --</option></select>
                 <input type="text" id="web-student-search-input" class="form-control" placeholder="ค้นหาชื่อ/รหัส..." style="max-width:200px;padding-top:6px;padding-bottom:6px;" oninput="renderWebStudents()">
               </div>
@@ -186,15 +186,16 @@
           <div id="web-students-content-area" style="display:none;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
               <div class="subtitle" id="web-students-count-label">พบ 0 คน</div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div class="students-action-btns" style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn" style="background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);" onclick="openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
-                <button class="btn" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
-                <button class="btn btn-danger" onclick="deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i> ลบทั้งหมด</button>
+                <button class="btn desktop-only-flex" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
+                <button class="btn btn-danger desktop-only-flex" onclick="deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i> ลบทั้งหมด</button>
+                <button class="ck-class-menu-btn mobile-only-flex" aria-label="ตัวเลือกเพิ่มเติม" style="align-items:center;" onclick="toggleStudentsActionMenu(event)"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
               </div>
             </div>
             <div class="card" style="padding:12px 0 4px;overflow:hidden;">
               <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-                <div style="min-width:560px;">
+                <div id="students-mw" style="min-width:560px;">
                   <div class="d-student-header-row">
                     <div style="width:50px;text-align:center;">เลขที่</div>
                     <div style="width:90px;text-align:center;">รหัส</div>
@@ -808,18 +809,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=119"></script>
-  <script defer src="js/auth.js?v=119"></script>
-  <script defer src="js/shell.js?v=119"></script>
-  <script defer src="js/dashboard.js?v=119"></script>
-  <script defer src="js/classrooms.js?v=119"></script>
-  <script defer src="js/students.js?v=119"></script>
-  <script defer src="js/timetable.js?v=119"></script>
-  <script defer src="js/reports.js?v=119"></script>
-  <script defer src="js/attendance.js?v=119"></script>
-  <script defer src="js/scores.js?v=119"></script>
-  <script defer src="js/tools.js?v=119"></script>
-  <script defer src="js/shared-utils.js?v=119"></script>
-  <script defer src="js/extras.js?v=119"></script>
+  <script defer src="js/core.js?v=121"></script>
+  <script defer src="js/auth.js?v=121"></script>
+  <script defer src="js/shell.js?v=121"></script>
+  <script defer src="js/dashboard.js?v=121"></script>
+  <script defer src="js/classrooms.js?v=121"></script>
+  <script defer src="js/students.js?v=121"></script>
+  <script defer src="js/timetable.js?v=121"></script>
+  <script defer src="js/reports.js?v=121"></script>
+  <script defer src="js/attendance.js?v=121"></script>
+  <script defer src="js/scores.js?v=121"></script>
+  <script defer src="js/tools.js?v=121"></script>
+  <script defer src="js/shared-utils.js?v=121"></script>
+  <script defer src="js/extras.js?v=121"></script>
 </body>
 </html>
