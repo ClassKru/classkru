@@ -88,52 +88,43 @@
   /* แถบแท็บภายในห้อง — ซ่อนบนมือถือ (ใช้ bottom nav แทน) */
   .ck-classtab-bar { display: none !important; }
 
-  /* หน้านักเรียน — หัวจอกระชับ: บีบ padding + ตัวเลือก/ค้นหาเต็มกว้าง ลดพื้นที่บน */
+  /* หน้านักเรียน (มือถือ) — หัวจอกระชับ + ย้ายปุ่ม +/⋮ ขึ้นหัว, เหลือไอคอน (ซ่อนข้อความยาว) */
   #web-screen-students .rep-detail-header-card { padding: 12px 14px !important; margin-bottom: 12px !important; }
-  #web-screen-students .rep-detail-header-card .card-title { font-size: 1rem; }
+  #web-screen-students .hdr-title-text { display: none; }
+  #web-screen-students .rep-detail-header-card .card-title { font-size: 1.05rem; }
   .students-head-controls { width: 100%; gap: 8px; }
   .students-head-controls .form-control { max-width: 100% !important; flex: 1 1 100%; }
+  .ck-hdr-btn {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center; font-size: 1.15rem; cursor: pointer;
+  }
+  .ck-hdr-btn.add { background: var(--primary-light); color: var(--primary); border-color: var(--primary-light-border); }
+  .ck-hdr-btn:active { transform: scale(0.94); }
 
-  /* แถว "พบ X คน" + ปุ่ม — กระชับ ไม่กินพื้นที่บน */
-  #web-screen-students .students-action-row { margin-bottom: 10px !important; }
-  #web-screen-students #web-students-count-label { font-size: 0.82rem; }
-  #web-screen-students .students-action-btns .btn { padding: 8px 16px; font-size: 0.9rem; }
+  /* ซ่อนแถว "พบ X คน + ปุ่ม" — ย้ายฟังก์ชันขึ้นหัวจอแล้ว → รายชื่อเลื่อนขึ้น */
+  #web-screen-students .students-action-row { display: none !important; }
 
-  /* หน้านักเรียน — ตารางล้นจอ → การ์ดแถวแบบมือถือ (ไม่ต้องเลื่อนแนวนอน) */
+  /* รายชื่อ → แถวบรรทัดเดียว (เลขที่ + ชื่อ) แตะทั้งแถวเปิด modal · เอา รหัส/แก้ไข/ลบ ออก */
   #students-mw { min-width: 0 !important; }
   #web-screen-students .d-student-header-row { display: none; }
-  #web-screen-students .desktop-student-grid { padding: 0 12px 12px 12px !important; gap: 8px; }
+  #web-screen-students .desktop-student-grid { padding: 0 12px 12px 12px !important; gap: 6px; }
   #web-screen-students .d-student-row {
-    flex-wrap: wrap;
     align-items: center;
-    padding: 10px 14px;
-    row-gap: 3px;
+    padding: 13px 14px;
     border-radius: 12px;
+    cursor: pointer;
   }
+  #web-screen-students .d-student-row:active { background: var(--bg-light); }
   #web-screen-students .d-col-no {
-    order: 1; width: auto; min-width: 30px; align-self: flex-start; margin-top: 2px;
+    width: auto; min-width: 30px;
     background: var(--bg-light); border-radius: 8px;
     padding: 3px 9px; font-size: 0.9rem;
   }
-  #web-screen-students .d-col-name { order: 2; flex: 1 1 0; min-width: 0; padding-left: 10px; font-size: 1rem; line-height: 1.3; }
-  #web-screen-students .d-col-manage { order: 3; width: auto; gap: 8px; align-self: flex-start; }
-  #web-screen-students .d-manage-btn { width: 34px; height: 34px; }
-  /* รหัส = ข้อความย่อยเบาๆ ใต้ชื่อ (ไม่ใช่กล่อง input) — แตะยังแก้ได้ */
-  #web-screen-students .d-col-code {
-    order: 4; flex-basis: 100%; width: 100%; text-align: left;
-    display: flex; align-items: center; gap: 4px; padding-left: 50px; margin-top: -2px;
-  }
-  #web-screen-students .d-col-code::before {
-    content: "รหัส"; font-size: 0.7rem; font-weight: 700; color: var(--text-muted);
-  }
-  #web-screen-students .d-code-input {
-    width: auto; max-width: 130px; text-align: left;
-    padding: 1px 3px; font-size: 0.82rem; font-weight: 600; color: var(--text-muted);
-    border-color: transparent; background: transparent;
-  }
-  #web-screen-students .d-code-input:hover { border-color: var(--border-color); background: #fff; }
-  #web-screen-students .d-code-input:focus { border-color: var(--primary); background: #fff; color: var(--text-main); }
-  #web-screen-students .d-col-note { display: none; }
+  #web-screen-students .d-col-name { flex: 1 1 0; min-width: 0; padding-left: 12px; font-size: 1rem; line-height: 1.3; }
+  #web-screen-students .d-col-code,
+  #web-screen-students .d-col-note,
+  #web-screen-students .d-col-manage { display: none; }
 
   /* Responsive grids */
   .dashboard-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
