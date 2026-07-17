@@ -43,7 +43,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 20px 32px 0;
+  margin: 20px 24px 0;
   padding: 16px 20px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -91,7 +91,7 @@
 @media (min-width: 769px) {
   .swipe-overlay { background: var(--bg-app); }
   .swipe-compact-header {
-    margin: 16px 32px 0;
+    margin: 16px 24px 0;
     padding: 12px 20px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -495,8 +495,8 @@
 .d-code-input:focus { border-color: var(--primary); background: #fff; color: var(--text-main); outline: none; box-shadow: 0 0 0 3px var(--primary-light); }
 .d-col-name { flex: 2; font-weight: 700; font-size: 0.95rem; color: var(--text-main); }
 .d-col-status { flex: 3; display: flex; justify-content: center; gap: 8px; }
-.d-col-stats { flex: 1.5; text-align: center; font-size: 0.8rem; font-weight: 700; color: var(--primary); display:flex; align-items:center; justify-content:center; gap:8px;}
-.d-col-note { flex: 1.5; }
+.d-col-stats { flex: 2.4; text-align: center; font-size: 0.78rem; font-weight: 700; color: var(--primary); display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap;}
+.d-col-note { flex: 1; }
 .d-col-manage { width: 84px; display: flex; justify-content: center; gap: 6px; }
 .d-manage-btn {
   width: 32px; height: 32px;
@@ -592,5 +592,5 @@
 .swipe-schedule-warning.is-extra > button:hover { background: rgba(34,160,90,0.12); }
 
 @media (min-width: 769px) {
-  .swipe-schedule-warning { margin: 0 32px 10px; }
+  .swipe-schedule-warning { margin: 0 24px 10px; }
 }

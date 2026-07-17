@@ -203,6 +203,9 @@ function openSwipeAttendance(classId, forDate) {
     `<span style="width:12px;height:12px;border-radius:50%;background:${swipeCol.text};flex-shrink:0;"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${c.subject} (${c.className})</span>`;
   document.getElementById('swipe-class-meta').innerText = `${c.students.length} คน`;
 
+  const ckTab = document.getElementById('checkin-classtab-holder');
+  if (ckTab) ckTab.innerHTML = renderClassTabBar(classId, 'checkin');
+
   // Show overlay
   document.getElementById('swipe-overlay').classList.add('show');
 
@@ -436,10 +439,11 @@ function renderDesktopSwipeTable() {
   c.students.forEach((s, index) => {
     const currentStatus = swipeResults[s.id] || '';
 
-    let sAbsent = 0, sLate = 0, sLeave = 0;
+    let sPresent = 0, sAbsent = 0, sLate = 0, sLeave = 0;
     Object.values(c.attendance || {}).forEach(dayRecord => {
       const st = (dayRecord || {})[s.id];
-      if (st === 'absent') sAbsent++;
+      if (st === 'present') sPresent++;
+      else if (st === 'absent') sAbsent++;
       else if (st === 'late') sLate++;
       else if (st === 'leave') sLeave++;
     });
@@ -463,6 +467,7 @@ function renderDesktopSwipeTable() {
             onclick="setDesktopStudentStatus('${s.id}', 'leave')"><i class="hgi-stroke hgi-file-02"></i> ลา</button>
         </div>
         <div class="d-col-stats">
+          <span style="color:var(--color-present);font-weight:700;">มา ${sPresent}</span>
           <span style="color:var(--color-absent);font-weight:700;">ขาด ${sAbsent}</span>
           <span style="color:var(--color-leave);font-weight:700;">ลา ${sLeave}</span>
           <span style="color:var(--color-late-text);font-weight:700;">สาย ${sLate}</span>

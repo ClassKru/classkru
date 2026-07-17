@@ -99,6 +99,20 @@
     border-radius: var(--radius-lg);
   }
 
+  /* modal นักเรียน (สรุป/แก้ไข) → bottom sheet ติดล่าง เต็มกว้าง มนบน สไลด์ขึ้น */
+  #modal-student-summary, #modal-student-detail {
+    align-items: flex-end;
+    padding: 0;
+  }
+  #modal-student-summary .bottom-sheet, #modal-student-detail .bottom-sheet {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 22px 22px 0 0;
+    max-height: 90vh;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    animation: ckSheetUp 0.26s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
   /* Swipe overlay adjustments */
   .swipe-card { width: 280px; padding: 24px 20px 20px; }
   .swipe-btn i { width: 50px; height: 50px; font-size: 1.15rem; }
