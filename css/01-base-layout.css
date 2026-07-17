@@ -70,6 +70,9 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
   -webkit-font-smoothing: antialiased;
 }
 
+/* จอง scrollbar แนวตั้งไว้เสมอ — กัน viewport กว้างไม่เท่ากันระหว่างหน้าเนื้อหายาว/สั้น
+   ทำให้แถบแท็บที่จัดกลาง (margin:auto) อยู่ตำแหน่งเดียวกันเป๊ะทุกหน้า */
+html { overflow-y: scroll; }
 body {
   background-color: var(--bg-app);
   color: var(--text-main);
@@ -357,9 +360,10 @@ body {
 .ck-classtab-bar {
   display: flex;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   background: var(--bg-light);
-  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 13px;
   padding: 4px;
   margin: 0 auto 16px;
   width: fit-content;
@@ -370,20 +374,21 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: none;
+  border: 1.5px solid transparent;
   background: transparent;
   cursor: pointer;
   font-family: inherit;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.9rem;
   color: var(--text-secondary);
-  padding: 8px 18px;
-  border-radius: 11px;
+  padding: 7px 17px;
+  border-radius: 10px;
   white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 .ck-classtab i { font-size: 1rem; }
-.ck-classtab:not(.active):hover { background: rgba(0, 0, 0, 0.045); color: var(--text-main); }
+.ck-classtab.active { font-weight: 700; }
+.ck-classtab:not(.active):hover { background: rgba(0, 0, 0, 0.04); color: var(--text-main); }
 
 /* ชื่อนักเรียนที่กดดูสรุปได้ */
 .ck-student-name-link { cursor: pointer; transition: color 0.15s; }
