@@ -216,6 +216,10 @@ function openStudentSummaryModal(studentId, classId) {
 
   document.getElementById('student-summary-name').innerText = s.nickname ? `${s.name} (${s.nickname})` : s.name;
   document.getElementById('student-summary-class').innerText = `${c.subject} (${c.className})`;
+  // เลขที่ + เลขประจำตัว
+  const codeTxt = s.studentCode ? String(s.studentCode) : '—';
+  document.getElementById('student-summary-idline').innerHTML =
+    `<span>เลขที่ <b style="color:var(--text-main);">${s.no || '—'}</b></span><span>เลขประจำตัว <b style="color:var(--text-main);">${codeTxt}</b></span>`;
 
   // นับเข้าเรียน (เหมือนหน้าแก้ไข)
   let p = 0, l = 0, a = 0, lv = 0;
@@ -236,11 +240,17 @@ function openStudentSummaryModal(studentId, classId) {
   document.getElementById('student-summary-total').innerText = sc.total;
   document.getElementById('student-summary-grade').innerText = grade;
   const r1 = v => Math.round(v * 10) / 10;
-  const collect = r1(sc.cats.before.scaled + sc.cats.after.scaled);
+  // 3 ช่องตาม ปพ.5 — คะแนนเก็บ(ก่อน+หลัง) / สอบกลางภาค / สอบปลายภาค · หาร weight จาก config.ratio
+  const collect    = r1(sc.cats.before.scaled + sc.cats.after.scaled);
+  const collectMax = r1(sc.cats.before.weight + sc.cats.after.weight);
+  document.getElementById('student-summary-collect').innerText = collect;
+  document.getElementById('student-summary-collect-max').innerText = `/${collectMax}`;
+  document.getElementById('student-summary-mid').innerText = r1(sc.cats.mid.scaled);
+  document.getElementById('student-summary-mid-max').innerText = `/${r1(sc.cats.mid.weight)}`;
+  document.getElementById('student-summary-final').innerText = r1(sc.cats.final.scaled);
+  document.getElementById('student-summary-final-max').innerText = `/${r1(sc.cats.final.weight)}`;
   const anyScore = ['before', 'after', 'mid', 'final'].some(k => sc.cats[k].has);
-  document.getElementById('student-summary-breakdown').innerHTML = anyScore
-    ? `<span>เก็บ <b style="color:var(--text-main);">${collect}</b></span><span>กลางภาค <b style="color:var(--text-main);">${r1(sc.cats.mid.scaled)}</b></span><span>ปลายภาค <b style="color:var(--text-main);">${r1(sc.cats.final.scaled)}</b></span>`
-    : `<span>ยังไม่มีการกรอกคะแนน</span>`;
+  document.getElementById('student-summary-breakdown').innerText = anyScore ? '' : 'ยังไม่มีการกรอกคะแนน';
 
   // ปุ่มสะพานไปหน้าแก้ไข
   document.getElementById('student-summary-edit-btn').onclick = function () { closeStudentSummaryModal(); openStudentDetailModal(studentId, c.id); };

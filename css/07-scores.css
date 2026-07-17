@@ -205,6 +205,12 @@
 .desktop-only { display: block; }
 .mobile-only { display: none; }
 
+/* ช่องคะแนนย่อยใน modal สรุปนักเรียน (เก็บ/กลางภาค/ปลายภาค) */
+.ss-sbox { background: var(--bg-light); border-radius: 12px; padding: 12px 6px; text-align: center; }
+.ss-sbox b { font-size: 1.3rem; font-weight: 800; color: var(--text-main); }
+.ss-sbox .ss-max { font-size: 0.72rem; color: var(--text-muted); margin-left: 1px; }
+.ss-sbox .ss-lbl { display: block; font-size: 0.66rem; font-weight: 700; color: var(--text-muted); margin-top: 3px; }
+
 /* Mobile timetable (Option B: all days vertical) */
 .m-tt-day { border-radius: var(--radius-sm); margin-bottom: 10px; overflow: hidden; border: 1.5px solid var(--border-color); background: var(--bg-card); }
 .m-tt-day.is-today { border-color: var(--primary); background: var(--primary-light); }
