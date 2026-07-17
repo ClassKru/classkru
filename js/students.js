@@ -76,6 +76,27 @@ function renderWebStudents() {
   });
 }
 
+// เมนู ⋮ ปุ่มจัดการรายชื่อ (มือถือ) — ยุบ นำเข้า Excel / ลบทั้งหมด ไว้ที่เดียว
+function toggleStudentsActionMenu(ev) {
+  ev.stopPropagation();
+  const existing = document.getElementById('ck-class-menu');
+  const wasOpen = !!existing;
+  if (typeof closeClassMenu === 'function') closeClassMenu();
+  if (wasOpen) return; // กดซ้ำ = ปิด
+  const r = ev.currentTarget.getBoundingClientRect();
+  const menu = document.createElement('div');
+  menu.id = 'ck-class-menu';
+  menu.className = 'ck-class-menu';
+  menu.dataset.for = 'students-actions';
+  menu.innerHTML = `
+    <button onclick="closeClassMenu();triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i><span>นำเข้า Excel</span></button>
+    <button class="danger" onclick="closeClassMenu();deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i><span>ลบทั้งหมด</span></button>`;
+  document.body.appendChild(menu);
+  menu.style.top = (r.bottom + window.scrollY + 6) + 'px';
+  menu.style.left = (r.right + window.scrollX - menu.offsetWidth) + 'px';
+  setTimeout(() => document.addEventListener('click', closeClassMenuOnOutside), 0);
+}
+
 // ==================== WEB TIMETABLE ====================
 // สีประจำห้อง (ClickUp-style) — แต่ละห้องได้สีคงที่ตามลำดับ ช่วยกวาดตาแยกห้องในตารางสอน
 const TT_CLASS_COLORS = [
