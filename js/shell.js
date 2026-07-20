@@ -65,6 +65,11 @@ function navigateToWebScreen(screenId, param) {
   // ผู้ใช้เปลี่ยนไปหน้าอื่นที่ไม่ใช่ deep-link แล้ว → ยกเลิก deep-link (กัน sync ดึงกลับ)
   if (pendingDeepLink && screenId !== pendingDeepLink) pendingDeepLink = null;
 
+  // ธง "เข้ามาทางปุ่มนักเรียน" มีอายุแค่ในวงจร เลือกห้อง ↔ หน้านักเรียน เท่านั้น
+  // ออกไปหน้าอื่นเมื่อไหร่ (เช็คชื่อ/คะแนน/ตารางสอน) = เปลี่ยนใจแล้ว → กลับค่าเริ่มต้น
+  // ไม่งั้นธงค้างข้ามงาน แล้วแตะการ์ดทีหลังจะได้หน้านักเรียนโดยไม่รู้ตัว
+  if (screenId !== 'classrooms' && screenId !== __ckRoomEntryTab) __ckRoomEntryTab = 'checkin';
+
   // หน้าเช็คชื่อมี DOM เป็น overlay (ไม่ใช่ div#web-screen-*) เลยแยกทางเดินของมันออกมา
   // ตัวจริงที่ทำงานคือ openSwipeAttendance ซึ่งจะเรียก applyCheckinRoute() ปิดท้ายเอง
   if (screenId === 'checkin') {
@@ -100,9 +105,12 @@ function navigateToWebScreen(screenId, param) {
     btn.classList.toggle('active', btn.getAttribute('data-screen') === screenId);
   });
 
-  // Mobile bottom nav active
+  // Mobile bottom nav active — data-screen รับได้หลายหน้าคั่นด้วยช่องว่าง
+  // ปุ่ม "นักเรียน" ครอบทั้ง "classrooms students" เพราะหน้าเลือกห้องกับหน้ารายชื่อ
+  // เป็นขั้นตอนเดียวกันในสายตาครู ไฟต้องติดค้างตลอดทาง ไม่ใช่ดับตอนเลือกห้อง
   document.querySelectorAll('.mob-nav-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-screen') === screenId);
+    const owns = (btn.getAttribute('data-screen') || '').split(' ');
+    btn.classList.toggle('active', owns.includes(screenId));
   });
 
   const titleEl = document.getElementById('web-header-title');
@@ -136,6 +144,10 @@ function navigateToWebScreen(screenId, param) {
 // DOM ของเช็คชื่อเป็น overlay ไม่ใช่ div#web-screen-* เลยทำงานฝั่ง routing แยก
 // openSwipeAttendance เรียกตัวนี้ปิดท้าย เพื่อให้ URL / sidebar / ชื่อหน้า ตรงกับที่เห็นจริง
 function applyCheckinRoute(classId) {
+  // มาถึงหน้าเช็คชื่อแล้ว = ออกจากสาย "นักเรียน" แน่นอน → ล้างธงทางเข้า
+  // ต้องล้างที่นี่ด้วย เพราะ switchClassTab('checkin') ยิงเข้า openSwipeAttendance ตรงๆ
+  // ไม่ผ่าน navigateToWebScreen ที่เป็นจุดล้างอีกจุด
+  __ckRoomEntryTab = 'checkin';
   if (appState.activeWebScreen !== 'checkin') screenBeforeCheckin = appState.activeWebScreen;
   appState.activeWebScreen = 'checkin';
   saveStateLocalOnly(false);
@@ -152,8 +164,10 @@ function applyCheckinRoute(classId) {
   document.querySelectorAll('.sidebar-menu .nav-item').forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-screen') === 'classrooms');
   });
+  // bottom nav มือถือ: ไฮไลต์ปุ่ม "เช็คชื่อ" ตรงๆ (ปุ่ม "นักเรียน" ถือ data-screen="classrooms"
+  // ไปแล้ว ถ้าไฮไลต์ด้วย 'classrooms' เหมือน sidebar จะไฟติดผิดปุ่ม)
   document.querySelectorAll('.mob-nav-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-screen') === 'classrooms');
+    btn.classList.toggle('active', btn.getAttribute('data-screen') === 'checkin');
   });
 
   const titleEl = document.getElementById('web-header-title');
