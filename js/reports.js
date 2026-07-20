@@ -46,6 +46,9 @@ function renderWebReports() {
 }
 
 function goBackToWebReportsSelection() {
+  // มือถือ: เข้าหน้านี้จากการ์ดห้อง → กลับหน้าห้องเรียน ให้เหมือนแท็บอื่นในห้อง (คะแนน/นักเรียน)
+  // เดสก์ท็อปยังกลับไปหน้าเลือกห้องของรายงานเหมือนเดิม
+  if (window.matchMedia('(max-width: 768px)').matches) { navigateToWebScreen('classrooms'); return; }
   document.getElementById('web-reports-selection-view').style.display = 'block';
   document.getElementById('web-reports-detail-view').style.display = 'none';
 }

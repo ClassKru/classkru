@@ -14,7 +14,7 @@ function renderWebClassrooms() {
     card.className = 'card ck-class-card';
     // ทั้งใบกดได้ → เช็คชื่อ (ปุ่มเช็คชื่อ/คะแนนเดิมถูกตัดออก — เข้าหน้าอื่นผ่านแถบแท็บในห้อง)
     card.style.cssText = `padding:0;overflow:hidden;gap:0;cursor:pointer;--cc:${col.text};border-top:4px solid ${col.text};`;
-    card.onclick = () => openSwipeAttendance(c.id);
+    card.onclick = () => enterClassRoom(c.id);
     card.innerHTML = `
       <div style="padding:16px 18px;display:flex;align-items:flex-start;gap:8px;">
         <div style="flex:1;min-width:0;">
@@ -77,7 +77,18 @@ function manageStudentsFromCard(classId) {
 
 // ==================== แถบแท็บภายในห้อง (detail tabs) — template กลางอันเดียว ใช้ทุกหน้า ====================
 // เสียบใต้หัวจอของแต่ละหน้า (คะแนน/นักเรียน/รายงาน) — ปุ่ม action เดิมของแต่ละหน้าอยู่ที่เดิม
+// แตะการ์ดห้อง → เข้าหน้าเช็คชื่อ "เสมอ" — จงใจไม่จำแท็บล่าสุด
+// เคยลองจำแล้วถอยออก: ครูจำไม่ได้ว่าครั้งก่อนออกจากแท็บไหน แตะการ์ดเดิมเลยได้หน้าไม่ซ้ำกัน
+// รู้สึกเหมือนแอปเด้งมั่ว การเปลี่ยนหน้า/เปลี่ยนห้องมีแกนของมันอยู่แล้ว
+// (แถบแท็บ = เปลี่ยนหน้า · แตะชื่อห้อง = เปลี่ยนห้อง) ไม่ต้องให้ระบบเดาใจซ้อนเข้าไปอีก
+function enterClassRoom(classId) {
+  switchClassTab('checkin', classId);
+}
+
 function renderClassTabBar(classId, active) {
+  // มีห้องเดียว = แตะชื่อห้องแล้วไม่เกิดอะไร → ซ่อนลูกศรสลับห้อง (CSS อ่านคลาสนี้)
+  // ตั้งที่นี่เพราะทุกหน้าในห้องเรียกฟังก์ชันนี้ตอน render และจำนวนห้องเปลี่ยนได้ระหว่างใช้งาน
+  document.body.classList.toggle('ck-one-class', (appState.classes || []).length < 2);
   const tabs = [
     { key: 'checkin',  label: 'เช็คชื่อ',     icon: 'hgi-task-done-01' },
     { key: 'scores',   label: 'คะแนน',       icon: 'hgi-award-01' },
@@ -155,12 +166,23 @@ function openClassSwitcher(tab) {
 // สลับแท็บภายในห้อง — อ่านห้องจาก classId แล้วเปิดหน้าเป้าหมาย
 // เช็คชื่อเป็น overlay ที่เหลือเป็น screen → ปิด overlay ก่อนถ้ากำลังเปิดอยู่
 function switchClassTab(tab, classId) {
+  // อ่าน "มาจากหน้าไหน" ก่อนแตะอะไรทั้งสิ้น — ขั้นตอนข้างล่างจะเปลี่ยน activeWebScreen ทิ้ง
+  const fromInRoom = ['checkin', 'scores', 'students', 'reports'].includes(appState.activeWebScreen);
+
+  // ปิด overlay เช็คชื่อตรงๆ ไม่เรียก closeSwipeAttendance เพราะหน้าที่ของมันคือ
+  // "ออกจากห้องไปหน้าห้องเรียน" ซึ่งจะแวะ push ประวัติหน้าห้องเรียนคั่นกลางโดยเปล่าประโยชน์
+  // ตอนสลับแท็บเราเปิดหน้าใหม่ต่อทันทีอยู่แล้ว
   const ov = document.getElementById('swipe-overlay');
-  if (ov && ov.classList.contains('show') && tab !== 'checkin') closeSwipeAttendance();
+  if (ov && ov.classList.contains('show') && tab !== 'checkin') ov.classList.remove('show');
+
   // เริ่มที่บนสุดทุกครั้ง — ไม่งั้นสลับกลับมาแล้วค้างตำแหน่ง scroll เดิมของหน้าก่อน
   const sc = document.querySelector('.app-content');
   if (sc) sc.scrollTop = 0;
   window.scrollTo(0, 0);
+  // replace เฉพาะการเคลื่อนที่ "ภายในห้อง" (สลับแท็บ / สลับห้องคาแท็บเดิม) เท่านั้น
+  // ถ้ามาจากนอกห้อง (แตะการ์ดหน้าห้องเรียน, แดชบอร์ด) = เข้าห้อง ต้อง push
+  // ไม่งั้นไม่มี history entry ให้ปุ่ม back ของเครื่องใช้ออกจากห้อง
+  __ckReplaceHashOnce = fromInRoom;
   if (tab === 'checkin') openSwipeAttendance(classId);
   else if (tab === 'scores') openClassScores(classId);
   else if (tab === 'students') manageStudentsFromCard(classId);

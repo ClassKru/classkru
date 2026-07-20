@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=153">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=153">
-  <link rel="stylesheet" href="css/03-reports.css?v=153">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=153">
-  <link rel="stylesheet" href="css/05-home.css?v=153">
-  <link rel="stylesheet" href="css/06-attendance.css?v=153">
-  <link rel="stylesheet" href="css/07-scores.css?v=153">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=153">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=157">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=157">
+  <link rel="stylesheet" href="css/03-reports.css?v=157">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=157">
+  <link rel="stylesheet" href="css/05-home.css?v=157">
+  <link rel="stylesheet" href="css/06-attendance.css?v=157">
+  <link rel="stylesheet" href="css/07-scores.css?v=157">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=157">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -426,7 +426,7 @@
       <div class="header-actions" style="gap:8px;justify-content:flex-end;">
         <button class="btn ck-hdr-action" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="openToolsHub()">
           <i class="hgi-stroke hgi-magic-wand-01"></i>
-          <span>เครื่องมือ</span>
+          <span class="hide-mobile">เครื่องมือ</span>
         </button>
         <div style="position:relative;">
           <button class="btn ck-hdr-action" id="swipe-date-btn" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="toggleSwipeCalendar()">
@@ -821,18 +821,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=153"></script>
-  <script defer src="js/auth.js?v=153"></script>
-  <script defer src="js/shell.js?v=153"></script>
-  <script defer src="js/dashboard.js?v=153"></script>
-  <script defer src="js/classrooms.js?v=153"></script>
-  <script defer src="js/students.js?v=153"></script>
-  <script defer src="js/timetable.js?v=153"></script>
-  <script defer src="js/reports.js?v=153"></script>
-  <script defer src="js/attendance.js?v=153"></script>
-  <script defer src="js/scores.js?v=153"></script>
-  <script defer src="js/tools.js?v=153"></script>
-  <script defer src="js/shared-utils.js?v=153"></script>
-  <script defer src="js/extras.js?v=153"></script>
+  <script defer src="js/core.js?v=157"></script>
+  <script defer src="js/auth.js?v=157"></script>
+  <script defer src="js/shell.js?v=157"></script>
+  <script defer src="js/dashboard.js?v=157"></script>
+  <script defer src="js/classrooms.js?v=157"></script>
+  <script defer src="js/students.js?v=157"></script>
+  <script defer src="js/timetable.js?v=157"></script>
+  <script defer src="js/reports.js?v=157"></script>
+  <script defer src="js/attendance.js?v=157"></script>
+  <script defer src="js/scores.js?v=157"></script>
+  <script defer src="js/tools.js?v=157"></script>
+  <script defer src="js/shared-utils.js?v=157"></script>
+  <script defer src="js/extras.js?v=157"></script>
 </body>
 </html>

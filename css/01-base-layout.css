@@ -361,6 +361,21 @@ body {
 .ck-class-switch:hover { background: var(--bg-light); }
 .ck-class-switch:active { transform: scale(0.98); }
 
+/* ลูกศรท้ายชื่อห้อง — บอกว่ากดสลับห้องได้ (มือถือไม่มี hover เลยไม่มีอะไรบอกมาก่อน)
+   วาดด้วย border ไม่ใช้ตัวอักษร ⌄ เพราะฟอนต์ไทยจัดแนวตั้งไม่ตรงกัน
+   ใส่ที่ ::after เพราะเนื้อในหัวจอถูกเขียนทับด้วย innerHTML ทุกครั้งที่ render */
+.ck-class-switch::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(45deg) translate(-2px, -2px);
+  flex-shrink: 0;
+}
+/* มีห้องเดียว = สลับไปไหนไม่ได้ (openClassSwitcher return ทันที) → ซ่อนลูกศร ไม่หลอกให้กด */
+body.ck-one-class .ck-class-switch::after { display: none; }
+
 /* แถบแท็บภายในห้อง (detail tabs) — เสียบใต้หัวจอทุกหน้า */
 .ck-classtab-bar {
   display: flex;

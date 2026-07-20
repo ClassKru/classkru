@@ -225,7 +225,10 @@ function closeSwipeAttendance() {
   // ถ้ามาถึงตรงนี้เพราะ hash เปลี่ยนไปหน้าอื่นอยู่แล้ว (กดปุ่ม back) ก็ไม่ต้องสั่งซ้ำ
   const stillOnCheckin = parseHash().screen === 'checkin';
   if (stillOnCheckin) {
-    navigateToWebScreen(screenBeforeCheckin || 'classrooms');
+    // มือถือ: กลับหน้าห้องเรียนเสมอ ให้ทางออกของทุกแท็บในห้องเป็นทางเดียวกัน
+    // (บนมือถือหน้าเช็คชื่อไม่มีแถบแท็บแล้ว การ์ดห้องคือทางแยกไปแท็บอื่น)
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+    navigateToWebScreen(isMobile ? 'classrooms' : (screenBeforeCheckin || 'classrooms'));
     return;
   }
   // Refresh current screen
