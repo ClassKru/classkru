@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=161">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=161">
-  <link rel="stylesheet" href="css/03-reports.css?v=161">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=161">
-  <link rel="stylesheet" href="css/05-home.css?v=161">
-  <link rel="stylesheet" href="css/06-attendance.css?v=161">
-  <link rel="stylesheet" href="css/07-scores.css?v=161">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=161">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=166">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=166">
+  <link rel="stylesheet" href="css/03-reports.css?v=166">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=166">
+  <link rel="stylesheet" href="css/05-home.css?v=166">
+  <link rel="stylesheet" href="css/06-attendance.css?v=166">
+  <link rel="stylesheet" href="css/07-scores.css?v=166">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=166">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -177,7 +177,6 @@
                 <div class="card-title ck-class-switch" id="web-students-detail-title" onclick="openClassSwitcher('students')" style="margin-bottom:0;min-width:0;font-size:1.25rem;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary)"></i> <span class="hdr-title-text">จัดการรายชื่อนักเรียน</span></div>
                 <div class="students-hdr-actions mobile-only-flex" style="margin-left:auto;gap:6px;align-items:center;">
                   <button class="ck-hdr-btn" id="students-search-btn" onclick="toggleStudentsSearch()" aria-label="ค้นหานักเรียน"><i class="hgi-stroke hgi-search-01"></i></button>
-                  <button class="ck-hdr-btn add" onclick="openStudentModal()" aria-label="เพิ่มนักเรียน"><i class="hgi-stroke hgi-user-add-01"></i></button>
                   <button class="ck-hdr-btn" onclick="toggleStudentsActionMenu(event)" aria-label="ตัวเลือกเพิ่มเติม"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
                 </div>
               </div>
@@ -293,7 +292,7 @@
             <div id="web-reports-class-list" class="class-cards-grid"></div>
           </div>
           <div id="web-reports-detail-view" style="display:none;">
-            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;"><button class="btn-back" onclick="goBackToWebReportsSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div><h3 id="web-rep-detail-class-title" class="ck-class-switch" onclick="openClassSwitcher('reports')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action is-tinted" style="background:#eef2ff;color:#3949ab;border:1px solid #c5cae9;" onclick="printReport()"><i class="hgi-stroke hgi-printer"></i> <span class="hide-mobile">พิมพ์ / </span>PDF</button><button class="btn ck-hdr-action is-tinted" style="background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;" onclick="exportAttendanceExcel()"><i class="hgi-stroke hgi-google-sheet"></i> <span class="hide-mobile">Export </span>Excel</button></div></div></div>
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;"><button class="btn-back" onclick="goBackToWebReportsSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div><h3 id="web-rep-detail-class-title" class="ck-class-switch" onclick="openClassSwitcher('reports')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action is-tinted ck-hdr-icon ck-btn-pdf" onclick="printReport()" aria-label="พิมพ์ / PDF"><i class="hgi-stroke hgi-printer"></i><span class="hide-mobile"> พิมพ์ / PDF</span></button><button class="btn ck-hdr-action is-tinted ck-hdr-icon ck-btn-excel" onclick="exportAttendanceExcel()" aria-label="Export Excel"><i class="hgi-stroke hgi-google-sheet"></i><span class="hide-mobile"> Export Excel</span></button></div></div></div>
             <div id="reports-classtab-holder"></div>
             <div id="ck-print-header"></div>
             <div class="report-tabs" style="margin-bottom:20px;max-width:500px;">
@@ -430,9 +429,9 @@
         </button>
         <div style="position:relative;">
           <button class="btn ck-hdr-action" id="swipe-date-btn" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="toggleSwipeCalendar()">
-            <i class="hgi-stroke hgi-calendar-03"></i>
+            <i class="hgi-stroke hgi-calendar-03 hide-mobile"></i>
             <span id="swipe-date-display">...</span>
-            <i class="hgi-stroke hgi-arrow-down-01" style="font-size:0.65rem;color:var(--text-muted);"></i>
+            <i class="hgi-stroke hgi-arrow-down-01 hide-mobile" style="font-size:0.65rem;color:var(--text-muted);"></i>
           </button>
           <div id="swipe-calendar-popup" class="home-calendar-popup" style="display:none;top:42px;right:0;left:auto;z-index:200;"></div>
         </div>
@@ -821,18 +820,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=161"></script>
-  <script defer src="js/auth.js?v=161"></script>
-  <script defer src="js/shell.js?v=161"></script>
-  <script defer src="js/dashboard.js?v=161"></script>
-  <script defer src="js/classrooms.js?v=161"></script>
-  <script defer src="js/students.js?v=161"></script>
-  <script defer src="js/timetable.js?v=161"></script>
-  <script defer src="js/reports.js?v=161"></script>
-  <script defer src="js/attendance.js?v=161"></script>
-  <script defer src="js/scores.js?v=161"></script>
-  <script defer src="js/tools.js?v=161"></script>
-  <script defer src="js/shared-utils.js?v=161"></script>
-  <script defer src="js/extras.js?v=161"></script>
+  <script defer src="js/core.js?v=166"></script>
+  <script defer src="js/auth.js?v=166"></script>
+  <script defer src="js/shell.js?v=166"></script>
+  <script defer src="js/dashboard.js?v=166"></script>
+  <script defer src="js/classrooms.js?v=166"></script>
+  <script defer src="js/students.js?v=166"></script>
+  <script defer src="js/timetable.js?v=166"></script>
+  <script defer src="js/reports.js?v=166"></script>
+  <script defer src="js/attendance.js?v=166"></script>
+  <script defer src="js/scores.js?v=166"></script>
+  <script defer src="js/tools.js?v=166"></script>
+  <script defer src="js/shared-utils.js?v=166"></script>
+  <script defer src="js/extras.js?v=166"></script>
 </body>
 </html>

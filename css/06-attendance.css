@@ -106,6 +106,10 @@
   .swipe-class-card .header-actions,
   .students-hdr-actions,
   .rep-detail-header-card > div > div:last-child { margin-left: auto; flex-shrink: 0; }
+  /* กฎ `> div:first-child > div { flex:1 }` ข้างบนเขียนไว้ให้ "ชื่อห้อง" กินที่ว่างตรงกลาง
+     แต่กล่องปุ่มของหน้านักเรียนก็เป็น div ลูกคนเดียวกัน เลยโดนยืดตามไปด้วย (66 → 124px)
+     ดันชื่อห้องเบี้ยวซ้ายโดยไม่มีปุ่มจริงอยู่ตรงนั้น — บังคับให้กล่องปุ่มกว้างเท่าเนื้อใน */
+  .students-hdr-actions { flex: 0 0 auto !important; }
 
   /* ===== หัวจอมือถือทุกหน้าใช้สเปกเดียวกับหน้าเช็คชื่อ =====
      เดิม: เช็คชื่อ 52px / คะแนน 58 / การเข้าเรียน 58 / นักเรียน 182
@@ -129,6 +133,11 @@
     box-sizing: border-box;
   }
   .rep-detail-header-card .ck-hdr-btn { width: 30px !important; padding: 0 !important; justify-content: center; }
+  /* ปุ่มไอคอนล้วนบนมือถือ (PDF/Excel) — บีบเป็นจัตุรัส 30px เท่าปุ่ม ⋮ ของหน้านักเรียน
+     เพื่อให้ฝั่งขวาของทุกหน้ากว้างเท่ากัน ~75px ชื่อห้องจะได้อยู่ตำแหน่งเดียวกันทุกหน้า
+     (เบี้ยวจากกึ่งกลาง = (ปุ่มขวา − ปุ่มกลับ) ÷ 2 — ปุ่มกลับกว้าง 61px คงที่ทุกหน้า) */
+  .rep-detail-header-card .ck-hdr-icon { width: 30px !important; padding: 0 !important; justify-content: center; }
+  .rep-detail-header-card .ck-hdr-icon i { margin: 0; }
 
   /* หน้านักเรียน: ตัวเลือกห้องซ้ำซ้อนแล้ว (เลือกห้องจาก popup / แถบแท็บ) → ซ่อนบนมือถือ
      ช่องค้นหาก็ซ่อนไว้ ให้หัวจอเป็นแถวเดียว 52px เท่าหน้าอื่น
