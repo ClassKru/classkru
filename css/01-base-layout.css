@@ -232,6 +232,34 @@ body {
   .ck-class-card .ck-class-sub { margin-left: 0; }
 }
 
+/* แถวปลายทางท้ายการ์ดห้อง — คะแนน/นักเรียน/การเข้าเรียน มองเห็นทุกอัน ไม่ต้องเดา
+   (แตะตัวการ์ด = เช็คชื่อ ซึ่งเป็นงานประจำวัน เลยไม่ต้องมีปุ่มซ้ำ) */
+.ck-class-actions {
+  display: flex;
+  border-top: 1px solid var(--border-color);
+}
+.ck-class-actions button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 4px;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.ck-class-actions button:first-child { border-left: none; }
+.ck-class-actions button i { font-size: 0.95rem; }
+.ck-class-actions button:hover { background: var(--bg-light); color: var(--cc, var(--primary)); }
+.ck-class-actions button:active { background: var(--bg-light); transform: scale(0.97); }
+
 .card-title {
   font-size: 1rem;
   font-weight: 800;

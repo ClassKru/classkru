@@ -12,7 +12,9 @@ function renderWebClassrooms() {
     const col = getClassColor(c.id);
     const card = document.createElement('div');
     card.className = 'card ck-class-card';
-    // ทั้งใบกดได้ → เช็คชื่อ (ปุ่มเช็คชื่อ/คะแนนเดิมถูกตัดออก — เข้าหน้าอื่นผ่านแถบแท็บในห้อง)
+    // แตะตัวการ์ด = เช็คชื่อ (งานประจำวัน) · ปลายทางอื่นเป็นปุ่มแถวล่างที่มองเห็นชัด
+    // เคยตัดปุ่มพวกนี้ออกไปให้การ์ดสะอาด แล้วพบว่าทำให้ต้องมีสถานะซ่อนคอยเดาปลายทางแทน
+    // ซึ่งสับสนกว่ามาก รอบนี้เอากลับมาเป็นไอคอนล้วน เตี้ยกว่าปุ่มชุดเดิม
     card.style.cssText = `padding:0;overflow:hidden;gap:0;cursor:pointer;--cc:${col.text};border-top:4px solid ${col.text};`;
     card.onclick = () => enterClassRoom(c.id);
     card.innerHTML = `
@@ -26,6 +28,11 @@ function renderWebClassrooms() {
           </div>
         </div>
         <button class="ck-class-menu-btn" aria-label="ตัวเลือกเพิ่มเติม" onclick="event.stopPropagation();toggleClassMenu(event,'${c.id}')"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
+      </div>
+      <div class="ck-class-actions">
+        <button onclick="event.stopPropagation();switchClassTab('scores','${c.id}')"><i class="hgi-stroke hgi-award-01"></i><span>คะแนน</span></button>
+        <button onclick="event.stopPropagation();switchClassTab('students','${c.id}')"><i class="hgi-stroke hgi-user-multiple"></i><span>นักเรียน</span></button>
+        <button onclick="event.stopPropagation();switchClassTab('reports','${c.id}')"><i class="hgi-stroke hgi-pie-chart"></i><span>การเข้าเรียน</span></button>
       </div>`;
     container.appendChild(card);
   });
@@ -77,15 +84,15 @@ function manageStudentsFromCard(classId) {
 
 // ==================== แถบแท็บภายในห้อง (detail tabs) — template กลางอันเดียว ใช้ทุกหน้า ====================
 // เสียบใต้หัวจอของแต่ละหน้า (คะแนน/นักเรียน/รายงาน) — ปุ่ม action เดิมของแต่ละหน้าอยู่ที่เดิม
-// แตะการ์ดห้อง → เข้าแท็บตาม "ทางเข้า" ที่ครูเพิ่งเลือกจาก bottom nav
-// ปกติคือเช็คชื่อ · เข้ามาทางปุ่ม "นักเรียน" คือหน้านักเรียน (ดู mobileStudentsTap)
+// แตะตัวการ์ดห้อง → เช็คชื่อ "เสมอ" ไม่มีเงื่อนไข ไม่มีสถานะซ่อน
+// ปลายทางอื่น (คะแนน/นักเรียน/การเข้าเรียน) เป็นปุ่มที่มองเห็นบนการ์ด ดู renderWebClassrooms
 //
-// จงใจไม่จำแท็บล่าสุดข้ามเซสชัน — เคยลองแล้วถอยออก ครูจำไม่ได้ว่าครั้งก่อนออกจากแท็บไหน
-// แตะการ์ดเดิมเลยได้หน้าไม่ซ้ำกัน รู้สึกเหมือนแอปเด้งมั่ว
-// ธง __ckRoomEntryTab ต่างออกไปตรงที่มันสะท้อนปุ่มที่ครูเพิ่งกดและยังติดไฟอยู่
-let __ckRoomEntryTab = 'checkin';
+// เคยลองให้ระบบเดาปลายทางมาแล้ว 2 แบบ ถอยออกทั้งคู่:
+//   1. จำแท็บล่าสุดข้ามเซสชัน — ครูลืมไปแล้วว่าครั้งก่อนออกจากแท็บไหน
+//   2. ธงทางเข้าจาก bottom nav — การ์ดใบเดียวกันแตะแล้วได้คนละหน้าแล้วแต่ว่าเดินมาทางไหน
+// บทเรียน: การ์ด 1 ใบพาไป 4 หน้าไม่ได้ ถ้าปลายทางมีหลายอันก็ต้องมีปุ่มหลายอันให้เห็น
 function enterClassRoom(classId) {
-  switchClassTab(__ckRoomEntryTab, classId);
+  switchClassTab('checkin', classId);
 }
 
 function renderClassTabBar(classId, active) {
