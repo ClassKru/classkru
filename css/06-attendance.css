@@ -67,7 +67,8 @@
   .swipe-header-bar { padding: 12px 16px; }
   /* บีบการ์ดหัวหน้าเช็คชื่อ + จัดทุกอย่างแถวเดียว (เฉพาะมือถือ) */
   /* 16px 12px = padding ของ .app-content บนมือถือ ให้ตรงกับหัวจอหน้าอื่น */
-  .swipe-class-card { margin: 16px 12px 0; padding: 9px 12px; gap: 8px; border-radius: var(--radius-sm); flex-wrap: nowrap; }
+  /* padding ซ้าย/ขวา 8px (เดิม 12) — ปุ่มชิดขอบการ์ดขึ้น ชื่อห้องได้พื้นที่กลางมากขึ้น */
+  .swipe-class-card { margin: 16px 12px 0; padding: 9px 8px; gap: 8px; border-radius: var(--radius-sm); flex-wrap: nowrap; }
   .swipe-class-card > div:first-child { min-width: 0; flex: 1; gap: 8px !important; }
   .swipe-class-card h3 { font-size: 0.88rem !important; font-weight: 700 !important; overflow: hidden; justify-content: center; }
   /* จอมือถือ: ชื่อห้องกึ่งกลางในพื้นที่ว่างระหว่างปุ่มกลับกับวันที่ (ไม่ชนปุ่ม) */
@@ -80,7 +81,7 @@
   .swipe-compact-header { padding: 8px 12px 6px; }
 
   /* บีบการ์ดหัวหน้ารายงาน (เฉพาะมือถือ) */
-  .rep-detail-header-card { padding: 9px 12px !important; margin-bottom: 10px !important; }
+  .rep-detail-header-card { padding: 9px 8px !important; margin-bottom: 10px !important; }
   .rep-detail-header-card h3 { font-size: 0.88rem !important; font-weight: 700 !important; overflow: hidden; justify-content: center; }
   .rep-detail-header-card .btn { padding: 5px 10px !important; font-size: 0.75rem !important; }
   /* จอมือถือ: ชื่อห้องกึ่งกลางในพื้นที่ว่างระหว่างปุ่มกลับกับปุ่ม Excel (ให้ตรงกับหน้าเช็คชื่อ) */

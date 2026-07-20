@@ -26,6 +26,21 @@ let pendingDeepLinkParam = parseHash().param;
 // หน้าที่อยู่ก่อนเข้าเช็คชื่อ — ใช้ตอนกด "กลับ" ให้ย้อนไปหน้าที่มาจริงๆ
 let screenBeforeCheckin = null;
 
+// ==================== เขียน URL: push หรือ replace ====================
+// สลับแท็บ/เปลี่ยนห้อง "ภายในห้องเดียวกัน" = การเคลื่อนที่แนวราบ ไม่ควรสร้างประวัติใหม่
+// ถ้า push ทุกครั้ง history จะบวมขึ้นเรื่อยๆ (วัดจริง: เดิน 5 หน้า ประวัติ 24→28 ไม่เคยลด)
+// แล้วปุ่ม back ของเครื่องจะเดินถอยหลังผ่านทุกหน้าที่เคยเปิดตามลำดับเวลา แทนที่จะถอยขึ้นหน้าแม่
+// switchClassTab จึงยกธงนี้ก่อนเปลี่ยนหน้า → รอบนั้นใช้ replaceState แทน
+// (replaceState ไม่ยิง hashchange ซึ่งตรงกับที่ต้องการ เพราะเราเปลี่ยนหน้าด้วยมือไปแล้ว)
+let __ckReplaceHashOnce = false;
+function setRouteHash(hash) {
+  const replace = __ckReplaceHashOnce;
+  __ckReplaceHashOnce = false;   // ธงใช้ครั้งเดียวเสมอ ล้างก่อน return กันค้างข้ามรอบ
+  if (location.hash === hash) return;
+  if (replace) history.replaceState(null, '', hash);
+  else location.hash = hash;
+}
+
 // LINE OA แตะเมนูซ้ำ / กดปุ่ม back ของเบราว์เซอร์ → เปลี่ยนหน้าตาม hash
 window.addEventListener('hashchange', () => {
   const mainApp = document.getElementById('main-app');
@@ -72,7 +87,7 @@ function navigateToWebScreen(screenId, param) {
 
   // อัปเดต URL hash ให้ตรงหน้า (แชร์ลิงก์ได้ / กด back ได้ / LINE OA ลิงก์ตรง)
   // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
-  if (location.hash !== '#' + screenId) location.hash = screenId;
+  setRouteHash('#' + screenId);
 
   const screens = ['dashboard','classrooms','students','timetable','attendance','scores','reports','settings'];
   screens.forEach(s => {
@@ -125,8 +140,7 @@ function applyCheckinRoute(classId) {
   appState.activeWebScreen = 'checkin';
   saveStateLocalOnly(false);
 
-  const hash = '#checkin:' + classId;
-  if (location.hash !== hash) location.hash = hash;   // สร้าง history entry → ปุ่ม back ปิดหน้านี้ได้
+  setRouteHash('#checkin:' + classId);   // เข้าจากการ์ดห้อง = push (ปุ่ม back ปิดหน้านี้ได้) · สลับแท็บ = replace
 
   // ซ่อนหน้าอื่นทั้งหมด (overlay ทับอยู่แล้ว แต่ต้องให้ state ตรงกัน)
   ['dashboard','classrooms','students','timetable','attendance','scores','reports','settings'].forEach(s => {
