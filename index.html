@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=157">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=157">
-  <link rel="stylesheet" href="css/03-reports.css?v=157">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=157">
-  <link rel="stylesheet" href="css/05-home.css?v=157">
-  <link rel="stylesheet" href="css/06-attendance.css?v=157">
-  <link rel="stylesheet" href="css/07-scores.css?v=157">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=157">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=160">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=160">
+  <link rel="stylesheet" href="css/03-reports.css?v=160">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=160">
+  <link rel="stylesheet" href="css/05-home.css?v=160">
+  <link rel="stylesheet" href="css/06-attendance.css?v=160">
+  <link rel="stylesheet" href="css/07-scores.css?v=160">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=160">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -400,8 +400,8 @@
     <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
       <button class="mob-nav-btn active" data-screen="dashboard" onclick="navigateToWebScreen('dashboard')"><i class="hgi-stroke hgi-home-01"></i><span>หน้าหลัก</span></button>
       <button class="mob-nav-btn" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
-      <button class="mob-nav-btn checkin-btn" data-screen="classrooms" onclick="mobileCheckinTap()"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
-      <button class="mob-nav-btn" data-screen="students" onclick="mobileStudentsTap()"><i class="hgi-stroke hgi-user-multiple"></i><span>นักเรียน</span></button>
+      <button class="mob-nav-btn checkin-btn" data-screen="checkin" onclick="mobileCheckinTap()"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
+      <button class="mob-nav-btn" data-screen="classrooms students" onclick="mobileStudentsTap()"><i class="hgi-stroke hgi-user-multiple"></i><span>นักเรียน</span></button>
       <button class="mob-nav-btn" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่า</span></button>
     </nav>
 
@@ -821,18 +821,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=157"></script>
-  <script defer src="js/auth.js?v=157"></script>
-  <script defer src="js/shell.js?v=157"></script>
-  <script defer src="js/dashboard.js?v=157"></script>
-  <script defer src="js/classrooms.js?v=157"></script>
-  <script defer src="js/students.js?v=157"></script>
-  <script defer src="js/timetable.js?v=157"></script>
-  <script defer src="js/reports.js?v=157"></script>
-  <script defer src="js/attendance.js?v=157"></script>
-  <script defer src="js/scores.js?v=157"></script>
-  <script defer src="js/tools.js?v=157"></script>
-  <script defer src="js/shared-utils.js?v=157"></script>
-  <script defer src="js/extras.js?v=157"></script>
+  <script defer src="js/core.js?v=160"></script>
+  <script defer src="js/auth.js?v=160"></script>
+  <script defer src="js/shell.js?v=160"></script>
+  <script defer src="js/dashboard.js?v=160"></script>
+  <script defer src="js/classrooms.js?v=160"></script>
+  <script defer src="js/students.js?v=160"></script>
+  <script defer src="js/timetable.js?v=160"></script>
+  <script defer src="js/reports.js?v=160"></script>
+  <script defer src="js/attendance.js?v=160"></script>
+  <script defer src="js/scores.js?v=160"></script>
+  <script defer src="js/tools.js?v=160"></script>
+  <script defer src="js/shared-utils.js?v=160"></script>
+  <script defer src="js/extras.js?v=160"></script>
 </body>
 </html>

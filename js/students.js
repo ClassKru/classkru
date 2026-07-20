@@ -1,18 +1,12 @@
-// แตะ "นักเรียน" บน bottom nav มือถือ — เลือกห้องก่อน (ล้อ mobileCheckinTap)
-// 1 ห้อง = เลือกให้เลย · หลายห้อง = เข้าหน้าแล้วใช้ dropdown เลือก
-// ปุ่ม "นักเรียน" ใน bottom nav (มือถือ) — เลือกห้องจาก popup ก่อนแล้วเข้าห้องนั้นเลย
-// (เดิมพาไปหน้ารวมแล้วให้เลือกจาก dropdown อีกที) รูปแบบเดียวกับปุ่มเช็คชื่อ
+// ปุ่ม "นักเรียน" ใน bottom nav (มือถือ) — พาไปหน้าห้องเรียนวิชาสอนเพื่อเลือกห้อง
+// แล้ว "ปักธง" ไว้ว่าเข้ามาทางนี้ การ์ดห้องที่แตะต่อจากนี้จึงพาไปหน้านักเรียน ไม่ใช่เช็คชื่อ
+// (เดิมเป็น popup เลือกห้อง — เปลี่ยนเป็นหน้าเต็มเพราะการ์ดบอกจำนวนคน/% เข้าเรียนด้วย)
+//
+// ธงนี้ต่างจาก "จำแท็บล่าสุด" ที่เคยลองแล้วถอยออก: อันนั้นจำข้ามเซสชันซึ่งครูลืมไปแล้ว
+// อันนี้อ่านเจตนาที่ครูเพิ่งกดเมื่อไม่กี่วินาทีก่อนและยังเห็นปุ่มติดไฟอยู่ตรงหน้า
 function mobileStudentsTap() {
-  if (appState.classes.length === 0) {
-    showToast('กรุณาเพิ่มห้องเรียนก่อน', 'info');
-    navigateToWebScreen('classrooms');
-    return;
-  }
-  if (appState.classes.length === 1) {
-    manageStudentsFromCard(appState.classes[0].id);
-    return;
-  }
-  showMobileClassPicker({ icon: 'hgi-user-multiple', onPick: id => manageStudentsFromCard(id) });
+  navigateToWebScreen('classrooms');
+  __ckRoomEntryTab = 'students';   // ตั้งหลัง navigate เพราะ navigate เป็นตัวล้างธง
 }
 
 // มือถือ: ช่องค้นหาซ่อนไว้ ให้หัวจอสูงเท่าหน้าอื่น (52px) — แตะแว่นขยายค่อยกางออกมา
