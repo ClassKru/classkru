@@ -103,6 +103,7 @@ function toggleStudentsActionMenu(ev) {
   menu.className = 'ck-class-menu';
   menu.dataset.for = 'students-actions';
   menu.innerHTML = `
+    <button onclick="closeClassMenu();openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียน</span></button>
     <button onclick="closeClassMenu();triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i><span>นำเข้า Excel</span></button>
     <button class="danger" onclick="closeClassMenu();deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i><span>ลบทั้งหมด</span></button>`;
   document.body.appendChild(menu);
