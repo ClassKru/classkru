@@ -15,7 +15,7 @@ function onLoginSuccess(email) {
   syncBackgroundCloud(email).finally(() => maybeStartOnboarding());
   updateHeaderDate();
   // เข้าหน้าตาม deep-link ถ้ามี (เช่นเปิดจาก LINE OA มาที่ #reports) ไม่งั้นหน้าหลัก
-  navigateToWebScreen(pendingDeepLink || 'dashboard');
+  navigateToWebScreen(pendingDeepLink || 'dashboard', pendingDeepLinkParam);
 
   setInterval(() => {
     const activeEmail = localStorage.getItem('classmanager_email');

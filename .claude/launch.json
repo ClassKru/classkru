@@ -4,7 +4,7 @@
     {
       "name": "ClassKru",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "cd /Users/supakit/Claude/Projects/ClassKru && python3 -m http.server 3456"],
+      "runtimeArgs": ["-c", "cd /Users/supakit/Claude/Projects/classkru-app && python3 -m http.server 3456"],
       "port": 3456
     }
   ]

@@ -13,7 +13,8 @@
   overflow: hidden;
 }
 
-.swipe-overlay.show { display: flex; }
+/* โผล่แบบ fade ให้จังหวะเท่าหน้าอื่น (การ์ดหน้าอื่นใช้ fadeIn 0.35s) — สลับแท็บแล้วไม่กระตุก */
+.swipe-overlay.show { display: flex; animation: fadeIn 0.28s ease; }
 
 .swipe-top-bar {
   display: flex;
@@ -43,7 +44,9 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 20px 24px 0;
+  /* 24px บน = padding ของ .app-content ที่ดันหัวจอหน้าอื่นลงมา
+     overlay อยู่นอก .app-content เลยต้องชดเชยเอง ไม่งั้นสลับหน้าแล้วขยับ 4px */
+  margin: 24px 24px 0;
   padding: 16px 20px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -63,7 +66,8 @@
 @media (max-width: 768px) {
   .swipe-header-bar { padding: 12px 16px; }
   /* บีบการ์ดหัวหน้าเช็คชื่อ + จัดทุกอย่างแถวเดียว (เฉพาะมือถือ) */
-  .swipe-class-card { margin: 8px 10px 0; padding: 9px 12px; gap: 8px; border-radius: var(--radius-sm); flex-wrap: nowrap; }
+  /* 16px 12px = padding ของ .app-content บนมือถือ ให้ตรงกับหัวจอหน้าอื่น */
+  .swipe-class-card { margin: 16px 12px 0; padding: 9px 12px; gap: 8px; border-radius: var(--radius-sm); flex-wrap: nowrap; }
   .swipe-class-card > div:first-child { min-width: 0; flex: 1; gap: 8px !important; }
   .swipe-class-card h3 { font-size: 0.88rem !important; font-weight: 700 !important; overflow: hidden; justify-content: center; }
   /* จอมือถือ: ชื่อห้องกึ่งกลางในพื้นที่ว่างระหว่างปุ่มกลับกับวันที่ (ไม่ชนปุ่ม) */
@@ -85,13 +89,64 @@
 
   /* ซ่อนบางส่วนของข้อความเฉพาะมือถือ (ปี พ.ศ. / คำว่า Export) เพื่อย่อปุ่ม */
   .ck-date-year, .hide-mobile { display: none; }
+
+  /* ===== แพทเทิร์นหัวจอเดียวกันทุกหน้า =====
+     [ปุ่มกลับ ชิดซ้าย] · [ชื่อห้อง กินที่ว่างตรงกลาง จัดกึ่งกลาง] · [ปุ่ม ชิดขวา]
+     ชื่อห้องหน้านักเรียนเคยหลุดสเปก (20px/800/ไม่จัดกลาง) เลยบังคับให้ตรงกับหน้าอื่น */
+  #web-students-detail-title {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    overflow: hidden;
+  }
+  /* ปุ่มขวาของทุกหน้าเกาะขอบขวาเหมือนกัน (ความกว้างต่างกันได้ แต่แนวขวาต้องตรงกัน) */
+  .swipe-class-card .header-actions,
+  .students-hdr-actions,
+  .rep-detail-header-card > div > div:last-child { margin-left: auto; flex-shrink: 0; }
+
+  /* ===== หัวจอมือถือทุกหน้าใช้สเปกเดียวกับหน้าเช็คชื่อ =====
+     เดิม: เช็คชื่อ 52px / คะแนน 58 / การเข้าเรียน 58 / นักเรียน 182
+     ปุ่มกลับก็คนละขนาด (61x32 vs 80x38) เลยบังคับให้ตรงกันทั้งหมด */
+  .rep-detail-header-card .btn-back,
+  .swipe-class-card .btn-back {
+    padding: 5px 8px !important;
+    font-size: 0.78rem !important;
+    flex-shrink: 0;
+  }
+  /* ปุ่ม action มุมขวา (เครื่องมือ/ตั้งค่า/PDF/Excel/⋮) สูงเท่ากันหมด */
+  .rep-detail-header-card .btn,
+  .rep-detail-header-card .ck-hdr-btn,
+  .swipe-class-card .header-actions .btn {
+    height: 30px !important;
+    min-height: 30px;
+    padding: 0 10px !important;
+    font-size: 0.72rem !important;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+  }
+  .rep-detail-header-card .ck-hdr-btn { width: 30px !important; padding: 0 !important; justify-content: center; }
+
+  /* หน้านักเรียน: ตัวเลือกห้องซ้ำซ้อนแล้ว (เลือกห้องจาก popup / แถบแท็บ) → ซ่อนบนมือถือ
+     ช่องค้นหาก็ซ่อนไว้ ให้หัวจอเป็นแถวเดียว 52px เท่าหน้าอื่น
+     แตะปุ่มแว่นขยายมุมขวาบนถึงจะกางออกมา (ดู toggleStudentsSearch) */
+  #web-student-class-filter { display: none !important; }
+  .students-head-controls { display: none !important; width: 100%; margin-top: 8px; }
+  .students-head-controls.is-open { display: flex !important; }
+  .students-head-controls .form-control { height: 34px !important; padding: 0 12px !important; font-size: 0.8rem; }
+  #students-search-btn.active { background: var(--primary-light); color: var(--primary); border-color: var(--primary-light-border); }
 }
 
 /* Desktop: พื้นหลังเทา + แถบสรุปเป็นการ์ดมีกรอบ เหมือนหน้ารายงาน */
 @media (min-width: 769px) {
-  .swipe-overlay { background: var(--bg-app); }
+  /* เลื่อนทั้งหน้าเหมือนหน้านักเรียน/คะแนน — ไม่มีแถบเลื่อนซ้อนในตาราง
+     (มือถือคงเดิม: overflow hidden เพราะการ์ดปัดต้องล็อกความสูงไว้) */
+  .swipe-overlay { background: var(--bg-app); overflow-y: auto; }
   .swipe-compact-header {
-    margin: 16px 24px 0;
+    /* ระยะบนคุมด้วย margin-bottom ของแถบแท็บตัวเดียว (กันซ้อนเป็น 32px) */
+    margin: 0 24px;
     padding: 12px 20px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
@@ -443,6 +498,11 @@
 /* ========================================== */
 /* ===  DESKTOP ATTENDANCE GRID ============= */
 /* ========================================== */
+/* หัวตารางในหน้าเช็คชื่อ: บีบช่องว่างด้านบนลง (46px → 16px)
+   scope ไว้ที่ #swipe-desktop-view เพราะคลาสนี้ใช้ร่วมกับหน้านักเรียน */
+#swipe-desktop-view > .card { padding-top: 6px; }
+#swipe-desktop-view .d-student-header-row { padding: 10px 20px 12px; }
+
 .d-student-header-row {
   display: flex;
   align-items: center;
@@ -557,9 +617,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0 16px 10px;
+  /* ช่องไฟบน 12px กันไม่ให้แปะติดการ์ดสรุป (เดิมเป็น 0 เลยดูเบียด)
+     ล่างไม่ต้องมี — ระยะถัดไปมาจาก padding ของกล่องเนื้อหาอยู่แล้ว */
+  margin: 12px 12px 0;
   padding: 10px 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
   line-height: 1.35;
   background: #FEF3E2;
@@ -592,5 +654,5 @@
 .swipe-schedule-warning.is-extra > button:hover { background: rgba(34,160,90,0.12); }
 
 @media (min-width: 769px) {
-  .swipe-schedule-warning { margin: 0 24px 10px; }
+  .swipe-schedule-warning { margin: 16px 24px 0; }
 }

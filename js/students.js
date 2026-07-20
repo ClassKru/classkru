@@ -1,5 +1,7 @@
 // แตะ "นักเรียน" บน bottom nav มือถือ — เลือกห้องก่อน (ล้อ mobileCheckinTap)
 // 1 ห้อง = เลือกให้เลย · หลายห้อง = เข้าหน้าแล้วใช้ dropdown เลือก
+// ปุ่ม "นักเรียน" ใน bottom nav (มือถือ) — เลือกห้องจาก popup ก่อนแล้วเข้าห้องนั้นเลย
+// (เดิมพาไปหน้ารวมแล้วให้เลือกจาก dropdown อีกที) รูปแบบเดียวกับปุ่มเช็คชื่อ
 function mobileStudentsTap() {
   if (appState.classes.length === 0) {
     showToast('กรุณาเพิ่มห้องเรียนก่อน', 'info');
@@ -7,9 +9,27 @@ function mobileStudentsTap() {
     return;
   }
   if (appState.classes.length === 1) {
-    window.__forceStudentClassId = appState.classes[0].id;
+    manageStudentsFromCard(appState.classes[0].id);
+    return;
   }
-  navigateToWebScreen('students');
+  showMobileClassPicker({ icon: 'hgi-user-multiple', onPick: id => manageStudentsFromCard(id) });
+}
+
+// มือถือ: ช่องค้นหาซ่อนไว้ ให้หัวจอสูงเท่าหน้าอื่น (52px) — แตะแว่นขยายค่อยกางออกมา
+// ปิดแล้วล้างคำค้นด้วย ไม่งั้นรายชื่อจะถูกกรองค้างโดยที่ผู้ใช้มองไม่เห็นช่องค้นหา
+function toggleStudentsSearch() {
+  const box = document.querySelector('.students-head-controls');
+  const input = document.getElementById('web-student-search-input');
+  const btn = document.getElementById('students-search-btn');
+  if (!box || !input) return;
+  const open = box.classList.toggle('is-open');
+  if (btn) btn.classList.toggle('active', open);
+  if (open) {
+    input.focus();
+  } else if (input.value) {
+    input.value = '';
+    renderWebStudents();
+  }
 }
 
 function renderWebStudents() {
@@ -32,17 +52,26 @@ function renderWebStudents() {
 
   // Toggle empty state + แถบแท็บภายในห้อง (โชว์เมื่อเลือกห้องแล้วเท่านั้น)
   const stTab = document.getElementById('students-classtab-holder');
+  // หัวจอโชว์ชื่อห้อง (จุดสี + วิชา (ชั้น)) ให้เหมือนหน้าคะแนน/รายงาน — ยังไม่เลือกห้องค่อยกลับเป็นชื่อหน้า
+  const stTitle = document.getElementById('web-students-detail-title');
   if (!filter.value) {
     contentArea.style.display = 'none';
     emptyState.style.display = 'block';
     currentClassId = null;
     if (stTab) stTab.innerHTML = '';
+    if (stTitle) stTitle.innerHTML = '<i class="hgi-stroke hgi-user-multiple" style="color:var(--primary)"></i> <span class="hdr-title-text">จัดการรายชื่อนักเรียน</span>';
     return;
   } else {
     contentArea.style.display = 'block';
     emptyState.style.display = 'none';
     currentClassId = filter.value;
     if (stTab) stTab.innerHTML = renderClassTabBar(filter.value, 'students');
+    if (stTitle) {
+      const sc = appState.classes.find(x => x.id === filter.value);
+      const scol = getClassColor(filter.value);
+      if (sc) stTitle.innerHTML =
+        `<span style="width:12px;height:12px;border-radius:50%;background:${scol.text};flex-shrink:0;"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${sc.subject} (${sc.className})</span>`;
+    }
   }
 
   container.innerHTML = '';
