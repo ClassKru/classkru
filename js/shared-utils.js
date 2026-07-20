@@ -459,7 +459,7 @@ async function syncBackgroundCloud(email) {
         saveStateLocalOnly(false);
         updateProfileImages();
         // deep-link (LINE OA) ชนะ activeWebScreen ที่ค้างใน cloud — แต่ถ้าผู้ใช้เปลี่ยนหน้าเองแล้ว pendingDeepLink=null
-        navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard');
+        navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard', pendingDeepLinkParam);
       } else if (localModified > cloudModified) {
         await pushStateToCloudDirectly(email, appState);
       }

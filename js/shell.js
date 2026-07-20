@@ -1,33 +1,65 @@
 // ==================== URL ROUTING (#hash) — รองรับ LINE OA ลิงก์เข้าหน้าตรงๆ ====================
 // หน้าที่ลิงก์เข้าได้จาก URL เช่น classkru-kohl.vercel.app/#reports
-const ROUTABLE_SCREENS = ['dashboard','classrooms','students','timetable','attendance','reports','settings'];
+// 'checkin' คือหน้าเช็คชื่อ (เดิมเป็น overlay ที่ไม่มี URL ของตัวเอง) — ต้องมี param บอกห้อง
+const ROUTABLE_SCREENS = ['dashboard','classrooms','students','timetable','attendance','scores','reports','settings','checkin'];
+
+// รูปแบบ hash: "#reports" หรือแบบมีพารามิเตอร์ "#checkin:c_1712345678"
+// คืน { screen, param } — screen เป็น null ถ้า hash ไม่ถูกต้อง
+function parseHash() {
+  const raw = (location.hash || '').replace(/^#/, '').trim();
+  const i = raw.indexOf(':');
+  const name = i === -1 ? raw : raw.slice(0, i);
+  const param = i === -1 ? null : raw.slice(i + 1);
+  return ROUTABLE_SCREENS.includes(name) ? { screen: name, param: param || null } : { screen: null, param: null };
+}
 
 // อ่านชื่อหน้าจาก URL hash เช่น "#reports" → "reports" (คืน null ถ้าไม่มี/ไม่ถูกต้อง)
-function getScreenFromHash() {
-  const raw = (location.hash || '').replace(/^#/, '').trim();
-  return ROUTABLE_SCREENS.includes(raw) ? raw : null;
-}
+function getScreenFromHash() { return parseHash().screen; }
 
 // หน้าที่ผู้ใช้ "ลิงก์เข้ามา" ตอนเปิดแอป (เช่นจาก LINE OA) — อ่านครั้งเดียวตอนโหลด
 // ใช้ให้ deep-link ชนะ activeWebScreen ที่ค้างใน cloud state ตอน sync ครั้งแรก
 // จะถูกล้างเป็น null ทันทีที่ผู้ใช้เปลี่ยนไปหน้าอื่นเอง (กัน sync กระตุกกลับ)
 let pendingDeepLink = getScreenFromHash();
+// ห้องที่แนบมากับ deep-link เช่น "#checkin:c_123" — เก็บคู่กับ pendingDeepLink
+let pendingDeepLinkParam = parseHash().param;
+
+// หน้าที่อยู่ก่อนเข้าเช็คชื่อ — ใช้ตอนกด "กลับ" ให้ย้อนไปหน้าที่มาจริงๆ
+let screenBeforeCheckin = null;
 
 // LINE OA แตะเมนูซ้ำ / กดปุ่ม back ของเบราว์เซอร์ → เปลี่ยนหน้าตาม hash
 window.addEventListener('hashchange', () => {
   const mainApp = document.getElementById('main-app');
   if (!mainApp || mainApp.style.display === 'none') return; // ยังไม่ล็อกอิน ไม่ต้องทำอะไร
-  const screen = getScreenFromHash();
-  if (screen && screen !== appState.activeWebScreen) navigateToWebScreen(screen);
+  const { screen, param } = parseHash();
+  if (!screen) return;
+  if (screen === 'checkin') {
+    // อยู่ห้องเดิมอยู่แล้ว = hash ที่เราเพิ่งเซ็ตเอง ไม่ต้องเปิดซ้ำ (กันวน)
+    const ov = document.getElementById('swipe-overlay');
+    const showing = ov && ov.classList.contains('show');
+    if (!(showing && swipeClassId === param)) navigateToWebScreen('checkin', param);
+    return;
+  }
+  if (screen !== appState.activeWebScreen) navigateToWebScreen(screen);
 });
 
 // ==================== NAVIGATION ====================
-function navigateToWebScreen(screenId) {
+function navigateToWebScreen(screenId, param) {
   // เมนู 'excel' ถูกตัดออกแล้ว (นำเข้าตารางสอนย้ายไปหน้าตารางสอน) — กัน state เก่าที่ค้าง
   if (screenId === 'excel') screenId = 'timetable';
 
   // ผู้ใช้เปลี่ยนไปหน้าอื่นที่ไม่ใช่ deep-link แล้ว → ยกเลิก deep-link (กัน sync ดึงกลับ)
   if (pendingDeepLink && screenId !== pendingDeepLink) pendingDeepLink = null;
+
+  // หน้าเช็คชื่อมี DOM เป็น overlay (ไม่ใช่ div#web-screen-*) เลยแยกทางเดินของมันออกมา
+  // ตัวจริงที่ทำงานคือ openSwipeAttendance ซึ่งจะเรียก applyCheckinRoute() ปิดท้ายเอง
+  if (screenId === 'checkin') {
+    const cid = param || swipeClassId;
+    const exists = cid && appState.classes.some(c => c.id === cid);
+    if (!exists) { navigateToWebScreen('classrooms'); return; }   // ห้องถูกลบ/ลิงก์เสีย → กลับหน้าห้องเรียน
+    if (appState.activeWebScreen !== 'checkin') screenBeforeCheckin = appState.activeWebScreen;
+    openSwipeAttendance(cid);
+    return;
+  }
 
   // ถ้ากำลังอยู่หน้าเช็คชื่อ (overlay) แล้วกดเมนู sidebar → ปิด overlay ก่อน
   const swipeOverlay = document.getElementById('swipe-overlay');
@@ -83,6 +115,39 @@ function navigateToWebScreen(screenId) {
   else if (screenId === 'attendance') loadWebAttendanceMatrix();
   else if (screenId === 'scores') renderWebScores();
   else if (screenId === 'reports') renderWebReports();
+}
+
+// ==================== หน้าเช็คชื่อในฐานะ "หน้า" จริง ====================
+// DOM ของเช็คชื่อเป็น overlay ไม่ใช่ div#web-screen-* เลยทำงานฝั่ง routing แยก
+// openSwipeAttendance เรียกตัวนี้ปิดท้าย เพื่อให้ URL / sidebar / ชื่อหน้า ตรงกับที่เห็นจริง
+function applyCheckinRoute(classId) {
+  if (appState.activeWebScreen !== 'checkin') screenBeforeCheckin = appState.activeWebScreen;
+  appState.activeWebScreen = 'checkin';
+  saveStateLocalOnly(false);
+
+  const hash = '#checkin:' + classId;
+  if (location.hash !== hash) location.hash = hash;   // สร้าง history entry → ปุ่ม back ปิดหน้านี้ได้
+
+  // ซ่อนหน้าอื่นทั้งหมด (overlay ทับอยู่แล้ว แต่ต้องให้ state ตรงกัน)
+  ['dashboard','classrooms','students','timetable','attendance','scores','reports','settings'].forEach(s => {
+    const el = document.getElementById(`web-screen-${s}`);
+    if (el) el.style.display = 'none';
+  });
+
+  // เช็คชื่อสังกัดห้องเรียน → ไฮไลต์เมนู "ห้องเรียนวิชาสอน" ไม่ปล่อยให้ค้างที่หน้าเดิม
+  document.querySelectorAll('.sidebar-menu .nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-screen') === 'classrooms');
+  });
+  document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-screen') === 'classrooms');
+  });
+
+  const titleEl = document.getElementById('web-header-title');
+  const subEl = document.getElementById('web-header-subtitle');
+  if (titleEl && subEl) {
+    titleEl.innerText = 'เช็คชื่อ';
+    subEl.innerText = 'เช็คชื่อรายคาบ ปัดการ์ดทีละคน';
+  }
 }
 
 // ==================== นำเข้าตารางสอนจาก Excel (modal บนหน้าตารางสอน) ====================

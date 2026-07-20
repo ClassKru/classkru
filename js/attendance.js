@@ -212,11 +212,22 @@ function openSwipeAttendance(classId, forDate) {
   renderSwipeCard();
   updateSwipeSummary();
   updateSwipeScheduleWarning();
+
+  // ทำให้ URL / sidebar / ชื่อหน้า ตรงกับหน้าที่เห็น (เช็คชื่อเป็นหน้าจริงแล้ว ไม่ใช่ overlay ลอย)
+  applyCheckinRoute(classId);
+
   Tour.action('opened-checkin');
 }
 
 function closeSwipeAttendance() {
   document.getElementById('swipe-overlay').classList.remove('show');
+  // ออกจากหน้าเช็คชื่อ → กลับไปหน้าที่มา (URL ต้องเปลี่ยนตามด้วย ไม่งั้นค้างที่ #checkin)
+  // ถ้ามาถึงตรงนี้เพราะ hash เปลี่ยนไปหน้าอื่นอยู่แล้ว (กดปุ่ม back) ก็ไม่ต้องสั่งซ้ำ
+  const stillOnCheckin = parseHash().screen === 'checkin';
+  if (stillOnCheckin) {
+    navigateToWebScreen(screenBeforeCheckin || 'classrooms');
+    return;
+  }
   // Refresh current screen
   const screen = appState.activeWebScreen;
   if (screen === 'classrooms') renderWebClassrooms();
@@ -269,12 +280,26 @@ function mobileCheckinTap() {
   showMobileClassPicker();
 }
 
-function showMobileClassPicker() {
+// popup เลือกห้อง — ใช้ร่วมกันหลายที่ (เช็คชื่อ/คะแนน) ปลายทางส่งเข้ามาทาง onPick
+// เก็บ callback ไว้ในตัวแปรเพราะ onclick ใน HTML string ส่งฟังก์ชันตรงๆ ไม่ได้
+let __ckPickerOnPick = null;
+function ckPickerChoose(classId) {
+  const ov = document.querySelector('.ck-confirm-overlay');
+  if (ov) ov.remove();
+  const cb = __ckPickerOnPick;
+  __ckPickerOnPick = null;
+  if (cb) cb(classId);
+}
+
+function showMobileClassPicker(opts) {
+  const o = opts || {};
+  __ckPickerOnPick = o.onPick || (id => openSwipeAttendance(id));
+  const headIcon = o.icon || 'hgi-task-done-01';
   const overlay = document.createElement('div');
   overlay.className = 'ck-confirm-overlay';
   const items = appState.classes.map(c => {
     const pct = calculateAttendancePercentage(c);
-    return `<div onclick="document.querySelector('.ck-confirm-overlay').remove();openSwipeAttendance('${c.id}')"
+    return `<div onclick="ckPickerChoose('${c.id}')"
       style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-color);cursor:pointer;transition:background 0.15s;"
       onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background=''">
       <div>
@@ -291,7 +316,7 @@ function showMobileClassPicker() {
   overlay.innerHTML = `
     <div class="ck-confirm-box" style="padding:0;overflow:hidden;width:360px;">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-color);">
-        <div style="font-size:1rem;font-weight:800;"><i class="hgi-stroke hgi-task-done-01" style="color:var(--primary);margin-right:8px;"></i>เลือกห้องเรียน</div>
+        <div style="font-size:1rem;font-weight:800;"><i class="hgi-stroke ${headIcon}" style="color:var(--primary);margin-right:8px;"></i>เลือกห้องเรียน</div>
         <button onclick="this.closest('.ck-confirm-overlay').remove()" style="border:none;background:none;font-size:1.2rem;cursor:pointer;color:var(--text-muted);">✕</button>
       </div>
       <div style="max-height:60vh;overflow-y:auto;">${items}</div>

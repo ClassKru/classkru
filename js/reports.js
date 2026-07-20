@@ -186,16 +186,22 @@ function renderRepCalendar() {
   </div><div class="cal-grid">`;
   ['อา','จ','อ','พ','พฤ','ศ','ส'].forEach(d => { html += `<div class="cal-dow">${d}</div>`; });
   for (let i = 0; i < startDow; i++) html += '<div></div>';
+
+  // จุดใต้วันที่มีคาบสอนของห้องนี้ — ให้เหมือนปฏิทินหน้าเช็คชื่อ (ดู renderSwipeCalendar)
+  const scheduledDoWs = classScheduledDoWs(currentClassId);
+
   for (let d = 1; d <= daysInMonth; d++) {
     const dObj = new Date(repCalViewYear, repCalViewMonth, d);
     const dStr = getTodayString(dObj);
-    const isWknd = dObj.getDay() === 0 || dObj.getDay() === 6;
+    const dow = dObj.getDay();
+    const isWknd = dow === 0 || dow === 6;
     const isTdy = dStr === todayStr;
     const isSel = dStr === selectedStr && !isTdy;
     let cls = 'cal-day';
     if (isTdy) cls += ' today';
     else if (isSel) cls += ' selected';
     if (isWknd && !isTdy && !isSel) cls += ' weekend';
+    if (scheduledDoWs.has(dow)) cls += ' has-class';
     html += `<div class="${cls}" onclick="selectRepCalDate(${repCalViewYear},${repCalViewMonth},${d});event.stopPropagation();">${d}</div>`;
   }
   html += `</div><button class="cal-today-btn" onclick="selectRepCalToday();event.stopPropagation();">วันนี้</button>`;

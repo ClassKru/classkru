@@ -85,13 +85,18 @@
     background: var(--primary-hover);
   }
 
-  /* แถบแท็บภายในห้อง — ซ่อนบนมือถือ (ใช้ bottom nav แทน) */
-  .ck-classtab-bar { display: none !important; }
+  /* แถบแท็บภายในห้อง — โชว์บนมือถือด้วย (bottom nav มีแค่เช็คชื่อ/คะแนน
+     ทางเข้านักเรียนกับการเข้าเรียนอยู่ที่แถบนี้) ย่อให้เตี้ยลงเพื่อประหยัดพื้นที่แนวตั้ง */
+  .ck-classtab-bar { gap: 2px; padding: 3px; border-radius: 11px; width: 100%; }
+  .ck-classtab { flex: 1; justify-content: center; padding: 6px 4px; font-size: 0.78rem; gap: 4px; }
+  .ck-classtab i { font-size: 0.85rem; }
+  .ck-classtab-thumb { top: 3px; bottom: 3px; border-radius: 8px; }
 
   /* หน้านักเรียน (มือถือ) — หัวจอกระชับ + ย้ายปุ่ม +/⋮ ขึ้นหัว, เหลือไอคอน (ซ่อนข้อความยาว) */
-  #web-screen-students .rep-detail-header-card { padding: 12px 14px !important; margin-bottom: 12px !important; }
+  /* padding เท่าหัวจอหน้าอื่น (9px 12px) ไม่งั้นหน้านักเรียนสูง 58 แทนที่จะเป็น 52 */
+  #web-screen-students .rep-detail-header-card { padding: 9px 12px !important; margin-bottom: 12px !important; }
   #web-screen-students .hdr-title-text { display: none; }
-  #web-screen-students .rep-detail-header-card .card-title { font-size: 1.05rem; }
+  /* ขนาดชื่อห้องคุมที่เดียวใน 06-attendance (แพทเทิร์นหัวจอ) — กฎเก่าที่นี่ตัดออกกันขัดกันเอง */
   .students-head-controls { width: 100%; gap: 8px; }
   .students-head-controls .form-control { max-width: 100% !important; flex: 1 1 100%; }
   .ck-hdr-btn {
@@ -304,7 +309,13 @@
   .sidebar-brand .sidebar-logo { height: 68px !important; }
   .sidebar-menu .nav-item { font-size: 0.85rem; padding: 9px 12px; gap: 10px; }
   .main-content { margin-left: 208px; }
+  /* overlay เช็คชื่อต้องเยื้องเท่า main-content ไม่งั้นสลับแท็บแล้วหน้าเลื่อน 42px */
+  .swipe-overlay { left: 208px; }
   .app-content { padding: 18px; }
+  /* กรอบในหน้าเช็คชื่อต้องเท่า padding ของ .app-content (18px) ไม่ใช่ 24px ของจอใหญ่ */
+  .swipe-class-card { margin: 18px 18px 0; }
+  .swipe-compact-header { margin: 0 18px; }
+  .swipe-schedule-warning { margin: 16px 18px 0; }
   .report-grid-3col { grid-template-columns: 1fr 1fr; }
 }
 

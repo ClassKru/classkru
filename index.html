@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=126">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=126">
-  <link rel="stylesheet" href="css/03-reports.css?v=126">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=126">
-  <link rel="stylesheet" href="css/05-home.css?v=126">
-  <link rel="stylesheet" href="css/06-attendance.css?v=126">
-  <link rel="stylesheet" href="css/07-scores.css?v=126">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=126">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=153">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=153">
+  <link rel="stylesheet" href="css/03-reports.css?v=153">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=153">
+  <link rel="stylesheet" href="css/05-home.css?v=153">
+  <link rel="stylesheet" href="css/06-attendance.css?v=153">
+  <link rel="stylesheet" href="css/07-scores.css?v=153">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=153">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -151,7 +151,7 @@
           <div class="card" style="padding:0;overflow:hidden;">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border-color);">
               <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:0.9rem;">
-                <i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);"></i> <span id="home-schedule-title">ตารางสอนวันนี้</span>
+                <i class="hgi-stroke hgi-calendar-03"></i> <span id="home-schedule-title">ตารางสอนวันนี้</span>
               </div>
               <div id="home-today-count" class="status-badge" style="background:var(--primary-light);color:var(--primary);border:none;font-size:0.7rem;padding:3px 8px;">0 คาบ</div>
             </div>
@@ -174,15 +174,16 @@
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
               <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
                 <button class="btn-back" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button>
-                <div class="card-title" style="margin-bottom:0;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary)"></i> <span class="hdr-title-text">จัดการรายชื่อนักเรียน</span></div>
+                <div class="card-title ck-class-switch" id="web-students-detail-title" onclick="openClassSwitcher('students')" style="margin-bottom:0;min-width:0;font-size:1.25rem;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary)"></i> <span class="hdr-title-text">จัดการรายชื่อนักเรียน</span></div>
                 <div class="students-hdr-actions mobile-only-flex" style="margin-left:auto;gap:6px;align-items:center;">
+                  <button class="ck-hdr-btn" id="students-search-btn" onclick="toggleStudentsSearch()" aria-label="ค้นหานักเรียน"><i class="hgi-stroke hgi-search-01"></i></button>
                   <button class="ck-hdr-btn add" onclick="openStudentModal()" aria-label="เพิ่มนักเรียน"><i class="hgi-stroke hgi-user-add-01"></i></button>
                   <button class="ck-hdr-btn" onclick="toggleStudentsActionMenu(event)" aria-label="ตัวเลือกเพิ่มเติม"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
                 </div>
               </div>
               <div class="students-head-controls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                <select id="web-student-class-filter" class="form-control" style="max-width:220px;appearance:auto;padding-top:6px;padding-bottom:6px;" onchange="renderWebStudents()"><option value="">-- กรุณาเลือกห้องเรียน --</option></select>
-                <input type="text" id="web-student-search-input" class="form-control" placeholder="ค้นหาชื่อ/รหัส..." style="max-width:200px;padding-top:6px;padding-bottom:6px;" oninput="renderWebStudents()">
+                <select id="web-student-class-filter" class="form-control ck-hdr-action" style="max-width:220px;appearance:auto;" onchange="renderWebStudents()"><option value="">-- กรุณาเลือกห้องเรียน --</option></select>
+                <input type="text" id="web-student-search-input" class="form-control ck-hdr-action" placeholder="ค้นหาชื่อ/รหัส..." style="max-width:200px;" oninput="renderWebStudents()">
               </div>
             </div>
           </div>
@@ -292,7 +293,7 @@
             <div id="web-reports-class-list" class="class-cards-grid"></div>
           </div>
           <div id="web-reports-detail-view" style="display:none;">
-            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;"><button class="btn-back" onclick="goBackToWebReportsSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div><h3 id="web-rep-detail-class-title" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn" style="padding:8px 14px;font-size:0.82rem;background:#eef2ff;color:#3949ab;border:1px solid #c5cae9;" onclick="printReport()"><i class="hgi-stroke hgi-printer"></i> <span class="hide-mobile">พิมพ์ / </span>PDF</button><button class="btn" style="padding:8px 14px;font-size:0.82rem;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;" onclick="exportAttendanceExcel()"><i class="hgi-stroke hgi-google-sheet"></i> <span class="hide-mobile">Export </span>Excel</button></div></div></div>
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;"><button class="btn-back" onclick="goBackToWebReportsSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div><h3 id="web-rep-detail-class-title" class="ck-class-switch" onclick="openClassSwitcher('reports')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action is-tinted" style="background:#eef2ff;color:#3949ab;border:1px solid #c5cae9;" onclick="printReport()"><i class="hgi-stroke hgi-printer"></i> <span class="hide-mobile">พิมพ์ / </span>PDF</button><button class="btn ck-hdr-action is-tinted" style="background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;" onclick="exportAttendanceExcel()"><i class="hgi-stroke hgi-google-sheet"></i> <span class="hide-mobile">Export </span>Excel</button></div></div></div>
             <div id="reports-classtab-holder"></div>
             <div id="ck-print-header"></div>
             <div class="report-tabs" style="margin-bottom:20px;max-width:500px;">
@@ -302,7 +303,7 @@
               <button class="report-tab-item" data-tab="overall" onclick="switchWebReportTab('overall')">ภาพรวม</button>
             </div>
             <div id="web-rep-content-today" class="web-rep-panel fade-in">
-              <div class="report-grid-2col"><div class="card"><div style="position:relative;margin-bottom:4px;"><button id="rep-date-btn" onclick="toggleRepCalendar()" class="rep-date-label-btn"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);"></i> <span id="web-rep-today-date-label">วันนี้</span> <i class="hgi-stroke hgi-arrow-down-01" style="font-size:0.7rem;margin-left:2px;"></i></button><div id="rep-calendar-popup" class="home-calendar-popup" style="display:none;left:0;right:auto;"></div></div><div class="summary-bar" id="web-rep-today-pills" style="margin:12px 0;"></div><div class="progress-container"><div class="progress-label-row"><span>สัดส่วนมาเรียน</span><span id="web-rep-today-pct">0%</span></div><div class="progress-bar-bg" style="height:10px;border-radius:5px;"><div class="progress-bar-fill" id="web-rep-today-progress" style="width:0%"></div></div></div></div><div class="card" style="justify-content:center;text-align:center;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:12px;">สถานะห้องเรียน</div><div id="web-rep-today-status-badge" class="warning-badge text-center" style="font-size:1.05rem;padding:12px;border-radius:12px;font-weight:800;">ปกติ</div></div></div>
+              <div class="report-grid-2col"><div class="card"><div style="position:relative;margin-bottom:4px;"><button id="rep-date-btn" onclick="toggleRepCalendar()" class="rep-date-label-btn"><i class="hgi-stroke hgi-calendar-03"></i> <span id="web-rep-today-date-label">วันนี้</span> <i class="hgi-stroke hgi-arrow-down-01" style="font-size:0.7rem;margin-left:2px;"></i></button><div id="rep-calendar-popup" class="home-calendar-popup" style="display:none;left:0;right:auto;"></div></div><div class="summary-bar" id="web-rep-today-pills" style="margin:12px 0;"></div><div class="progress-container"><div class="progress-label-row"><span>สัดส่วนมาเรียน</span><span id="web-rep-today-pct">0%</span></div><div class="progress-bar-bg" style="height:10px;border-radius:5px;"><div class="progress-bar-fill" id="web-rep-today-progress" style="width:0%"></div></div></div></div><div class="card" style="justify-content:center;text-align:center;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:12px;">สถานะห้องเรียน</div><div id="web-rep-today-status-badge" class="warning-badge text-center" style="font-size:1.05rem;padding:12px;border-radius:12px;font-weight:800;">ปกติ</div></div></div>
               <div class="card" id="web-rep-today-abnormal-card" style="display:none;margin-top:16px;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:12px;">นักเรียนผิดปกติ</div><div id="web-rep-today-abnormal-list" class="abnormal-list-grid"></div></div>
             </div>
             <div id="web-rep-content-weekly" class="web-rep-panel fade-in" style="display:none;">
@@ -329,7 +330,7 @@
             <div id="web-scores-class-list" class="class-cards-grid"></div>
           </div>
           <div id="web-scores-detail-view" style="display:none;">
-            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn" style="padding:8px 14px;font-size:0.82rem;" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn ck-hdr-action" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
             <div id="scores-classtab-holder"></div>
             <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
           </div>
@@ -418,18 +419,18 @@
       <div style="display:flex;align-items:center;gap:14px;">
         <button class="btn-back" onclick="closeSwipeAttendance()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button>
         <div>
-          <h3 id="swipe-class-title" style="font-size:1.25rem;font-weight:800;color:var(--text-main);line-height:1.2;display:flex;align-items:center;gap:8px;">วิชา</h3>
+          <h3 id="swipe-class-title" class="ck-class-switch" onclick="openClassSwitcher('checkin')" style="font-size:1.25rem;font-weight:800;color:var(--text-main);line-height:1.2;display:flex;align-items:center;gap:8px;">วิชา</h3>
           <span class="subtitle" id="swipe-class-meta" style="display:none;">0 คน</span>
         </div>
       </div>
       <div class="header-actions" style="gap:8px;justify-content:flex-end;">
-        <button class="btn" style="background:var(--bg-card);border:1px solid var(--border-color);font-size:0.8rem;padding:6px 12px;display:flex;align-items:center;gap:6px;" onclick="openToolsHub()">
-          <i class="hgi-stroke hgi-magic-wand-01" style="color:var(--primary);"></i>
+        <button class="btn ck-hdr-action" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="openToolsHub()">
+          <i class="hgi-stroke hgi-magic-wand-01"></i>
           <span>เครื่องมือ</span>
         </button>
         <div style="position:relative;">
-          <button class="btn" id="swipe-date-btn" style="background:var(--bg-card);border:1px solid var(--border-color);font-size:0.8rem;padding:6px 12px;display:flex;align-items:center;gap:6px;" onclick="toggleSwipeCalendar()">
-            <i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);"></i>
+          <button class="btn ck-hdr-action" id="swipe-date-btn" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="toggleSwipeCalendar()">
+            <i class="hgi-stroke hgi-calendar-03"></i>
             <span id="swipe-date-display">...</span>
             <i class="hgi-stroke hgi-arrow-down-01" style="font-size:0.65rem;color:var(--text-muted);"></i>
           </button>
@@ -438,7 +439,7 @@
       </div>
     </div>
 
-    <div id="checkin-classtab-holder" style="padding:12px 16px 0;"></div>
+    <div id="checkin-classtab-holder" style="padding:16px 16px 0;"></div>
 
     <div class="swipe-compact-header">
       <div class="swipe-summary-pills" id="swipe-summary-pills">
@@ -503,9 +504,9 @@
     </div>
 
     <!-- DESKTOP VIEW (Modern List) -->
-    <div id="swipe-desktop-view" class="desktop-only-flex" style="flex:1;flex-direction:column;overflow:hidden;padding:24px 24px;background:var(--bg-app);">
-      <div class="card" style="flex:1;display:flex;flex-direction:column;overflow:hidden;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:none;">
-        <div style="flex:1;overflow-y:auto;padding:12px 0 0;background:#fbfbfd;">
+    <div id="swipe-desktop-view" class="desktop-only-flex" style="flex-direction:column;padding:16px 24px 24px;background:var(--bg-app);">
+      <div class="card" style="display:flex;flex-direction:column;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:none;">
+        <div>
           <!-- Header Row -->
           <div class="d-student-header-row">
             <div style="width:50px;text-align:center;">เลขที่</div>
@@ -820,18 +821,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=126"></script>
-  <script defer src="js/auth.js?v=126"></script>
-  <script defer src="js/shell.js?v=126"></script>
-  <script defer src="js/dashboard.js?v=126"></script>
-  <script defer src="js/classrooms.js?v=126"></script>
-  <script defer src="js/students.js?v=126"></script>
-  <script defer src="js/timetable.js?v=126"></script>
-  <script defer src="js/reports.js?v=126"></script>
-  <script defer src="js/attendance.js?v=126"></script>
-  <script defer src="js/scores.js?v=126"></script>
-  <script defer src="js/tools.js?v=126"></script>
-  <script defer src="js/shared-utils.js?v=126"></script>
-  <script defer src="js/extras.js?v=126"></script>
+  <script defer src="js/core.js?v=153"></script>
+  <script defer src="js/auth.js?v=153"></script>
+  <script defer src="js/shell.js?v=153"></script>
+  <script defer src="js/dashboard.js?v=153"></script>
+  <script defer src="js/classrooms.js?v=153"></script>
+  <script defer src="js/students.js?v=153"></script>
+  <script defer src="js/timetable.js?v=153"></script>
+  <script defer src="js/reports.js?v=153"></script>
+  <script defer src="js/attendance.js?v=153"></script>
+  <script defer src="js/scores.js?v=153"></script>
+  <script defer src="js/tools.js?v=153"></script>
+  <script defer src="js/shared-utils.js?v=153"></script>
+  <script defer src="js/extras.js?v=153"></script>
 </body>
 </html>
