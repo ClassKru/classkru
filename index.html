@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=166">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=166">
-  <link rel="stylesheet" href="css/03-reports.css?v=166">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=166">
-  <link rel="stylesheet" href="css/05-home.css?v=166">
-  <link rel="stylesheet" href="css/06-attendance.css?v=166">
-  <link rel="stylesheet" href="css/07-scores.css?v=166">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=166">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=182">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=182">
+  <link rel="stylesheet" href="css/03-reports.css?v=182">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=182">
+  <link rel="stylesheet" href="css/05-home.css?v=182">
+  <link rel="stylesheet" href="css/06-attendance.css?v=182">
+  <link rel="stylesheet" href="css/07-scores.css?v=182">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=182">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -176,8 +176,8 @@
                 <button class="btn-back" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button>
                 <div class="card-title ck-class-switch" id="web-students-detail-title" onclick="openClassSwitcher('students')" style="margin-bottom:0;min-width:0;font-size:1.25rem;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary)"></i> <span class="hdr-title-text">จัดการรายชื่อนักเรียน</span></div>
                 <div class="students-hdr-actions mobile-only-flex" style="margin-left:auto;gap:6px;align-items:center;">
-                  <button class="ck-hdr-btn" id="students-search-btn" onclick="toggleStudentsSearch()" aria-label="ค้นหานักเรียน"><i class="hgi-stroke hgi-search-01"></i></button>
-                  <button class="ck-hdr-btn" onclick="toggleStudentsActionMenu(event)" aria-label="ตัวเลือกเพิ่มเติม"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
+                  <button class="ck-hdr-btn ck-ic-blue" id="students-search-btn" onclick="toggleStudentsSearch()" aria-label="ค้นหานักเรียน"><i class="hgi-stroke hgi-search-01"></i></button>
+                  <button class="ck-hdr-btn ck-ic-gray" onclick="toggleStudentsActionMenu(event)" aria-label="ตัวเลือกเพิ่มเติม"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
                 </div>
               </div>
               <div class="students-head-controls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -259,7 +259,7 @@
                 <button class="btn-week-toggle" id="m-btn-week-b" onclick="switchTimetableWeek('B')" style="font-size:0.72rem;padding:5px 10px;">Week B</button>
               </div>
             </div>
-            <button class="btn" style="width:100%;margin-bottom:14px;padding:10px;font-size:0.85rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="openTimetableImport()">
+            <button class="btn hide-mobile" style="width:100%;margin-bottom:14px;padding:10px;font-size:0.85rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="openTimetableImport()">
               <i class="hgi-stroke hgi-google-sheet"></i> นำเข้าตารางสอนจาก Excel
             </button>
             <div id="m-timetable-days"></div>
@@ -329,7 +329,7 @@
             <div id="web-scores-class-list" class="class-cards-grid"></div>
           </div>
           <div id="web-scores-detail-view" style="display:none;">
-            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn ck-hdr-action" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action ck-ic-purple" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn ck-hdr-action ck-ic-gray" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
             <div id="scores-classtab-holder"></div>
             <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
           </div>
@@ -423,13 +423,12 @@
         </div>
       </div>
       <div class="header-actions" style="gap:8px;justify-content:flex-end;">
-        <button class="btn ck-hdr-action" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="openToolsHub()">
+        <button class="btn ck-hdr-action ck-ic-purple" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="openToolsHub()">
           <i class="hgi-stroke hgi-magic-wand-01"></i>
           <span class="hide-mobile">เครื่องมือ</span>
         </button>
         <div style="position:relative;">
           <button class="btn ck-hdr-action" id="swipe-date-btn" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="toggleSwipeCalendar()">
-            <i class="hgi-stroke hgi-calendar-03 hide-mobile"></i>
             <span id="swipe-date-display">...</span>
             <i class="hgi-stroke hgi-arrow-down-01 hide-mobile" style="font-size:0.65rem;color:var(--text-muted);"></i>
           </button>
@@ -820,18 +819,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=166"></script>
-  <script defer src="js/auth.js?v=166"></script>
-  <script defer src="js/shell.js?v=166"></script>
-  <script defer src="js/dashboard.js?v=166"></script>
-  <script defer src="js/classrooms.js?v=166"></script>
-  <script defer src="js/students.js?v=166"></script>
-  <script defer src="js/timetable.js?v=166"></script>
-  <script defer src="js/reports.js?v=166"></script>
-  <script defer src="js/attendance.js?v=166"></script>
-  <script defer src="js/scores.js?v=166"></script>
-  <script defer src="js/tools.js?v=166"></script>
-  <script defer src="js/shared-utils.js?v=166"></script>
-  <script defer src="js/extras.js?v=166"></script>
+  <script defer src="js/core.js?v=182"></script>
+  <script defer src="js/auth.js?v=182"></script>
+  <script defer src="js/shell.js?v=182"></script>
+  <script defer src="js/dashboard.js?v=182"></script>
+  <script defer src="js/classrooms.js?v=182"></script>
+  <script defer src="js/students.js?v=182"></script>
+  <script defer src="js/timetable.js?v=182"></script>
+  <script defer src="js/reports.js?v=182"></script>
+  <script defer src="js/attendance.js?v=182"></script>
+  <script defer src="js/scores.js?v=182"></script>
+  <script defer src="js/tools.js?v=182"></script>
+  <script defer src="js/shared-utils.js?v=182"></script>
+  <script defer src="js/extras.js?v=182"></script>
 </body>
 </html>

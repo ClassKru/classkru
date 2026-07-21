@@ -75,10 +75,13 @@ function renderWebStudents() {
     const codeEsc = String(s.studentCode || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     const row = document.createElement('div');
     row.className = 'd-student-row';
+    // สี avatar ชุดเดียวกับหน้าคะแนน (ไล่ตามลำดับคนในห้อง → คนเดียวกันได้สีตรงกันทั้ง 2 หน้า) — โชว์เป็นวงกลมบนมือถือ
+    const realIdx = targetClass.students.indexOf(s);
+    const av = (typeof mscAvatar === 'function') ? mscAvatar(s, realIdx < 0 ? 0 : realIdx) : { bg: '', fg: '' };
     // แตะทั้งแถว = เปิด modal ข้อมูล (ยกเว้นคลิก input/ปุ่มในตาราง เดสก์ท็อป)
     row.setAttribute('onclick', `if(!event.target.closest('input,button'))openStudentSummaryModal('${s.id}','${targetClass.id}')`);
     row.innerHTML = `
-      <div class="d-col-no">${s.no || '-'}</div>
+      <div class="d-col-no"><span class="d-no-badge" style="--av-bg:${av.bg};--av-fg:${av.fg};">${s.no || '-'}</span></div>
       <div class="d-col-code"><input class="d-code-input" type="text" value="${codeEsc}" placeholder="-" onchange="setStudentCodeInline('${targetClass.id}','${s.id}',this.value)"></div>
       <div class="d-col-name ck-student-name-link" title="ดูข้อมูล เข้าเรียน/คะแนน">${s.name}</div>
       <div class="d-col-note" style="color:var(--text-muted);font-size:0.8rem;">${s.comment || '-'}</div>

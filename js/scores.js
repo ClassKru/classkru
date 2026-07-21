@@ -169,6 +169,7 @@ function viewClassScores(classId) {
   const c = appState.classes.find(x => x.id === classId);
   if (!c) return;
   scoreCurrentClassId = classId;
+  mobileScoreStudentId = null;   // เปิดห้องใหม่ = เริ่มที่หน้ารวม (การ์ดรายชื่อ) เสมอ ไม่ค้างคนเดิม
   ensureScores(c);
   document.getElementById('web-scores-selection-view').style.display = 'none';
   document.getElementById('web-scores-detail-view').style.display = 'block';
@@ -184,6 +185,9 @@ function renderScoreMatrix(c) {
   const sc = ensureScores(c);
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (!wrap) return;
+
+  // มือถือ = โหมด "ลงมือ": การ์ดรายชื่อ → แตะเข้ากรอกทีละคน (desktop คงตารางเดิม)
+  if (typeof isMobileView === 'function' && isMobileView()) return renderMobileScores(c);
 
   if (c.students.length === 0) {
     wrap.innerHTML = '<div class="empty-state">ห้องนี้ยังไม่มีนักเรียน — เพิ่มรายชื่อในเมนูจัดการรายชื่อเด็กก่อน</div>';
@@ -285,7 +289,7 @@ function gradeCellHtml(c, s) {
   const ov = ensureScores(c).gradeOverride[s.id];
   const eff = ov || computeStudentScore(c, s.id).grade;
   const ovMark = ov ? ' <span class="sc-ov-tag">แก้แล้ว</span>' : '';
-  return `<span class="sc-grade-val">${eff}</span>${ovMark}`;
+  return `<span class="sc-grade-val g-c-${mscGradeClass(eff)}">${eff}</span>${ovMark}`;
 }
 
 // อัปเดตเฉพาะเซลล์สรุปของนักเรียนคนเดียว (กันเสียโฟกัส/ตำแหน่ง scroll)
@@ -532,4 +536,139 @@ function closeScoreSettingsModal() {
 // escape เบา ๆ สำหรับข้อความในตาราง
 function escapeScore(v) {
   return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ==================== มือถือ: การ์ดรายชื่อ → กรอกทีละคน ====================
+// จำคนที่เปิดกรอกอยู่ เพื่อให้ตอน re-render (เพิ่ม/ลบรายการผ่าน modal) กลับมาหน้ารายคนเดิม ไม่เด้งไปรายชื่อ
+let mobileScoreStudentId = null;
+
+// พาเลตต์ avatar (พื้นอ่อน+ตัวอักษรเข้ม จับคู่กัน) — วนตามลำดับนักเรียน
+const MSC_AV = [
+  ['#eaf3de', '#3b6d11'], ['#e1f5ee', '#0f6e56'], ['#e6f1fb', '#185fa5'],
+  ['#fbeaf0', '#993556'], ['#faeeda', '#854f0b'], ['#eeedfe', '#534ab7']
+];
+function mscAvatar(s, i) {
+  // การ์ดรายชื่อ (วงกลมใหญ่) = ชื่อเล่นถ้ามี ไม่มีก็เลขที่
+  const nick = (s.nickname || '').trim();
+  const c = MSC_AV[i % MSC_AV.length];
+  return { txt: escapeScore(nick || String(s.no || (i + 1))), bg: c[0], fg: c[1] };
+}
+function mscGradeClass(g) {
+  const n = parseFloat(g);
+  if (isNaN(n)) return 'zero';
+  if (n >= 3) return 'high';
+  if (n >= 2) return 'mid';
+  if (n >= 1) return 'low';
+  return 'zero';
+}
+
+function renderMobileScores(c) {
+  const wrap = document.getElementById('web-scores-matrix-wrap');
+  if (!wrap) return;
+  wrap.classList.add('msc-wrap');
+  if (c.students.length === 0) {
+    mobileScoreStudentId = null;
+    wrap.innerHTML = '<div class="empty-state">ห้องนี้ยังไม่มีนักเรียน — เพิ่มรายชื่อในเมนูจัดการรายชื่อเด็กก่อน</div>';
+    return;
+  }
+  if (mobileScoreStudentId && c.students.some(s => s.id === mobileScoreStudentId)) {
+    renderMobileStudentPanel(c, mobileScoreStudentId);
+  } else {
+    mobileScoreStudentId = null;
+    renderMobileScoreGrid(c);
+  }
+}
+
+function renderMobileScoreGrid(c) {
+  const wrap = document.getElementById('web-scores-matrix-wrap');
+  if (!wrap) return;
+  const cards = c.students.map((s, i) => {
+    const av = mscAvatar(s, i);
+    return `<button class="msc-card" onclick="openMobileStudentScores('${c.id}','${s.id}')">
+      <span class="msc-av" style="background:${av.bg};color:${av.fg};">${av.txt}</span>
+      <span class="msc-no">เลขที่ ${s.no || (i + 1)}</span>
+      <span class="msc-name">${escapeScore(s.name)}</span>
+    </button>`;
+  }).join('');
+  wrap.innerHTML = `<div class="msc-grid">${cards}</div>`;
+}
+
+function openMobileStudentScores(classId, sid) {
+  const c = appState.classes.find(x => x.id === classId);
+  if (!c) return;
+  mobileScoreStudentId = sid;
+  renderMobileStudentPanel(c, sid);
+  const wrap = document.getElementById('web-scores-matrix-wrap');
+  if (wrap) wrap.scrollTop = 0;
+}
+
+function backToMobileScoreGrid(classId) {
+  const c = appState.classes.find(x => x.id === classId);
+  if (!c) return;
+  mobileScoreStudentId = null;
+  renderMobileScoreGrid(c);
+}
+
+// การ์ดสรุป (คะแนนรวม + เกรด) — แยกออกมาเพื่ออัปเดตสดโดยไม่ re-render ทั้งหน้า (กันเสียโฟกัสช่องกรอก)
+function mobileScoreSummaryHtml(c, sid) {
+  const r = computeStudentScore(c, sid);
+  const eff = effectiveGrade(c, sid);
+  const pct = Math.max(0, Math.min(100, r.total));
+  return `<div class="msc-sum-left">
+      <div class="msc-sum-lbl">คะแนนรวม</div>
+      <div class="msc-sum-total"><b>${r.total}</b><span>/ 100</span></div>
+      <div class="msc-bar"><div class="msc-bar-fill" style="width:${pct}%;"></div></div>
+    </div>
+    <div class="msc-sum-grade">
+      <div class="msc-sum-lbl">เกรด</div>
+      <div class="msc-grade-badge msc-g-${mscGradeClass(eff)}">${eff}</div>
+    </div>`;
+}
+
+function refreshMobileScoreSummary(classId, sid) {
+  const c = appState.classes.find(x => x.id === classId);
+  if (!c) return;
+  const box = document.getElementById('msc-summary');
+  if (box) box.innerHTML = mobileScoreSummaryHtml(c, sid);
+}
+
+function renderMobileStudentPanel(c, sid) {
+  const wrap = document.getElementById('web-scores-matrix-wrap');
+  if (!wrap) return;
+  const s = c.students.find(x => x.id === sid);
+  if (!s) { backToMobileScoreGrid(c.id); return; }
+  const sc = ensureScores(c);
+  const idx = c.students.findIndex(x => x.id === sid);
+  const av = mscAvatar(s, idx);
+
+  const buckets = SCORE_WK.map(b => {
+    const items = sc.items.filter(i => i.bucket === b.key);
+    const w = Number(sc.config.ratio[b.key]) || 0;
+    const rows = items.map(it => {
+      const v = clampMark((sc.marks[it.id] || {})[sid], it.max);
+      return `<div class="msc-row">
+        <span class="msc-row-name" title="ตั้งค่ารายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">${escapeScore(it.name)}</span>
+        <span class="msc-box">
+          <input type="number" class="msc-in" value="${v}" min="0" max="${it.max}" step="0.5" inputmode="decimal" placeholder="–"
+            onchange="setScoreMark('${c.id}','${it.id}','${sid}',this);refreshMobileScoreSummary('${c.id}','${sid}')">
+          <span class="msc-slash">/ ${it.max}</span>
+        </span>
+      </div>`;
+    }).join('');
+    return `<div class="msc-bucket">
+      <div class="msc-bhead"><span class="msc-blabel">${b.label}</span><span class="msc-bweight">${w}%</span></div>
+      ${rows}
+      <button class="msc-add" onclick="openScoreItemModal('${c.id}',null,'${b.key}')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มรายการ</button>
+    </div>`;
+  }).join('');
+
+  wrap.innerHTML = `<div class="msc-panel">
+    <button class="msc-back" onclick="backToMobileScoreGrid('${c.id}')"><i class="hgi-stroke hgi-arrow-left-01"></i> รายชื่อ</button>
+    <div class="msc-shead">
+      <span class="msc-av msc-av-sm" style="background:${av.bg};color:${av.fg};">${s.no || (idx + 1)}</span>
+      <div class="msc-shead-txt"><div class="msc-sname">${escapeScore(s.name)}</div></div>
+    </div>
+    <div class="msc-summary" id="msc-summary">${mobileScoreSummaryHtml(c, sid)}</div>
+    ${buckets}
+  </div>`;
 }
