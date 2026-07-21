@@ -168,11 +168,21 @@ function selectSwipeCalToday() {
   loadSwipeForDate();
 }
 
+// สีประจำวันแบบไทย (อา จ อ พ พฤ ศ ส) — ใช้ระบายขอบ+ตัวอักษรปุ่มวันที่
+const THAI_DAY_COLORS = ['#e5544b', '#e0a81a', '#d4547e', '#22a565', '#f97316', '#3b7fd4', '#8b5cf6'];
+
 function updateSwipeDateDisplay() {
   const d = swipeSelectedDate || getNowDate();
   const thaiMonthsShort = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
   const el = document.getElementById('swipe-date-display');
   if (el) el.innerHTML = `${d.getDate()} ${thaiMonthsShort[d.getMonth()]}<span class="ck-date-year"> ${d.getFullYear() + 543}</span>`;
+  // ขอบ + ตัวอักษรตามสีประจำวัน
+  const btn = document.getElementById('swipe-date-btn');
+  if (btn) {
+    const col = THAI_DAY_COLORS[d.getDay()];
+    btn.style.borderColor = col;
+    btn.style.color = col;
+  }
 }
 
 
