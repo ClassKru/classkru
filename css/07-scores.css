@@ -8,11 +8,11 @@
 .score-matrix-table .sc-cat-start { border-left: 2px solid var(--border-color); }
 .score-matrix-table thead th {
   font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
-  background: #fafbfc; border-bottom: 1px solid var(--border-color); white-space: nowrap;
+  background: #fafbfc; border: 1px solid var(--border-color); white-space: nowrap;
 }
 .score-matrix-table thead .sc-bucket-head {
   color: var(--primary); background: var(--primary-light);
-  border-bottom: 1px solid var(--primary-light-border); font-size: 0.82rem;
+  border: 1px solid var(--primary-light-border); font-size: 0.82rem;
 }
 /* หัวรายการ = สแต็กแนวตั้ง 3 บรรทัด (ชื่อ / ระยะ / เต็ม+เฟือง) คุมกว้างไม่ให้ล้นคอลัมน์ */
 .score-matrix-table .sc-item-head { transition: var(--transition-normal); vertical-align: top; width: 78px; min-width: 78px; max-width: 78px; box-sizing: border-box; }
@@ -30,8 +30,8 @@
 .sc-item-max-input { -moz-appearance: textfield; appearance: textfield; }
 .sc-item-more { border: none; background: transparent; color: #c7c7cc; cursor: pointer; padding: 0; font-size: 0.72rem; line-height: 1; flex-shrink: 0; }
 .sc-item-more:hover { color: var(--primary); }
-/* % รวมคะแนนเก็บ (อ่านอย่างเดียว บนหัว "คะแนนเก็บ") */
-.sc-w-readonly { font-weight: 400; }
+/* % รวมคะแนนเก็บ (อ่านอย่างเดียว บนหัว "คะแนนเก็บ") — หนาเท่าหัวข้อ */
+.sc-w-readonly { font-weight: 700; }
 /* บล็อกว่าง (ยังไม่มีรายการ) — ปุ่ม + เพิ่มรายการในระยะนั้น */
 .score-matrix-table .sc-item-empty { vertical-align: middle; text-align: center; min-width: 52px; }
 .sc-add-item-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px dashed var(--primary-light-border); background: var(--primary-light); color: var(--primary); cursor: pointer; font-size: 0.85rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
