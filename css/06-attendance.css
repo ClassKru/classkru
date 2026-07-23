@@ -89,7 +89,7 @@
   .rep-detail-header-card > div > div:first-child > div { flex: 1; min-width: 0; text-align: center; }
 
   /* ซ่อนบางส่วนของข้อความเฉพาะมือถือ (ปี พ.ศ. / คำว่า Export) เพื่อย่อปุ่ม */
-  .ck-date-year, .hide-mobile { display: none; }
+  .ck-date-year, .hide-mobile { display: none !important; }
 
   /* ===== แพทเทิร์นหัวจอเดียวกันทุกหน้า =====
      [ปุ่มกลับ ชิดซ้าย] · [ชื่อห้อง กินที่ว่างตรงกลาง จัดกึ่งกลาง] · [ปุ่ม ชิดขวา]
@@ -546,6 +546,14 @@
 }
 
 .d-col-no { width: 50px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.95rem; }
+/* วงกลมเลขที่สี avatar (ชุดเดียวกับมือถือ) — เฉพาะแถวข้อมูล ไม่โดนหัวตาราง (หัวไม่มี .d-no-badge) */
+.d-student-row .d-col-no { display: flex; align-items: center; justify-content: center; }
+.d-no-badge {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--av-bg, var(--bg-light)); color: var(--av-fg, var(--text-muted));
+  font-weight: 700; font-size: 0.9rem;
+}
 .d-col-code { width: 90px; text-align: center; font-weight: 600; color: var(--text-muted); font-size: 0.85rem; font-variant-numeric: tabular-nums; }
 .d-code-input {
   width: 100%;

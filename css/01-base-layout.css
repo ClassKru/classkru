@@ -235,9 +235,11 @@ body {
 /* ปุ่ม export บนหัวจอการเข้าเรียน — ผูกสีกับความหมาย (แดง = PDF, เขียว = Excel)
    บนมือถือเหลือแค่ไอคอน สีจึงเป็นตัวบอกแทนคำที่ถูกซ่อน
    เขียนคู่กับ .btn (specificity 0,2,0) เพราะ .btn ประกาศทีหลังในไฟล์นี้ ถ้าใช้คลาสเดี่ยวจะโดนทับ */
-.btn.ck-btn-pdf { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
-.btn.ck-btn-excel { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
-.btn.ck-btn-pdf i, .btn.ck-btn-excel i { color: inherit; }
+/* ตัดพื้นหลัง — เหลือแต่ไอคอนสี (กรอบกลางๆ เข้าชุดหัวหน้าอื่น) ตัวอักษรสีปกติ */
+.btn.ck-btn-pdf { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
+.btn.ck-btn-excel { background: transparent; color: var(--text-main); border: 1px solid var(--border-color); }
+.ck-hdr-action.ck-btn-pdf i { color: #dc2626; }
+.ck-hdr-action.ck-btn-excel i { color: #2e7d32; }
 
 /* แถวปลายทางท้ายการ์ดห้อง — คะแนน/นักเรียน/การเข้าเรียน มองเห็นทุกอัน ไม่ต้องเดา
    (แตะตัวการ์ด = เช็คชื่อ ซึ่งเป็นงานประจำวัน เลยไม่ต้องมีปุ่มซ้ำ) */
@@ -540,4 +542,8 @@ body.ck-one-class .ck-class-switch::after { display: none; }
 .ck-hdr-action i { color: var(--primary); }
 /* ยกเว้นปุ่มที่มีชุดสีของตัวเอง (พิมพ์/PDF, Export Excel) — ไอคอนตามสีตัวอักษรของปุ่ม */
 .ck-hdr-action.is-tinted i { color: inherit; }
+/* สีไอคอนแยกตามฟังก์ชัน (กรอบ/ตัวอักษรคงเดิม) — ใช้ได้ทุกปุ่มหัวจอ */
+.ck-ic-purple i { color: #8b5cf6 !important; }
+.ck-ic-blue i { color: #3b7fd4 !important; }
+.ck-ic-gray i { color: var(--text-secondary) !important; }
 
