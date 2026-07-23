@@ -4,8 +4,9 @@
 /* width:auto = คอลัมน์ขนาดพอดีเนื้อหา ไม่ยืดเต็มจอตอนรายการน้อย (เพิ่มรายการค่อยขยาย) */
 .score-matrix-table { width: auto; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; }
 .score-matrix-table th, .score-matrix-table td { padding: 3px 4px; }
-/* จุดเริ่มหมวด — ไม่ตีเส้นกรอบแล้ว (ใช้ "สีพื้นหัวตาราง" บอกกลุ่มแทน จะได้ไม่จ้อง/ไม่รก) คงคลาสไว้ให้ JS/อนาคตใช้ */
-.score-matrix-table .sc-cat-start { }
+/* จุดเริ่มหมวด = เส้นคั่นแนวตั้งบาง ๆ คั่นระหว่างกลุ่มคะแนน (ก่อน/หลัง | กลางภาค | ปลายภาค)
+   อยู่ทั้ง thead และ tbody (คลาสเดียวกัน) จึงลากต่อเป็นเส้นเดียวจากหัวลงถึงแถวล่างสุด */
+.score-matrix-table .sc-cat-start { border-left: 1px solid var(--border-color); }
 /* หัวตาราง = ไม่ตีเส้น ไม่มีเงา (เอาเงาลอยออก) — คั่นหัว/เนื้อด้วยเส้นล่างเส้นเดียว (ดูที่ tbody tr แรก) */
 .score-matrix-table thead th {
   font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
