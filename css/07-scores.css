@@ -26,12 +26,17 @@
   color: var(--text-main); background: transparent;
   border: none; font-size: 0.95rem; white-space: normal; line-height: 1.3;
   vertical-align: top; padding-top: 8px;
+  /* เส้นใต้คลุม "ช่วงกว้างของกลุ่ม" — บอกขอบเขต คะแนนเก็บ / สอบกลางภาค / สอบปลายภาค
+     เลือกแบบนี้แทนการตีกรอบเต็ม เพราะกรอบทำให้ภาพรวมหนักและกลับไปเป็นทรงกล่องที่เอาออกไปแล้ว */
+  border-bottom: 2px solid #cbd5e1; padding-bottom: 5px;
 }
 /* หัวหมวด/ระยะ = ชื่ออยู่บรรทัดเดียวไม่ตัดคำ, %+ตัวเลขอยู่ด้วยกัน — ช่องแคบก็ตกลงบรรทัดใหม่ทั้งก้อน
    หัวกลุ่มคร่อมหลายคอลัมน์ จึงขยายฟอนต์ได้โดยไม่ดันความกว้างตาราง (ต่างจากชื่อรายการ) */
-.score-matrix-table thead .sc-bk-name { display: inline-block; white-space: nowrap; font-size: 0.82rem; }
+.score-matrix-table thead .sc-bk-name { display: inline-block; white-space: nowrap; font-size: 0.82rem; vertical-align: top; }
 /* % = ตัวเลขเขียวเข้มบนพื้นขาว (เลิกใช้พื้นเขียวอ่อน เพราะเด่นจนแย่งสายตาจากชื่อรายการ) */
-.score-matrix-table thead .sc-bk-w { display: inline-block; white-space: nowrap; color: var(--primary-deep); }
+/* vertical-align:top ทั้งชื่อกลุ่มและ % — กันบรรทัดแรกเหลื่อมกันระหว่างกลุ่มกว้าง (อยู่บรรทัดเดียว)
+   กับกลุ่มแคบ (ตกบรรทัด) เพราะ <input> ของ % สูงกว่าตัวหนังสือ จะดันบรรทัดลงถ้าใช้ baseline */
+.score-matrix-table thead .sc-bk-w { display: inline-block; white-space: nowrap; color: var(--primary-deep); vertical-align: top; }
 /* หัวรายการ = สแต็กแนวตั้ง (ชื่อ / เต็ม+เฟือง) คุมกว้างไม่ให้ล้นคอลัมน์
    72px: วัดจริงแล้ว "ตัวชี้วัด 2.1" (ยาวสุดที่ใช้ประจำ) ต้องการ 58px + padding 12px = 70px → เผื่อ 2px
    (เดิม 78px เพราะคำว่า "เต็ม" ดันแถวล่างเป็น 70px — เปลี่ยนเป็น "/" แล้วปลดล็อกย่อได้)
@@ -69,7 +74,9 @@
 /* ป้ายหมวดคะแนน read-only ใน modal เพิ่มรายการ (แทน dropdown — fix ตามบล็อกที่กด) */
 .score-bucket-chip { padding: 9px 12px; border-radius: 8px; background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 0.85rem; border: 1px solid var(--primary-light-border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* หัวกลุ่มย่อยระยะ (ก่อน/หลังกลางภาค) ใต้ "คะแนนเก็บ" — โทนอ่อนกว่าหัวหมวด */
-.score-matrix-table thead .sc-phase-head { background: transparent; color: var(--text-muted); font-weight: 700; font-size: 0.84rem; text-align: center; white-space: normal; line-height: 1.3; vertical-align: middle; }
+/* หัวระยะ = ชิดบน ไม่ใช่กึ่งกลาง — กลุ่มที่มีรายการเดียว (ช่องแคบ) ข้อความจะตกเป็น 2 บรรทัด
+   ถ้าจัดกึ่งกลาง บรรทัดแรกของแต่ละกลุ่มจะไม่ตรงกัน (เช่น "หลังกลางภาค" ลอยสูงกว่า "ก่อนกลางภาค") */
+.score-matrix-table thead .sc-phase-head { background: transparent; color: var(--text-muted); font-weight: 700; font-size: 0.84rem; text-align: center; white-space: normal; line-height: 1.3; vertical-align: top; padding-top: 6px; }
 /* เส้นแบ่งกลุ่มบนแถวหัวหมวด/หัวระยะ — ต้องประกาศซ้ำที่ specificity สูงกว่า
    เพราะ `.sc-bucket-head { border:none }` (0,2,1) ชนะ `.sc-cat-start` (0,2,0) ทำให้เส้นหายเฉพาะ 2 แถวบน */
 .score-matrix-table thead .sc-bucket-head.sc-cat-start,
