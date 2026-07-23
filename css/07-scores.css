@@ -4,12 +4,19 @@
 /* width:auto = คอลัมน์ขนาดพอดีเนื้อหา ไม่ยืดเต็มจอตอนรายการน้อย (เพิ่มรายการค่อยขยาย) */
 .score-matrix-table { width: auto; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; }
 .score-matrix-table th, .score-matrix-table td { padding: 3px 4px; }
-/* จุดเริ่มหมวด — ไม่ตีเส้นกรอบแล้ว (ใช้ "สีพื้นหัวตาราง" บอกกลุ่มแทน จะได้ไม่จ้อง/ไม่รก) คงคลาสไว้ให้ JS/อนาคตใช้ */
-.score-matrix-table .sc-cat-start { }
+/* เส้นตารางแนวตั้ง "เบา ๆ" ทุกคอลัมน์ (หัว+ตัว) — ใช้แทนเงา ช่วยกวาดสายตาตามคอลัมน์
+   ใส่เฉพาะ border-right ด้านเดียว เส้นระหว่างช่องจึงไม่ซ้อนกันเป็น 2px */
+.score-matrix-table th, .score-matrix-table td { border-right: 1px solid #f0f2f5; }
+.score-matrix-table tr > *:last-child { border-right: none; }
+/* จุดเริ่มหมวด (ก่อน/หลังกลางภาค · กลางภาค · ปลายภาค) = เส้นเข้มขึ้นนิดเดียว บอกขอบกลุ่ม */
+.score-matrix-table .sc-cat-start { border-left: 1px solid var(--border-color); }
 /* หัวตาราง = ไม่ตีเส้น ไม่มีเงา (เอาเงาลอยออก) — คั่นหัว/เนื้อด้วยเส้นล่างเส้นเดียว (ดูที่ tbody tr แรก) */
 .score-matrix-table thead th {
   font-size: 0.78rem; font-weight: 700; color: var(--text-muted);
-  background: transparent; border: none; white-space: nowrap; vertical-align: middle;
+  background: transparent; white-space: nowrap; vertical-align: middle;
+  /* ตั้งเส้นแนวตั้งซ้ำที่นี่ด้วย — กฎนี้ specificity สูงกว่า `.score-matrix-table th`
+     ถ้าใช้ `border:none` เฉย ๆ เส้นตารางจะหายเฉพาะส่วนหัว (หัวกับตัวไม่ตรงกัน) */
+  border: none; border-right: 1px solid #f0f2f5;
 }
 /* คั่นหัวออกจากเนื้อตาราง = เส้นบางเส้นเดียวเต็มแนว (แทนเงา 3 ชั้นเดิม) วางที่ขอบบนของแถวข้อมูลแรก
    จึงลากยาวครบทุกคอลัมน์รวมช่องตรึงซ้าย/สรุปขวา ไม่ขาดเป็นช่วง */
@@ -24,15 +31,20 @@
 .score-matrix-table thead .sc-bk-name { display: inline-block; white-space: nowrap; font-size: 0.68rem; }
 /* % = สีเขียว accent เบา ๆ (แทนที่พื้นสีเดิม) */
 .score-matrix-table thead .sc-bk-w { display: inline-block; white-space: nowrap; color: var(--primary); }
-/* หัวรายการ = สแต็กแนวตั้ง 3 บรรทัด (ชื่อ / ระยะ / เต็ม+เฟือง) คุมกว้างไม่ให้ล้นคอลัมน์ */
-.score-matrix-table .sc-item-head { transition: var(--transition-normal); vertical-align: top; width: 78px; min-width: 78px; max-width: 78px; box-sizing: border-box; }
+/* หัวรายการ = สแต็กแนวตั้ง (ชื่อ / เต็ม+เฟือง) คุมกว้างไม่ให้ล้นคอลัมน์
+   72px: วัดจริงแล้ว "ตัวชี้วัด 2.1" (ยาวสุดที่ใช้ประจำ) ต้องการ 58px + padding 12px = 70px → เผื่อ 2px
+   (เดิม 78px เพราะคำว่า "เต็ม" ดันแถวล่างเป็น 70px — เปลี่ยนเป็น "/" แล้วปลดล็อกย่อได้)
+   ⚠️ ห้ามย่อต่ำกว่านี้ถ้ายังใช้ฟอนต์ 0.74rem — ชื่อจะโดน ellipsis จนแยก 1.1/1.2 ไม่ออก
+   ถ้าอยากแคบกว่านี้ต้องลดฟอนต์ชื่อเป็น 0.70rem ควบคู่กัน */
+.score-matrix-table .sc-item-head { transition: var(--transition-normal); vertical-align: top; width: 72px; min-width: 72px; max-width: 72px; box-sizing: border-box; }
 /* ชื่อรายการ — ดูเหมือนข้อความ คลิกพิมพ์แก้ได้ บรรทัดเดียว ยาวเกินเลื่อนในช่อง */
-.sc-item-name-input { display: block; width: 100%; box-sizing: border-box; text-align: center; text-overflow: ellipsis; font-weight: 700; font-size: 0.74rem; color: var(--text-main); border: 1px solid transparent; border-radius: 5px; padding: 2px 3px; background: transparent; }
+.sc-item-name-input { display: block; width: 100%; box-sizing: border-box; text-align: center; text-overflow: ellipsis; font-weight: 700; font-size: 0.74rem; color: var(--text-main); border: 1px solid transparent; border-radius: 5px; padding: 2px 1px; background: transparent; }
 .sc-item-name-input:hover { border-color: var(--border-color); background: #fff; }
 .sc-item-name-input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 2px var(--primary-light); text-overflow: clip; }
 /* แถวคะแนนเต็ม + ปุ่มตั้งค่า — บรรทัดล่างสุด */
 .sc-item-max-row { font-weight: 400; color: var(--text-muted); font-size: 0.66rem; display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 2px; }
-.sc-item-max-lbl { white-space: nowrap; }
+/* ตัวคั่น "/" หน้าคะแนนเต็ม (แทนคำว่า "เต็ม" เดิม) — สั้นกว่า 13px และเข้าชุดกับการ์ดมือถือที่ใช้ / อยู่แล้ว */
+.sc-item-max-lbl { white-space: nowrap; color: #c7c7cc; }
 .sc-item-max-input { width: 30px; text-align: center; font-size: 0.68rem; font-weight: 600; color: var(--text-main); border: 1px solid transparent; border-radius: 4px; padding: 1px 2px; background: transparent; font-variant-numeric: tabular-nums; }
 .sc-item-max-input:hover { border-color: var(--border-color); background: #fff; }
 .sc-item-max-input:focus { outline: none; border-color: var(--primary); background: #fff; }
@@ -69,7 +81,8 @@
 /* คอลัมน์ระบุตัวตน (เลขที่/รหัส/ชื่อ) ตรึงซ้าย — โทนเดียวกับหน้าเช็คชื่อ */
 .score-matrix-table .sc-c-no   { position: sticky; left: 0;     width: 48px;  min-width: 48px;  text-align: center; background: var(--bg-card); z-index: 2; color: var(--text-muted); font-weight: 700; }
 .score-matrix-table .sc-c-code { position: sticky; left: 48px;  width: 78px;  min-width: 78px;  text-align: center; background: var(--bg-card); z-index: 2; color: var(--text-muted); font-size: 0.84rem; font-variant-numeric: tabular-nums; }
-.score-matrix-table .sc-c-name { position: sticky; left: 126px; min-width: 150px; background: var(--bg-card); z-index: 2; text-align: left; font-weight: 700; color: var(--text-main); font-size: 0.92rem; white-space: nowrap; box-shadow: 9px 0 10px -6px rgba(0,0,0,0.14); }
+/* ขอบขวาคอลัมน์ชื่อ = เส้นทึบ (เดิมเป็นเงาฟุ้ง) — เอาเงาออกตามที่ตกลง ยังแยกช่องตรึงซ้ายออกจากคะแนนได้ */
+.score-matrix-table .sc-c-name { position: sticky; left: 126px; min-width: 150px; background: var(--bg-card); z-index: 2; text-align: left; font-weight: 700; color: var(--text-main); font-size: 0.92rem; white-space: nowrap; border-right: 1px solid var(--border-color); }
 .score-matrix-table thead .sc-c-no, .score-matrix-table thead .sc-c-code, .score-matrix-table thead .sc-c-name { z-index: 3; }
 .score-matrix-table .sc-c-manage { text-align: center; white-space: nowrap; }
 .score-matrix-table .sc-manage-actions { display: flex; justify-content: center; align-items: center; gap: 6px; }
