@@ -29,28 +29,13 @@ function loadWebAttendanceMatrix() {
 }
 
 // ==================== REPORTS ====================
-function renderWebReports() {
-  document.getElementById('web-reports-selection-view').style.display = 'block';
-  document.getElementById('web-reports-detail-view').style.display = 'none';
-  const list = document.getElementById('web-reports-class-list');
-  list.innerHTML = '';
-  if (appState.classes.length === 0) {
-    list.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">ไม่มีห้องเรียน</div>';
-    return;
-  }
-  appState.classes.forEach(c => {
-    const pct = calculateAttendancePercentage(c);
-    const col = getClassColor(c.id);
-    list.innerHTML += `<div class="card" style="padding:20px;cursor:pointer;border-top:4px solid ${col.text};" onclick="viewWebClassReport('${c.id}')"><strong style="font-size:1.05rem;">${c.subject}</strong><span class="subtitle">${c.className} · <span style="font-weight:700;color:var(--text-main);">${c.students.length}</span> คน</span><div class="progress-container" style="margin-top:8px;"><div class="progress-label-row"><span>เข้าเรียน</span><span style="font-weight:800;color:${col.text};">${pct}%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${col.text};"></div></div></div></div>`;
-  });
-}
+// หน้าเลือกวิชา (renderWebReports) ถูกยกเลิกแล้ว — เข้ารายงานผ่านการ์ดหน้าห้องเรียนวิชาสอนเท่านั้น
+// routing กลาง (navigateToWebScreen) เด้ง #reports ที่ไม่มีห้อง → หน้าห้องเรียนวิชาสอน
 
 function goBackToWebReportsSelection() {
-  // มือถือ: เข้าหน้านี้จากการ์ดห้อง → กลับหน้าห้องเรียน ให้เหมือนแท็บอื่นในห้อง (คะแนน/นักเรียน)
-  // เดสก์ท็อปยังกลับไปหน้าเลือกห้องของรายงานเหมือนเดิม
-  if (window.matchMedia('(max-width: 768px)').matches) { navigateToWebScreen('classrooms'); return; }
-  document.getElementById('web-reports-selection-view').style.display = 'block';
-  document.getElementById('web-reports-detail-view').style.display = 'none';
+  // เข้ารายงานจากการ์ดห้อง → กลับหน้าห้องเรียนวิชาสอน (การ์ดคือตัวเลือกห้องอยู่แล้ว)
+  // เลิกหน้าเลือกวิชาของรายงานแล้ว — เดสก์ท็อป/มือถือกลับที่เดียวกัน
+  navigateToWebScreen('classrooms');
 }
 
 function switchWebReportTab(tab) {

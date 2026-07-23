@@ -199,9 +199,15 @@ function switchClassTab(tab, classId) {
   else if (tab === 'reports') viewWebClassReport(classId);
 }
 
+// ทางเข้ารายงานรายวิชา (จากการ์ดห้อง/เมนู) → แนบ classId ผ่าน routing กลาง
+// navigateToWebScreen จะเรียก showWebClassReport ให้เอง (ไม่มีห้อง = เด้งกลับห้องเรียนวิชาสอน)
 function viewWebClassReport(classId) {
+  navigateToWebScreen('reports', classId);
+}
+
+// เรนเดอร์รายละเอียดรายงานของวิชา — เรียกจาก routing dispatch หลังสลับหน้าแล้ว
+function showWebClassReport(classId) {
   currentClassId = classId;
-  navigateToWebScreen('reports');
   document.getElementById('web-reports-selection-view').style.display = 'none';
   document.getElementById('web-reports-detail-view').style.display = 'block';
   const c = appState.classes.find(x => x.id === classId);
