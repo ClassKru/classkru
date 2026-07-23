@@ -199,9 +199,11 @@ function renderScoreMatrix(c) {
 
   // ---- หัวตาราง 3 ชั้นแบบ ปพ.5 ----
   const nameCols = `<th class="sc-c-no" rowspan="3">เลขที่</th><th class="sc-c-code" rowspan="3">รหัส</th><th class="sc-c-name" rowspan="3">ชื่อ-นามสกุล</th>`;
-  const sumCols = `<th rowspan="3" style="text-align:center;min-width:56px;">รวม<div style="font-weight:400;font-size:0.66rem;color:${sumW === 100 ? 'inherit' : 'var(--color-absent)'};">(${sumW})</div></th>
-    <th rowspan="3" style="text-align:center;min-width:54px;">เกรด</th>
-    <th class="sc-c-manage" rowspan="3" style="min-width:74px;">จัดการ</th>`;
+  // sc-cat-start บนคอลัมน์สรุป = เส้นคั่นหนา 2px ชุดเดียวกับขอบหมวด
+  // ให้ขอบท้าย "สอบปลายภาค" และเส้นระหว่าง รวม | เกรด | จัดการ หนาเท่ากัน
+  const sumCols = `<th class="sc-cat-start" rowspan="3" style="text-align:center;min-width:56px;">รวม<div style="font-weight:400;font-size:0.66rem;color:${sumW === 100 ? 'inherit' : 'var(--color-absent)'};">(${sumW})</div></th>
+    <th class="sc-cat-start" rowspan="3" style="text-align:center;min-width:54px;">เกรด</th>
+    <th class="sc-c-manage sc-cat-start" rowspan="3" style="min-width:74px;">จัดการ</th>`;
 
   // ชั้น 1: คะแนนเก็บ (คลุมก่อน+หลัง, โชว์ % รวมอ่านอย่างเดียว) | สอบกลางภาค % | สอบปลายภาค %
   let r1 = '<tr>' + nameCols
@@ -247,7 +249,7 @@ function renderScoreMatrix(c) {
         onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;
     });
     body += scoreSummaryCells(c, s);
-    body += `<td class="sc-c-manage"><div class="sc-manage-actions">
+    body += `<td class="sc-c-manage sc-cat-start"><div class="sc-manage-actions">
       <button class="d-manage-btn" title="แก้ไขข้อมูล" onclick="currentClassId='${c.id}';openStudentDetailModal('${s.id}','${c.id}')"><i class="hgi-stroke hgi-edit-02"></i></button>
       <button class="d-manage-btn danger" title="ลบรายชื่อ" onclick="deleteStudentFromScores('${c.id}','${s.id}')"><i class="hgi-stroke hgi-delete-02"></i></button>
     </div></td>`;
@@ -261,8 +263,8 @@ function renderScoreMatrix(c) {
 // เซลล์สรุปท้ายแถว (รวม / เกรด) — id ต่อคน เพื่ออัปเดตแบบไม่ re-render ทั้งตาราง
 function scoreSummaryCells(c, s) {
   const r = computeStudentScore(c, s.id);
-  return `<td id="sc-total-${s.id}" class="sc-total">${r.total}</td>
-    <td id="sc-grade-${s.id}" class="sc-grade">${gradeCellHtml(c, s)}</td>`;
+  return `<td id="sc-total-${s.id}" class="sc-total sc-cat-start">${r.total}</td>
+    <td id="sc-grade-${s.id}" class="sc-grade sc-cat-start">${gradeCellHtml(c, s)}</td>`;
 }
 
 // เกรดที่คำนวณได้ (override ยังใช้ได้จากข้อมูลเดิม แต่ไม่มีตัวแก้ inline แล้ว — ปรับเกณฑ์ที่หน้าตั้งค่า)
