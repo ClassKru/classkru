@@ -24,6 +24,9 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
 :root {
   --primary: #1d9e75;
   --primary-hover: #158860;
+  /* เขียวเข้มสำหรับ "ตัวอักษรบนพื้นขาว" — คอนทราสต์พอสำหรับตัวเลขเล็ก (เช่น % บนหัวตารางคะแนน)
+     ใช้แทนการใส่พื้นเขียวอ่อน ซึ่งเด่นจนแย่งสายตาจากตัวหนังสือ */
+  --primary-deep: #0f6e56;
   --primary-light: #ecf9f6;
   --primary-light-border: #b3e5d8;
   
