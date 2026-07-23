@@ -62,6 +62,14 @@ function navigateToWebScreen(screenId, param) {
   // เมนู 'excel' ถูกตัดออกแล้ว (นำเข้าตารางสอนย้ายไปหน้าตารางสอน) — กัน state เก่าที่ค้าง
   if (screenId === 'excel') screenId = 'timetable';
 
+  // คะแนน/รายงาน = เข้าเฉพาะ "รายวิชา" ผ่านการ์ดหน้าห้องเรียนวิชาสอน (เลิกหน้าเลือกวิชาแล้ว)
+  // ไม่มีห้องแนบมา (ลิงก์ตรง #scores/#reports · refresh · กด back) → เด้งกลับหน้าห้องเรียนวิชาสอน
+  let detailClassId = null;
+  if (screenId === 'scores' || screenId === 'reports') {
+    detailClassId = (param && appState.classes.some(c => c.id === param)) ? param : null;
+    if (!detailClassId) { navigateToWebScreen('classrooms'); return; }
+  }
+
   // ผู้ใช้เปลี่ยนไปหน้าอื่นที่ไม่ใช่ deep-link แล้ว → ยกเลิก deep-link (กัน sync ดึงกลับ)
   if (pendingDeepLink && screenId !== pendingDeepLink) pendingDeepLink = null;
 
@@ -131,8 +139,8 @@ function navigateToWebScreen(screenId, param) {
   else if (screenId === 'students') renderWebStudents();
   else if (screenId === 'timetable') renderWebTimetable();
   else if (screenId === 'attendance') loadWebAttendanceMatrix();
-  else if (screenId === 'scores') renderWebScores();
-  else if (screenId === 'reports') renderWebReports();
+  else if (screenId === 'scores') viewClassScores(detailClassId);
+  else if (screenId === 'reports') showWebClassReport(detailClassId);
 }
 
 // ==================== หน้าเช็คชื่อในฐานะ "หน้า" จริง ====================

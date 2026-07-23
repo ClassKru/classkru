@@ -122,28 +122,8 @@ function studentAttendancePct(c, sid) {
 }
 
 // ==================== หน้าเลือกวิชา (selection view) ====================
-function renderWebScores() {
-  const sel = document.getElementById('web-scores-selection-view');
-  const detail = document.getElementById('web-scores-detail-view');
-  if (sel) sel.style.display = 'block';
-  if (detail) detail.style.display = 'none';
-  const list = document.getElementById('web-scores-class-list');
-  if (!list) return;
-  list.innerHTML = '';
-  if (appState.classes.length === 0) {
-    list.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">ยังไม่มีห้องเรียน — เพิ่มห้องเรียนวิชาสอนก่อน</div>';
-    return;
-  }
-  appState.classes.forEach(c => {
-    const sc = ensureScores(c);
-    const col = getClassColor(c.id);
-    list.innerHTML += `<div class="card" style="padding:20px;cursor:pointer;border-top:4px solid ${col.text};" onclick="viewClassScores('${c.id}')">
-      <strong style="font-size:1.05rem;">${c.subject}</strong>
-      <span class="subtitle">${c.className} · <span style="font-weight:700;color:var(--text-main);">${c.students.length}</span> คน</span>
-      <div style="margin-top:10px;font-size:0.82rem;color:var(--text-muted);"><i class="hgi-stroke hgi-task-01"></i> รายการคะแนน <strong style="color:${col.text};">${sc.items.length}</strong> รายการ</div>
-    </div>`;
-  });
-}
+// หน้าเลือกวิชา (renderWebScores) ถูกยกเลิกแล้ว — เข้าคะแนนผ่านการ์ดหน้าห้องเรียนวิชาสอนเท่านั้น
+// routing กลาง (navigateToWebScreen) เด้ง #scores ที่ไม่มีห้อง → หน้าห้องเรียนวิชาสอน
 
 function goBackToWebScoresSelection() {
   // เข้าคะแนนจากการ์ดห้อง → กลับไปหน้าห้องเรียน (การ์ดคือตัวเลือกห้องอยู่แล้ว)
@@ -154,9 +134,10 @@ function goBackToWebScoresSelection() {
 let scoreCurrentClassId = null;
 
 // ทางเข้าหลักจากการ์ดห้อง (ข้างปุ่มเช็คชื่อ) → เข้าตารางคะแนนของห้องนั้นตรง ๆ
+// แนบ classId ผ่าน routing กลาง → navigateToWebScreen จะเรียก viewClassScores ให้เอง
+// (ไม่มีห้อง = เด้งกลับหน้าห้องเรียนวิชาสอน — เลิกหน้าเลือกวิชาแล้ว)
 function openClassScores(classId) {
-  navigateToWebScreen('scores');
-  viewClassScores(classId);
+  navigateToWebScreen('scores', classId);
 }
 
 // เปิดฮับเครื่องมือช่วยสอนจากหน้าคะแนน — เซ็ต context ห้องให้เครื่องมือ (สุ่มชื่อ ฯลฯ) ชี้ห้องคะแนนนี้
