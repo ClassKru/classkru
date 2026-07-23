@@ -224,13 +224,13 @@ function renderScoreMatrix(c) {
 
   // ชั้น 1: คะแนนเก็บ (คลุมก่อน+หลัง, โชว์ % รวมอ่านอย่างเดียว) | สอบกลางภาค % | สอบปลายภาค %
   let r1 = '<tr>' + nameCols
-    + `<th class="sc-bucket-head sc-cat-start" colspan="${collectCount}">คะแนนเก็บ <span class="sc-w-readonly">${collectW}%</span></th>`;
-  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${cspan(g)}" rowspan="2">${g.label} ${wInput(g.key)}</th>`; });
+    + `<th class="sc-bucket-head sc-cat-start" colspan="${collectCount}"><span class="sc-bk-name">คะแนนเก็บ</span> <span class="sc-bk-w sc-w-readonly">${collectW}%</span></th>`;
+  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${cspan(g)}" rowspan="2"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}</span></th>`; });
   r1 += sumCols + '</tr>';
 
   // ชั้น 2: ระยะย่อย + สัดส่วน % แยก ก่อน/หลังกลางภาค
   let r2 = '<tr>';
-  collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${cspan(g)}">${g.label} ${wInput(g.key)}</th>`; });
+  collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${cspan(g)}"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}</span></th>`; });
   r2 += '</tr>';
 
   // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) — บล็อกว่างเป็นปุ่ม + / รายการท้ายบล็อกมีปุ่ม + ลอยเกาะขอบขวา
@@ -671,4 +671,152 @@ function renderMobileStudentPanel(c, sid) {
     <div class="msc-summary" id="msc-summary">${mobileScoreSummaryHtml(c, sid)}</div>
     ${buckets}
   </div>`;
+}
+
+
+// ==================================================================
+// ==========  นำเข้า / ส่งออก / เทมเพลต คะแนน (ปพ.5)  =============
+// ==================================================================
+// โครงคอลัมน์ (round-trip): เลขที่ | เลขประจำตัว | ชื่อ-สกุล | [รายการคะแนนราย bucket] | รวม | ระดับผลการเรียน
+//  · export/template ใช้โครงเดียวกัน (template = ช่องคะแนนว่าง) → ครูกรอกแล้ว import กลับได้ทันที
+//  · import จับคู่คอลัมน์ด้วย "ชื่อรายการ" ให้ตรงกับ item ในห้อง — คอลัมน์รวม/เกรด อ่านอย่างเดียว ไม่ import
+
+const SC_BUCKET_GROUP_LABEL = {
+  before: 'คะแนนเก็บก่อนกลางภาค',
+  after:  'คะแนนเก็บหลังกลางภาค',
+  mid:    'สอบกลางภาค',
+  final:  'สอบปลายภาค'
+};
+
+// รายการคะแนนเรียงตามลำดับ bucket (ก่อน→หลัง→กลาง→ปลาย)
+function scoreOrderedItems(c) {
+  const sc = ensureScores(c);
+  const items = [];
+  ['before', 'after', 'mid', 'final'].forEach(bk => {
+    sc.items.filter(i => i.bucket === bk).forEach(it => items.push(it));
+  });
+  return items;
+}
+
+function scoreFileBase(c) {
+  const safe = (String(c.subject || 'คะแนน') + '_' + String(c.className || '')).replace(/[\\/:*?"<>|]/g, '').trim();
+  return safe || 'คะแนน';
+}
+
+// สร้างตาราง 2 มิติ (AOA) + merge สำหรับ xlsx — ใช้ร่วม export/template (withData=false → ช่องว่าง)
+function buildScoreSheet(c, withData) {
+  const sc = ensureScores(c);
+  const items = scoreOrderedItems(c);
+  const idCols = ['เลขที่', 'เลขประจำตัว', 'ชื่อ-สกุล'];
+  const nID = idCols.length;
+  const width = nID + items.length + 2;   // + รวม + เกรด
+
+  // แถว 0: ป้ายกลุ่ม (merge เหนือรายการของ bucket เดียวกัน) — ช่องระบุตัวตน/สรุปเว้นว่าง
+  const groupRow = new Array(width).fill('');
+  const merges = [];
+  let ci = nID;
+  ['before', 'after', 'mid', 'final'].forEach(bk => {
+    const cnt = items.filter(i => i.bucket === bk).length;
+    if (cnt === 0) return;
+    groupRow[ci] = SC_BUCKET_GROUP_LABEL[bk];
+    if (cnt > 1) merges.push({ s: { r: 0, c: ci }, e: { r: 0, c: ci + cnt - 1 } });
+    ci += cnt;
+  });
+
+  // แถว 1: หัวคอลัมน์เครื่องอ่านได้ · แถว 2: คะแนนเต็ม
+  const headRow = [...idCols, ...items.map(i => i.name), 'รวม', 'ระดับผลการเรียน'];
+  const maxRow  = ['คะแนนเต็ม', '', '', ...items.map(i => Number(i.max) || 0), 100, ''];
+
+  const aoa = [groupRow, headRow, maxRow];
+  c.students.forEach((s, idx) => {
+    const row = [s.no || (idx + 1), s.studentCode || '', s.name];
+    items.forEach(it => {
+      const v = withData ? clampMark((sc.marks[it.id] || {})[s.id], it.max) : '';
+      row.push(v === '' ? '' : Number(v));
+    });
+    row.push(withData ? computeStudentScore(c, s.id).total : '');
+    row.push(withData ? effectiveGrade(c, s.id) : '');
+    aoa.push(row);
+  });
+
+  const cols = [{ wch: 6 }, { wch: 12 }, { wch: 24 }, ...items.map(() => ({ wch: 9 })), { wch: 8 }, { wch: 12 }];
+  return { aoa, merges, cols };
+}
+
+// คะแนนราย "ส่วน" (ถ่วงน้ำหนักตาม ratio แล้ว) — ใช้กับฟอร์มราชการ: keys=['before','after'] = หน่วยการเรียน
+function _writeSheet(c, built, suffix, okMsg) {
+  const ws = XLSX.utils.aoa_to_sheet(built.aoa);
+  if (built.merges && built.merges.length) ws['!merges'] = built.merges;
+  ws['!cols'] = built.cols;
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'คะแนน');
+  XLSX.writeFile(wb, `${scoreFileBase(c)}_${suffix}.xlsx`);
+  showToast(okMsg, 'success');
+}
+
+// ---- ส่งออก Excel (ตารางคะแนนรายชิ้น + คะแนนเต็ม — ไว้เก็บบันทึก/พิมพ์) ----
+function exportScoresExcel() {
+  const c = appState.classes.find(x => x.id === scoreCurrentClassId);
+  if (!c) { showToast('ยังไม่ได้เลือกห้อง', 'warning'); return; }
+  if (!c.students.length) { showToast('ห้องนี้ยังไม่มีนักเรียน', 'warning'); return; }
+  try { _writeSheet(c, buildScoreSheet(c, true), 'คะแนน', 'ส่งออก Excel เรียบร้อย'); closeScoreExportMenu(); }
+  catch (err) { showToast('ส่งออกไม่ได้: ' + err.message, 'error'); }
+}
+
+// ---- ส่งออก PDF (พิมพ์ผ่านเบราว์เซอร์ → Save as PDF) ----
+function exportScoresPDF() {
+  const c = appState.classes.find(x => x.id === scoreCurrentClassId);
+  if (!c) { showToast('ยังไม่ได้เลือกห้อง', 'warning'); return; }
+  if (!c.students.length) { showToast('ห้องนี้ยังไม่มีนักเรียน', 'warning'); return; }
+  const sc = ensureScores(c);
+  const r = sc.config.ratio;
+  const items = scoreOrderedItems(c);
+
+  // หัวกลุ่ม (colspan ตามจำนวนรายการใน bucket)
+  let grpTh = '';
+  ['before', 'after', 'mid', 'final'].forEach(bk => {
+    const cnt = items.filter(i => i.bucket === bk).length;
+    if (cnt === 0) return;
+    grpTh += `<th colspan="${cnt}" class="grp">${SC_BUCKET_GROUP_LABEL[bk]}</th>`;
+  });
+  const itemTh = items.map(i => `<th class="it">${escapeScore(i.name)}</th>`).join('');
+  const maxTh = items.map(i => `<th class="mx">${Number(i.max) || 0}</th>`).join('');
+  const bodyRows = c.students.map((s, idx) => {
+    const cells = items.map(it => { const v = clampMark((sc.marks[it.id] || {})[s.id], it.max); return `<td>${v === '' ? '' : v}</td>`; }).join('');
+    return `<tr><td>${s.no || (idx + 1)}</td><td>${escapeScore(s.studentCode || '')}</td><td class="nm">${escapeScore(s.name)}</td>${cells}<td class="tt">${computeStudentScore(c, s.id).total}</td><td class="gd">${escapeScore(effectiveGrade(c, s.id))}</td></tr>`;
+  }).join('');
+  const ratioTxt = `คะแนนเก็บ ${(Number(r.before) || 0) + (Number(r.after) || 0)}% · สอบกลางภาค ${Number(r.mid) || 0}% · สอบปลายภาค ${Number(r.final) || 0}%`;
+  const css = `*{box-sizing:border-box;} body{font-family:'Sarabun','TH Sarabun New',system-ui,sans-serif;color:#111;margin:16px;}
+  h2{margin:0 0 2px;font-size:18px;} .sub{color:#555;font-size:12px;margin-bottom:10px;}
+  table{width:100%;border-collapse:collapse;font-size:11px;} th,td{border:1px solid #999;padding:3px 4px;text-align:center;}
+  thead th{background:#eef5f2;} th.grp{background:#e3f4ec;} td.nm{text-align:left;white-space:nowrap;} td.tt{font-weight:700;background:#f3faf6;}
+  td.gd{font-weight:700;} tbody tr:nth-child(even) td{background:#fbfcfc;} @page{size:A4 landscape;margin:10mm;}`;
+  const html = `<!doctype html><html lang="th"><head><meta charset="utf-8"><title>${escapeScore(scoreFileBase(c))}_คะแนน</title><style>${css}</style></head><body>
+  <h2>บันทึกคะแนน — ${escapeScore(c.subject || '')} ${escapeScore(c.className || '')}</h2>
+  <div class="sub">สัดส่วนคะแนน: ${ratioTxt} · จำนวนนักเรียน ${c.students.length} คน</div>
+  <table><thead>
+    <tr><th rowspan="2">เลขที่</th><th rowspan="2">เลขประจำตัว</th><th rowspan="2">ชื่อ-สกุล</th>${grpTh}<th rowspan="2">รวม</th><th rowspan="2">ระดับ<br>ผลการเรียน</th></tr>
+    <tr>${itemTh}</tr>
+    <tr><th colspan="3" style="text-align:right">คะแนนเต็ม</th>${maxTh}<th>100</th><th></th></tr>
+  </thead><tbody>${bodyRows}</tbody></table>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { showToast('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — อนุญาต popup แล้วลองใหม่', 'warning'); return; }
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => { try { w.print(); } catch (e) {} }, 350);
+  closeScoreExportMenu();
+}
+
+// ---- เมนูส่งออก (mini modal) ----
+function openScoreExportMenu() {
+  const c = appState.classes.find(x => x.id === scoreCurrentClassId);
+  if (!c) { showToast('ยังไม่ได้เลือกห้อง', 'warning'); return; }
+  document.getElementById('modal-score-export').classList.add('show');
+}
+function closeScoreExportMenu() {
+  const m = document.getElementById('modal-score-export');
+  if (m) m.classList.remove('show');
 }

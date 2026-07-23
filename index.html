@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=183">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=183">
-  <link rel="stylesheet" href="css/03-reports.css?v=183">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=183">
-  <link rel="stylesheet" href="css/05-home.css?v=183">
-  <link rel="stylesheet" href="css/06-attendance.css?v=183">
-  <link rel="stylesheet" href="css/07-scores.css?v=183">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=183">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=195">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=195">
+  <link rel="stylesheet" href="css/03-reports.css?v=195">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=195">
+  <link rel="stylesheet" href="css/05-home.css?v=195">
+  <link rel="stylesheet" href="css/06-attendance.css?v=195">
+  <link rel="stylesheet" href="css/07-scores.css?v=195">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=195">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -329,7 +329,7 @@
             <div id="web-scores-class-list" class="class-cards-grid"></div>
           </div>
           <div id="web-scores-detail-view" style="display:none;">
-            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action ck-ic-purple" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn ck-hdr-action ck-ic-gray" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action" onclick="openScoreExportMenu()"><i class="hgi-stroke hgi-file-download"></i> <span class="hide-mobile">ส่งออก</span></button><button class="btn ck-hdr-action ck-ic-purple" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn ck-hdr-action ck-ic-gray" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
             <div id="scores-classtab-holder"></div>
             <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
           </div>
@@ -642,6 +642,28 @@
     </div>
   </div>
 
+  <!-- เมนูส่งออกคะแนน (Excel / PDF) -->
+  <div class="modal-overlay" id="modal-score-export" onclick="if(event.target===this) closeScoreExportMenu()" style="z-index:9000;">
+    <div class="bottom-sheet" style="width:420px;max-width:95vw;">
+      <div class="modal-header">
+        <h3><i class="hgi-stroke hgi-file-download" style="color:var(--primary);"></i> ส่งออกคะแนน</h3>
+        <button class="btn btn-text" onclick="closeScoreExportMenu()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-muted);margin:4px 0 16px;">เลือกรูปแบบไฟล์ — ไว้เก็บบันทึก/พิมพ์รายงานคะแนน</p>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <button class="btn" onclick="exportScoresExcel()" style="width:100%;padding:14px;display:flex;align-items:center;gap:12px;justify-content:flex-start;border:1px solid var(--border-color);">
+          <i class="hgi-stroke hgi-google-sheet" style="font-size:1.4rem;color:#2e7d32;"></i>
+          <span style="text-align:left;"><b style="display:block;">Excel (.xlsx)</b><span style="font-size:0.78rem;color:var(--text-muted);">ตารางคะแนนรายชิ้น พร้อมคะแนนเต็ม</span></span>
+        </button>
+        <button class="btn" onclick="exportScoresPDF()" style="width:100%;padding:14px;display:flex;align-items:center;gap:12px;justify-content:flex-start;border:1px solid var(--border-color);">
+          <i class="hgi-stroke hgi-file-01" style="font-size:1.4rem;color:#dc2626;"></i>
+          <span style="text-align:left;"><b style="display:block;">PDF (พิมพ์)</b><span style="font-size:0.78rem;color:var(--text-muted);">เปิดหน้าพิมพ์ → เลือก "บันทึกเป็น PDF"</span></span>
+        </button>
+      </div>
+      <div style="margin-top:20px;"><button class="btn" onclick="closeScoreExportMenu()" style="width:100%;">ปิด</button></div>
+    </div>
+  </div>
+
   <!-- WELCOME / ONBOARDING (เด้งเฉพาะครั้งแรกที่ยังไม่มีห้อง) -->
   <div class="modal-overlay" id="modal-welcome" style="z-index:12050;">
     <div class="bottom-sheet" style="width:420px;max-width:95vw;text-align:center;">
@@ -819,18 +841,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=183"></script>
-  <script defer src="js/auth.js?v=183"></script>
-  <script defer src="js/shell.js?v=183"></script>
-  <script defer src="js/dashboard.js?v=183"></script>
-  <script defer src="js/classrooms.js?v=183"></script>
-  <script defer src="js/students.js?v=183"></script>
-  <script defer src="js/timetable.js?v=183"></script>
-  <script defer src="js/reports.js?v=183"></script>
-  <script defer src="js/attendance.js?v=183"></script>
-  <script defer src="js/scores.js?v=183"></script>
-  <script defer src="js/tools.js?v=183"></script>
-  <script defer src="js/shared-utils.js?v=183"></script>
-  <script defer src="js/extras.js?v=183"></script>
+  <script defer src="js/core.js?v=195"></script>
+  <script defer src="js/auth.js?v=195"></script>
+  <script defer src="js/shell.js?v=195"></script>
+  <script defer src="js/dashboard.js?v=195"></script>
+  <script defer src="js/classrooms.js?v=195"></script>
+  <script defer src="js/students.js?v=195"></script>
+  <script defer src="js/timetable.js?v=195"></script>
+  <script defer src="js/reports.js?v=195"></script>
+  <script defer src="js/attendance.js?v=195"></script>
+  <script defer src="js/scores.js?v=195"></script>
+  <script defer src="js/tools.js?v=195"></script>
+  <script defer src="js/shared-utils.js?v=195"></script>
+  <script defer src="js/extras.js?v=195"></script>
 </body>
 </html>
