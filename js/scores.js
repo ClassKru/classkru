@@ -190,12 +190,12 @@ function renderScoreMatrix(c) {
     return `<input type="number" class="sc-weight-input" value="${w}" min="0" max="100" title="แก้สัดส่วน % (คลิกพิมพ์)" onclick="event.stopPropagation()" onchange="setCatWeight('${c.id}','${bk}',this)">%`;
   };
 
-  // ปุ่ม + เพิ่มรายการ — วางต่อท้าย % "ในกรอบหัวบล็อก" ของบล็อกนั้นเอง
-  // (เคยวางเกาะเส้นแบ่งคอลัมน์ ทั้งซ้ายและขวา แต่เส้นแบ่งเป็นของที่ 2 บล็อกใช้ร่วมกัน
-  //  เกาะด้านไหนก็อ่านได้ 2 แบบว่าเป็นปุ่มของบล็อกซ้ายหรือขวา — วางในกรอบจบปัญหา)
-  const addBtn = g => `<button class="sc-add-grp" title="เพิ่มรายการใน ${g.label}" onclick="event.stopPropagation();openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button>`;
+  // ปุ่ม + เพิ่มรายการ — วางต่อท้ายรายการสุดท้ายของบล็อก ชิดขอบขวา "ด้านใน" เส้นแบ่ง
+  // ต้องอยู่ในขอบเท่านั้น: เวอร์ชันแรกวางล้ำออกไปนอกขอบ (right ติดลบ) เลยไปนั่งในเขต
+  // บล็อกถัดไป อ่านแล้วงงว่าเพิ่มให้บล็อกไหน — อยู่ในขอบ = เป็นของบล็อกนี้ ไม่ต้องตีความ
+  const addBtn = g => `<button class="sc-add-last" title="เพิ่มรายการใน ${g.label}" onclick="event.stopPropagation();openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button>`;
 
-  // คอลัมน์เรียง (บล็อกว่าง = placeholder 1 คอลัมน์) + ธงเริ่มบล็อก (ตีเส้นขั้น)
+  // คอลัมน์เรียง (บล็อกว่าง = placeholder 1 คอลัมน์) + ธงเริ่ม/ท้ายบล็อก (ตีเส้นขั้น + เกาะปุ่มเพิ่ม)
   const cols = [];
   disp.forEach(g => {
     if (g.items.length) g.items.forEach((it, idx) => cols.push({ g, it, groupStart: idx === 0, groupEnd: idx === g.items.length - 1 }));
@@ -213,23 +213,23 @@ function renderScoreMatrix(c) {
   // ชั้น 1: คะแนนเก็บ (คลุมก่อน+หลัง, โชว์ % รวมอ่านอย่างเดียว) | สอบกลางภาค % | สอบปลายภาค %
   let r1 = '<tr>' + nameCols
     + `<th class="sc-bucket-head sc-cat-start" colspan="${collectCount}"><span class="sc-bk-name">คะแนนเก็บ</span> <span class="sc-bk-w sc-w-readonly">${collectW}%</span></th>`;
-  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${cspan(g)}" rowspan="2"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}${addBtn(g)}</span></th>`; });
+  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${cspan(g)}" rowspan="2"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}</span></th>`; });
   r1 += sumCols + '</tr>';
 
   // ชั้น 2: ระยะย่อย + สัดส่วน % แยก ก่อน/หลังกลางภาค
   let r2 = '<tr>';
-  collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${cspan(g)}"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}${addBtn(g)}</span></th>`; });
+  collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${cspan(g)}"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}</span></th>`; });
   r2 += '</tr>';
 
-  // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) — บล็อกว่างเป็นปุ่ม + (ปุ่มเพิ่มของบล็อกที่มีรายการอยู่บนหัวบล็อก)
+  // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) — บล็อกว่างเป็นปุ่ม + / รายการท้ายบล็อกมีปุ่ม + ชิดขอบในขวา
   let r3 = '<tr>';
-  cols.forEach(({ g, it, placeholder, groupStart }) => {
+  cols.forEach(({ g, it, placeholder, groupStart, groupEnd }) => {
     const cs = groupStart ? ' sc-cat-start' : '';
     if (placeholder) {
       r3 += `<th class="sc-item-head sc-item-empty${cs}"><button class="sc-add-item-btn" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button></th>`;
     } else {
       const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
-      r3 += `<th class="sc-item-head${cs}">
+      r3 += `<th class="sc-item-head${groupEnd ? ' sc-item-last' : ''}${cs}">${groupEnd ? addBtn(g) : ''}
         <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
         <div class="sc-item-max-row" title="คะแนนเต็ม"><span class="sc-item-max-lbl">/</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
       </th>`;
