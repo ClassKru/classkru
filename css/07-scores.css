@@ -70,16 +70,19 @@
    ⚠️ ต้องอยู่ในขอบเสมอ ห้ามใช้ right ติดลบให้ล้นออกไป: เส้นแบ่งเป็นของที่บล็อกซ้าย
    กับบล็อกขวาใช้ร่วมกัน ปุ่มที่คร่อมหรือล้ำออกนอกขอบจะอ่านได้ 2 แบบว่าเป็นของบล็อกไหน
    อยู่ในขอบ = เป็นของบล็อกนั้นชัดเจน ไม่ต้องตีความ
-   ทรง = "แท็บ" ด้านซ้ายตัดเรียบ มนไปทางขวา (radius 0 5px 5px 0) สูงกว่ากว้าง
+   ทรง = "แท็บ" ด้านขวาตัดเรียบแนบกับเส้นแบ่ง มนไปทางซ้าย (radius 5px 0 0 5px)
+   ด้านที่ชนเส้นต้องเป็นด้านตรงเสมอ ถึงจะจอยกับเส้นสนิทไม่มีช่องว่างที่มุมโค้ง
    วางชิดมุมล่างขวาระดับเดียวกับแถว "/ เต็ม ⚙" ไม่ใช่กึ่งกลางแนวตั้ง —
    แถวนั้นแคบ (~30px ใน 68px) เหลือที่ว่างริมขวาพอให้ปุ่มลงได้โดยไม่ทับชื่อรายการ
    ถ้าย้ายไปกึ่งกลางจะไปทับชื่อ แล้วต้องดันชื่อหนีจนเสี่ยง ellipsis
    ⚠️ สูงได้ราว 20px เท่านั้น สูงกว่านี้เริ่มชนแถวชื่อรายการด้านบน
    มือถือใช้ .msc-add (ปุ่มยาวมีข้อความ) ไม่เกี่ยวกับสองตัวนี้ */
-.sc-add-last, .sc-add-item-btn { width: 14px; height: 20px; border: none; border-radius: 0 5px 5px 0; background: var(--primary); color: #fff; cursor: pointer; font-size: 0.62rem; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transition: background 0.15s; }
+.sc-add-last, .sc-add-item-btn { position: absolute; right: 0; z-index: 6; width: 14px; height: 20px; border: none; border-radius: 5px 0 0 5px; background: var(--primary); color: #fff; cursor: pointer; font-size: 0.62rem; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: background 0.15s; }
 .sc-add-last:hover, .sc-add-item-btn:hover { background: var(--primary-deep); }
-.score-matrix-table th.sc-item-last { position: relative; }
-.sc-add-last { position: absolute; right: 1px; bottom: 2px; z-index: 6; }
+.score-matrix-table th.sc-item-last, .score-matrix-table th.sc-item-empty { position: relative; }
+.sc-add-last { bottom: 2px; }
+/* บล็อกว่างไม่มีแถวชื่อ/คะแนนเต็มมาแย่งที่ → จัดกึ่งกลางแนวตั้งได้ */
+.sc-add-item-btn { top: 50%; transform: translateY(-50%); }
 .score-matrix-table td.sc-cell-empty { background: #fafbfc; }
 /* ป้ายหมวดคะแนน read-only ใน modal เพิ่มรายการ (แทน dropdown — fix ตามบล็อกที่กด) */
 .score-bucket-chip { padding: 9px 12px; border-radius: 8px; background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 0.85rem; border: 1px solid var(--primary-light-border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
