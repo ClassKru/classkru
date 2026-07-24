@@ -105,6 +105,7 @@ Object.defineProperty(window, 'TIMETABLE_SLOTS_MASTER', { get: () => getPeriodSl
 const SB_URL = 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SB_KEY = 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
 let supabaseClient = null;
+let pendingPasswordRecovery = false;   // เข้าจากลิงก์ตั้งรหัสใหม่ในอีเมล
 
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -112,7 +113,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
 
     supabaseClient.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
+      if (event === 'PASSWORD_RECOVERY') {
+        // มาจากลิงก์ "ลืมรหัสผ่าน" ในอีเมล — ตั้งธงไว้ ให้ onLoginSuccess เปิด modal หลังแอปโผล่
+        // (เปิดตอนนี้ไม่ได้ modal z-index 9000 จะอยู่ใต้ login-overlay 10000)
+        pendingPasswordRecovery = true;
+        if (document.getElementById('main-app').style.display !== 'none') startPasswordRecovery();
+      } else if (event === 'SIGNED_IN' && session) {
         const email = session.user.email;
         localStorage.setItem('classmanager_email', email);
         if (document.getElementById('login-overlay').classList.contains('show')) {

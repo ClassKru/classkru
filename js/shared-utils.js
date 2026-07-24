@@ -555,15 +555,15 @@ function deleteAllDataEverywhere() {
     const email = localStorage.getItem('classmanager_email');
     if (email && supabaseClient) {
       try {
-        // Delete row; if that fails, overwrite with empty state so cloud is blank
-        const { error } = await supabaseClient.from('classmanager_profiles').delete().eq('email', email);
-        if (error) {
-          await supabaseClient.from('classmanager_profiles').upsert({
-            email,
-            state: { classes: [], timetable: [], lastModified: Date.now() },
-            updated_at: new Date().toISOString()
-          });
-        }
+        // ล้างเนื้อข้อมูลก่อนเสมอ แล้วค่อยลองลบทั้งแถว
+        // (ถ้าไม่มี DELETE policy ใน RLS คำสั่ง delete จะถูกบล็อกแบบเงียบ — คืน 0 แถว ไม่คืน error
+        //  ถ้าไปเช็ค error แล้วค่อยล้าง แผนสำรองจะไม่ทำงาน แล้วข้อมูลจะถูกดึงกลับมาตอนซิงก์ครั้งถัดไป)
+        await supabaseClient.from('classmanager_profiles').upsert({
+          email,
+          state: { classes: [], timetable: [], lastModified: Date.now() },
+          updated_at: new Date().toISOString()
+        });
+        await supabaseClient.from('classmanager_profiles').delete().eq('email', email);
       } catch (e) {
         console.warn('Delete cloud error:', e);
       }

@@ -17,6 +17,9 @@ function onLoginSuccess(email) {
   // เข้าหน้าตาม deep-link ถ้ามี (เช่นเปิดจาก LINE OA มาที่ #reports) ไม่งั้นหน้าหลัก
   navigateToWebScreen(pendingDeepLink || 'dashboard', pendingDeepLinkParam);
 
+  // มาจากลิงก์ตั้งรหัสใหม่ในอีเมล → เด้ง modal ตั้งรหัสทันทีหลังแอปโผล่
+  if (pendingPasswordRecovery) { pendingPasswordRecovery = false; startPasswordRecovery(); }
+
   setInterval(() => {
     const activeEmail = localStorage.getItem('classmanager_email');
     if (activeEmail && supabaseClient && document.visibilityState === 'visible') {
@@ -39,13 +42,83 @@ function setLoginStatus(msg, ok) {
   statusEl.innerText = msg;
 }
 
+// ==================== โหมดเข้าสู่ระบบ / สมัครใหม่ ====================
+// แยกเป็น 2 โหมดชัดเจน ครูจะได้รู้ว่ากำลังทำอะไรอยู่ (เดิมใช้ปุ่มเดียวกันแล้วงง)
+let authMode = 'login';
+
+function setAuthMode(mode) {
+  authMode = (mode === 'signup') ? 'signup' : 'login';
+  const isSignup = authMode === 'signup';
+
+  const tabOn  = { background: 'white', color: 'var(--text-main)', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' };
+  const tabOff = { background: 'transparent', color: 'var(--text-muted)', boxShadow: 'none' };
+  const apply = (id, s) => { const el = document.getElementById(id); if (el) Object.assign(el.style, s); };
+  apply('auth-tab-login',  isSignup ? tabOff : tabOn);
+  apply('auth-tab-signup', isSignup ? tabOn  : tabOff);
+
+  const show = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? '' : 'none'; };
+  show('signup-confirm-wrap', isSignup);
+  show('signup-note-wrap', isSignup);
+  show('forgot-pw-wrap', !isSignup);
+
+  const heading = document.getElementById('auth-heading');
+  if (heading) heading.innerText = isSignup ? 'สมัครใช้งาน ClassKru' : 'เข้าสู่ระบบ ClassKru';
+  const label = document.getElementById('btn-login-label');
+  if (label) label.innerText = isSignup ? 'สมัครใช้งานฟรี' : 'เข้าสู่ระบบ';
+  const icon = document.getElementById('btn-login-icon');
+  if (icon) icon.className = isSignup ? 'hgi-stroke hgi-user-add-01' : 'hgi-stroke hgi-login-03';
+
+  // ให้ browser เสนอ "สร้างรหัสผ่าน" ตอนสมัคร แทนที่จะเติมรหัสเดิม
+  const pw = document.getElementById('login-password');
+  if (pw) pw.autocomplete = isSignup ? 'new-password' : 'current-password';
+
+  setLoginStatus('', true);
+}
+
+function submitAuth() {
+  return authMode === 'signup' ? signUpWithPassword() : loginWithPassword();
+}
+
 function getLoginInputs() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   if (!email || !email.includes('@')) { setLoginStatus('กรุณากรอกอีเมลให้ถูกต้อง', false); return null; }
   if (!password || password.length < 6) { setLoginStatus('รหัสผ่านอย่างน้อย 6 ตัวอักษร', false); return null; }
+  if (authMode === 'signup') {
+    const confirm = document.getElementById('login-password-confirm').value;
+    if (password !== confirm) { setLoginStatus('รหัสผ่านทั้งสองช่องไม่ตรงกัน', false); return null; }
+  }
   if (!supabaseClient) { setLoginStatus('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้ง', false); return null; }
   return { email, password };
+}
+
+function getAuthRedirectTo() {
+  if (window.location.protocol === 'file:') return 'https://testapp-psi-seven.vercel.app/';
+  // พา query string กลับมาด้วย (เช่น ?v=213) ไม่งั้นเด้งกลับมาแล้วโดนแคช index.html ตัวเก่า
+  return window.location.origin + '/' + (window.location.search || '');
+}
+
+// ==================== ลืมรหัสผ่าน ====================
+// เดิมไม่มีทางนี้เลย — ครูพิมพ์รหัสผิดตอนสมัคร = เข้าไม่ได้ตลอดกาล
+async function sendPasswordReset() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email || !email.includes('@')) { setLoginStatus('กรอกอีเมลก่อน แล้วกด "ลืมรหัสผ่าน?" อีกครั้ง', false); return; }
+  if (!supabaseClient) { setLoginStatus('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้ง', false); return; }
+  setLoginBtnLoading(true);
+  setLoginStatus('กำลังส่งลิงก์...', true);
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: getAuthRedirectTo() });
+  setLoginBtnLoading(false);
+  if (error) { setLoginStatus(error.message || 'ส่งลิงก์ไม่สำเร็จ', false); return; }
+  // ไม่บอกว่าอีเมลนี้มีบัญชีหรือไม่ (กันคนไล่เดาว่าครูคนไหนใช้ระบบอยู่)
+  setLoginStatus('ส่งลิงก์ตั้งรหัสใหม่ไปที่อีเมลแล้ว — ถ้าไม่เจอ ลองดูในเมลขยะ', true);
+}
+
+// เปิดจากลิงก์ในอีเมล → Supabase ให้ session ชั่วคราวมา ต้องตั้งรหัสใหม่ทันที
+function startPasswordRecovery() {
+  if (typeof openChangePasswordModal !== 'function') return;
+  openChangePasswordModal();
+  const st = document.getElementById('cp-status');
+  if (st) { st.style.color = 'var(--text-muted)'; st.innerText = 'ตั้งรหัสผ่านใหม่เพื่อเข้าใช้งานต่อ'; }
 }
 
 function setLoginBtnLoading(loading) {
@@ -62,7 +135,7 @@ async function loginWithPassword() {
   setLoginBtnLoading(false);
   if (error) {
     const m = (error.message || '').toLowerCase();
-    if (m.includes('invalid login')) setLoginStatus('อีเมลหรือรหัสผ่านไม่ถูกต้อง (ถ้ายังไม่มีบัญชี กด "สมัครใช้งานฟรี")', false);
+    if (m.includes('invalid login')) setLoginStatus('อีเมลหรือรหัสผ่านไม่ถูกต้อง — ถ้าจำรหัสไม่ได้ กด "ลืมรหัสผ่าน?" ด้านล่าง', false);
     else setLoginStatus(error.message || 'เข้าสู่ระบบไม่สำเร็จ', false);
     return;
   }
@@ -79,7 +152,10 @@ async function signUpWithPassword() {
   setLoginBtnLoading(false);
   if (error) {
     const m = (error.message || '').toLowerCase();
-    if (m.includes('already registered') || m.includes('already been')) setLoginStatus('อีเมลนี้มีบัญชีแล้ว — กด "เข้าสู่ระบบ" ได้เลย', false);
+    if (m.includes('already registered') || m.includes('already been')) {
+      setAuthMode('login');
+      setLoginStatus('อีเมลนี้มีบัญชีแล้ว — พาไปหน้าเข้าสู่ระบบให้แล้ว', false);
+    }
     else setLoginStatus(error.message || 'สมัครไม่สำเร็จ', false);
     return;
   }
@@ -102,11 +178,8 @@ function togglePasswordVisibility() {
 }
 
 function loginWithGoogle() {
-  if (!supabaseClient) return;
-  const redirectTo = window.location.protocol === 'file:'
-    ? 'https://testapp-psi-seven.vercel.app/'
-    : window.location.origin + '/';
-  supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo } });
+  if (!supabaseClient) { setLoginStatus('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้ง', false); return; }
+  supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: getAuthRedirectTo() } });
 }
 
 // ==================== UTILITIES ====================
