@@ -66,21 +66,15 @@
 .sc-w-readonly { font-weight: 700; }
 /* บล็อกว่าง (ยังไม่มีรายการ) — ปุ่ม + เพิ่มรายการในระยะนั้น */
 .score-matrix-table .sc-item-empty { vertical-align: middle; text-align: center; min-width: 52px; }
-/* ปุ่มเพิ่มรายการ (จอคอม) = "แท็บ" ผอม เกาะเส้นแบ่ง "ซ้าย" ของบล็อก — ไม่ใช่วงกลมลอย
-   ทิศทางสำคัญกว่าตำแหน่ง: ด้านซ้ายตัดเรียบชนเส้นแบ่ง + มนไปทางขวา
-   = ชี้เข้าหาบล็อกตัวเอง อ่านได้ทันทีว่า "เพิ่มรายการในบล็อกนี้"
-   (เดิมเกาะขอบขวาของรายการสุดท้ายแล้วมนไปขวา → ชี้เข้าหาบล็อกถัดไป อ่านแล้วงง)
-   กว้าง 10px สูง 26px — ผอมกว่าวงกลมเดิม 22px กว่าครึ่ง ตารางแคบลงชัดเจน
-   พื้นทึบเขียว ไม่ใช้เส้นประสีอ่อนแบบเดิม: ที่ความกว้างเท่านี้เส้นประเหลือเป็นจุดจางๆ มองแทบไม่เห็น
+/* ปุ่มเพิ่มรายการ (จอคอม) — อยู่ "ในกรอบหัวบล็อก" ต่อท้าย % ของบล็อกนั้น
+   ⚠️ อย่าย้ายกลับไปเกาะเส้นแบ่งคอลัมน์อีก (เคยลองแล้วทั้งซ้ายและขวา):
+   เส้นแบ่งเป็นของที่บล็อกซ้ายกับบล็อกขวาใช้ร่วมกัน ปุ่มที่เกาะเส้นเลยอ่านได้ 2 แบบเสมอ
+   ว่าเป็นปุ่มของบล็อกไหน — ไม่ว่าจะวางด้านไหนหรือมนไปทางไหนก็แก้ไม่หาย
+   กรอบหัวบล็อกเป็นของบล็อกเดียว วางในกรอบจึงจบปัญหาโดยไม่ต้องพึ่งการตีความ
    มือถือใช้ .msc-add (ปุ่มยาวมีข้อความ) ไม่เกี่ยวกับสองตัวนี้ */
-.sc-add-item-btn, .sc-add-float { position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 6; width: 10px; height: 26px; border: none; border-radius: 0 4px 4px 0; background: var(--primary); color: #fff; cursor: pointer; font-size: 0.6rem; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: background 0.15s; }
-.sc-add-item-btn:hover, .sc-add-float:hover { background: var(--primary-deep); }
-/* ทั้งบล็อกว่าง (.sc-item-empty) และรายการแรกของบล็อก (.sc-cat-start) = คอลัมน์ที่ติดเส้นแบ่งซ้าย */
-.score-matrix-table th.sc-item-empty,
-.score-matrix-table th.sc-item-head.sc-cat-start { position: relative; }
-/* คอลัมน์แรกของบล็อกมีแท็บทับอยู่ 10px ทางซ้าย — เขยิบชื่อรายการหนี ไม่ให้ตัวแรกโดนบัง
-   เหลือที่ให้ข้อความ 62px ยังเกินที่ "ตัวชี้วัด 2.1" ต้องการ (58px ตามที่วัดไว้ด้านบน) */
-.score-matrix-table th.sc-item-head.sc-cat-start .sc-item-name-input { padding-left: 10px; }
+.sc-add-grp, .sc-add-item-btn { width: 16px; height: 16px; border: none; border-radius: 4px; background: var(--primary); color: #fff; cursor: pointer; font-size: 0.62rem; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; transition: background 0.15s; }
+.sc-add-grp:hover, .sc-add-item-btn:hover { background: var(--primary-deep); }
+.sc-add-grp { margin-left: 5px; }
 .score-matrix-table td.sc-cell-empty { background: #fafbfc; }
 /* ป้ายหมวดคะแนน read-only ใน modal เพิ่มรายการ (แทน dropdown — fix ตามบล็อกที่กด) */
 .score-bucket-chip { padding: 9px 12px; border-radius: 8px; background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 0.85rem; border: 1px solid var(--primary-light-border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
