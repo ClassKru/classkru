@@ -224,9 +224,10 @@ function renderScoreMatrix(c) {
       r3 += `<th class="sc-item-head sc-item-empty${cs}"><button class="sc-add-item-btn" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button></th>`;
     } else {
       const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
-      // ปุ่ม + ลอยเกาะขอบขวาของรายการสุดท้ายในบล็อก (ไม่กินคอลัมน์)
-      const floatAdd = groupEnd ? `<button class="sc-add-float" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button>` : '';
-      r3 += `<th class="sc-item-head${groupEnd ? ' sc-item-last' : ''}${cs}">${floatAdd}
+      // ปุ่ม + เกาะเส้นแบ่ง "ซ้าย" ของบล็อก = อยู่ในเขตบล็อกตัวเอง (ไม่กินคอลัมน์)
+      // เดิมเกาะขอบขวาของรายการสุดท้าย → ล้ำเข้าไปในบล็อกถัดไป อ่านแล้วงงว่าเพิ่มให้บล็อกไหน
+      const floatAdd = groupStart ? `<button class="sc-add-float" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button>` : '';
+      r3 += `<th class="sc-item-head${cs}">${floatAdd}
         <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
         <div class="sc-item-max-row" title="คะแนนเต็ม"><span class="sc-item-max-lbl">/</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
       </th>`;
