@@ -87,14 +87,14 @@
 
   /* แถบแท็บภายในห้อง — โชว์บนมือถือด้วย (bottom nav มีแค่เช็คชื่อ/คะแนน
      ทางเข้านักเรียนกับการเข้าเรียนอยู่ที่แถบนี้) ย่อให้เตี้ยลงเพื่อประหยัดพื้นที่แนวตั้ง */
-  .ck-classtab-bar { gap: 2px; padding: 3px; border-radius: 11px; width: 100%; }
+  .ck-classtab-bar { gap: 2px; padding: 3px; border-radius: calc(var(--radius-btn) + 3px); width: 100%; }
   /* ยกเว้นหน้าเช็คชื่อ — การ์ดปัดต้องการพื้นที่แนวตั้งมากที่สุด เลยตัดแถบแท็บออกเฉพาะมือถือ
      (ออกจากหน้านี้ไปแท็บอื่น: กด "กลับ" → แตะการ์ดห้อง) เดสก์ท็อปยังมีแถบเหมือนเดิม
      positionClassTabThumb กรอง offsetWidth>0 อยู่แล้ว แถบที่ซ่อนจึงไม่กวนการวัด */
   #checkin-classtab-holder { display: none !important; }
   .ck-classtab { flex: 1; justify-content: center; padding: 6px 4px; font-size: 0.78rem; gap: 4px; }
   .ck-classtab i { font-size: 0.85rem; }
-  .ck-classtab-thumb { top: 3px; bottom: 3px; border-radius: 8px; }
+  .ck-classtab-thumb { top: 3px; bottom: 3px; border-radius: var(--radius-btn); }
 
   /* หน้านักเรียน (มือถือ) — หัวจอกระชับ + ย้ายปุ่ม +/⋮ ขึ้นหัว, เหลือไอคอน (ซ่อนข้อความยาว) */
   /* padding เท่าหัวจอหน้าอื่น (9px 12px) ไม่งั้นหน้านักเรียนสูง 58 แทนที่จะเป็น 52 */
@@ -104,7 +104,7 @@
   .students-head-controls { width: 100%; gap: 8px; }
   .students-head-controls .form-control { max-width: 100% !important; flex: 1 1 100%; }
   .ck-hdr-btn {
-    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    width: 38px; height: 38px; border-radius: var(--radius-btn); flex-shrink: 0;
     border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-secondary);
     display: flex; align-items: center; justify-content: center; font-size: 1.15rem; cursor: pointer;
   }
@@ -257,7 +257,7 @@
 .ck-confirm-title { font-size: 1rem; font-weight: 800; color: var(--text-main); text-align: center; margin-bottom: 8px; }
 .ck-confirm-msg { font-size: 0.82rem; color: var(--text-muted); text-align: center; line-height: 1.6; margin-bottom: 20px; }
 .ck-confirm-btns { display: flex; gap: 10px; }
-.ck-confirm-btns button { flex: 1; padding: 10px; border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); transition: var(--transition-normal); }
+.ck-confirm-btns button { flex: 1; padding: 10px; border-radius: var(--radius-btn); font-size: 0.88rem; font-weight: 700; cursor: pointer; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); transition: var(--transition-normal); }
 .ck-confirm-btns .ck-confirm-ok { background: var(--color-absent); color: #fff; border-color: var(--color-absent); }
 .ck-confirm-btns .ck-confirm-ok.safe { background: var(--primary); border-color: var(--primary); }
 

@@ -81,7 +81,7 @@
   background: var(--bg-card);
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
   cursor: pointer;
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -148,7 +148,7 @@
   color: #7c3aed;
   font-size: 0.82rem;
   font-weight: 700;
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
   cursor: pointer;
   transition: var(--transition-normal);
 }
@@ -250,7 +250,7 @@
   border: 1.5px solid rgba(255,255,255,0.4);
   color: #fff;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;

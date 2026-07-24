@@ -5,7 +5,7 @@
   display: flex;
   background-color: var(--border-color);
   padding: 4px;
-  border-radius: 8px;
+  border-radius: calc(var(--radius-btn) + 4px);
   gap: 2px;
 }
 
@@ -18,7 +18,7 @@
   font-weight: 700;
   color: var(--text-muted);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--radius-btn);
   text-align: center;
   transition: var(--transition-normal);
 }
@@ -117,7 +117,7 @@
   color: var(--text-main);
   background: none;
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-btn);
   padding: 4px 10px 4px 6px;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;

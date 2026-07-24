@@ -62,6 +62,9 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
   --radius-sm: 12px;
   --radius-md: 20px;
   --radius-lg: 28px;
+  /* ความโค้งของ "ปุ่ม" ทั้งแอป — คุมที่เดียว แก้ตรงนี้จุดเดียวเปลี่ยนทุกหน้า (21 จุดใน 7 ไฟล์)
+     ปุ่มวงกลม 50% · การ์ด/modal · ช่องกรอก ไม่ใช้ตัวนี้ — ยังใช้ --radius-sm/md/lg ตามเดิม */
+  --radius-btn: 18px;
   --transition-normal: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -289,7 +292,7 @@ body {
 
 .btn {
   padding: 8px 16px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-btn);
   font-size: 0.85rem;
   font-weight: 700;
   cursor: pointer;
@@ -336,7 +339,7 @@ body {
   color: var(--text-secondary);
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: var(--radius-btn);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -354,7 +357,7 @@ body {
   color: var(--text-muted);
   padding: 4px 6px;
   margin: -4px -6px 0 0;
-  border-radius: 8px;
+  border-radius: var(--radius-btn);
   font-size: 1.2rem;
   line-height: 1;
   transition: background 0.15s, color 0.15s;
@@ -385,7 +388,7 @@ body {
   border: none;
   cursor: pointer;
   padding: 9px 12px;
-  border-radius: 9px;
+  border-radius: var(--radius-btn);
   font-size: 0.9rem;
   font-family: inherit;
   color: var(--text-main);
@@ -423,7 +426,7 @@ body.ck-one-class .ck-class-switch::after { display: none; }
   gap: 4px;
   background: var(--bg-light);
   border: 1px solid var(--border-color);
-  border-radius: 13px;
+  border-radius: calc(var(--radius-btn) + 4px);
   padding: 4px;
   margin: 0 auto 16px;
   width: fit-content;
@@ -442,7 +445,7 @@ body.ck-one-class .ck-class-switch::after { display: none; }
   font-size: 0.9rem;
   color: var(--text-secondary);
   padding: 7px 17px;
-  border-radius: 10px;
+  border-radius: var(--radius-btn);
   white-space: nowrap;
   transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
@@ -469,7 +472,7 @@ body.ck-one-class .ck-class-switch::after { display: none; }
   left: 0;
   z-index: 0;
   width: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-btn);
   /* แม่แบบเดียวกับแถบแท็บหน้ารายงาน (.report-tab-item.active): ขาว + เงา ไม่มีกรอบ */
   background: #fff;
   box-shadow: var(--shadow-sm);
@@ -532,7 +535,7 @@ body.ck-one-class .ck-class-switch::after { display: none; }
     height: 39px;
     padding: 0 14px;
     font-size: 0.82rem;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-btn);
     display: inline-flex;
     align-items: center;
     gap: 6px;
