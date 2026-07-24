@@ -93,7 +93,7 @@ function getLoginInputs() {
 }
 
 function getAuthRedirectTo() {
-  if (window.location.protocol === 'file:') return 'https://testapp-psi-seven.vercel.app/';
+  if (window.location.protocol === 'file:') return 'https://classkru-kohl.vercel.app/';
   // พา query string กลับมาด้วย (เช่น ?v=213) ไม่งั้นเด้งกลับมาแล้วโดนแคช index.html ตัวเก่า
   return window.location.origin + '/' + (window.location.search || '');
 }
