@@ -72,12 +72,13 @@
    อยู่ในขอบ = เป็นของบล็อกนั้นชัดเจน ไม่ต้องตีความ
    ทรง = "แท็บ" ด้านขวาตัดเรียบแนบกับเส้นแบ่ง มนไปทางซ้าย (radius 5px 0 0 5px)
    ด้านที่ชนเส้นต้องเป็นด้านตรงเสมอ ถึงจะจอยกับเส้นสนิทไม่มีช่องว่างที่มุมโค้ง
-   วางชิดมุมล่างขวาระดับเดียวกับแถว "/ เต็ม ⚙" ไม่ใช่กึ่งกลางแนวตั้ง —
-   แถวนั้นแคบ (~30px ใน 68px) เหลือที่ว่างริมขวาพอให้ปุ่มลงได้โดยไม่ทับชื่อรายการ
-   ถ้าย้ายไปกึ่งกลางจะไปทับชื่อ แล้วต้องดันชื่อหนีจนเสี่ยง ellipsis
-   ⚠️ สูงได้ราว 20px เท่านั้น สูงกว่านี้เริ่มชนแถวชื่อรายการด้านบน
+   สัดส่วน: ผอมสูง (9x26) ไม่ใช่ป้อม — ความกว้างคือสิ่งที่ไปเบียดคนอื่น ความสูงไม่เบียด
+   ยิ่งผอมยิ่งกินพื้นที่แนวนอนของคอลัมน์น้อย เลย "จ่าย" ค่าความสูงเพิ่มได้โดยไม่ชนอะไร
+   9px กินริมขวาของคอลัมน์ 68px ซึ่งชื่อรายการเหลือที่ว่างริมละ ~5px อยู่แล้ว
+   ⚠️ อย่าขยายความกว้างเกิน ~10px จะเริ่มทับตัวท้ายของชื่อรายการ
+   วางชิดขอบล่างระดับแถว "/ เต็ม ⚙" ไม่ใช่กึ่งกลาง — กันไม่ให้ล้นขึ้นไปเหนือหัวคอลัมน์
    มือถือใช้ .msc-add (ปุ่มยาวมีข้อความ) ไม่เกี่ยวกับสองตัวนี้ */
-.sc-add-last, .sc-add-item-btn { position: absolute; right: 0; z-index: 6; width: 14px; height: 20px; border: none; border-radius: 5px 0 0 5px; background: var(--primary); color: #fff; cursor: pointer; font-size: 0.62rem; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: background 0.15s; }
+.sc-add-last, .sc-add-item-btn { position: absolute; right: 0; z-index: 6; width: 9px; height: 26px; border: none; border-radius: 4px 0 0 4px; background: var(--primary); color: #fff; cursor: pointer; font-size: 0.55rem; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: background 0.15s; }
 .sc-add-last:hover, .sc-add-item-btn:hover { background: var(--primary-deep); }
 .score-matrix-table th.sc-item-last, .score-matrix-table th.sc-item-empty { position: relative; }
 .sc-add-last { bottom: 2px; }
