@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=212">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=212">
-  <link rel="stylesheet" href="css/03-reports.css?v=212">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=212">
-  <link rel="stylesheet" href="css/05-home.css?v=212">
-  <link rel="stylesheet" href="css/06-attendance.css?v=212">
-  <link rel="stylesheet" href="css/07-scores.css?v=212">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=212">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=215">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=215">
+  <link rel="stylesheet" href="css/03-reports.css?v=215">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=215">
+  <link rel="stylesheet" href="css/05-home.css?v=215">
+  <link rel="stylesheet" href="css/06-attendance.css?v=215">
+  <link rel="stylesheet" href="css/07-scores.css?v=215">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=215">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -38,18 +38,37 @@
 <body>
 
   <!-- LOGIN SCREEN -->
-  <div id="login-overlay" class="modal-overlay show" style="z-index:10000;backdrop-filter:none;background:linear-gradient(160deg,#f0fdf4 0%,#ffffff 50%,#f0fdf4 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;padding:24px;">
-    <div style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;">
+  <div id="login-overlay" class="modal-overlay show" style="z-index:10000;backdrop-filter:none;background:linear-gradient(160deg,#f0fdf4 0%,#ffffff 50%,#f0fdf4 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:24px;overflow-y:auto;">
+    <div style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;margin:auto 0;">
 
       <!-- Logo -->
-      <img src="logo.png?v=2" style="width:160px;height:auto;object-fit:contain;display:block;margin-bottom:-8px;">
+      <img src="logo.png?v=2" style="width:112px;height:auto;object-fit:contain;display:block;margin-bottom:-4px;">
 
       <!-- Heading -->
-      <h2 style="font-size:1.55rem;font-weight:800;color:var(--text-main);text-align:center;letter-spacing:-0.3px;margin:0 0 8px;">เข้าสู่ระบบ ClassKru</h2>
-      <p style="font-size:0.88rem;color:var(--text-muted);text-align:center;margin:0 0 28px;line-height:1.8;">เช็กชื่อเร็ว สอนเต็มที่<br>จัดการห้องเรียน ได้ในคลิกเดียว</p>
+      <h2 id="auth-heading" style="font-size:1.55rem;font-weight:800;color:var(--text-main);text-align:center;letter-spacing:-0.3px;margin:0 0 8px;">เข้าสู่ระบบ ClassKru</h2>
+      <p style="font-size:0.88rem;color:var(--text-muted);text-align:center;margin:0 0 16px;line-height:1.7;">เช็กชื่อเร็ว สอนเต็มที่<br>จัดการห้องเรียน ได้ในคลิกเดียว</p>
 
       <!-- Card form -->
       <div style="background:white;border-radius:20px;padding:24px;box-shadow:0 2px 20px rgba(0,0,0,0.08);width:100%;display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Tabs: เข้าสู่ระบบ / สมัครใหม่ — ให้ครูเห็นด้วยตาว่าอยู่โหมดไหน -->
+        <div style="display:flex;background:var(--bg-soft,#f1f5f9);border-radius:12px;padding:4px;gap:4px;">
+          <button type="button" id="auth-tab-login" onclick="setAuthMode('login')"
+            style="flex:1;padding:9px;border:none;border-radius:9px;font-size:0.88rem;font-weight:700;cursor:pointer;background:white;color:var(--text-main);box-shadow:0 1px 3px rgba(0,0,0,0.08);">เข้าสู่ระบบ</button>
+          <button type="button" id="auth-tab-signup" onclick="setAuthMode('signup')"
+            style="flex:1;padding:9px;border:none;border-radius:9px;font-size:0.88rem;font-weight:700;cursor:pointer;background:transparent;color:var(--text-muted);">สมัครใหม่</button>
+        </div>
+
+        <!-- Google — ทางที่ง่ายที่สุดสำหรับครูที่ใช้ Google Workspace ของโรงเรียน -->
+        <button type="button" onclick="loginWithGoogle()" id="btn-google"
+          style="width:100%;padding:12px;border:1.5px solid var(--border,#e2e8f0);background:white;border-radius:12px;font-size:0.93rem;font-weight:700;color:var(--text-main);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2.1 5.1-4.4 6.700v5.6h7.1c4.2-3.8 6.6-9.5 6.6-16.3z"/><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.6c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.6-3.9-12.4-9.1H4.3v5.8C7.9 41.1 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.6 28c-.5-1.3-.7-2.7-.7-4s.3-2.7.7-4v-5.8H4.3C2.8 17.1 2 20.4 2 24s.8 6.9 2.3 9.8l7.3-5.8z"/><path fill="#EA4335" d="M24 10.9c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.4 30 2 24 2 15.4 2 7.9 6.9 4.3 14.2l7.3 5.8c1.8-5.2 6.6-9.1 12.4-9.1z"/></svg>
+          ดำเนินการต่อด้วย Google
+        </button>
+
+        <div style="display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:0.78rem;font-weight:600;">
+          <span style="flex:1;height:1px;background:var(--border,#e2e8f0);"></span>หรือใช้อีเมล<span style="flex:1;height:1px;background:var(--border,#e2e8f0);"></span>
+        </div>
 
         <!-- Email field -->
         <div style="width:100%;">
@@ -69,23 +88,39 @@
             <i class="hgi-stroke hgi-lock-password" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;pointer-events:none;"></i>
             <input type="password" id="login-password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="current-password"
               style="width:100%;box-sizing:border-box;padding:13px 44px 13px 40px;border-radius:12px;font-size:0.95rem;"
-              onkeydown="if(event.key==='Enter')loginWithPassword()">
+              onkeydown="if(event.key==='Enter')submitAuth()">
             <button type="button" onclick="togglePasswordVisibility()" id="btn-toggle-pw" title="แสดง/ซ่อนรหัสผ่าน"
               style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);padding:6px;font-size:0.95rem;"><i class="hgi-stroke hgi-view"></i></button>
           </div>
         </div>
 
-        <!-- Login button -->
-        <button class="btn btn-primary" onclick="loginWithPassword()" id="btn-login"
+        <!-- Confirm password — โหมดสมัครเท่านั้น กันพิมพ์รหัสผิดแล้วเข้าไม่ได้ตลอดกาล -->
+        <div id="signup-confirm-wrap" style="width:100%;display:none;">
+          <label style="font-size:0.82rem;font-weight:600;color:var(--text-main);display:block;margin-bottom:7px;">ยืนยันรหัสผ่าน</label>
+          <div style="position:relative;">
+            <i class="hgi-stroke hgi-lock-password" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;pointer-events:none;"></i>
+            <input type="password" id="login-password-confirm" class="form-control" placeholder="พิมพ์รหัสผ่านอีกครั้ง" autocomplete="new-password"
+              style="width:100%;box-sizing:border-box;padding:13px 14px 13px 40px;border-radius:12px;font-size:0.95rem;"
+              onkeydown="if(event.key==='Enter')submitAuth()">
+          </div>
+        </div>
+
+        <!-- Submit button (ข้อความเปลี่ยนตามโหมด) -->
+        <button class="btn btn-primary" onclick="submitAuth()" id="btn-login"
           style="width:100%;padding:14px;font-size:1rem;font-weight:700;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;">
-          <i class="hgi-stroke hgi-login-03"></i> เข้าสู่ระบบ
+          <i class="hgi-stroke hgi-login-03" id="btn-login-icon"></i> <span id="btn-login-label">เข้าสู่ระบบ</span>
         </button>
 
         <div id="login-status" style="font-size:0.85rem;font-weight:600;min-height:16px;text-align:center;"></div>
 
-        <!-- Sign up -->
-        <div style="font-size:0.85rem;color:var(--text-muted);text-align:center;">
-          ยังไม่มีบัญชี? <span onclick="signUpWithPassword()" style="color:var(--primary);font-weight:700;cursor:pointer;">สมัครใช้งานฟรี</span>
+        <!-- ลืมรหัสผ่าน (โหมดเข้าสู่ระบบ) -->
+        <div id="forgot-pw-wrap" style="font-size:0.85rem;color:var(--text-muted);text-align:center;">
+          <span onclick="sendPasswordReset()" style="color:var(--primary);font-weight:700;cursor:pointer;">ลืมรหัสผ่าน?</span>
+        </div>
+
+        <!-- หมายเหตุโหมดสมัคร -->
+        <div id="signup-note-wrap" style="font-size:0.8rem;color:var(--text-muted);text-align:center;line-height:1.7;display:none;">
+          สมัครฟรี ใช้งานได้ทันที<br>จำรหัสผ่านไม่ได้? เข้าด้วย Google จะง่ายกว่า
         </div>
       </div>
     </div>
@@ -842,18 +877,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=212"></script>
-  <script defer src="js/auth.js?v=212"></script>
-  <script defer src="js/shell.js?v=212"></script>
-  <script defer src="js/dashboard.js?v=212"></script>
-  <script defer src="js/classrooms.js?v=212"></script>
-  <script defer src="js/students.js?v=212"></script>
-  <script defer src="js/timetable.js?v=212"></script>
-  <script defer src="js/reports.js?v=212"></script>
-  <script defer src="js/attendance.js?v=212"></script>
-  <script defer src="js/scores.js?v=212"></script>
-  <script defer src="js/tools.js?v=212"></script>
-  <script defer src="js/shared-utils.js?v=212"></script>
-  <script defer src="js/extras.js?v=212"></script>
+  <script defer src="js/core.js?v=215"></script>
+  <script defer src="js/auth.js?v=215"></script>
+  <script defer src="js/shell.js?v=215"></script>
+  <script defer src="js/dashboard.js?v=215"></script>
+  <script defer src="js/classrooms.js?v=215"></script>
+  <script defer src="js/students.js?v=215"></script>
+  <script defer src="js/timetable.js?v=215"></script>
+  <script defer src="js/reports.js?v=215"></script>
+  <script defer src="js/attendance.js?v=215"></script>
+  <script defer src="js/scores.js?v=215"></script>
+  <script defer src="js/tools.js?v=215"></script>
+  <script defer src="js/shared-utils.js?v=215"></script>
+  <script defer src="js/extras.js?v=215"></script>
 </body>
 </html>
