@@ -66,12 +66,20 @@
 .sc-w-readonly { font-weight: 700; }
 /* บล็อกว่าง (ยังไม่มีรายการ) — ปุ่ม + เพิ่มรายการในระยะนั้น */
 .score-matrix-table .sc-item-empty { vertical-align: middle; text-align: center; min-width: 52px; }
-.sc-add-item-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px dashed var(--primary-light-border); background: var(--primary-light); color: var(--primary); cursor: pointer; font-size: 0.85rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
-.sc-add-item-btn:hover { border-style: solid; border-color: var(--primary); }
+/* ทรงปุ่มเพิ่มรายการ (จอคอม) = "แท็บ" มนด้านเดียว เกาะเส้นแบ่งกลุ่ม — ไม่ใช่วงกลมลอย
+   ด้านที่ชนเส้นตัดเรียบ + ตัดขอบด้านนั้นทิ้ง ให้ดูเชื่อมกับเส้นเป็นชิ้นเดียว
+   สูง 28 กว้าง 14 (สัดส่วน 1:2) — ผอมกว่าวงกลมเดิม 22px ตารางเลยแคบลงอีกนิด
+   มือถือใช้ .msc-add (ปุ่มยาวมีข้อความ) ไม่เกี่ยวกับสองตัวนี้ */
+.sc-add-item-btn, .sc-add-float { width: 14px; height: 28px; border: 1px dashed var(--primary-light-border); color: var(--primary); cursor: pointer; font-size: 0.7rem; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+
+/* บล็อกว่าง — แท็บเกาะเส้นแบ่งด้านซ้ายของกลุ่มตัวเอง (มนไปทางขวา = ชี้เข้าหาที่ว่างของกลุ่ม) */
+.score-matrix-table th.sc-item-empty { position: relative; }
+.sc-add-item-btn { position: absolute; left: 0; top: 50%; transform: translateY(-50%); border-radius: 0 8px 8px 0; border-left: none; background: var(--primary-light); }
+.sc-add-item-btn:hover { border-style: solid; border-color: var(--primary); border-left: none; }
 /* ปุ่ม + ลอยเกาะขอบขวาของรายการสุดท้ายในบล็อก — ไม่กินคอลัมน์ (ตารางแคบลง) */
 .score-matrix-table th.sc-item-last { position: relative; }
-.sc-add-float { position: absolute; right: -11px; top: 50%; transform: translateY(-50%); z-index: 6; width: 22px; height: 22px; border-radius: 50%; border: 1px dashed var(--primary-light-border); background: #fff; color: var(--primary); cursor: pointer; font-size: 0.78rem; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
-.sc-add-float:hover { background: var(--primary); color: #fff; border-color: var(--primary); border-style: solid; }
+.sc-add-float { position: absolute; right: -14px; top: 50%; transform: translateY(-50%); z-index: 6; border-radius: 0 8px 8px 0; border-left: none; background: #fff; }
+.sc-add-float:hover { background: var(--primary); color: #fff; border-color: var(--primary); border-style: solid; border-left: none; }
 .score-matrix-table td.sc-cell-empty { background: #fafbfc; }
 /* ป้ายหมวดคะแนน read-only ใน modal เพิ่มรายการ (แทน dropdown — fix ตามบล็อกที่กด) */
 .score-bucket-chip { padding: 9px 12px; border-radius: 8px; background: var(--primary-light); color: var(--primary); font-weight: 700; font-size: 0.85rem; border: 1px solid var(--primary-light-border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
