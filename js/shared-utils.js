@@ -192,16 +192,8 @@ function openStudentDetailModal(studentId, classId) {
   document.getElementById('student-detail-nickname').value = s.nickname || '';
   document.getElementById('student-detail-comment').value = s.comment || '';
 
-  let p=0,l=0,a=0,lv=0;
-  Object.keys(c.attendance || {}).forEach(d => {
-    const st = (c.attendance[d] || {})[studentId];
-    if (st === 'present') p++; else if (st === 'late') l++; else if (st === 'absent') a++; else if (st === 'leave') lv++;
-  });
-  document.getElementById('student-detail-present').innerText = p;
-  document.getElementById('student-detail-late').innerText = l;
-  document.getElementById('student-detail-absent').innerText = a;
-  document.getElementById('student-detail-leave').innerText = lv;
-
+  // เลิกนับ/แสดงสถิติ มา-สาย-ขาด-ลา ในหน้านี้แล้ว — modal นี้เป็น "แก้ไขข้อมูล" อย่างเดียว
+  // ดูรายงานเข้าเรียนได้ที่หน้ารายงาน หรือ modal สรุปนักเรียน (openStudentSummaryModal)
   document.getElementById('modal-student-detail').classList.add('show');
 }
 

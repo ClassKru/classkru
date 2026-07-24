@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=197">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=197">
-  <link rel="stylesheet" href="css/03-reports.css?v=197">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=197">
-  <link rel="stylesheet" href="css/05-home.css?v=197">
-  <link rel="stylesheet" href="css/06-attendance.css?v=197">
-  <link rel="stylesheet" href="css/07-scores.css?v=197">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=197">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=203">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=203">
+  <link rel="stylesheet" href="css/03-reports.css?v=203">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=203">
+  <link rel="stylesheet" href="css/05-home.css?v=203">
+  <link rel="stylesheet" href="css/06-attendance.css?v=203">
+  <link rel="stylesheet" href="css/07-scores.css?v=203">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=203">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -733,7 +733,8 @@
 
   <div class="modal-overlay" id="modal-period" onclick="if(event.target===this) closePeriodModal()"><div class="bottom-sheet"><div class="modal-header"><h3 id="modal-period-title">แก้ไขคาบเรียน</h3><button class="btn btn-text" onclick="closePeriodModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;" id="modal-period-info">วันจันทร์ · คาบ 5</div><div class="form-group"><label for="input-period-subject">วิชา</label><select id="input-period-subject" class="form-control" style="appearance:auto;" onchange="filterPeriodClassBySubject()"><option value="">-- เลือก --</option></select></div><div class="form-group"><label for="input-period-class">ห้อง</label><select id="input-period-class" class="form-control" style="appearance:auto;"><option value="">-- เลือก --</option></select></div><div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closePeriodModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-danger" id="btn-period-delete" onclick="deletePeriodSlot()" style="flex:1;display:none;">ลบ</button><button class="btn btn-primary" onclick="savePeriodSlot()" style="flex:2;">บันทึก</button></div></div></div>
 
-  <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;"><div style="padding:10px;border-radius:10px;background:var(--color-present-bg);color:var(--color-present);text-align:center;"><strong style="font-size:1.25rem;" id="student-detail-present">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">มา</span></div><div style="padding:10px;border-radius:10px;background:var(--color-late-bg);color:var(--color-late-text);text-align:center;"><strong style="font-size:1.25rem;" id="student-detail-late">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">สาย</span></div><div style="padding:10px;border-radius:10px;background:var(--color-absent-bg);color:var(--color-absent);text-align:center;"><strong style="font-size:1.25rem;" id="student-detail-absent">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">ขาด</span></div><div style="padding:10px;border-radius:10px;background:var(--color-leave-bg);color:var(--color-leave);text-align:center;"><strong style="font-size:1.25rem;" id="student-detail-leave">0</strong><span style="display:block;font-size:0.65rem;font-weight:700;">ลา</span></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+  <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><!-- สถิติ มา/สาย/ขาด/ลา ถูกตัดออก — modal นี้ทำหน้าที่ "แก้ไขข้อมูลนักเรียน" อย่างเดียว
+     การรายงานผลเข้าเรียนมีหน้าเฉพาะอยู่แล้ว (รายงานวิเคราะห์ผล + modal สรุปนักเรียน) --><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
   <div class="form-group" style="margin:0;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">เลขที่</label><input id="student-detail-no" type="number" class="form-control" style="font-size:0.9rem;padding:8px 10px;" min="1"></div>
   <div class="form-group" style="margin:0;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">รหัสประจำตัว</label><input id="student-detail-code" type="text" class="form-control" style="font-size:0.9rem;padding:8px 10px;" placeholder="เช่น 12345"></div>
 </div>
@@ -841,18 +842,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=197"></script>
-  <script defer src="js/auth.js?v=197"></script>
-  <script defer src="js/shell.js?v=197"></script>
-  <script defer src="js/dashboard.js?v=197"></script>
-  <script defer src="js/classrooms.js?v=197"></script>
-  <script defer src="js/students.js?v=197"></script>
-  <script defer src="js/timetable.js?v=197"></script>
-  <script defer src="js/reports.js?v=197"></script>
-  <script defer src="js/attendance.js?v=197"></script>
-  <script defer src="js/scores.js?v=197"></script>
-  <script defer src="js/tools.js?v=197"></script>
-  <script defer src="js/shared-utils.js?v=197"></script>
-  <script defer src="js/extras.js?v=197"></script>
+  <script defer src="js/core.js?v=203"></script>
+  <script defer src="js/auth.js?v=203"></script>
+  <script defer src="js/shell.js?v=203"></script>
+  <script defer src="js/dashboard.js?v=203"></script>
+  <script defer src="js/classrooms.js?v=203"></script>
+  <script defer src="js/students.js?v=203"></script>
+  <script defer src="js/timetable.js?v=203"></script>
+  <script defer src="js/reports.js?v=203"></script>
+  <script defer src="js/attendance.js?v=203"></script>
+  <script defer src="js/scores.js?v=203"></script>
+  <script defer src="js/tools.js?v=203"></script>
+  <script defer src="js/shared-utils.js?v=203"></script>
+  <script defer src="js/extras.js?v=203"></script>
 </body>
 </html>
