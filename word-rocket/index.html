@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10162f">
+  <meta name="description" content="Word Rocket เกมทายคำศัพท์ภาษาอังกฤษสำหรับนักเรียน">
+  <title>Word Rocket – ภารกิจพิชิตคำศัพท์</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="stars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="app-container">
+    <header class="game-header">
+      <a class="back-link" href="../index.html#games" aria-label="กลับสู่เมนูเกม ClassKru">← <span>กลับเมนูเกม</span></a>
+      <div class="brand"><p>🚀 WORD ROCKET</p><h1>ภารกิจพิชิตคำศัพท์</h1></div>
+      <div class="header-actions"><button id="sound-button" class="icon-button" type="button" aria-label="ปิดเสียง" aria-pressed="true">🔊</button><button id="stats-button" class="outline-button" type="button">สถิติ</button><button id="new-game-button" class="primary-button" type="button">เริ่มใหม่</button></div>
+    </header>
+    <main class="game-main">
+      <section class="status-grid" aria-label="สถานะเกม">
+        <div><span>หมวด</span><strong id="category-value">—</strong></div><div><span>ระดับ</span><strong id="difficulty-value">—</strong></div><div class="score-card"><span>คะแนน</span><strong id="score-value">0</strong></div><div><span>ชนะต่อเนื่อง</span><strong id="streak-value">0</strong></div><div class="energy-card"><span>พลังงาน</span><strong id="energy-value">6/6</strong></div><div id="timer-card" class="is-hidden"><span>เวลา</span><strong id="timer-value">60</strong></div><div><span>ข้อ</span><strong id="round-value">0</strong></div>
+      </section>
+      <div class="game-grid">
+        <section class="rocket-panel glass-card" aria-labelledby="rocket-heading">
+          <p class="section-label">สถานะภารกิจ</p><h2 id="rocket-heading">พร้อมปล่อยจรวด</h2><p id="mission-status" class="mission-status" aria-live="polite">เลือกหมวดและระดับเพื่อเริ่มภารกิจ</p>
+          <div class="launch-scene"><div id="rocket" class="rocket rocket-state-0" role="img" aria-label="จรวดพร้อมปล่อย"><b class="nose"></b><b class="body"><i class="window"></i><i class="stripe"></i></b><b class="fin left"></b><b class="fin right"></b><b class="engine"></b><b class="flame"></b></div><div class="launch-pad"><i></i><i></i><i></i></div><div id="countdown" class="countdown" aria-live="assertive"></div></div>
+          <p id="rocket-note" class="rocket-note">ระบบทั้งหมดทำงานปกติ</p>
+        </section>
+        <section class="word-panel glass-card" aria-labelledby="word-heading">
+          <p class="section-label">ถอดรหัสคำศัพท์</p><h2 id="word-heading">คำศัพท์ลับ</h2>
+          <div class="hint-box"><div><span>คำใบ้</span><p id="hint-value">เริ่มภารกิจเพื่อรับคำใบ้</p></div><button id="hint-button" class="hint-button" type="button" disabled>💡 ใช้คำใบ้ <small>-20</small></button></div>
+          <div id="word-display" class="word-display" aria-label="คำศัพท์ที่กำลังทาย"></div><p id="wrong-letters" class="wrong-letters" aria-live="polite">ตัวอักษรที่พลาด: —</p>
+          <section class="keyboard-panel" aria-label="แป้นพิมพ์ตัวอักษรภาษาอังกฤษ"><div id="letter-keyboard" class="letter-keyboard"></div></section>
+        </section>
+      </div>
+    </main>
+    <footer>เรียนรู้คำศัพท์ทีละคำ แล้วพาจรวดไปให้ถึงอวกาศ ✨</footer>
+  </div>
+  <div id="start-modal" class="modal-overlay is-open" role="dialog" aria-modal="true" aria-labelledby="start-title"><div class="modal-card"><p class="modal-kicker">เตรียมตัวออกเดินทาง</p><h2 id="start-title">เลือกภารกิจของคุณ</h2><p class="description">เลือกหมวดคำศัพท์และระดับความท้าทาย ก่อนเริ่มปล่อยจรวด</p><fieldset><legend>หมวดคำศัพท์</legend><div id="category-options" class="choice-options"><button type="button" data-category="animals">🐾 สัตว์</button><button type="button" data-category="food">🍎 อาหาร</button><button type="button" data-category="school">📚 โรงเรียน</button><button type="button" data-category="jobs">👩‍🚀 อาชีพ</button><button type="button" data-category="science">🔬 วิทยาศาสตร์</button></div></fieldset><fieldset><legend>ระดับความยาก</legend><div id="difficulty-options" class="choice-options difficulty-options"><button type="button" data-difficulty="easy"><b>ง่าย</b><span>3–5 ตัวอักษร</span></button><button type="button" data-difficulty="medium"><b>ปานกลาง</b><span>6–8 ตัวอักษร</span></button><button type="button" data-difficulty="hard"><b>ยาก</b><span>8+ ตัวอักษร · 60 วินาที</span></button></div></fieldset><p id="start-error" class="form-error" aria-live="polite"></p><button id="start-button" class="primary-button full-button" type="button">เริ่มภารกิจ 🚀</button></div></div>
+  <div id="result-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title" aria-hidden="true"><div class="modal-card result-card"><p id="result-icon" class="result-icon">🚀</p><h2 id="result-title">MISSION COMPLETE</h2><p id="result-subtitle" class="description"></p><div class="answer-card"><span>คำศัพท์</span><strong id="result-word">—</strong><p id="result-translation">—</p><blockquote id="result-example">—</blockquote></div><div id="score-breakdown" class="score-breakdown"></div><div class="modal-actions"><button id="retry-button" class="outline-button" type="button">ลองคำเดิมอีกครั้ง</button><button id="next-button" class="primary-button" type="button">เล่นคำถัดไป</button><button id="choose-button" class="text-button" type="button">กลับไปเลือกหมวด</button></div></div></div>
+  <div id="stats-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="stats-title" aria-hidden="true"><div class="modal-card stats-card"><button id="close-stats-button" class="close-button" type="button" aria-label="ปิดหน้าต่างสถิติ">×</button><p class="modal-kicker">บันทึกในอุปกรณ์นี้</p><h2 id="stats-title">สถิติผู้เล่น</h2><div class="stats-grid"><div><span>คะแนนสูงสุด</span><strong id="high-score-stat">0</strong></div><div><span>เกมที่เล่น</span><strong id="games-played-stat">0</strong></div><div><span>เกมที่ชนะ</span><strong id="games-won-stat">0</strong></div><div><span>อัตราชนะ</span><strong id="win-rate-stat">0%</strong></div><div><span>ชนะต่อเนื่องสูงสุด</span><strong id="best-streak-stat">0</strong></div></div><button id="reset-stats-button" class="danger-button" type="button">ล้างสถิติในอุปกรณ์นี้</button></div></div>
+  <div id="notification" class="notification" aria-live="polite"></div><div id="score-float" class="score-float" aria-live="polite"></div>
+  <script src="script.js"></script>
+</body>
+</html>

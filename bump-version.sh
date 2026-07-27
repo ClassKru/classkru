@@ -18,7 +18,12 @@ if [ -z "$CUR" ]; then echo "ไม่พบ ?v= ใน $FILE"; exit 1; fi
 if [ -n "$1" ]; then NEW="$1"; else NEW=$((CUR + 1)); fi
 
 # bump ทุก .js และ .css ที่มี ?v= (ทั้ง src= และ href=)
-sed -i '' -E "s/(\.(js|css))\?v=[0-9]+/\1?v=$NEW/g" "$FILE"
+# macOS ใช้ BSD sed ส่วน Linux และ Git Bash ใช้ GNU sed ซึ่งรับรูปแบบ -i ต่างกัน
+if sed --version >/dev/null 2>&1; then
+  sed -i -E "s/(\.(js|css))\?v=[0-9]+/\1?v=$NEW/g" "$FILE"
+else
+  sed -i '' -E "s/(\.(js|css))\?v=[0-9]+/\1?v=$NEW/g" "$FILE"
+fi
 
 COUNT=$(grep -cE "\.(js|css)\?v=$NEW" "$FILE")
 echo "✅ bump version: $CUR → $NEW  ($COUNT refs อัปเดตแล้ว)"
