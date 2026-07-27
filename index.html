@@ -4,14 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=216">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=216">
-  <link rel="stylesheet" href="css/03-reports.css?v=216">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=216">
-  <link rel="stylesheet" href="css/05-home.css?v=216">
-  <link rel="stylesheet" href="css/06-attendance.css?v=216">
-  <link rel="stylesheet" href="css/07-scores.css?v=216">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=216">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=217">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=217">
+  <link rel="stylesheet" href="css/03-reports.css?v=217">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=217">
+  <link rel="stylesheet" href="css/05-home.css?v=217">
+  <link rel="stylesheet" href="css/06-attendance.css?v=217">
+  <link rel="stylesheet" href="css/07-scores.css?v=217">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=217">
+    <link rel="stylesheet" href="css/09-games.css?v=217">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -143,6 +144,7 @@
         <button class="nav-item" data-screen="classrooms" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>ห้องเรียนวิชาสอน</span></button>
         <button class="nav-item" data-screen="students" onclick="navigateToWebScreen('students')" style="display:none;"><i class="hgi-stroke hgi-user-multiple"></i><span>จัดการรายชื่อเด็ก</span></button>
         <button class="nav-item" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอนประจำสัปดาห์</span></button>
+        <button class="nav-item" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกมการศึกษา</span></button>
         <button class="nav-item" data-screen="attendance" onclick="navigateToWebScreen('attendance')" style="display:none;"><i class="hgi-stroke hgi-table"></i><span>Attendance Matrix</span></button>
         <!-- เมนู "รายงานวิเคราะห์ผล" ถูกยกออก — เข้ารายงาน (การเข้าเรียน) ผ่านการ์ดหน้าห้องเรียนวิชาสอนเท่านั้น -->
         <button class="nav-item" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่าระบบ</span></button>
@@ -371,6 +373,37 @@
         </div>
 
         <!-- SETTINGS -->
+        <div id="web-screen-games" class="fade-in" style="display:none;">
+          <section class="games-hero card">
+            <div>
+              <span class="games-eyebrow"><i class="hgi-stroke hgi-rocket-01"></i> พื้นที่กิจกรรมสำหรับชั้นเรียน</span>
+              <h2>เกมการศึกษา</h2>
+              <p>เลือกหมวดเกม แล้วเริ่มกิจกรรมที่เหมาะกับนักเรียนได้ทันที</p>
+            </div>
+            <div class="games-hero-orbit" aria-hidden="true">✦</div>
+          </section>
+
+          <section class="games-section" aria-labelledby="games-vocabulary-title">
+            <div class="games-section-heading"><div><span class="games-category-label">หมวดเกม</span><h3 id="games-vocabulary-title">คำศัพท์ภาษาอังกฤษ</h3></div><span class="games-count">1 เกมพร้อมเล่น</span></div>
+            <div class="games-grid">
+              <article class="game-card game-card-featured">
+                <div class="game-card-icon">🚀</div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Word Rocket</h4><p>ภารกิจทายคำศัพท์ภาษาอังกฤษ ปล่อยจรวดเมื่อพิชิตคำสำเร็จ</p><div class="game-meta"><span>5 หมวดคำศัพท์</span><span>3 ระดับความยาก</span></div></div>
+                <a class="btn games-play-button" href="word-rocket/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
+              </article>
+            </div>
+          </section>
+
+          <section class="games-section games-section-upcoming" aria-labelledby="games-upcoming-title">
+            <div class="games-section-heading"><div><span class="games-category-label">กำลังเตรียม</span><h3 id="games-upcoming-title">หมวดเกมถัดไป</h3></div><span class="games-count">เพิ่มเกมได้ในภายหลัง</span></div>
+            <div class="games-grid games-grid-upcoming">
+              <article class="game-card game-card-placeholder"><div class="game-card-icon">➗</div><div class="game-card-content"><h4>คณิตคิดไว</h4><p>พื้นที่สำหรับเกมฝึกคิดคำนวณและตรรกะ</p></div><span class="game-coming-badge">เร็ว ๆ นี้</span></article>
+              <article class="game-card game-card-placeholder"><div class="game-card-icon">🔎</div><div class="game-card-content"><h4>นักสำรวจความรู้</h4><p>พื้นที่สำหรับเกมวิทยาศาสตร์และความรู้รอบตัว</p></div><span class="game-coming-badge">เร็ว ๆ นี้</span></article>
+            </div>
+          </section>
+        </div>
+
+        <!-- SETTINGS -->
         <div id="web-screen-settings" class="fade-in" style="display:none;">
           <div class="settings-stack">
 
@@ -436,6 +469,7 @@
       <button class="mob-nav-btn" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
       <button class="mob-nav-btn checkin-btn" data-screen="checkin" onclick="mobileCheckinTap()"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
       <button class="mob-nav-btn" data-screen="classrooms students scores reports" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>ห้องเรียน</span></button>
+      <button class="mob-nav-btn" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกม</span></button>
       <button class="mob-nav-btn" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่า</span></button>
     </nav>
 
@@ -877,18 +911,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=216"></script>
-  <script defer src="js/auth.js?v=216"></script>
-  <script defer src="js/shell.js?v=216"></script>
-  <script defer src="js/dashboard.js?v=216"></script>
-  <script defer src="js/classrooms.js?v=216"></script>
-  <script defer src="js/students.js?v=216"></script>
-  <script defer src="js/timetable.js?v=216"></script>
-  <script defer src="js/reports.js?v=216"></script>
-  <script defer src="js/attendance.js?v=216"></script>
-  <script defer src="js/scores.js?v=216"></script>
-  <script defer src="js/tools.js?v=216"></script>
-  <script defer src="js/shared-utils.js?v=216"></script>
-  <script defer src="js/extras.js?v=216"></script>
+  <script defer src="js/core.js?v=217"></script>
+  <script defer src="js/auth.js?v=217"></script>
+  <script defer src="js/shell.js?v=217"></script>
+  <script defer src="js/dashboard.js?v=217"></script>
+  <script defer src="js/classrooms.js?v=217"></script>
+  <script defer src="js/students.js?v=217"></script>
+  <script defer src="js/timetable.js?v=217"></script>
+  <script defer src="js/reports.js?v=217"></script>
+  <script defer src="js/attendance.js?v=217"></script>
+  <script defer src="js/scores.js?v=217"></script>
+  <script defer src="js/tools.js?v=217"></script>
+  <script defer src="js/shared-utils.js?v=217"></script>
+  <script defer src="js/extras.js?v=217"></script>
 </body>
 </html>
