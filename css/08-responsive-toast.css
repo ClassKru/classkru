@@ -67,24 +67,6 @@
   .mob-nav-btn span { font-size: 0.62rem; font-weight: 700; }
   .mob-nav-btn.active { color: var(--primary); }
 
-  .mob-nav-btn.checkin-btn i {
-    background: var(--primary);
-    color: #fff;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    box-shadow: 0 4px 14px rgba(29,158,117,0.4);
-    margin-top: -10px;
-  }
-
-  .mob-nav-btn.checkin-btn.active i {
-    background: var(--primary-hover);
-  }
-
   /* แถบแท็บภายในห้อง — โชว์บนมือถือด้วย (bottom nav มีแค่เช็คชื่อ/คะแนน
      ทางเข้านักเรียนกับการเข้าเรียนอยู่ที่แถบนี้) ย่อให้เตี้ยลงเพื่อประหยัดพื้นที่แนวตั้ง */
   .ck-classtab-bar { gap: 2px; padding: 3px; border-radius: calc(var(--radius-btn) + 3px); width: 100%; }
