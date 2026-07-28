@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=224">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=224">
-  <link rel="stylesheet" href="css/03-reports.css?v=224">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=224">
-  <link rel="stylesheet" href="css/05-home.css?v=224">
-  <link rel="stylesheet" href="css/06-attendance.css?v=224">
-  <link rel="stylesheet" href="css/07-scores.css?v=224">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=224">
-    <link rel="stylesheet" href="css/09-games.css?v=224">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=225">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=225">
+  <link rel="stylesheet" href="css/03-reports.css?v=225">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=225">
+  <link rel="stylesheet" href="css/05-home.css?v=225">
+  <link rel="stylesheet" href="css/06-attendance.css?v=225">
+  <link rel="stylesheet" href="css/07-scores.css?v=225">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=225">
+    <link rel="stylesheet" href="css/09-games.css?v=225">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -217,9 +217,9 @@
               <span class="ck-help-icon"><i class="hgi-stroke hgi-bulb"></i></span>
               <span><strong>เสนอฟีเจอร์</strong><small>ส่งไอเดียที่อยากให้ ClassKru เพิ่ม</small></span>
             </button>
-            <button class="ck-help-card" type="button" onclick="openHelpLine('ติดต่อทีมงาน')">
+            <button class="ck-help-card" type="button" onclick="openHelpLine('ติดต่อเรา')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-message-01"></i></span>
-              <span><strong>ติดต่อทีมงาน</strong><small>เปิดแชท LINE พร้อมหัวข้อให้ทีมงานช่วยเหลือ</small></span>
+              <span><strong>ติดต่อเรา</strong><small>เปิดแชท LINE พร้อมหัวข้อให้เราช่วยเหลือ</small></span>
             </button>
           </section>
         </div>
@@ -797,6 +797,20 @@
   </div>
 
   <!-- OCR SCAN MODAL -->
+  <div class="modal-overlay" id="modal-help-line" onclick="if(event.target===this) closeHelpLineModal()" style="z-index:9000;">
+    <div class="bottom-sheet ck-line-help-modal">
+      <div class="modal-header">
+        <h3><i class="hgi-stroke hgi-message-01"></i> ติดต่อเรา</h3>
+        <button class="btn btn-text" type="button" onclick="closeHelpLineModal()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+      <div class="ck-line-help-body">
+        <img class="ck-line-help-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;data=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40731idhsu" alt="QR Code สำหรับติดต่อเราผ่าน LINE">
+        <p>ใช้มือถือสแกน QR Code เพื่อเปิด LINE</p>
+        <strong>LINE ID: @731idhsu</strong>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modal-ocr-scan" onclick="if(event.target===this) closeOcrModal()" style="z-index:660;">
     <div class="bottom-sheet" style="width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;">
       <div class="modal-header">
@@ -958,18 +972,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=224"></script>
-  <script defer src="js/auth.js?v=224"></script>
-  <script defer src="js/shell.js?v=224"></script>
-  <script defer src="js/dashboard.js?v=224"></script>
-  <script defer src="js/classrooms.js?v=224"></script>
-  <script defer src="js/students.js?v=224"></script>
-  <script defer src="js/timetable.js?v=224"></script>
-  <script defer src="js/reports.js?v=224"></script>
-  <script defer src="js/attendance.js?v=224"></script>
-  <script defer src="js/scores.js?v=224"></script>
-  <script defer src="js/tools.js?v=224"></script>
-  <script defer src="js/shared-utils.js?v=224"></script>
-  <script defer src="js/extras.js?v=224"></script>
+  <script defer src="js/core.js?v=225"></script>
+  <script defer src="js/auth.js?v=225"></script>
+  <script defer src="js/shell.js?v=225"></script>
+  <script defer src="js/dashboard.js?v=225"></script>
+  <script defer src="js/classrooms.js?v=225"></script>
+  <script defer src="js/students.js?v=225"></script>
+  <script defer src="js/timetable.js?v=225"></script>
+  <script defer src="js/reports.js?v=225"></script>
+  <script defer src="js/attendance.js?v=225"></script>
+  <script defer src="js/scores.js?v=225"></script>
+  <script defer src="js/tools.js?v=225"></script>
+  <script defer src="js/shared-utils.js?v=225"></script>
+  <script defer src="js/extras.js?v=225"></script>
 </body>
 </html>

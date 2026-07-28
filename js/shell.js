@@ -147,7 +147,17 @@ function navigateToWebScreen(screenId, param) {
 
 function openHelpLine(topic) {
   const message = encodeURIComponent(`#${topic}`);
-  window.open(`https://line.me/R/oaMessage/${encodeURIComponent('@731idhsu')}/?${message}`, '_blank', 'noopener');
+  const lineMessageUrl = `https://line.me/R/oaMessage/${encodeURIComponent('@731idhsu')}/?${message}`;
+  const isMobile = window.matchMedia('(max-width: 768px)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    window.location.href = lineMessageUrl;
+    return;
+  }
+  document.getElementById('modal-help-line')?.classList.add('show');
+}
+
+function closeHelpLineModal() {
+  document.getElementById('modal-help-line')?.classList.remove('show');
 }
 
 // ==================== หน้าเช็คชื่อในฐานะ "หน้า" จริง ====================
