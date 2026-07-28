@@ -1,7 +1,7 @@
 // ==================== URL ROUTING (#hash) — รองรับ LINE OA ลิงก์เข้าหน้าตรงๆ ====================
 // หน้าที่ลิงก์เข้าได้จาก URL เช่น classkru-kohl.vercel.app/#reports
 // 'checkin' คือหน้าเช็คชื่อ (เดิมเป็น overlay ที่ไม่มี URL ของตัวเอง) — ต้องมี param บอกห้อง
-const ROUTABLE_SCREENS = ['dashboard','classrooms','students','timetable','attendance','scores','reports','games','settings','checkin'];
+const ROUTABLE_SCREENS = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','games','settings','checkin'];
 
 // รูปแบบ hash: "#reports" หรือแบบมีพารามิเตอร์ "#checkin:c_1712345678"
 // คืน { screen, param } — screen เป็น null ถ้า hash ไม่ถูกต้อง
@@ -97,7 +97,7 @@ function navigateToWebScreen(screenId, param) {
   // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
   setRouteHash('#' + screenId);
 
-  const screens = ['dashboard','classrooms','students','timetable','attendance','scores','reports','games','settings'];
+  const screens = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','games','settings'];
   screens.forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = s === screenId ? 'block' : 'none';
@@ -120,6 +120,7 @@ function navigateToWebScreen(screenId, param) {
   const subEl = document.getElementById('web-header-subtitle');
   const titles = {
     dashboard: ['หน้าหลัก', 'ตารางสอนและเช็คชื่อด่วน'],
+    help: ['ศูนย์ช่วยเหลือ', 'เลือกหัวข้อเพื่อให้ทีมงานช่วยได้ตรงจุด'],
     classrooms: ['ห้องเรียนวิชาสอน', 'จัดการรายวิชาและเช็คชื่อด่วน'],
     students: ['จัดการรายชื่อเด็ก', 'เพิ่ม ลบ แก้ไข ย้ายห้อง'],
     timetable: ['ตารางสอนสัปดาห์', 'กำหนดคาบเรียนรองรับ Week A/B'],
@@ -144,6 +145,11 @@ function navigateToWebScreen(screenId, param) {
   else if (screenId === 'reports') showWebClassReport(detailClassId);
 }
 
+function openHelpLine(topic) {
+  const message = encodeURIComponent(`#${topic}`);
+  window.open(`https://line.me/R/oaMessage/${encodeURIComponent('@731idhsu')}/?${message}`, '_blank', 'noopener');
+}
+
 // ==================== หน้าเช็คชื่อในฐานะ "หน้า" จริง ====================
 // DOM ของเช็คชื่อเป็น overlay ไม่ใช่ div#web-screen-* เลยทำงานฝั่ง routing แยก
 // openSwipeAttendance เรียกตัวนี้ปิดท้าย เพื่อให้ URL / sidebar / ชื่อหน้า ตรงกับที่เห็นจริง
@@ -155,7 +161,7 @@ function applyCheckinRoute(classId) {
   setRouteHash('#checkin:' + classId);   // เข้าจากการ์ดห้อง = push (ปุ่ม back ปิดหน้านี้ได้) · สลับแท็บ = replace
 
   // ซ่อนหน้าอื่นทั้งหมด (overlay ทับอยู่แล้ว แต่ต้องให้ state ตรงกัน)
-  ['dashboard','classrooms','students','timetable','attendance','scores','reports','games','settings'].forEach(s => {
+  ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','games','settings'].forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = 'none';
   });
@@ -238,5 +244,3 @@ function calculateNextClass() {
 let homeSelectedDate = null;
 let calViewYear = 0;
 let calViewMonth = 0;
-
-
