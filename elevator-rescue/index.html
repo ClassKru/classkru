@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101b2f">
+  <title>Elevator Rescue – วิศวกรกู้ภัยระบบรอก</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell" aria-labelledby="game-title">
+    <header class="game-header">
+      <a class="back-link" href="../index.html#games" aria-label="กลับไปหน้าเกมการศึกษา">← <span>ศูนย์เกม</span></a>
+      <div class="brand"><span aria-hidden="true">⚙️</span><div><h1 id="game-title">Elevator Rescue</h1><p>วิศวกรกู้ภัยระบบรอก</p></div></div>
+      <div class="hud" aria-label="สถานะเกม"><div><span>LEVEL</span><strong id="level-value">1</strong></div><div><span>SCORE</span><strong id="score-value">0</strong></div><div><span>COINS</span><strong id="coin-value">0</strong></div><div><span>MISSION</span><strong id="mission-value">1/6</strong></div></div>
+      <button id="sound-button" class="icon-button" type="button" aria-label="ปิดเสียง" aria-pressed="true">🔊</button>
+    </header>
+
+    <section class="workspace">
+      <section class="simulation-panel" aria-labelledby="simulation-title">
+        <div class="panel-title"><div><p class="eyebrow">LIVE PHYSICS SIMULATION</p><h2 id="simulation-title">อาคารกู้ภัย</h2></div><div id="system-light" class="system-light"><i></i><span>รอการออกแบบ</span></div></div>
+        <div id="building-scene" class="building-scene">
+          <div class="city-skyline" aria-hidden="true"></div>
+          <div class="building-cutaway">
+            <div class="floor-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="machine-room"><div id="motor-visual" class="motor-visual">M</div><div id="pulley-visual" class="pulley-cluster"><i></i><i></i><i></i><i></i></div></div>
+            <div class="shaft"><div id="rope-visual" class="rope"></div><div id="lift-cab" class="lift-cab"><div class="victims" id="victims" aria-hidden="true">🧑‍🔧</div><span>RESCUE</span></div><div id="counterweight" class="counterweight"><span>ถ่วง</span></div></div>
+            <div class="floor-labels" id="floor-labels" aria-hidden="true"></div>
+          </div>
+          <div id="float-score" class="float-score" aria-live="polite"></div>
+          <div id="scene-message" class="scene-message" aria-live="polite">เลือกอุปกรณ์ แล้วกด “ทดสอบระบบ”</div>
+        </div>
+        <div class="formula-strip" aria-label="หลักฟิสิกส์ที่ใช้"><span>น้ำหนัก W = mg</span><span>แรงรอก F = W ÷ MA</span><span>งาน = แรง × ระยะทาง</span><span>กำลัง = งาน ÷ เวลา</span></div>
+      </section>
+
+      <aside class="engineering-panel" aria-labelledby="engineering-title">
+        <div class="mission-heading"><div><p class="eyebrow">ENGINEERING PANEL</p><h2 id="engineering-title">ภารกิจ: <span id="mission-name">ช่วยช่างซ่อมลิฟต์</span></h2></div><div id="timer-box" class="timer-box" hidden>⏱ <b id="timer-value">90</b>s</div></div>
+        <p id="mission-story" class="mission-story"></p>
+        <div id="event-card" class="event-card" hidden></div>
+        <dl class="mission-facts"><div><dt>ผู้โดยสาร</dt><dd id="passenger-value">1 คน</dd></div><div><dt>มวลรวม</dt><dd id="mass-value">220 kg</dd></div><div><dt>ความสูง</dt><dd id="height-value">12 m</dd></div><div><dt>กำลังมอเตอร์สูงสุด</dt><dd id="power-limit-value">1,600 W</dd></div><div><dt>งบประมาณ</dt><dd id="budget-value">500</dd></div></dl>
+        <section class="analysis-card" aria-labelledby="analysis-title"><div class="analysis-heading"><h3 id="analysis-title">ผลวิเคราะห์แบบเรียลไทม์</h3><span id="mode-label">EASY</span></div><div class="metric"><span>แรงที่มอเตอร์ต้องใช้</span><strong id="force-value">— N</strong></div><div class="metric"><span>แรงตึงเชือกออกแบบ</span><strong id="tension-value">— N</strong></div><div class="metric"><span>พลังงานที่ใช้</span><strong id="energy-value">— kJ</strong></div><div class="metric"><span>ระยะเชือกที่ดึง</span><strong id="rope-length-value">— m</strong></div><div class="metric"><span>ค่าอุปกรณ์</span><strong id="cost-value">—</strong></div><div class="safety-meter"><div><span>ความปลอดภัย</span><b id="safety-value">0%</b></div><div><i id="safety-bar"></i></div></div><p id="engineering-hint" class="engineering-hint"></p></section>
+        <button id="test-button" class="test-button" type="button">▶ ทดสอบระบบ</button>
+        <p id="physics-explanation" class="physics-explanation" aria-live="polite">ค่าทุกช่องจะเปลี่ยนตามอุปกรณ์ที่เลือก เพื่อให้เห็นผลของหลักฟิสิกส์ทันที</p>
+      </aside>
+    </section>
+
+    <section class="toolbox" aria-labelledby="toolbox-title">
+      <div class="toolbox-heading"><div><p class="eyebrow">ENGINEERING TOOLBOX</p><h2 id="toolbox-title">ออกแบบระบบกู้ภัย</h2></div><div class="mode-switch" role="group" aria-label="ระดับความยาก"><button type="button" data-mode="easy" class="active">Easy</button><button type="button" data-mode="normal">Normal</button><button type="button" data-mode="hard">Hard</button></div></div>
+      <div class="tool-groups">
+        <fieldset><legend>ระบบรอก</legend><div id="pulley-tools" class="tool-options"></div></fieldset>
+        <fieldset><legend>เชือกนิรภัย</legend><div id="rope-tools" class="tool-options"></div></fieldset>
+        <fieldset><legend>มอเตอร์</legend><div id="motor-tools" class="tool-options"></div></fieldset>
+        <fieldset class="slider-group"><legend>ตั้งค่าระบบ</legend><label for="counterweight-range"><span>น้ำหนักถ่วง</span><b id="counterweight-label">0 kg</b></label><input id="counterweight-range" type="range" min="0" max="500" step="25" value="0"><label for="speed-range"><span>ความเร็วลิฟต์</span><b id="speed-label">0.6 m/s</b></label><input id="speed-range" type="range" min="0.3" max="1.2" step="0.1" value="0.6"><label class="brake-check"><input id="brake-toggle" type="checkbox" checked><span>ติดตั้งเบรกฉุกเฉิน (+100)</span></label></fieldset>
+      </div>
+      <section class="upgrade-shop" aria-labelledby="upgrade-title"><div><p class="eyebrow">RESCUE LAB</p><h3 id="upgrade-title">อัปเกรดถาวรด้วย Coins</h3></div><div id="upgrade-list" class="upgrade-list"></div></section>
+      <div id="achievement-list" class="achievements" aria-label="ความสำเร็จ"></div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal visible" role="dialog" aria-modal="true" aria-labelledby="modal-title"><section class="modal-card"><div id="modal-icon" class="modal-icon" aria-hidden="true">🏗️</div><p id="modal-kicker" class="eyebrow">RESCUE ENGINEERING ACADEMY</p><h2 id="modal-title">พร้อมรับภารกิจกู้ภัยหรือยัง?</h2><p id="modal-message">ทดลองเลือกรอก เชือก มอเตอร์ น้ำหนักถ่วง และความเร็ว แล้วสังเกตว่าแรง งาน และพลังงานเปลี่ยนอย่างไร</p><div id="modal-result" class="modal-result" hidden></div><div class="modal-actions"><button id="modal-primary" type="button">เริ่มภารกิจ</button><a id="modal-exit" href="../index.html#games" hidden>ออกสู่ศูนย์เกม</a></div></section></div>
+  <script src="script.js"></script>
+</body>
+</html>
