@@ -596,6 +596,8 @@ body.ck-one-class .ck-class-switch::after { display: none; }
 }
 .ck-help-card:hover { border-color: var(--primary-light-border); box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .ck-help-card:active { transform: scale(0.98); }
+.ck-help-card.is-pending { cursor: default; }
+.ck-help-card.is-pending:hover { border-color: var(--border-color); box-shadow: var(--shadow-sm); transform: none; }
 .ck-help-icon {
   width: 44px;
   height: 44px;
