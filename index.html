@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=219">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=219">
-  <link rel="stylesheet" href="css/03-reports.css?v=219">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=219">
-  <link rel="stylesheet" href="css/05-home.css?v=219">
-  <link rel="stylesheet" href="css/06-attendance.css?v=219">
-  <link rel="stylesheet" href="css/07-scores.css?v=219">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=219">
-    <link rel="stylesheet" href="css/09-games.css?v=219">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=221">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=221">
+  <link rel="stylesheet" href="css/03-reports.css?v=221">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=221">
+  <link rel="stylesheet" href="css/05-home.css?v=221">
+  <link rel="stylesheet" href="css/06-attendance.css?v=221">
+  <link rel="stylesheet" href="css/07-scores.css?v=221">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=221">
+    <link rel="stylesheet" href="css/09-games.css?v=221">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -405,10 +405,14 @@
             </div>
           </section>
 
-          <section class="games-section games-section-upcoming" aria-labelledby="games-upcoming-title">
-            <div class="games-section-heading"><div><span class="games-category-label">กำลังเตรียม</span><h3 id="games-upcoming-title">หมวดเกมถัดไป</h3></div><span class="games-count">เพิ่มเกมได้ในภายหลัง</span></div>
-            <div class="games-grid games-grid-upcoming">
-              <article class="game-card game-card-placeholder"><div class="game-card-icon">🔎</div><div class="game-card-content"><h4>นักสำรวจความรู้</h4><p>พื้นที่สำหรับเกมวิทยาศาสตร์และความรู้รอบตัว</p></div><span class="game-coming-badge">เร็ว ๆ นี้</span></article>
+          <section class="games-section" aria-labelledby="games-science-title">
+            <div class="games-section-heading"><div><span class="games-category-label">หมวดเกม</span><h3 id="games-science-title">วิทยาศาสตร์</h3></div><span class="games-count">1 เกมพร้อมเล่น</span></div>
+            <div class="games-grid">
+              <article class="game-card game-card-featured">
+                <div class="game-card-icon">🌿</div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Green City</h4><p>สร้างเมืองสีเขียวแห่งอนาคต ตอบคำถามสิ่งแวดล้อมแล้วเปลี่ยนเมืองให้สดใส</p><div class="game-meta"><span>City Builder</span><span>สิ่งแวดล้อม</span></div></div>
+                <a class="btn games-play-button" href="green-city/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
+              </article>
             </div>
           </section>
         </div>
@@ -921,18 +925,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=219"></script>
-  <script defer src="js/auth.js?v=219"></script>
-  <script defer src="js/shell.js?v=219"></script>
-  <script defer src="js/dashboard.js?v=219"></script>
-  <script defer src="js/classrooms.js?v=219"></script>
-  <script defer src="js/students.js?v=219"></script>
-  <script defer src="js/timetable.js?v=219"></script>
-  <script defer src="js/reports.js?v=219"></script>
-  <script defer src="js/attendance.js?v=219"></script>
-  <script defer src="js/scores.js?v=219"></script>
-  <script defer src="js/tools.js?v=219"></script>
-  <script defer src="js/shared-utils.js?v=219"></script>
-  <script defer src="js/extras.js?v=219"></script>
+  <script defer src="js/core.js?v=221"></script>
+  <script defer src="js/auth.js?v=221"></script>
+  <script defer src="js/shell.js?v=221"></script>
+  <script defer src="js/dashboard.js?v=221"></script>
+  <script defer src="js/classrooms.js?v=221"></script>
+  <script defer src="js/students.js?v=221"></script>
+  <script defer src="js/timetable.js?v=221"></script>
+  <script defer src="js/reports.js?v=221"></script>
+  <script defer src="js/attendance.js?v=221"></script>
+  <script defer src="js/scores.js?v=221"></script>
+  <script defer src="js/tools.js?v=221"></script>
+  <script defer src="js/shared-utils.js?v=221"></script>
+  <script defer src="js/extras.js?v=221"></script>
 </body>
 </html>

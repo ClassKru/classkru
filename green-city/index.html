@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0e4d52">
+  <title>Green City – เมืองสีเขียวแห่งอนาคต</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell" aria-labelledby="game-title">
+    <header class="game-header">
+      <a class="back-link" href="../index.html#games" aria-label="กลับไปหน้าเกมการศึกษา">← <span>ศูนย์เกม</span></a>
+      <div class="brand"><span aria-hidden="true">🌿</span><div><h1 id="game-title">Green City</h1><p>เมืองสีเขียวแห่งอนาคต</p></div></div>
+      <div class="top-stats" aria-label="สถานะเมือง"><div><span>Eco Point</span><strong id="eco-value">0</strong></div><div><span>Level</span><strong id="level-value">1</strong></div><div><span>Score</span><strong id="score-value">0</strong></div><div><span>Population</span><strong id="population-value">120</strong></div><div><span>Happiness</span><strong id="happiness-value">35%</strong></div></div>
+      <button id="sound-button" class="sound-button" type="button" aria-label="ปิดเสียง" aria-pressed="true">🔊</button>
+    </header>
+
+    <section class="game-layout">
+      <section class="city-panel" aria-labelledby="city-title">
+        <div class="panel-heading"><div><p class="eyebrow">CITY SIMULATION</p><h2 id="city-title">เขตพัฒนาเมือง</h2></div><div id="weather" class="weather" aria-label="อากาศวันนี้">☁️ เมืองมีหมอกควัน</div></div>
+        <div class="city-world">
+          <div class="cloud cloud-one" aria-hidden="true"></div><div class="cloud cloud-two" aria-hidden="true"></div><div class="sun" aria-hidden="true"></div>
+          <div id="city-grid" class="city-grid" aria-label="แผนที่เมือง: เลือกสิ่งก่อสร้าง แล้วกดพื้นที่ว่างเพื่อสร้าง"></div>
+          <div class="river" aria-hidden="true"><span>≈</span><span>≈</span><span>≈</span></div>
+          <p id="city-message" class="city-message" aria-live="polite">เมืองกำลังรอผู้นำสีเขียว เริ่มจากตอบภารกิจแรก!</p>
+        </div>
+        <section class="indicators" aria-label="ดัชนีสิ่งแวดล้อมเมือง">
+          <div class="indicator" data-key="air"><span>💨 อากาศ</span><div><i></i></div><b>25</b></div><div class="indicator" data-key="water"><span>💧 น้ำ</span><div><i></i></div><b>30</b></div><div class="indicator" data-key="green"><span>🌳 พื้นที่สีเขียว</span><div><i></i></div><b>12</b></div><div class="indicator" data-key="recycle"><span>♻️ รีไซเคิล</span><div><i></i></div><b>10</b></div><div class="indicator" data-key="energy"><span>☀️ พลังงานสะอาด</span><div><i></i></div><b>15</b></div><div class="indicator" data-key="happy"><span>😊 ความสุข</span><div><i></i></div><b>35</b></div><div class="indicator" data-key="carbon"><span>☁️ ลดคาร์บอน</span><div><i></i></div><b>18</b></div>
+        </section>
+      </section>
+
+      <aside class="mission-panel" aria-labelledby="mission-title">
+        <div class="mission-header"><div><p class="eyebrow">ECO MISSION</p><h2 id="mission-title">ภารกิจที่ <span id="mission-number">1</span></h2></div><span id="mission-progress" class="progress-badge">0 / 3</span></div>
+        <div id="event-banner" class="event-banner" hidden></div>
+        <div class="question-card"><p id="question-topic" class="topic">ความรู้สิ่งแวดล้อม</p><h3 id="question-text">กำลังเตรียมภารกิจ...</h3><div id="answer-list" class="answer-list" role="group" aria-label="คำตอบภารกิจ"></div><p id="answer-feedback" class="answer-feedback" aria-live="polite"></p></div>
+        <div class="achievement-box"><div><p class="eyebrow">ACHIEVEMENTS</p><h3>ตราเมืองสีเขียว</h3></div><div id="achievement-list" class="achievement-list" aria-label="ความสำเร็จ"></div></div>
+        <button id="stats-toggle" class="stats-toggle" type="button">ดูสถิติของฉัน</button><div id="stats-panel" class="stats-panel" hidden></div>
+      </aside>
+    </section>
+
+    <section class="construction-panel" aria-labelledby="construction-title">
+      <div class="construction-heading"><div><p class="eyebrow">CONSTRUCTION TOOLBAR</p><h2 id="construction-title">เลือกโครงการเพื่อพัฒนาเมือง</h2></div><p id="selected-building">เลือกโครงการ แล้วกดพื้นที่ว่างบนแผนที่</p></div>
+      <div id="building-list" class="building-list" role="group" aria-label="โครงการก่อสร้าง"></div>
+    </section>
+  </main>
+
+  <div id="start-overlay" class="overlay" role="dialog" aria-modal="true" aria-labelledby="start-title">
+    <section class="welcome-card"><div class="welcome-icon" aria-hidden="true">🌍</div><p class="eyebrow">GREEN CITY CHALLENGE</p><h2 id="start-title">สร้างอนาคตที่น่าอยู่</h2><p>เมืองเริ่มต้นเต็มไปด้วยมลพิษ ตอบคำถามสิ่งแวดล้อมเพื่อรับ Eco Point แล้วใช้สร้างพื้นที่สีเขียวให้เมืองกลับมาสดใส</p><button id="start-button" type="button">เริ่มพัฒนาเมือง</button></section>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
