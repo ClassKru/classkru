@@ -48,7 +48,7 @@
     level: $('level-value'), score: $('score-value'), coins: $('coin-value'), mission: $('mission-value'), missionName: $('mission-name'), missionStory: $('mission-story'), passengers: $('passenger-value'), mass: $('mass-value'), height: $('height-value'), powerLimit: $('power-limit-value'), budget: $('budget-value'),
     event: $('event-card'), force: $('force-value'), tension: $('tension-value'), energy: $('energy-value'), ropeLength: $('rope-length-value'), cost: $('cost-value'), safety: $('safety-value'), safetyBar: $('safety-bar'), hint: $('engineering-hint'), explanation: $('physics-explanation'), modeLabel: $('mode-label'),
     pulleyTools: $('pulley-tools'), ropeTools: $('rope-tools'), motorTools: $('motor-tools'), counterRange: $('counterweight-range'), counterLabel: $('counterweight-label'), speedRange: $('speed-range'), speedLabel: $('speed-label'), brake: $('brake-toggle'), test: $('test-button'),
-    pulleyVisual: $('pulley-visual'), ropeVisual: $('rope-visual'), motorVisual: $('motor-visual'), cab: $('lift-cab'), counterweight: $('counterweight'), victims: $('victims'), floors: $('floor-labels'), light: $('system-light'), sceneMessage: $('scene-message'), floatScore: $('float-score'),
+    pulleyVisual: $('pulley-visual'), ropeVisual: $('rope-visual'), rigging: $('rigging-visual'), rigRope: $('rig-rope'), rigDrive: $('rig-drive'), rigPulleys: $('rig-pulleys'), motorVisual: $('motor-visual'), cab: $('lift-cab'), counterweight: $('counterweight'), victims: $('victims'), floors: $('floor-labels'), light: $('system-light'), sceneMessage: $('scene-message'), floatScore: $('float-score'),
     modeButtons: [...document.querySelectorAll('.mode-switch button')], upgrades: $('upgrade-list'), achievements: $('achievement-list'), timerBox: $('timer-box'), timer: $('timer-value'), sound: $('sound-button'),
     modal: $('modal'), modalIcon: $('modal-icon'), modalKicker: $('modal-kicker'), modalTitle: $('modal-title'), modalMessage: $('modal-message'), modalResult: $('modal-result'), modalPrimary: $('modal-primary'), modalExit: $('modal-exit')
   };
@@ -127,7 +127,7 @@
       ui.missionName.textContent = mission.name; ui.missionStory.textContent = mission.story; ui.passengers.textContent = `${mission.passengers} คน`; ui.mass.textContent = `${mission.mass + (this.state.event?.addedMass || 0)} kg`; ui.height.textContent = `${mission.height} m`; ui.powerLimit.textContent = `${mission.powerLimit.toLocaleString('th-TH')} W`; ui.budget.textContent = `${mission.budget + (this.state.event?.budgetDelta || 0)} Coins`;
       ui.event.hidden = !this.state.event; if (this.state.event) ui.event.textContent = `${this.state.event.icon} เหตุการณ์: ${this.state.event.name} — ${this.state.event.text}`;
       ui.victims.textContent = mission.passengers > 5 ? '🧑‍🚒🧑‍🔧👩‍⚕️' : mission.passengers > 2 ? '🧑‍🔧👩‍⚕️' : '🧑‍🔧'; ui.floors.innerHTML = Array.from({ length: 6 }, (_, index) => `<span>F${index + 1}</span>`).join('');
-      ui.cab.className = 'lift-cab'; ui.counterweight.className = 'counterweight'; ui.ropeVisual.className = 'rope'; ui.motorVisual.className = 'motor-visual'; ui.pulleyVisual.className = `pulley-cluster ma-${this.state.pulley.ma}`; this.setLight('', 'รอการออกแบบ'); ui.sceneMessage.textContent = 'เลือกอุปกรณ์ แล้วกด “ทดสอบระบบ”'; ui.explanation.textContent = 'ค่าทุกช่องจะเปลี่ยนตามอุปกรณ์ที่เลือก เพื่อให้เห็นผลของหลักฟิสิกส์ทันที';
+      ui.cab.className = 'lift-cab'; ui.counterweight.className = 'counterweight'; ui.cab.style.transform = ''; ui.counterweight.style.transform = ''; ui.ropeVisual.className = 'rope-sensor'; ui.rigging.classList.remove('moving'); ui.motorVisual.className = 'motor-visual'; ui.pulleyVisual.className = `pulley-cluster ma-${this.state.pulley.ma}`; this.setLight('', 'รอการออกแบบ'); ui.sceneMessage.textContent = 'เลือกอุปกรณ์ แล้วกด “ทดสอบระบบ”'; ui.explanation.textContent = 'ค่าทุกช่องจะเปลี่ยนตามอุปกรณ์ที่เลือก เพื่อให้เห็นผลของหลักฟิสิกส์ทันที';
       this.startHardTimer(); this.updateHud(); this.updateAnalysis();
     }
     startHardTimer() { clearInterval(this.state.timerId); ui.timerBox.hidden = this.state.mode !== 'hard'; this.state.remaining = this.state.missionIndex === MISSIONS.length - 1 ? 75 : 90; ui.timer.textContent = this.state.remaining; if (this.state.mode !== 'hard') return; this.state.timerId = setInterval(() => { this.state.remaining -= 1; ui.timer.textContent = this.state.remaining; ui.timerBox.classList.toggle('danger', this.state.remaining <= 15); if (this.state.remaining <= 0) { clearInterval(this.state.timerId); this.showFailure(['หมดเวลาก่อนเริ่มระบบ']); } }, 1000); }
@@ -137,11 +137,55 @@
     updateAnalysis() {
       const result = this.result(); const hide = this.state.mode === 'hard' && !this.state.testing;
       ui.force.textContent = hide ? '? N' : `${Math.round(result.inputForce).toLocaleString('th-TH')} N`; ui.tension.textContent = hide ? '? N' : `${Math.round(result.tension).toLocaleString('th-TH')} N`; ui.energy.textContent = hide ? '? kJ' : `${result.energy.toFixed(1)} kJ`; ui.ropeLength.textContent = `${result.ropeLength.toFixed(0)} m`; ui.cost.textContent = `${result.cost} / ${result.budget}`; ui.safety.textContent = hide ? '?' : `${result.safety}%`; ui.safetyBar.style.width = hide ? '0%' : `${result.safety}%`;
-      ui.force.className = result.checks.power ? 'good' : 'bad'; ui.tension.className = result.checks.rope ? 'good' : 'bad'; ui.cost.className = result.checks.budget ? 'good' : 'bad'; ui.counterLabel.textContent = `${this.state.counterweight} kg`; ui.speedLabel.textContent = `${this.state.speed.toFixed(1)} m/s`; ui.pulleyVisual.className = `pulley-cluster ma-${this.state.pulley.ma}`; ui.counterweight.style.height = `${Math.min(92, 48 + this.state.counterweight / 12)}px`;
+      ui.force.className = result.checks.power ? 'good' : 'bad'; ui.tension.className = result.checks.rope ? 'good' : 'bad'; ui.cost.className = result.checks.budget ? 'good' : 'bad'; ui.counterLabel.textContent = `${this.state.counterweight} kg`; ui.speedLabel.textContent = `${this.state.speed.toFixed(1)} m/s`; ui.pulleyVisual.className = `pulley-cluster ma-${this.state.pulley.ma}`; ui.counterweight.style.height = `${Math.min(92, 48 + this.state.counterweight / 12)}px`; this.drawRig(0);
       if (this.state.mode === 'easy') ui.hint.textContent = this.easyHint(result); else if (this.state.mode === 'normal') ui.hint.textContent = 'สังเกตค่าที่เป็นสีแดง แล้วปรับอุปกรณ์ให้ผ่านทุกข้อ'; else ui.hint.textContent = 'โหมด Hard ซ่อนค่าคำนวณจนกว่าจะทดสอบ และมีเวลาจำกัด';
       this.renderTools();
     }
     easyHint(result) { if (!result.checks.battery) return 'คำแนะนำ: อัปเกรดแบตเตอรี่สำรองใน Rescue Lab ก่อนทดสอบ'; if (!result.checks.rope) return 'คำแนะนำ: เพิ่ม Mechanical Advantage หรือเลือกเชือกเสริมแรง เพื่อลดแรงตึงต่อเส้น'; if (!result.checks.power) return 'คำแนะนำ: เพิ่มน้ำหนักถ่วงใกล้เคียงมวลห้องโดยสาร หรือลดความเร็ว'; if (!result.checks.brake) return 'คำแนะนำ: ระบบกู้ภัยต้องติดตั้งเบรกฉุกเฉิน'; if (!result.checks.budget) return 'คำแนะนำ: ค่าอุปกรณ์เกินงบ ลองเลือกระบบที่เรียบง่ายขึ้น'; if (!result.checks.balance) return 'คำแนะนำ: น้ำหนักถ่วงไม่ควรเกิน 105% ของมวลห้องโดยสาร'; return 'ระบบมีแนวโน้มพร้อมทดสอบ: แรง กำลัง เชือก เบรก และงบผ่านเกณฑ์'; }
+    pulleyMarkup(x, y, linkedToCab = false) { return `${linkedToCab ? `<line x1="${x}" y1="${y + 13}" x2="${x}" y2="${y + 24}" stroke="#8ea4b8" stroke-width="4"/>` : ''}<circle class="rig-pulley-wheel" cx="${x}" cy="${y}" r="13"></circle><circle class="rig-pulley-hub" cx="${x}" cy="${y}" r="4"></circle>`; }
+    drawRig(progress = 0) {
+      const cabY = 323 - 248 * progress;
+      const counterY = 92 + 215 * progress;
+      const ma = this.state.pulley.ma;
+      let ropePath;
+      let driveX;
+      let pulleys;
+      if (ma === 1) {
+        ropePath = `M 300 ${cabY} L 300 45 L 220 45 L 220 ${counterY}`;
+        driveX = 300;
+        pulleys = `${this.pulleyMarkup(300, 45)}${this.pulleyMarkup(220, 45)}`;
+      } else if (ma === 2) {
+        ropePath = `M 247 50 L 247 ${cabY} Q 267 ${cabY + 22} 287 ${cabY} L 287 45 L 220 45 L 220 ${counterY}`;
+        driveX = 287;
+        pulleys = `<circle class="rig-anchor" cx="247" cy="50" r="5"></circle>${this.pulleyMarkup(267, cabY, true)}${this.pulleyMarkup(287, 45)}${this.pulleyMarkup(220, 45)}`;
+      } else {
+        ropePath = `M 230 50 L 230 ${cabY} Q 248 ${cabY + 22} 266 ${cabY} L 266 45 L 284 45 L 284 ${cabY} Q 302 ${cabY + 22} 320 ${cabY} L 320 45 L 220 45 L 220 ${counterY}`;
+        driveX = 320;
+        pulleys = `<circle class="rig-anchor" cx="230" cy="50" r="5"></circle>${this.pulleyMarkup(248, cabY, true)}${this.pulleyMarkup(275, 45)}${this.pulleyMarkup(302, cabY, true)}${this.pulleyMarkup(320, 45)}${this.pulleyMarkup(220, 45)}`;
+      }
+      ui.rigRope.setAttribute('d', ropePath);
+      ui.rigDrive.setAttribute('d', `M 120 38 L ${driveX} 38`);
+      ui.rigPulleys.innerHTML = pulleys;
+    }
+    animateLift() {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const duration = reducedMotion ? 60 : 3200;
+      const cabTravel = Math.max(145, ui.cab.parentElement.clientHeight - ui.cab.offsetHeight - 40);
+      const counterTravel = cabTravel * .82;
+      ui.rigging.classList.add('moving');
+      return new Promise((resolve) => {
+        const startedAt = performance.now();
+        const step = (time) => {
+          const rawProgress = Math.min(1, (time - startedAt) / duration);
+          const progress = .5 - Math.cos(Math.PI * rawProgress) / 2;
+          ui.cab.style.transform = `translateY(${-cabTravel * progress}px)`;
+          ui.counterweight.style.transform = `translateY(${counterTravel * progress}px)`;
+          this.drawRig(progress);
+          if (rawProgress < 1) requestAnimationFrame(step); else resolve();
+        };
+        requestAnimationFrame(step);
+      });
+    }
     renderTools() { this.renderChoice(ui.pulleyTools, PULLEYS, 'pulley'); this.renderChoice(ui.ropeTools, ROPES, 'rope'); this.renderChoice(ui.motorTools, MOTORS, 'motor'); }
     renderChoice(container, items, key) { container.innerHTML = ''; items.forEach((item) => { const button = document.createElement('button'); button.type = 'button'; button.className = `tool-button ${this.state[key].id === item.id ? 'selected' : ''}`; button.setAttribute('aria-pressed', String(this.state[key].id === item.id)); const detail = key === 'pulley' ? `MA ${item.ma}` : key === 'rope' ? `${(item.strength / 1000).toFixed(0)} kN` : `${(item.power / 1000).toFixed(1)} kW`; button.innerHTML = `<span>${item.icon}</span><b>${item.name}<br>${detail}</b><small>${item.cost}</small>`; button.addEventListener('click', () => { if (this.state.testing) return; this.state[key] = item; this.audio.click(); this.updateAnalysis(); }); container.append(button); }); }
     renderUpgrades() { ui.upgrades.innerHTML = ''; UPGRADE_INFO.forEach((upgrade) => { const level = this.save.upgrades[upgrade.id]; const cost = upgrade.baseCost * (level + 1); const button = document.createElement('button'); button.type = 'button'; button.className = 'upgrade-button'; button.disabled = level >= 3 || this.state.coins < cost; button.innerHTML = `${upgrade.icon} ${upgrade.name} Lv.${level} · ${level >= 3 ? 'MAX' : `${cost} Coins`}<br>${upgrade.note}`; button.addEventListener('click', () => this.buyUpgrade(upgrade)); ui.upgrades.append(button); }); }
@@ -149,9 +193,9 @@
     setMode(mode) { if (this.state.testing) return; this.state.mode = mode; ui.modeButtons.forEach((button) => button.classList.toggle('active', button.dataset.mode === mode)); ui.modeLabel.textContent = mode.toUpperCase(); this.audio.click(); this.startHardTimer(); this.updateAnalysis(); }
     setLight(className, text) { ui.light.className = `system-light ${className}`; ui.light.querySelector('span').textContent = text; }
     async testSystem() {
-      if (this.state.testing) return; this.state.testing = true; ui.test.disabled = true; clearInterval(this.state.timerId); const result = this.result(); this.updateAnalysis(); this.setLight('ready', 'กำลังทดสอบ'); ui.sceneMessage.textContent = 'มอเตอร์เริ่มทำงาน กำลังตรวจแรงตึงและกำลัง...'; ui.motorVisual.classList.add('running'); ui.pulleyVisual.classList.add('spinning'); ui.ropeVisual.classList.add('moving'); this.audio.motor(); await this.wait(1100);
-      if (result.success) { ui.cab.classList.add('rising'); ui.counterweight.classList.add('moving'); await this.wait(3300); this.completeMission(result); } else { ui.cab.classList.add('failed'); this.audio.fail(); await this.wait(450); this.showFailure(this.failureReasons(result)); }
-      ui.motorVisual.classList.remove('running'); ui.pulleyVisual.classList.remove('spinning'); ui.ropeVisual.classList.remove('moving'); ui.test.disabled = false;
+      if (this.state.testing) return; this.state.testing = true; ui.test.disabled = true; clearInterval(this.state.timerId); const result = this.result(); this.updateAnalysis(); this.setLight('ready', 'กำลังทดสอบ'); ui.sceneMessage.textContent = 'มอเตอร์เริ่มทำงาน เชือกเคลื่อนผ่านรอกอย่างต่อเนื่อง...'; ui.motorVisual.classList.add('running'); ui.pulleyVisual.classList.add('spinning'); ui.ropeVisual.classList.add('moving'); ui.rigging.classList.add('moving'); this.audio.motor(); await this.wait(1100);
+      if (result.success) { await this.animateLift(); this.completeMission(result); } else { ui.cab.classList.add('failed'); this.audio.fail(); await this.wait(450); this.showFailure(this.failureReasons(result)); }
+      ui.motorVisual.classList.remove('running'); ui.pulleyVisual.classList.remove('spinning'); ui.ropeVisual.classList.remove('moving'); ui.rigging.classList.remove('moving'); ui.test.disabled = false;
     }
     failureReasons(result) { const reasons = []; if (!result.checks.rope) reasons.push(`เชือกไม่ปลอดภัย: แรงตึง ${Math.round(result.tension)} N เกิน Safe Working Load ${Math.round(result.safeWorkingLoad)} N`); if (!result.checks.power) reasons.push(`กำลังไม่พอ: ต้องใช้ ${Math.round(result.requiredPower)} W แต่มี ${Math.round(result.availablePower)} W`); if (!result.checks.brake) reasons.push('ไม่มีเบรกฉุกเฉิน ระบบกู้ภัยจึงไม่ผ่านมาตรฐาน'); if (!result.checks.budget) reasons.push(`ค่าอุปกรณ์ ${result.cost} เกินงบ ${result.budget}`); if (!result.checks.balance) reasons.push('น้ำหนักถ่วงมากเกินไป อาจดึงห้องโดยสารพุ่งขึ้น'); if (!result.checks.battery) reasons.push('ไฟดับและยังไม่มีแบตเตอรี่สำรอง'); return reasons; }
     showFailure(reasons) { this.state.testing = false; this.setLight('failure', 'ทดสอบไม่ผ่าน'); ui.sceneMessage.textContent = 'ระบบหยุดอย่างปลอดภัย ปรับแบบแล้วทดลองอีกครั้ง'; ui.explanation.textContent = reasons.join(' · '); this.state.modalAction = 'retry'; this.showModal('SYSTEM CHECK FAILED', 'ระบบยังไม่ปลอดภัย', reasons.join(' '), '🛑', 'กลับไปแก้แบบ', false, ''); }
@@ -164,7 +208,7 @@
     }
     renderAchievements() { const achievements = [ { icon: '🦸', name: 'Rescue Hero', unlocked: this.save.completed >= 1 }, { icon: '⚙️', name: 'Pulley Master', unlocked: this.save.stars >= 3 }, { icon: '🔋', name: 'Energy Saver', unlocked: this.save.completed >= 3 }, { icon: '🛡️', name: 'Safe Engineer', unlocked: this.save.upgrades.brake >= 1 }, { icon: '🏗️', name: 'Elevator Expert', unlocked: this.save.unlocked >= 6 }, { icon: '🧠', name: 'Physics Genius', unlocked: this.save.completed >= 6 } ]; this.save.achievements = achievements.filter((item) => item.unlocked).map((item) => item.name); localStorage.setItem(STORAGE_KEY, JSON.stringify(this.save)); ui.achievements.innerHTML = achievements.map((item) => `<span class="achievement ${item.unlocked ? 'unlocked' : ''}">${item.icon} ${item.name}</span>`).join(''); }
     showModal(kicker, title, message, icon, primary, exit, result) { ui.modalKicker.textContent = kicker; ui.modalTitle.textContent = title; ui.modalMessage.textContent = message; ui.modalIcon.textContent = icon; ui.modalPrimary.textContent = primary; ui.modalExit.hidden = !exit; ui.modalResult.hidden = !result; ui.modalResult.innerHTML = result; ui.modal.classList.add('visible'); }
-    modalPrimary() { this.audio.prepare(); this.audio.click(); ui.modal.classList.remove('visible'); if (this.state.modalAction === 'next') this.state.missionIndex += 1; else if (this.state.modalAction === 'restart') this.state.missionIndex = 0; if (this.state.modalAction !== 'retry' && this.state.modalAction !== 'start') this.loadMission(); else if (this.state.modalAction === 'retry') { this.state.testing = false; this.startHardTimer(); } this.state.modalAction = 'playing'; }
+    modalPrimary() { this.audio.prepare(); this.audio.click(); ui.modal.classList.remove('visible'); if (this.state.modalAction === 'next') this.state.missionIndex += 1; else if (this.state.modalAction === 'restart') this.state.missionIndex = 0; if (this.state.modalAction !== 'retry' && this.state.modalAction !== 'start') this.loadMission(); else if (this.state.modalAction === 'retry') { this.state.testing = false; ui.cab.classList.remove('failed'); ui.cab.style.transform = ''; ui.counterweight.style.transform = ''; this.drawRig(0); this.startHardTimer(); } this.state.modalAction = 'playing'; }
     wait(milliseconds) { return new Promise((resolve) => setTimeout(resolve, milliseconds)); }
   }
 

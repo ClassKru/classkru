@@ -24,7 +24,12 @@
           <div class="building-cutaway">
             <div class="floor-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="machine-room"><div id="motor-visual" class="motor-visual">M</div><div id="pulley-visual" class="pulley-cluster"><i></i><i></i><i></i><i></i></div></div>
-            <div class="shaft"><div id="rope-visual" class="rope"></div><div id="lift-cab" class="lift-cab"><div class="victims" id="victims" aria-hidden="true">🧑‍🔧</div><span>RESCUE</span></div><div id="counterweight" class="counterweight"><span>ถ่วง</span></div></div>
+            <svg id="rigging-visual" class="rigging-visual" viewBox="0 0 420 410" preserveAspectRatio="none" aria-hidden="true">
+              <path id="rig-drive" class="rig-drive" d=""></path>
+              <path id="rig-rope" class="rig-rope" d=""></path>
+              <g id="rig-pulleys" class="rig-pulleys"></g>
+            </svg>
+            <div class="shaft"><div id="rope-visual" class="rope-sensor" aria-hidden="true"></div><div id="lift-cab" class="lift-cab"><div class="victims" id="victims" aria-hidden="true">🧑‍🔧</div><span>RESCUE</span></div><div id="counterweight" class="counterweight"><span>ถ่วง</span></div></div>
             <div class="floor-labels" id="floor-labels" aria-hidden="true"></div>
           </div>
           <div id="float-score" class="float-score" aria-live="polite"></div>
