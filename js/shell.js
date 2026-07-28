@@ -1,7 +1,16 @@
 // ==================== URL ROUTING (#hash) — รองรับ LINE OA ลิงก์เข้าหน้าตรงๆ ====================
 // หน้าที่ลิงก์เข้าได้จาก URL เช่น classkru-kohl.vercel.app/#reports
 // 'checkin' คือหน้าเช็คชื่อ (เดิมเป็น overlay ที่ไม่มี URL ของตัวเอง) — ต้องมี param บอกห้อง
-const ROUTABLE_SCREENS = ['dashboard','classrooms','students','timetable','attendance','scores','reports','games','settings','checkin'];
+const ROUTABLE_SCREENS = ['dashboard','contact','help-guide','feature-request','classrooms','students','timetable','attendance','scores','reports','games','settings','checkin'];
+const LINE_OA_ID = '@731idhsu';
+const SUPPORT_FORM_URLS = {
+  bug: '',
+  feature: ''
+};
+
+function getLineSupportUrl(message) {
+  return `https://line.me/R/oaMessage/${encodeURIComponent(LINE_OA_ID)}/?${encodeURIComponent(message)}`;
+}
 
 // รูปแบบ hash: "#reports" หรือแบบมีพารามิเตอร์ "#checkin:c_1712345678"
 // คืน { screen, param } — screen เป็น null ถ้า hash ไม่ถูกต้อง
@@ -97,7 +106,7 @@ function navigateToWebScreen(screenId, param) {
   // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
   setRouteHash('#' + screenId);
 
-  const screens = ['dashboard','classrooms','students','timetable','attendance','scores','reports','games','settings'];
+  const screens = ['dashboard','contact','help-guide','feature-request','classrooms','students','timetable','attendance','scores','reports','games','settings'];
   screens.forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = s === screenId ? 'block' : 'none';
@@ -105,7 +114,8 @@ function navigateToWebScreen(screenId, param) {
 
   // Sidebar active
   document.querySelectorAll('.sidebar-menu .nav-item').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-screen') === screenId);
+    const owns = (btn.getAttribute('data-screen') || '').split(' ');
+    btn.classList.toggle('active', owns.includes(screenId));
   });
 
   // Mobile bottom nav active — data-screen รับได้หลายหน้าคั่นด้วยช่องว่าง
@@ -120,6 +130,9 @@ function navigateToWebScreen(screenId, param) {
   const subEl = document.getElementById('web-header-subtitle');
   const titles = {
     dashboard: ['หน้าหลัก', 'ตารางสอนและเช็คชื่อด่วน'],
+    contact: ['ศูนย์ช่วยเหลือ', 'เลือกหัวข้อเพื่อให้ทีมงานช่วยได้ตรงจุด'],
+    'help-guide': ['วิธีใช้งาน', 'รออัปเดตคู่มือ'],
+    'feature-request': ['เสนอฟีเจอร์', 'ส่งไอเดียให้ทีมงานพิจารณา'],
     classrooms: ['ห้องเรียนวิชาสอน', 'จัดการรายวิชาและเช็คชื่อด่วน'],
     students: ['จัดการรายชื่อเด็ก', 'เพิ่ม ลบ แก้ไข ย้ายห้อง'],
     timetable: ['ตารางสอนสัปดาห์', 'กำหนดคาบเรียนรองรับ Week A/B'],
@@ -144,6 +157,35 @@ function navigateToWebScreen(screenId, param) {
   else if (screenId === 'reports') showWebClassReport(detailClassId);
 }
 
+function openLineSupport(type) {
+  const messages = {
+    staff: '#ขอความช่วยเหลือ',
+    bug: '#แจ้งปัญหา',
+    feature: '#เสนอฟีเจอร์'
+  };
+  window.open(getLineSupportUrl(messages[type] || messages.staff), '_blank', 'noopener');
+}
+
+function openSupportForm(type) {
+  const formUrl = SUPPORT_FORM_URLS[type];
+  if (formUrl) {
+    window.open(formUrl, '_blank', 'noopener');
+    return;
+  }
+  alert('รอใส่ลิงก์ฟอร์มจริง');
+}
+
+function submitFeatureRequest() {
+  const input = document.getElementById('feature-request-text');
+  const detail = (input && input.value.trim()) ? `\n${input.value.trim()}` : '';
+  const formUrl = SUPPORT_FORM_URLS.feature;
+  if (formUrl) {
+    window.open(formUrl, '_blank', 'noopener');
+    return;
+  }
+  window.open(getLineSupportUrl(`#เสนอฟีเจอร์${detail}`), '_blank', 'noopener');
+}
+
 // ==================== หน้าเช็คชื่อในฐานะ "หน้า" จริง ====================
 // DOM ของเช็คชื่อเป็น overlay ไม่ใช่ div#web-screen-* เลยทำงานฝั่ง routing แยก
 // openSwipeAttendance เรียกตัวนี้ปิดท้าย เพื่อให้ URL / sidebar / ชื่อหน้า ตรงกับที่เห็นจริง
@@ -155,7 +197,7 @@ function applyCheckinRoute(classId) {
   setRouteHash('#checkin:' + classId);   // เข้าจากการ์ดห้อง = push (ปุ่ม back ปิดหน้านี้ได้) · สลับแท็บ = replace
 
   // ซ่อนหน้าอื่นทั้งหมด (overlay ทับอยู่แล้ว แต่ต้องให้ state ตรงกัน)
-  ['dashboard','classrooms','students','timetable','attendance','scores','reports','games','settings'].forEach(s => {
+  ['dashboard','contact','help-guide','feature-request','classrooms','students','timetable','attendance','scores','reports','games','settings'].forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = 'none';
   });
@@ -238,5 +280,3 @@ function calculateNextClass() {
 let homeSelectedDate = null;
 let calViewYear = 0;
 let calViewMonth = 0;
-
-

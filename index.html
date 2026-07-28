@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=217">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=217">
-  <link rel="stylesheet" href="css/03-reports.css?v=217">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=217">
-  <link rel="stylesheet" href="css/05-home.css?v=217">
-  <link rel="stylesheet" href="css/06-attendance.css?v=217">
-  <link rel="stylesheet" href="css/07-scores.css?v=217">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=217">
-    <link rel="stylesheet" href="css/09-games.css?v=217">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=218">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=218">
+  <link rel="stylesheet" href="css/03-reports.css?v=218">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=218">
+  <link rel="stylesheet" href="css/05-home.css?v=218">
+  <link rel="stylesheet" href="css/06-attendance.css?v=218">
+  <link rel="stylesheet" href="css/07-scores.css?v=218">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=218">
+    <link rel="stylesheet" href="css/09-games.css?v=218">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -145,6 +145,7 @@
         <button class="nav-item" data-screen="students" onclick="navigateToWebScreen('students')" style="display:none;"><i class="hgi-stroke hgi-user-multiple"></i><span>จัดการรายชื่อเด็ก</span></button>
         <button class="nav-item" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอนประจำสัปดาห์</span></button>
         <button class="nav-item" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกมการศึกษา</span></button>
+        <button class="nav-item" data-screen="contact help-guide feature-request" onclick="navigateToWebScreen('contact')"><i class="hgi-stroke hgi-customer-service-01"></i><span>ศูนย์ช่วยเหลือ</span></button>
         <button class="nav-item" data-screen="attendance" onclick="navigateToWebScreen('attendance')" style="display:none;"><i class="hgi-stroke hgi-table"></i><span>Attendance Matrix</span></button>
         <!-- เมนู "รายงานวิเคราะห์ผล" ถูกยกออก — เข้ารายงาน (การเข้าเรียน) ผ่านการ์ดหน้าห้องเรียนวิชาสอนเท่านั้น -->
         <button class="nav-item" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่าระบบ</span></button>
@@ -194,6 +195,70 @@
             </div>
             <div id="home-schedule-list" style="display:flex;flex-direction:column;"></div>
           </div>
+        </div>
+
+        <!-- CONTACT -->
+        <div id="web-screen-contact" class="fade-in" style="display:none;">
+          <section class="ck-guide-hero">
+            <div>
+              <span class="ck-guide-eyebrow"><i class="hgi-stroke hgi-customer-service-01"></i> ศูนย์ช่วยเหลือ ClassKru</span>
+              <h2>ศูนย์ช่วยเหลือ</h2>
+              <p>เลือกหัวข้อที่ต้องการ ระบบจะพาไปช่องทางที่เหมาะสมและช่วยแยกเรื่องให้ทีมงานดูแลง่ายขึ้น</p>
+            </div>
+          </section>
+
+          <section class="ck-contact-grid" aria-label="หัวข้อติดต่อทีมงาน">
+            <button class="ck-contact-card" onclick="navigateToWebScreen('help-guide')">
+              <span class="ck-contact-icon is-green"><i class="hgi-stroke hgi-book-open-01"></i></span>
+              <span><strong>วิธีใช้งาน</strong><small>หน้านี้เตรียมไว้สำหรับอัปเดตคู่มือ</small></span>
+            </button>
+            <button class="ck-contact-card" onclick="openSupportForm('bug')">
+              <span class="ck-contact-icon is-red"><i class="hgi-stroke hgi-alert-02"></i></span>
+              <span><strong>แจ้งปัญหา</strong><small>ลิงก์สำหรับฟอร์มแจ้งปัญหา รอใส่ลิงก์จริง</small></span>
+            </button>
+            <button class="ck-contact-card" onclick="navigateToWebScreen('feature-request')">
+              <span class="ck-contact-icon is-yellow"><i class="hgi-stroke hgi-bulb"></i></span>
+              <span><strong>เสนอฟีเจอร์</strong><small>กรอกไอเดียสั้นๆ เพื่อส่งเข้าฟอร์มภายหลัง</small></span>
+            </button>
+            <button class="ck-contact-card" onclick="openLineSupport('staff')">
+              <span class="ck-contact-icon is-blue"><i class="hgi-stroke hgi-message-01"></i></span>
+              <span><strong>ติดต่อทีมงาน</strong><small>กลับไปแชท LINE พร้อมข้อความขอความช่วยเหลือ</small></span>
+            </button>
+          </section>
+        </div>
+
+        <!-- HELP GUIDE PLACEHOLDER -->
+        <div id="web-screen-help-guide" class="fade-in" style="display:none;">
+          <section class="ck-guide-hero">
+            <div>
+              <span class="ck-guide-eyebrow"><i class="hgi-stroke hgi-book-open-01"></i> วิธีใช้งาน</span>
+              <h2>วิธีใช้งาน ClassKru</h2>
+              <p>หน้านี้เตรียมไว้สำหรับอัปเดตคู่มือการใช้งานในภายหลัง</p>
+            </div>
+            <button class="btn" onclick="navigateToWebScreen('contact')"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับศูนย์ช่วยเหลือ</button>
+          </section>
+          <section class="ck-empty-panel">
+            <i class="hgi-stroke hgi-book-open-01"></i>
+            <strong>รออัปเดตคู่มือ</strong>
+            <span>ทีมงานจะเพิ่มเนื้อหาวิธีใช้งานในหน้านี้ภายหลัง</span>
+          </section>
+        </div>
+
+        <!-- FEATURE REQUEST PLACEHOLDER -->
+        <div id="web-screen-feature-request" class="fade-in" style="display:none;">
+          <section class="ck-guide-hero">
+            <div>
+              <span class="ck-guide-eyebrow"><i class="hgi-stroke hgi-bulb"></i> เสนอฟีเจอร์</span>
+              <h2>เสนอฟีเจอร์</h2>
+              <p>พิมพ์ไอเดียสั้นๆ ที่อยากให้ ClassKru เพิ่มหรือปรับปรุง</p>
+            </div>
+            <button class="btn" onclick="navigateToWebScreen('contact')"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับศูนย์ช่วยเหลือ</button>
+          </section>
+          <section class="card ck-feature-box">
+            <label for="feature-request-text">ไอเดียของคุณ</label>
+            <textarea id="feature-request-text" class="form-control" rows="4" placeholder="เช่น อยากให้มีสรุปรายงานรายเดือนแบบ PDF"></textarea>
+            <button class="btn btn-primary" onclick="submitFeatureRequest()"><i class="hgi-stroke hgi-message-01"></i> ส่งข้อเสนอ</button>
+          </section>
         </div>
 
         <!-- CLASSROOMS -->
@@ -911,18 +976,18 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=217"></script>
-  <script defer src="js/auth.js?v=217"></script>
-  <script defer src="js/shell.js?v=217"></script>
-  <script defer src="js/dashboard.js?v=217"></script>
-  <script defer src="js/classrooms.js?v=217"></script>
-  <script defer src="js/students.js?v=217"></script>
-  <script defer src="js/timetable.js?v=217"></script>
-  <script defer src="js/reports.js?v=217"></script>
-  <script defer src="js/attendance.js?v=217"></script>
-  <script defer src="js/scores.js?v=217"></script>
-  <script defer src="js/tools.js?v=217"></script>
-  <script defer src="js/shared-utils.js?v=217"></script>
-  <script defer src="js/extras.js?v=217"></script>
+  <script defer src="js/core.js?v=218"></script>
+  <script defer src="js/auth.js?v=218"></script>
+  <script defer src="js/shell.js?v=218"></script>
+  <script defer src="js/dashboard.js?v=218"></script>
+  <script defer src="js/classrooms.js?v=218"></script>
+  <script defer src="js/students.js?v=218"></script>
+  <script defer src="js/timetable.js?v=218"></script>
+  <script defer src="js/reports.js?v=218"></script>
+  <script defer src="js/attendance.js?v=218"></script>
+  <script defer src="js/scores.js?v=218"></script>
+  <script defer src="js/tools.js?v=218"></script>
+  <script defer src="js/shared-utils.js?v=218"></script>
+  <script defer src="js/extras.js?v=218"></script>
 </body>
 </html>
