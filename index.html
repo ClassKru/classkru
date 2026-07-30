@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=238">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=238">
-  <link rel="stylesheet" href="css/03-reports.css?v=238">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=238">
-  <link rel="stylesheet" href="css/05-home.css?v=238">
-  <link rel="stylesheet" href="css/06-attendance.css?v=238">
-  <link rel="stylesheet" href="css/07-scores.css?v=238">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=238">
-    <link rel="stylesheet" href="css/09-games.css?v=238">
-  <link rel="stylesheet" href="css/10-help.css?v=238">
-  <link rel="stylesheet" href="css/11-public-help.css?v=238">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=240">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=240">
+  <link rel="stylesheet" href="css/03-reports.css?v=240">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=240">
+  <link rel="stylesheet" href="css/05-home.css?v=240">
+  <link rel="stylesheet" href="css/06-attendance.css?v=240">
+  <link rel="stylesheet" href="css/07-scores.css?v=240">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=240">
+    <link rel="stylesheet" href="css/09-games.css?v=240">
+  <link rel="stylesheet" href="css/10-help.css?v=240">
+  <link rel="stylesheet" href="css/11-public-help.css?v=240">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -228,7 +228,7 @@
           <section class="ck-help-hero">
             <span class="ck-help-eyebrow"><i class="hgi-stroke hgi-customer-service-01"></i> Help Center</span>
             <h2>ศูนย์ช่วยเหลือ</h2>
-            <p>เลือกหัวข้อที่ต้องการ เพื่อดูวิธีใช้งาน แจ้งปัญหา หรือพูดคุยกับทีมงาน</p>
+            <p>เลือกหัวข้อที่ต้องการ เพื่อดูวิธีใช้งาน หรือทักทีมงานผ่าน LINE สำหรับการช่วยเหลือเบื้องต้น</p>
           </section>
           <section class="ck-help-grid" aria-label="หัวข้อศูนย์ช่วยเหลือ">
             <div class="ck-help-card is-pending" aria-disabled="true">
@@ -237,7 +237,7 @@
             </div>
             <button class="ck-help-card" type="button" onclick="openHelpLine('แจ้งปัญหา')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-alert-02"></i></span>
-              <span><strong>แจ้งปัญหา</strong><small>ส่งรายละเอียดปัญหาให้ทีมงานผ่าน LINE</small></span>
+              <span><strong>แจ้งปัญหา</strong><small>ส่งรายละเอียดให้ทีมงานช่วยตรวจสอบเบื้องต้นผ่าน LINE</small></span>
             </button>
             <button class="ck-help-card" type="button" onclick="openHelpLine('เสนอฟีเจอร์')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-bulb"></i></span>
@@ -245,9 +245,13 @@
             </button>
             <button class="ck-help-card" type="button" onclick="openHelpLine('ติดต่อเรา')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-message-01"></i></span>
-              <span><strong>ติดต่อเรา</strong><small>เปิดแชท LINE พร้อมหัวข้อให้เราช่วยเหลือ</small></span>
+              <span><strong>ติดต่อผ่าน LINE</strong><small>สอบถามการเริ่มใช้งาน หรือขอคำแนะนำจากทีมงาน</small></span>
             </button>
           </section>
+          <div class="ck-line-note">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>LINE เป็นช่องทางติดต่อทีมงาน ไม่ใช่ขั้นตอนบังคับในการเข้าใช้งาน ClassKru</span>
+          </div>
         </div>
 
         <!-- CLASSROOMS -->
@@ -424,56 +428,6 @@
             <div id="scores-classtab-holder"></div>
             <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
           </div>
-        </div>
-
-        <!-- HELP CENTER -->
-        <div id="web-screen-help" class="fade-in" style="display:none;">
-          <section class="help-hero">
-            <div class="help-hero-icon"><i class="hgi-stroke hgi-help-circle"></i></div>
-            <div>
-              <span class="help-eyebrow">Help Center</span>
-              <h2>ศูนย์ช่วยเหลือ</h2>
-              <p>เลือกหัวข้อที่ต้องการ เพื่อดูวิธีใช้งาน แจ้งปัญหา หรือส่งไอเดียให้เรา</p>
-            </div>
-          </section>
-
-          <div id="help-hub-view">
-            <section class="help-section">
-              <div class="help-section-heading">
-                <div><span class="help-section-label">ช่วยให้เริ่มต้นได้ไว</span><h3>มีอะไรให้เราช่วย?</h3></div>
-                <span class="help-section-note">เลือกหัวข้อเพื่อดูรายละเอียด</span>
-              </div>
-              <div class="help-category-grid">
-                <button class="help-category-card" onclick="openHelpDetail('getting-started')">
-                  <span class="help-category-icon tint-green"><i class="hgi-stroke hgi-book-02"></i></span>
-                  <span class="help-category-copy"><strong>วิธีใช้งาน</strong><small>เริ่มต้นใช้งาน ClassKru แบบทีละขั้น</small></span><i class="hgi-stroke hgi-arrow-right-01 help-arrow"></i>
-                </button>
-                <button class="help-category-card" onclick="openHelpDetail('report')">
-                  <span class="help-category-icon tint-coral"><i class="hgi-stroke hgi-alert-02"></i></span>
-                  <span class="help-category-copy"><strong>แจ้งปัญหา</strong><small>บอกเราเมื่อพบสิ่งที่ใช้งานไม่เป็นปกติ</small></span><i class="hgi-stroke hgi-arrow-right-01 help-arrow"></i>
-                </button>
-                <button class="help-category-card" onclick="openHelpDetail('feature')">
-                  <span class="help-category-icon tint-amber"><i class="hgi-stroke hgi-bulb"></i></span>
-                  <span class="help-category-copy"><strong>เสนอฟีเจอร์</strong><small>แชร์ไอเดียที่อยากให้ ClassKru เพิ่ม</small></span><i class="hgi-stroke hgi-arrow-right-01 help-arrow"></i>
-                </button>
-                <button class="help-category-card" onclick="openHelpDetail('contact')">
-                  <span class="help-category-icon tint-blue"><i class="hgi-stroke hgi-message-02"></i></span>
-                  <span class="help-category-copy"><strong>ติดต่อเรา</strong><small>พูดคุยกับทีมงานเมื่ออยากได้ความช่วยเหลือ</small></span><i class="hgi-stroke hgi-arrow-right-01 help-arrow"></i>
-                </button>
-              </div>
-            </section>
-
-            <section class="help-section help-faq-section">
-              <div class="help-section-heading"><div><span class="help-section-label">คำตอบสั้น ๆ</span><h3>คำถามที่พบบ่อย</h3></div></div>
-              <div class="help-faq-list">
-                <details><summary>เริ่มใช้งาน ClassKru ต้องทำอะไรบ้าง?<i class="hgi-stroke hgi-arrow-down-01"></i></summary><p>สร้างห้องเรียน เพิ่มรายชื่อนักเรียน แล้วเริ่มเช็กชื่อได้ทันที หรือเริ่มจากตารางสอนเพื่อให้ระบบช่วยเตือนคาบถัดไป</p></details>
-                <details><summary>ข้อมูลของฉันถูกบันทึกไว้ที่ไหน?<i class="hgi-stroke hgi-arrow-down-01"></i></summary><p>ข้อมูลจะถูกบันทึกในบัญชีของคุณและซิงก์ข้ามอุปกรณ์เมื่อออนไลน์ หากใช้งานออฟไลน์ ระบบจะเก็บข้อมูลไว้ในเครื่องชั่วคราว</p></details>
-                <details><summary>ต้องการความช่วยเหลือเพิ่มเติมทำอย่างไร?<i class="hgi-stroke hgi-arrow-down-01"></i></summary><p>เปิดหมวด “ติดต่อเรา” แล้วส่งรายละเอียดปัญหาหรือคำถามให้ทีมงาน เราจะช่วยดูแลให้เร็วที่สุด</p></details>
-              </div>
-            </section>
-          </div>
-
-          <section id="help-detail-view" class="help-detail-view" style="display:none;"></section>
         </div>
 
         <!-- SETTINGS -->
@@ -1053,19 +1007,19 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=238"></script>
-  <script defer src="js/auth.js?v=238"></script>
-  <script defer src="js/shell.js?v=238"></script>
-  <script defer src="js/dashboard.js?v=238"></script>
-  <script defer src="js/classrooms.js?v=238"></script>
-  <script defer src="js/students.js?v=238"></script>
-  <script defer src="js/timetable.js?v=238"></script>
-  <script defer src="js/reports.js?v=238"></script>
-  <script defer src="js/attendance.js?v=238"></script>
-  <script defer src="js/scores.js?v=238"></script>
-  <script defer src="js/tools.js?v=238"></script>
-  <script defer src="js/shared-utils.js?v=238"></script>
-  <script defer src="js/extras.js?v=238"></script>
-  <script defer src="js/help.js?v=238"></script>
+  <script defer src="js/core.js?v=240"></script>
+  <script defer src="js/auth.js?v=240"></script>
+  <script defer src="js/shell.js?v=240"></script>
+  <script defer src="js/dashboard.js?v=240"></script>
+  <script defer src="js/classrooms.js?v=240"></script>
+  <script defer src="js/students.js?v=240"></script>
+  <script defer src="js/timetable.js?v=240"></script>
+  <script defer src="js/reports.js?v=240"></script>
+  <script defer src="js/attendance.js?v=240"></script>
+  <script defer src="js/scores.js?v=240"></script>
+  <script defer src="js/tools.js?v=240"></script>
+  <script defer src="js/shared-utils.js?v=240"></script>
+  <script defer src="js/extras.js?v=240"></script>
+  <script defer src="js/help.js?v=240"></script>
 </body>
 </html>
