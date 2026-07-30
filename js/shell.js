@@ -120,7 +120,7 @@ function navigateToWebScreen(screenId, param) {
   const subEl = document.getElementById('web-header-subtitle');
   const titles = {
     dashboard: ['หน้าหลัก', 'ตารางสอนและเช็คชื่อด่วน'],
-    help: ['ศูนย์ช่วยเหลือ', 'เลือกหัวข้อเพื่อให้ทีมงานช่วยได้ตรงจุด'],
+    help: ['ศูนย์ช่วยเหลือ', 'วิธีใช้งาน แจ้งปัญหา และติดต่อทีมงาน'],
     classrooms: ['ห้องเรียนวิชาสอน', 'จัดการรายวิชาและเช็คชื่อด่วน'],
     students: ['จัดการรายชื่อเด็ก', 'เพิ่ม ลบ แก้ไข ย้ายห้อง'],
     timetable: ['ตารางสอนสัปดาห์', 'กำหนดคาบเรียนรองรับ Week A/B'],
@@ -143,6 +143,7 @@ function navigateToWebScreen(screenId, param) {
   else if (screenId === 'attendance') loadWebAttendanceMatrix();
   else if (screenId === 'scores') viewClassScores(detailClassId);
   else if (screenId === 'reports') showWebClassReport(detailClassId);
+  else if (screenId === 'help') renderHelpHub();
 }
 
 function openHelpLine(topic) {
