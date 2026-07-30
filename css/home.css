@@ -109,7 +109,8 @@ a { color:inherit; text-decoration:none; }
 
 /* Product preview: Notion-like clarity with ClassKru's actual teacher workflow. */
 .product-showcase { max-width:1080px; margin:72px auto 0; display:grid; grid-template-columns:minmax(0,1fr) 230px; align-items:end; gap:20px; text-align:left; }
-.browser-product { min-width:0; overflow:hidden; border:1px solid var(--home-border); border-radius:18px; background:var(--home-card); box-shadow:var(--home-shadow-hover); }
+.browser-product { min-width:0; overflow:hidden; border:1px solid var(--home-border); border-radius:18px; background:var(--home-card); box-shadow:var(--home-shadow-hover); transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease; }
+.browser-product:hover { transform:translateY(-5px); border-color:#d6e4db; box-shadow:0 22px 40px rgba(28,56,43,.15),0 3px 8px rgba(20,30,24,.08); }
 .browser-bar { height:42px; display:flex; align-items:center; gap:12px; padding:0 14px; background:#f8faf9; border-bottom:1px solid var(--home-border); }
 .browser-dots { display:flex; gap:6px; }
 .browser-dots span { width:8px; height:8px; border-radius:50%; background:var(--home-border); }
@@ -158,7 +159,8 @@ a { color:inherit; text-decoration:none; }
 .lesson-row small { display:block; color:var(--home-muted); font-size:.56rem; font-weight:700; }
 .lesson-row em { padding:4px 8px; border-radius:999px; background:#ffecec; color:#b94a4a; font-style:normal; font-size:.56rem; font-weight:800; white-space:nowrap; }
 .lesson-row em.done { color:var(--home-primary); background:var(--home-lime-soft); }
-.showcase-phone { width:250px; height:500px; overflow:hidden; padding:12px 10px 10px; border:1px solid var(--home-border); border-radius:30px; background:linear-gradient(180deg,#f4fffa 0%,#ffffff 18%,#f6f7f7 100%); box-shadow:var(--home-shadow-hover); }
+.showcase-phone { width:250px; height:500px; overflow:hidden; padding:12px 10px 10px; border:1px solid var(--home-border); border-radius:30px; background:linear-gradient(180deg,#f4fffa 0%,#ffffff 18%,#f6f7f7 100%); box-shadow:var(--home-shadow-hover); transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease; }
+.showcase-phone:hover { transform:translateY(-5px); border-color:#d6e4db; box-shadow:0 22px 40px rgba(28,56,43,.15),0 3px 8px rgba(20,30,24,.08); }
 .phone-status { height:25px; display:flex; align-items:center; justify-content:space-between; padding:0 6px; font-family:"DM Sans","Noto Sans Thai",sans-serif; font-size:.66rem; font-weight:800; }
 .phone-status span { font-size:.55rem; }
 .phone-header { min-height:48px; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:5px; padding:7px; border:1px solid var(--home-border); border-radius:16px; background:var(--home-card); box-shadow:var(--home-shadow); }
@@ -347,35 +349,26 @@ a { color:inherit; text-decoration:none; }
   padding:12px 28px;
   border-radius:999px;
   color:#111;
-  border-color:transparent;
-  box-shadow:none;
+  background:var(--home-white);
+  box-shadow:0 10px 24px rgba(28,56,43,.08);
 }
 .hero-actions .btn-primary {
-  background:#cdf5d7;
-  border-color:#cdf5d7;
+  color:var(--home-deep);
+  background:var(--home-white);
+  border-color:#20b947;
 }
 .hero-actions .btn-secondary {
-  background:#eadbfb;
-  border-color:#eadbfb;
+  color:#5c238f;
+  background:var(--home-white);
+  border-color:#9948ed;
 }
 .hero-actions .btn i { display:none; }
-.hero-actions .btn::before,
-.hero-actions .btn-secondary::before {
-  content:"";
-  width:18px;
-  height:18px;
-  flex:0 0 18px;
-  border-radius:50%;
-  background:#20b947;
-}
-.hero-actions .btn-secondary::before {
-  background:#9948ed;
-}
-.hero-actions .btn-primary:hover { background:#bdf0ca; border-color:#bdf0ca; box-shadow:none; }
+.hero-actions .btn::before { display:none; }
+.hero-actions .btn-primary:hover { background:#cdf5d7; border-color:#20b947; box-shadow:0 14px 28px rgba(29,158,117,.14); }
 .hero-actions .btn-secondary:hover {
-  background:#dfccf7;
-  border-color:#dfccf7;
-  box-shadow:none;
+  background:#eadbfb;
+  border-color:#9948ed;
+  box-shadow:0 14px 28px rgba(153,72,237,.14);
 }
 .attendance-mini small span { font-weight:800; }
 .sum-present { color:var(--home-primary); }
