@@ -325,33 +325,38 @@ a { color:inherit; text-decoration:none; }
 .btn-primary:hover { background:#188c66; border-color:#188c66; }
 .hero-actions .btn {
   min-height:52px;
-  padding:12px 25px;
+  padding:12px 28px;
   border-radius:999px;
+  color:#111;
+  border-color:transparent;
+  box-shadow:none;
 }
 .hero-actions .btn-primary {
-  background:#20a678;
-  border-color:#20a678;
-  box-shadow:0 7px 0 rgba(15,110,86,.16),0 18px 30px rgba(29,158,117,.18);
+  background:#cdf5d7;
+  border-color:#cdf5d7;
 }
 .hero-actions .btn-secondary {
-  color:var(--home-deep);
-  background:#d7f7df;
-  border-color:#d7f7df;
-  box-shadow:0 10px 24px rgba(29,158,117,.12);
+  background:#eadbfb;
+  border-color:#eadbfb;
 }
+.hero-actions .btn i { display:none; }
+.hero-actions .btn::before,
 .hero-actions .btn-secondary::before {
   content:"";
-  width:10px;
-  height:10px;
+  width:18px;
+  height:18px;
+  flex:0 0 18px;
   border-radius:50%;
   background:#20b947;
 }
-.hero-actions .btn-secondary i {
-  margin-left:2px;
+.hero-actions .btn-secondary::before {
+  background:#9948ed;
 }
+.hero-actions .btn-primary:hover { background:#bdf0ca; border-color:#bdf0ca; box-shadow:none; }
 .hero-actions .btn-secondary:hover {
-  background:#c9f2d3;
-  border-color:#c9f2d3;
+  background:#dfccf7;
+  border-color:#dfccf7;
+  box-shadow:none;
 }
 .attendance-mini small span { font-weight:800; }
 .sum-present { color:var(--home-primary); }
