@@ -142,7 +142,7 @@ function renderWebDashboard() {
     const isPast = isToday && nowMin >= t.endMin;
 
     let dotClass = 'unchecked', badgeHtml = '';
-    if (isOngoing) { dotClass = 'ongoing'; badgeHtml = `<span class="home-schedule-badge" style="background:var(--color-leave-bg);color:var(--color-leave);">● สอน</span>`; }
+    if (isOngoing) { dotClass = 'ongoing'; badgeHtml = `<span class="home-schedule-badge" style="background:var(--color-leave-bg);color:var(--color-leave);">● กำลังสอน</span>`; }
     else if (checked) { dotClass = 'present'; badgeHtml = `<span class="home-schedule-badge" style="background:var(--primary-light);color:var(--primary);">✓ เช็คแล้ว</span>`; }
     else if (isPast) { dotClass = 'absent'; badgeHtml = `<span class="home-schedule-badge" style="background:var(--color-absent-bg);color:var(--color-absent);">!</span>`; }
 

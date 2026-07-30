@@ -19,7 +19,21 @@
   text-align: center;
   box-shadow: 0 6px 18px rgba(13,138,95,0.28);
   position: relative;
+  overflow: hidden;
   transition: var(--transition-normal);
+}
+.home-date-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255,255,255,0.28), transparent 32%),
+    linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 48%, rgba(0,0,0,0.08) 100%);
+  pointer-events: none;
+}
+.home-date-card > * {
+  position: relative;
+  z-index: 1;
 }
 .home-date-card:hover {
   transform: translateY(-2px);
@@ -350,4 +364,3 @@
   .home-next-card .next-subject { font-size: 1.05rem; }
   .home-calendar-popup { width: 280px; left: 0; right: auto; }
 }
-
