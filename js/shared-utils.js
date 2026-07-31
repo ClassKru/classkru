@@ -191,6 +191,11 @@ function openStudentDetailModal(studentId, classId) {
   document.getElementById('student-detail-fullname').value = s.name || '';
   document.getElementById('student-detail-nickname').value = s.nickname || '';
   document.getElementById('student-detail-comment').value = s.comment || '';
+  const photoPreview = document.getElementById('student-detail-photo-preview');
+  if (photoPreview) {
+    photoPreview.src = s.photoBase64 || '';
+    photoPreview.style.display = s.photoBase64 ? 'block' : 'none';
+  }
 
   // เลิกนับ/แสดงสถิติ มา-สาย-ขาด-ลา ในหน้านี้แล้ว — modal นี้เป็น "แก้ไขข้อมูล" อย่างเดียว
   // ดูรายงานเข้าเรียนได้ที่หน้ารายงาน หรือ modal สรุปนักเรียน (openStudentSummaryModal)
@@ -576,4 +581,3 @@ function deleteAllDataEverywhere() {
 // ==================== OCR SCAN IMPORT ====================
 let ocrTargetClassId = null;
 let ocrExtractedNames = [];
-

@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=260">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=260">
-  <link rel="stylesheet" href="css/03-reports.css?v=260">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=260">
-  <link rel="stylesheet" href="css/05-home.css?v=260">
-  <link rel="stylesheet" href="css/06-attendance.css?v=260">
-  <link rel="stylesheet" href="css/07-scores.css?v=260">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=260">
-    <link rel="stylesheet" href="css/09-games.css?v=260">
-  <link rel="stylesheet" href="css/10-help.css?v=260">
-  <link rel="stylesheet" href="css/11-public-help.css?v=260">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=263">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=263">
+  <link rel="stylesheet" href="css/03-reports.css?v=263">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=263">
+  <link rel="stylesheet" href="css/05-home.css?v=263">
+  <link rel="stylesheet" href="css/06-attendance.css?v=263">
+  <link rel="stylesheet" href="css/07-scores.css?v=263">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=263">
+    <link rel="stylesheet" href="css/09-games.css?v=263">
+  <link rel="stylesheet" href="css/10-help.css?v=263">
+  <link rel="stylesheet" href="css/11-public-help.css?v=263">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -629,16 +629,17 @@
             <span class="swipe-card-no" id="swipe-card-no"></span>
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="swipe-card-code" id="swipe-card-code"></span>
+              <button class="swipe-card-photo" id="swipe-card-photo" onclick="openSwipeStudentPhoto(event)" title="ถ่ายหรือเลือกรูปนักเรียน"><i class="hgi-stroke hgi-camera-01"></i></button>
               <button class="swipe-card-edit" id="swipe-card-edit" onclick="editCurrentSwipeStudent(event)" title="แก้ไขข้อมูลนักเรียน"><i class="hgi-stroke hgi-edit-02"></i></button>
             </div>
           </div>
           <div class="swipe-card-divider"></div>
           <div class="swipe-card-avatar" id="swipe-card-avatar"></div>
-          <div class="swipe-card-nick-label" id="swipe-card-nick-label">ชื่อเล่น</div>
           <div class="swipe-card-name" id="swipe-card-name"></div>
           <div class="swipe-card-stats" id="swipe-card-stats"></div>
           <div class="swipe-card-guide"><b style="color:var(--color-leave)">← ปัดซ้าย = ลา</b> · แตะ = <b style="color:var(--color-present)">มา</b> · <b style="color:var(--color-absent)">ปัดขวา = ขาด →</b></div>
         </div>
+        <input id="swipe-student-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleSwipeStudentPhoto(event)">
         <!-- Done state -->
         <div class="swipe-done-state" id="swipe-done-state" style="display:none;">
           <i class="hgi-stroke hgi-checkmark-circle-02" style="font-size:3rem;color:var(--primary);margin-bottom:12px;"></i>
@@ -903,7 +904,7 @@
 
   <div class="modal-overlay" id="modal-period" onclick="if(event.target===this) closePeriodModal()"><div class="bottom-sheet"><div class="modal-header"><h3 id="modal-period-title">แก้ไขคาบเรียน</h3><button class="btn btn-text" onclick="closePeriodModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;" id="modal-period-info">วันจันทร์ · คาบ 5</div><div class="form-group"><label for="input-period-subject">วิชา</label><select id="input-period-subject" class="form-control" style="appearance:auto;" onchange="filterPeriodClassBySubject()"><option value="">-- เลือก --</option></select></div><div class="form-group"><label for="input-period-class">ห้อง</label><select id="input-period-class" class="form-control" style="appearance:auto;"><option value="">-- เลือก --</option></select></div><div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closePeriodModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-danger" id="btn-period-delete" onclick="deletePeriodSlot()" style="flex:1;display:none;">ลบ</button><button class="btn btn-primary" onclick="savePeriodSlot()" style="flex:2;">บันทึก</button></div></div></div>
 
-  <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><!-- สถิติ มา/สาย/ขาด/ลา ถูกตัดออก — modal นี้ทำหน้าที่ "แก้ไขข้อมูลนักเรียน" อย่างเดียว
+  <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:14px;background:var(--bg-light);border:1px solid var(--border-color);border-radius:12px;"><img id="student-detail-photo-preview" alt="" style="display:none;width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-light-border);"><div style="flex:1;min-width:0;"><div style="font-size:0.78rem;font-weight:700;color:var(--text-main);">รูปนักเรียน <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ)</span></div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">ถ่ายหรือเลือกรูปจากเครื่อง</div></div><button type="button" class="btn" style="padding:7px 10px;font-size:0.78rem;white-space:nowrap;" onclick="openStudentDetailPhoto(event)"><i class="hgi-stroke hgi-camera-01"></i> เพิ่มรูป</button><input id="student-detail-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleStudentDetailPhoto(event)"></div><!-- สถิติ มา/สาย/ขาด/ลา ถูกตัดออก — modal นี้ทำหน้าที่ "แก้ไขข้อมูลนักเรียน" อย่างเดียว
      การรายงานผลเข้าเรียนมีหน้าเฉพาะอยู่แล้ว (รายงานวิเคราะห์ผล + modal สรุปนักเรียน) --><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
   <div class="form-group" style="margin:0;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">เลขที่</label><input id="student-detail-no" type="number" class="form-control" style="font-size:0.9rem;padding:8px 10px;" min="1"></div>
   <div class="form-group" style="margin:0;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">รหัสประจำตัว</label><input id="student-detail-code" type="text" class="form-control" style="font-size:0.9rem;padding:8px 10px;" placeholder="เช่น 12345"></div>
@@ -1012,19 +1013,19 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=260"></script>
-  <script defer src="js/auth.js?v=260"></script>
-  <script defer src="js/shell.js?v=260"></script>
-  <script defer src="js/dashboard.js?v=260"></script>
-  <script defer src="js/classrooms.js?v=260"></script>
-  <script defer src="js/students.js?v=260"></script>
-  <script defer src="js/timetable.js?v=260"></script>
-  <script defer src="js/reports.js?v=260"></script>
-  <script defer src="js/attendance.js?v=260"></script>
-  <script defer src="js/scores.js?v=260"></script>
-  <script defer src="js/tools.js?v=260"></script>
-  <script defer src="js/shared-utils.js?v=260"></script>
-  <script defer src="js/extras.js?v=260"></script>
-  <script defer src="js/help.js?v=260"></script>
+  <script defer src="js/core.js?v=263"></script>
+  <script defer src="js/auth.js?v=263"></script>
+  <script defer src="js/shell.js?v=263"></script>
+  <script defer src="js/dashboard.js?v=263"></script>
+  <script defer src="js/classrooms.js?v=263"></script>
+  <script defer src="js/students.js?v=263"></script>
+  <script defer src="js/timetable.js?v=263"></script>
+  <script defer src="js/reports.js?v=263"></script>
+  <script defer src="js/attendance.js?v=263"></script>
+  <script defer src="js/scores.js?v=263"></script>
+  <script defer src="js/tools.js?v=263"></script>
+  <script defer src="js/shared-utils.js?v=263"></script>
+  <script defer src="js/extras.js?v=263"></script>
+  <script defer src="js/help.js?v=263"></script>
 </body>
 </html>
