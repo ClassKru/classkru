@@ -272,7 +272,22 @@ function editCurrentSwipeStudent(event) {
 
 function openSwipeStudentPhoto(event) {
   if (event) event.stopPropagation();
+  if (!ensureStudentPhotoPermission()) return;
   document.getElementById('swipe-student-photo-input')?.click();
+}
+
+// รูปนักเรียนเป็นข้อมูลส่วนบุคคล: ให้ครูรับทราบหน้าที่และยืนยันสิทธิ์ก่อนใช้ฟีเจอร์ทดลองครั้งแรก
+function ensureStudentPhotoPermission() {
+  const key = 'classkru_photo_notice_ack_v1';
+  if (localStorage.getItem(key) === '1') return true;
+  const accepted = window.confirm(
+    'รูปนักเรียนเป็นข้อมูลส่วนบุคคล\n\n' +
+    'โปรดใช้เฉพาะรูปที่ได้รับอนุญาตจากผู้ปกครองหรือผู้มีสิทธิ์ และใช้เพื่อช่วยจัดการชั้นเรียนเท่านั้น\n\n' +
+    'อ่านนโยบายความเป็นส่วนตัวได้ที่หน้าแรกของ ClassKru\n\n' +
+    'ต้องการเพิ่มรูปต่อหรือไม่?'
+  );
+  if (accepted) localStorage.setItem(key, '1');
+  return accepted;
 }
 
 function processStudentPhotoFile(file, student, onDone) {
@@ -319,6 +334,7 @@ function handleSwipeStudentPhoto(event) {
 
 function openStudentDetailPhoto(event) {
   if (event) event.stopPropagation();
+  if (!ensureStudentPhotoPermission()) return;
   document.getElementById('student-detail-photo-input')?.click();
 }
 
@@ -341,6 +357,22 @@ function handleStudentDetailPhoto(event) {
     showToast('บันทึกรูปนักเรียนแล้ว', 'success');
   });
   event.target.value = '';
+}
+
+function removeStudentDetailPhoto(event) {
+  if (event) event.stopPropagation();
+  const c = appState.classes.find(x => x.id === currentClassId);
+  const student = c && c.students.find(x => x.id === detailedStudentId);
+  if (!student || !student.photoBase64) return;
+  if (!window.confirm('ต้องการลบรูปนักเรียนนี้หรือไม่?')) return;
+  delete student.photoBase64;
+  const preview = document.getElementById('student-detail-photo-preview');
+  const removeButton = document.getElementById('student-detail-photo-remove');
+  if (preview) { preview.src = ''; preview.style.display = 'none'; }
+  if (removeButton) removeButton.style.display = 'none';
+  saveState();
+  if (swipeClassId === currentClassId) renderSwipeCard();
+  showToast('ลบรูปนักเรียนแล้ว', 'success');
 }
 // รีเฟรชหน้าเช็คชื่อถ้ากำลังเปิดอยู่ (หลังเพิ่ม/นำเข้านักเรียน)
 function refreshSwipeIfOpen() {

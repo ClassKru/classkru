@@ -196,6 +196,8 @@ function openStudentDetailModal(studentId, classId) {
     photoPreview.src = s.photoBase64 || '';
     photoPreview.style.display = s.photoBase64 ? 'block' : 'none';
   }
+  const photoRemove = document.getElementById('student-detail-photo-remove');
+  if (photoRemove) photoRemove.style.display = s.photoBase64 ? 'inline-flex' : 'none';
 
   // เลิกนับ/แสดงสถิติ มา-สาย-ขาด-ลา ในหน้านี้แล้ว — modal นี้เป็น "แก้ไขข้อมูล" อย่างเดียว
   // ดูรายงานเข้าเรียนได้ที่หน้ารายงาน หรือ modal สรุปนักเรียน (openStudentSummaryModal)
