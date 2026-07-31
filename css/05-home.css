@@ -228,8 +228,17 @@
 .home-next-card:active { transform: scale(0.99); }
 
 .home-next-card.is-ongoing {
-  background: linear-gradient(135deg, #007aff, #0055d4);
-  color: #fff;
+  background: linear-gradient(135deg, #e8f4ff, #d7ebff);
+  border: 1px solid #c5def6;
+  color: #173b66;
+  box-shadow: 0 6px 18px rgba(69, 137, 207, 0.14);
+}
+
+.home-next-card.is-ongoing .next-tag { color: #3975ae; opacity: 1; }
+.home-next-card.is-ongoing .next-action-btn {
+  background: #cfe6ff;
+  border-color: #9bc8f5;
+  color: #2e70b6;
 }
 
 .home-next-card.is-upcoming {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ClassKru — ผู้ช่วยในชั้นเรียน</title>
-  <link rel="stylesheet" href="css/home.css?v=249">
+  <link rel="stylesheet" href="css/home.css?v=255">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -30,6 +30,7 @@
         <h1 id="hero-title">ทุกเรื่องในห้องเรียน<br><span>เริ่มต้นที่นี่</span></h1>
         <p>
           <strong class="hero-feature-rotator" aria-label="เช็กชื่อ จัดการนักเรียน ตารางสอน รายงาน">
+            <span class="feature-highlight" aria-hidden="true"></span>
             <span class="feature-word word-check">เช็กชื่อ</span>
             <span class="feature-word word-students">จัดการนักเรียน</span>
             <span class="feature-word word-schedule">ตารางสอน</span>
@@ -209,5 +210,40 @@
       <span><strong>ติดต่อผ่าน LINE</strong></span>
     </a>
   </footer>
+  <script>
+    (() => {
+      const rotator = document.querySelector('.hero-feature-rotator');
+      const words = [...document.querySelectorAll('.feature-word')];
+      const highlight = document.querySelector('.feature-highlight');
+      if (!rotator || !highlight || !words.length) return;
+
+      let active = 0;
+      const moveHighlight = (index, immediate = false) => {
+        const word = words[index];
+        if (!word) return;
+        const left = word.offsetLeft;
+        const top = word.offsetTop;
+        const width = word.offsetWidth;
+        const height = word.offsetHeight;
+        highlight.style.setProperty('--highlight-bg', getComputedStyle(word).getPropertyValue('--pill-bg'));
+        highlight.style.setProperty('--highlight-dot', getComputedStyle(word).getPropertyValue('--dot'));
+        if (immediate) highlight.classList.add('is-initial');
+        highlight.style.left = `${left}px`;
+        highlight.style.top = `${top}px`;
+        highlight.style.width = `${width}px`;
+        highlight.style.height = `${height}px`;
+        if (immediate) requestAnimationFrame(() => highlight.classList.remove('is-initial'));
+      };
+
+      moveHighlight(active, true);
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        window.setInterval(() => {
+          active = (active + 1) % words.length;
+          moveHighlight(active);
+        }, 3000);
+      }
+      window.addEventListener('resize', () => moveHighlight(active, true));
+    })();
+  </script>
 </body>
 </html>
