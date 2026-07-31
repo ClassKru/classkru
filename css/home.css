@@ -55,9 +55,10 @@ a { color:inherit; text-decoration:none; }
 .feature-grid{grid-template-columns:repeat(5,1fr)}
 .feature-card{min-height:326px}
 .attendance-mini{display:flex;flex-direction:column;justify-content:center;gap:9px;padding:12px;background:var(--home-card)}
-.attendance-mini div{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.attendance-mini div{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
 .attendance-mini button{height:25px;border:1px solid var(--home-border);border-radius:999px;background:var(--home-white);color:var(--home-muted);font-size:.58rem;font-weight:800;box-shadow:var(--home-shadow)}
 .attendance-mini button.on{border-color:var(--home-primary);background:var(--home-lime-soft);color:var(--home-primary)}
+.attendance-mini button.absent{border-color:#f0c4c4;background:#fff0f0;color:#c94b4b}
 .attendance-mini button.late{border-color:var(--home-orange);background:var(--home-orange-soft);color:#a45b17}
 .attendance-mini small{display:block;color:var(--home-primary);font-size:.58rem;font-weight:800;text-align:right;white-space:nowrap}
 .classroom-mini{position:relative;padding:14px;background:var(--home-card);border-top:4px solid #ef4444}
