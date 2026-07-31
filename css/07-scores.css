@@ -78,8 +78,8 @@
    ⚠️ อย่าขยายความกว้างเกิน ~10px จะเริ่มทับตัวท้ายของชื่อรายการ
    วางชิดขอบล่างระดับแถว "/ เต็ม ⚙" ไม่ใช่กึ่งกลาง — กันไม่ให้ล้นขึ้นไปเหนือหัวคอลัมน์
    มือถือใช้ .msc-add (ปุ่มยาวมีข้อความ) ไม่เกี่ยวกับสองตัวนี้ */
-.sc-add-last, .sc-add-item-btn { position: absolute; right: 0; z-index: 6; width: 9px; height: 26px; border: none; border-radius: 4px 0 0 4px; background: var(--primary); color: #fff; cursor: pointer; font-size: 0.55rem; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: background 0.15s; }
-.sc-add-last:hover, .sc-add-item-btn:hover { background: var(--primary-deep); }
+.sc-add-last, .sc-add-item-btn { position: absolute; right: 0; z-index: 6; width: 9px; height: 26px; border: 1px solid #c5ccd5; border-right: none; border-radius: 4px 0 0 4px; background: #e7eaee; color: #475569; cursor: pointer; font-size: 0.62rem; font-weight: 800; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.sc-add-last:hover, .sc-add-item-btn:hover { background: #d7dde4; border-color: #aeb8c4; color: #334155; }
 .score-matrix-table th.sc-item-last, .score-matrix-table th.sc-item-empty { position: relative; }
 .sc-add-last { bottom: 2px; }
 /* บล็อกว่างไม่มีแถวชื่อ/คะแนนเต็มมาแย่งที่ → จัดกึ่งกลางแนวตั้งได้ */
