@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=259">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=259">
-  <link rel="stylesheet" href="css/03-reports.css?v=259">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=259">
-  <link rel="stylesheet" href="css/05-home.css?v=259">
-  <link rel="stylesheet" href="css/06-attendance.css?v=259">
-  <link rel="stylesheet" href="css/07-scores.css?v=259">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=259">
-    <link rel="stylesheet" href="css/09-games.css?v=259">
-  <link rel="stylesheet" href="css/10-help.css?v=259">
-  <link rel="stylesheet" href="css/11-public-help.css?v=259">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=260">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=260">
+  <link rel="stylesheet" href="css/03-reports.css?v=260">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=260">
+  <link rel="stylesheet" href="css/05-home.css?v=260">
+  <link rel="stylesheet" href="css/06-attendance.css?v=260">
+  <link rel="stylesheet" href="css/07-scores.css?v=260">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=260">
+    <link rel="stylesheet" href="css/09-games.css?v=260">
+  <link rel="stylesheet" href="css/10-help.css?v=260">
+  <link rel="stylesheet" href="css/11-public-help.css?v=260">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -45,7 +45,9 @@
     <div id="login-content" style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;margin:auto 0;">
 
       <!-- Logo -->
-      <img src="logo.png?v=2" style="width:112px;height:auto;object-fit:contain;display:block;margin-bottom:-4px;">
+      <a href="home.html" aria-label="กลับหน้าแรก ClassKru" style="display:inline-flex;border-radius:16px;transition:transform 0.18s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <img src="logo.png?v=2" style="width:112px;height:auto;object-fit:contain;display:block;margin-bottom:-4px;">
+      </a>
 
       <!-- Heading -->
       <h2 id="auth-heading" style="font-size:1.55rem;font-weight:800;color:var(--text-main);text-align:center;letter-spacing:-0.3px;margin:0 0 8px;">เข้าสู่ระบบ ClassKru</h2>
@@ -126,6 +128,9 @@
           สมัครฟรี ใช้งานได้ทันที<br>จำรหัสผ่านไม่ได้? เข้าด้วย Google จะง่ายกว่า
         </div>
       </div>
+      <a href="home.html" style="display:inline-flex;align-items:center;gap:5px;margin-top:16px;color:var(--text-muted);font-size:0.82rem;font-weight:600;transition:color 0.18s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+        <i class="hgi-stroke hgi-arrow-left-01"></i> กลับหน้าแรก
+      </a>
     </div>
 
     <!-- Public Help: เข้าได้ก่อนล็อกอิน -->
@@ -1007,19 +1012,19 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=259"></script>
-  <script defer src="js/auth.js?v=259"></script>
-  <script defer src="js/shell.js?v=259"></script>
-  <script defer src="js/dashboard.js?v=259"></script>
-  <script defer src="js/classrooms.js?v=259"></script>
-  <script defer src="js/students.js?v=259"></script>
-  <script defer src="js/timetable.js?v=259"></script>
-  <script defer src="js/reports.js?v=259"></script>
-  <script defer src="js/attendance.js?v=259"></script>
-  <script defer src="js/scores.js?v=259"></script>
-  <script defer src="js/tools.js?v=259"></script>
-  <script defer src="js/shared-utils.js?v=259"></script>
-  <script defer src="js/extras.js?v=259"></script>
-  <script defer src="js/help.js?v=259"></script>
+  <script defer src="js/core.js?v=260"></script>
+  <script defer src="js/auth.js?v=260"></script>
+  <script defer src="js/shell.js?v=260"></script>
+  <script defer src="js/dashboard.js?v=260"></script>
+  <script defer src="js/classrooms.js?v=260"></script>
+  <script defer src="js/students.js?v=260"></script>
+  <script defer src="js/timetable.js?v=260"></script>
+  <script defer src="js/reports.js?v=260"></script>
+  <script defer src="js/attendance.js?v=260"></script>
+  <script defer src="js/scores.js?v=260"></script>
+  <script defer src="js/tools.js?v=260"></script>
+  <script defer src="js/shared-utils.js?v=260"></script>
+  <script defer src="js/extras.js?v=260"></script>
+  <script defer src="js/help.js?v=260"></script>
 </body>
 </html>
