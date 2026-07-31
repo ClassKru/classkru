@@ -453,11 +453,13 @@ function renderOverallReport() {
     }));
   }
   
-  let totalAbsent=0, totalLate=0;
+  let totalPresent=0, totalAbsent=0, totalLate=0, totalLeave=0;
   const dates = Object.keys(c.attendance||{});
-  dates.forEach(d => { c.students.forEach(s => { const st=(c.attendance[d]||{})[s.id]; if(st==='absent')totalAbsent++; if(st==='late')totalLate++; }); });
+  dates.forEach(d => { c.students.forEach(s => { const st=(c.attendance[d]||{})[s.id]; if(st==='present')totalPresent++; if(st==='absent')totalAbsent++; if(st==='late')totalLate++; if(st==='leave')totalLeave++; }); });
+  document.getElementById('web-rep-overall-present').innerText = totalPresent;
   document.getElementById('web-rep-overall-absent').innerText = totalAbsent;
   document.getElementById('web-rep-overall-late').innerText = totalLate;
+  document.getElementById('web-rep-overall-leave').innerText = totalLeave;
 
   const badge = document.getElementById('web-rep-overall-health-badge');
   badge.innerHTML = `<i class="hgi-stroke ${health.icon}"></i> ${health.msg}`;

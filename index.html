@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=258">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=258">
-  <link rel="stylesheet" href="css/03-reports.css?v=258">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=258">
-  <link rel="stylesheet" href="css/05-home.css?v=258">
-  <link rel="stylesheet" href="css/06-attendance.css?v=258">
-  <link rel="stylesheet" href="css/07-scores.css?v=258">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=258">
-    <link rel="stylesheet" href="css/09-games.css?v=258">
-  <link rel="stylesheet" href="css/10-help.css?v=258">
-  <link rel="stylesheet" href="css/11-public-help.css?v=258">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=259">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=259">
+  <link rel="stylesheet" href="css/03-reports.css?v=259">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=259">
+  <link rel="stylesheet" href="css/05-home.css?v=259">
+  <link rel="stylesheet" href="css/06-attendance.css?v=259">
+  <link rel="stylesheet" href="css/07-scores.css?v=259">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=259">
+    <link rel="stylesheet" href="css/09-games.css?v=259">
+  <link rel="stylesheet" href="css/10-help.css?v=259">
+  <link rel="stylesheet" href="css/11-public-help.css?v=259">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -410,7 +410,7 @@
             <div id="web-rep-content-overall" class="web-rep-panel fade-in" style="display:none;">
               <div class="report-grid-3col">
                 <div class="card" style="text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 12px;"><span style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;">Class Health Score</span><div style="position:relative;width:120px;height:120px;margin-bottom:12px;"><svg width="120" height="120" class="radial-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="var(--border-color)" stroke-width="8" fill="transparent"/><circle cx="50" cy="50" r="40" stroke="var(--tab-overall-accent)" stroke-width="8" fill="transparent" id="web-rep-overall-circle" class="radial-fill"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;"><span style="font-size:1.65rem;font-weight:800;" id="web-rep-overall-pct">0%</span></div></div><span class="warning-badge" id="web-rep-overall-health-badge" style="font-size:0.85rem;padding:6px 16px;border-radius:20px;font-weight:700;">ปกติ</span></div>
-                <div class="card" style="justify-content:center;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;">สถิติสะสม</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-absent);" id="web-rep-overall-absent">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">ขาดสะสม</div></div><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-late-text);" id="web-rep-overall-late">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">สายสะสม</div></div></div></div>
+                <div class="card" style="justify-content:center;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;">สถิติสะสม</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-present);" id="web-rep-overall-present">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">มาสะสม</div></div><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-leave);" id="web-rep-overall-leave">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">ลาสะสม</div></div><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-absent);" id="web-rep-overall-absent">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">ขาดสะสม</div></div><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-late-text);" id="web-rep-overall-late">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">สายสะสม</div></div></div></div>
                 <div class="card" style="background:var(--tab-overall-bg);border-color:var(--tab-overall-accent);justify-content:center;"><div style="font-weight:700;color:var(--tab-overall-accent);font-size:1rem;margin-bottom:10px;"><i class="hgi-stroke hgi-alert-02"></i> วิเคราะห์ความเสี่ยง</div><div id="web-rep-overall-insights" style="font-size:0.85rem;line-height:1.6;"></div></div>
               </div>
             </div>
@@ -1007,19 +1007,19 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=258"></script>
-  <script defer src="js/auth.js?v=258"></script>
-  <script defer src="js/shell.js?v=258"></script>
-  <script defer src="js/dashboard.js?v=258"></script>
-  <script defer src="js/classrooms.js?v=258"></script>
-  <script defer src="js/students.js?v=258"></script>
-  <script defer src="js/timetable.js?v=258"></script>
-  <script defer src="js/reports.js?v=258"></script>
-  <script defer src="js/attendance.js?v=258"></script>
-  <script defer src="js/scores.js?v=258"></script>
-  <script defer src="js/tools.js?v=258"></script>
-  <script defer src="js/shared-utils.js?v=258"></script>
-  <script defer src="js/extras.js?v=258"></script>
-  <script defer src="js/help.js?v=258"></script>
+  <script defer src="js/core.js?v=259"></script>
+  <script defer src="js/auth.js?v=259"></script>
+  <script defer src="js/shell.js?v=259"></script>
+  <script defer src="js/dashboard.js?v=259"></script>
+  <script defer src="js/classrooms.js?v=259"></script>
+  <script defer src="js/students.js?v=259"></script>
+  <script defer src="js/timetable.js?v=259"></script>
+  <script defer src="js/reports.js?v=259"></script>
+  <script defer src="js/attendance.js?v=259"></script>
+  <script defer src="js/scores.js?v=259"></script>
+  <script defer src="js/tools.js?v=259"></script>
+  <script defer src="js/shared-utils.js?v=259"></script>
+  <script defer src="js/extras.js?v=259"></script>
+  <script defer src="js/help.js?v=259"></script>
 </body>
 </html>
