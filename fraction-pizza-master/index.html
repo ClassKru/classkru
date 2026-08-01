@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff4dc">
+  <title>Fraction Pizza Master – เชฟพิซซ่าเศษส่วน</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell" aria-labelledby="game-title">
+    <header class="game-header">
+      <a class="back-link" href="../index.html#games" aria-label="กลับไปศูนย์เกม">← <span>ศูนย์เกม</span></a>
+      <div class="brand"><span aria-hidden="true">🍕</span><div><h1 id="game-title">Fraction Pizza Master</h1><p>ร้านพิซซ่าเศษส่วน</p></div></div>
+      <div id="round-hud" class="round-hud" hidden aria-label="สถานะรอบปัจจุบัน"><div><span>ออเดอร์</span><strong id="question-number">1/10</strong></div><div><span>คะแนนรอบนี้</span><strong id="score-value">0</strong></div><div><span>Combo</span><strong id="combo-value">0</strong></div><div><span>เวลา</span><strong id="timer-value">—</strong></div></div>
+      <div class="header-tools"><button id="text-button" type="button" aria-label="เพิ่มขนาดตัวอักษร">A+</button><button id="motion-button" type="button" aria-label="ปิดแอนิเมชัน" aria-pressed="false">✨</button><button id="sound-button" type="button" aria-label="ปิดเสียง" aria-pressed="true">🔊</button></div>
+    </header>
+
+    <section id="screen-home" class="screen active home-screen" aria-labelledby="home-title">
+      <div class="home-art" aria-hidden="true"><div class="pizza-logo"><span>🍕</span></div><i class="steam steam-one"></i><i class="steam steam-two"></i></div>
+      <p class="eyebrow">WELCOME TO THE FRACTION PIZZERIA</p>
+      <h2 id="home-title">แบ่งพิซซ่าให้พอดี<br><em>แล้วเศษส่วนจะเป็นเรื่องง่าย</em></h2>
+      <p>รับออเดอร์จากลูกค้า แตะชิ้นพิซซ่า แล้วเรียนรู้ความหมายของตัวเศษและตัวส่วนด้วยตัวเอง</p>
+      <div class="home-actions"><button id="challenge-button" class="primary-button" type="button">🔥 เริ่มเล่น 10 ออเดอร์</button><button id="practice-button" class="secondary-button" type="button">🧑‍🍳 ฝึกซ้อมตามหัวข้อ</button><button id="how-button" class="text-button" type="button">❔ วิธีเล่น</button></div>
+      <div class="privacy-note"><span>🛡️</span><p><strong>เล่นได้แบบออฟไลน์</strong> เกมนี้ไม่ขอชื่อ ไม่เชื่อมฐานข้อมูล และไม่บันทึกคะแนนหรือข้อมูลส่วนบุคคล</p></div>
+    </section>
+
+    <section id="screen-lessons" class="screen lesson-screen" aria-labelledby="lesson-title">
+      <div class="screen-heading"><button class="back-screen" type="button" data-go="home">← กลับ</button><div><p class="eyebrow">CHOOSE YOUR TRAINING</p><h2 id="lesson-title">เลือกบทเรียนฝึกซ้อม</h2><p>ไม่จำกัดเวลา ตอบผิดแล้วลองใหม่ได้เสมอ</p></div></div>
+      <div id="lesson-grid" class="lesson-grid"></div>
+    </section>
+
+    <section id="screen-game" class="screen game-screen" aria-labelledby="order-title">
+      <div class="restaurant-scene"><div class="customer" aria-hidden="true"><div class="customer-face">😊</div><div class="customer-body"></div></div><div class="order-bubble"><p id="order-label">ออเดอร์ของลูกค้า</p><h2 id="order-title">เลือกพิซซ่าให้ได้ 3/8</h2><p id="order-subtitle">แตะชิ้นพิซซ่าตามจำนวนที่ลูกค้าต้องการ</p></div><button id="pause-button" type="button">Ⅱ <span>พัก</span></button></div>
+      <div class="kitchen-counter">
+        <div id="visual-area" class="visual-area" aria-label="พื้นที่พิซซ่าและคำตอบ"></div>
+        <div id="answer-area" class="answer-area" aria-live="polite"></div>
+        <div id="feedback" class="feedback" role="status" aria-live="polite"><span id="feedback-icon">👨‍🍳</span><p id="feedback-text">อ่านออเดอร์ แล้วเริ่มทำพิซซ่าได้เลย</p></div>
+      </div>
+      <div class="game-actions"><button id="clear-button" type="button">↺ ล้างคำตอบ</button><button id="hint-button" type="button">💡 คำใบ้</button><button id="submit-button" class="serve-button" type="button">ส่งออเดอร์ 🍽️</button></div>
+    </section>
+
+    <section id="screen-result" class="screen result-screen" aria-labelledby="result-title">
+      <div class="result-medal" id="result-medal" aria-hidden="true">🌟</div><p class="eyebrow">SHIFT COMPLETE</p><h2 id="result-title">จบรอบร้านพิซซ่าแล้ว!</h2><p class="result-privacy">ผลลัพธ์นี้แสดงเฉพาะรอบปัจจุบันและจะไม่ถูกบันทึก</p>
+      <div class="result-grid"><div><span>คะแนนรอบนี้</span><strong id="result-score">0</strong></div><div><span>ตอบถูก</span><strong id="result-correct">0/10</strong></div><div><span>ความแม่นยำ</span><strong id="result-accuracy">0%</strong></div><div><span>เวลารวม</span><strong id="result-time">0:00</strong></div></div>
+      <div id="result-stars" class="result-stars" aria-label="ดาวที่ได้รับ">☆☆☆</div><div id="review-box" class="review-box"></div>
+      <div class="result-actions"><button id="replay-button" class="primary-button" type="button">เล่นอีกครั้ง</button><button id="review-button" class="secondary-button" type="button">ดูคำอธิบาย</button><a href="../index.html#games">กลับศูนย์เกม</a></div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden><section class="modal-card"><div id="modal-icon" class="modal-icon" aria-hidden="true">🍕</div><h2 id="modal-title">วิธีเล่น</h2><div id="modal-content"><p>ตัวส่วนบอกว่าพิซซ่าถูกแบ่งเป็นกี่ชิ้นเท่า ๆ กัน ส่วนตัวเศษบอกจำนวนชิ้นที่ต้องเลือก</p><ol><li>อ่านออเดอร์ของลูกค้า</li><li>แตะชิ้นพิซซ่าหรือเลือกคำตอบ</li><li>กด “ส่งออเดอร์” เพื่อดูคำอธิบาย</li></ol></div><div class="modal-actions"><button id="modal-primary" type="button">เข้าใจแล้ว</button><button id="modal-secondary" type="button" hidden>ออกจากรอบ</button></div></section></div>
+
+  <script src="questions.js"></script>
+  <script src="classkru-api.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
