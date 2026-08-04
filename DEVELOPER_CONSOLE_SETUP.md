@@ -9,7 +9,8 @@ Developer Console อยู่ที่ `/developer/` และออกแบ�
 - `DEV_CONSOLE_PASSWORD` — รหัสผ่านที่ผู้ดูแลกำหนด ห้าม commit ลง Git
 - `DEV_SESSION_SECRET` — ค่าสุ่มความยาวอย่างน้อย 32 ตัวอักษรสำหรับลงลายเซ็น session (ระบบจะไม่เปิดใช้งานหากสั้นกว่านี้)
 - `SUPABASE_URL` — URL ของโครงการ Supabase (หากไม่ตั้ง ระบบใช้ URL ของ ClassKru ปัจจุบัน)
-- `SUPABASE_SERVICE_ROLE_KEY` — Secret service-role key ใช้เฉพาะ Vercel Serverless Functions
+- `SUPABASE_SECRET_KEY` — Secret key รูปแบบ `sb_secret_...` ใช้เฉพาะ Vercel Serverless Functions (แนะนำ)
+- `SUPABASE_SERVICE_ROLE_KEY` — รองรับ Legacy service-role key เพื่อความเข้ากันได้ย้อนหลัง
 
 หลังเปลี่ยน Environment Variables ต้อง Redeploy เพื่อให้ deployment ใหม่ได้รับค่า
 
