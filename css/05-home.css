@@ -226,6 +226,9 @@
 
 .home-next-card:hover { filter: brightness(0.97); }
 .home-next-card:active { transform: scale(0.99); }
+.home-next-card.is-current-status { cursor: default; }
+.home-next-card.is-current-status:hover { filter: none; }
+.home-next-card.is-current-status:active { transform: none; }
 
 .home-next-card.is-ongoing {
   background: linear-gradient(135deg, #e8f4ff, #d7ebff);
@@ -251,6 +254,15 @@
   border: 1.5px solid var(--primary-light-border);
   color: var(--primary);
 }
+
+.home-next-card.is-idle {
+  background: #f2f2f7;
+  border: 1.5px solid var(--border-color);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+.home-next-card.is-idle .next-tag { color: var(--text-muted); opacity: .78; }
 
 .home-next-card .next-tag {
   font-size: 0.72rem;

@@ -97,45 +97,15 @@ function renderWebDashboard() {
       : isToday ? 'ตารางสอนวันนี้' : `${DAY_NAMES[viewDow]}ที่ ${viewDate.getDate()} ${MONTH_NAMES[viewDate.getMonth()]}`;
   }
 
-  // ---- Next class card (today only) ----
+  // ---- Current teaching status ----
   const nextArea = document.getElementById('home-next-card-area');
   if (nextArea) {
-    if (isToday) {
-      if (showingUpcoming) {
-        const nextSlot = viewSlots[0];
-        nextArea.innerHTML = `<div class="home-next-card is-upcoming" style="padding:13px 18px;gap:5px;" onclick="openSwipeAttendance('${nextSlot.classId}',new Date('${getTodayString(scheduleDate)}T00:00:00'))"><div class="next-tag">คาบถัดไป · ${DAY_NAMES[scheduleDate.getDay()]} ${scheduleDate.getDate()} ${MONTH_NAMES[scheduleDate.getMonth()]} · ${nextSlot.slotStart} น.</div><div class="next-subject" style="font-size:1rem;">${nextSlot.subject} <span style="font-weight:600;font-size:0.8rem;opacity:0.85;">· ${nextSlot.className}</span></div></div>`;
-      } else {
-      const today = getTodayString(now);
-      const timePassed = viewSlots.length > 0 && viewSlots.every(t => nowMin >= t.endMin);
-      // เช็คว่าทุกคาบที่ผ่านเวลาแล้วถูกเช็คชื่อครบหรือยัง
-      const hasUnchecked = viewSlots.some(t => {
-        if (nowMin < t.endMin) return false;
-        const cls = appState.classes.find(x => x.id === t.classId);
-        if (!cls) return true;
-        const att = (cls.attendance || {})[today];
-        return !att || Object.keys(att).length < cls.students.length;
-      });
-      const allDone = timePassed && !hasUnchecked;
-      const ongoing = viewSlots.find(t => nowMin >= t.startMin && nowMin < t.endMin);
-      const nextSlot = viewSlots.find(t => nowMin < t.startMin);
-
-      if (viewSlots.length === 0) {
-        nextArea.innerHTML = `<div class="home-next-card is-done" style="background:#f2f2f7;border:1.5px solid var(--border-color);padding:14px 18px;"><div class="next-subject" style="color:var(--text-muted);font-size:0.95rem;">ไม่มีตารางสอนวันนี้</div></div>`;
-      } else if (allDone) {
-        nextArea.innerHTML = `<div class="home-next-card is-done" style="padding:12px 18px;flex-direction:row;align-items:center;gap:10px;"><div style="font-size:1.5rem;">✅</div><div><div class="next-subject" style="font-size:0.95rem;">เสร็จสิ้นทุกคาบแล้ว!</div><div class="next-meta" style="font-size:0.75rem;margin-top:2px;">ยอดเยี่ยมครับ คุณครู</div></div></div>`;
-      } else if (ongoing) {
-        const c = appState.classes.find(x => x.id === ongoing.classId);
-        const attToday = c && (c.attendance || {})[today];
-        const checked = attToday && c && Object.keys(attToday).length >= c.students.length;
-        nextArea.innerHTML = `<div class="home-next-card is-ongoing" style="padding:12px 18px;" onclick="openSwipeAttendance('${ongoing.classId}')"><div class="next-tag">🔴 กำลังสอน · คาบ ${ongoing.period}</div><div class="next-subject" style="font-size:1rem;">${ongoing.subject} <span style="font-weight:600;font-size:0.8rem;opacity:0.85;">· ${ongoing.className}</span></div><button class="next-action-btn" style="padding:5px 12px;font-size:0.75rem;margin-top:4px;" onclick="event.stopPropagation();openSwipeAttendance('${ongoing.classId}')"><i class="hgi-stroke hgi-task-done-01"></i> ${checked ? '✓ เช็คแล้ว' : 'เช็คชื่อ'}</button></div>`;
-      } else if (nextSlot) {
-        nextArea.innerHTML = `<div class="home-next-card is-upcoming" style="padding:13px 18px;gap:5px;" onclick="openSwipeAttendance('${nextSlot.classId}')"><div class="next-tag">คาบถัดไป · ${nextSlot.slotStart} น.</div><div class="next-subject" style="font-size:1rem;">${nextSlot.subject} <span style="font-weight:600;font-size:0.8rem;opacity:0.85;">· ${nextSlot.className}</span></div></div>`;
-      } else {
-        nextArea.innerHTML = '';
-      }
-      }
+    const currentSlots = buildDashboardScheduleSlots(now);
+    const ongoing = currentSlots.find(t => nowMin >= t.startMin && nowMin < t.endMin);
+    if (ongoing) {
+      nextArea.innerHTML = `<div class="home-next-card is-current-status is-ongoing" style="padding:13px 18px;gap:5px;"><div class="next-tag">● กำลังสอนขณะนี้ · ${ongoing.slotStart}–${ongoing.slotEnd} น.</div><div class="next-subject" style="font-size:1rem;">${ongoing.subject} <span style="font-weight:600;font-size:0.8rem;opacity:0.85;">· ${ongoing.className}</span></div></div>`;
     } else {
-      nextArea.innerHTML = '';
+      nextArea.innerHTML = `<div class="home-next-card is-current-status is-idle" style="padding:13px 18px;gap:4px;"><div class="next-tag">สถานะการสอนขณะนี้</div><div class="next-subject" style="font-size:0.95rem;">ไม่มีการเรียนการสอน</div></div>`;
     }
   }
 
