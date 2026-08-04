@@ -83,7 +83,120 @@ function openHelpDetail(key) {
   const detail = document.getElementById('help-detail-view');
   if (!item || !hub || !detail) return;
   hub.style.display = 'none';
-  detail.innerHTML = `<button class="help-back" onclick="renderHelpHub()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับศูนย์ช่วยเหลือ</button><div class="help-detail-heading"><span class="help-category-icon tint-green"><i class="hgi-stroke ${item.icon}"></i></span><div><span class="help-eyebrow">Help Center</span><h3>${item.title}</h3><p>${item.intro}</p></div></div>${item.steps ? `<div class="help-step-list">${item.steps.map(s => `<div class="help-step"><b>${s[0]}</b><div><strong>${s[1]}</strong><p>${s[2]}</p></div></div>`).join('')}</div>` : `<div class="help-tip-box"><strong>รายละเอียดที่ช่วยให้เราดูแลได้ไวขึ้น</strong><ul>${item.tips.map(t => `<li>${t}</li>`).join('')}</ul></div>`}<div class="help-detail-actions"><button class="btn btn-primary" onclick="openClassKruLine('${item.title}')"><i class="hgi-stroke hgi-message-02"></i> ติดต่อผ่าน LINE</button></div>`;
+  const action = key === 'report'
+    ? `<button class="btn btn-primary" type="button" onclick="openIssueReportForm()"><i class="hgi-stroke hgi-alert-02"></i> เปิดแบบฟอร์มแจ้งปัญหา</button><button class="btn" type="button" onclick="openClassKruLine('${item.title}')"><i class="hgi-stroke hgi-message-02"></i> ติดต่อผ่าน LINE</button>`
+    : key === 'feature'
+      ? `<button class="btn btn-primary" type="button" onclick="openIssueReportForm('feature-request')"><i class="hgi-stroke hgi-bulb"></i> ส่งข้อเสนอแนะ</button>`
+      : `<button class="btn btn-primary" type="button" onclick="openClassKruLine('${item.title}')"><i class="hgi-stroke hgi-message-02"></i> ติดต่อผ่าน LINE</button>`;
+  detail.innerHTML = `<button class="help-back" onclick="renderHelpHub()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับศูนย์ช่วยเหลือ</button><div class="help-detail-heading"><span class="help-category-icon tint-green"><i class="hgi-stroke ${item.icon}"></i></span><div><span class="help-eyebrow">Help Center</span><h3>${item.title}</h3><p>${item.intro}</p></div></div>${item.steps ? `<div class="help-step-list">${item.steps.map(s => `<div class="help-step"><b>${s[0]}</b><div><strong>${s[1]}</strong><p>${s[2]}</p></div></div>`).join('')}</div>` : `<div class="help-tip-box"><strong>รายละเอียดที่ช่วยให้เราดูแลได้ไวขึ้น</strong><ul>${item.tips.map(t => `<li>${t}</li>`).join('')}</ul></div>`}<div class="help-detail-actions">${action}</div>`;
   detail.style.display = 'block';
   detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+let issueReportTrigger = null;
+
+function ensureIssueReportModal() {
+  let modal = document.getElementById('issue-report-modal');
+  if (modal) return modal;
+  modal = document.createElement('div');
+  modal.id = 'issue-report-modal';
+  modal.className = 'issue-report-modal';
+  modal.hidden = true;
+  modal.innerHTML = `<section class="issue-report-card" role="dialog" aria-modal="true" aria-labelledby="issue-report-title"><header><div><span class="help-eyebrow">REPORT TO CLASSKRU</span><h2 id="issue-report-title">แจ้งปัญหาหรือข้อเสนอแนะ</h2></div><button class="issue-report-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button></header><form id="issue-report-form"><label>หมวดหมู่<select id="issue-category" name="category" required disabled><option value="">กำลังโหลดหมวดหมู่…</option></select></label><label>หัวข้อ<input name="title" type="text" minlength="5" maxlength="140" required placeholder="สรุปสิ่งที่พบสั้น ๆ"></label><label>รายละเอียด<textarea name="description" minlength="10" maxlength="4000" rows="5" required placeholder="เกิดอะไรขึ้น และผลที่เห็นคืออะไร"></textarea></label><label>ขั้นตอนก่อนเกิดปัญหา <small>(ไม่บังคับ)</small><textarea name="steps" maxlength="4000" rows="4" placeholder="1. เปิดหน้า…  2. กด…  3. พบว่า…"></textarea></label><p class="issue-privacy-note">ระบบจะส่งรหัสบัญชี หน้าที่พบปัญหา และข้อมูลเบราว์เซอร์เพื่อช่วยตรวจสอบ โดยไม่ส่งข้อมูลนักเรียนในห้องเรียน</p><div class="issue-report-actions"><button class="btn" type="button" data-close-report>ยกเลิก</button><button class="btn btn-primary" type="submit" disabled>ส่งรายงาน</button></div><p id="issue-report-status" class="issue-report-status" role="status" aria-live="polite"></p></form></section>`;
+  document.body.append(modal);
+  modal.querySelector('.issue-report-close').addEventListener('click', closeIssueReportForm);
+  modal.querySelector('[data-close-report]').addEventListener('click', closeIssueReportForm);
+  modal.addEventListener('click', event => { if (event.target === modal) closeIssueReportForm(); });
+  modal.querySelector('form').addEventListener('submit', submitIssueReport);
+  return modal;
+}
+
+async function openIssueReportForm(defaultCategory = '') {
+  issueReportTrigger = document.activeElement;
+  const modal = ensureIssueReportModal();
+  const form = modal.querySelector('form');
+  const select = modal.querySelector('#issue-category');
+  const submit = form.querySelector('[type="submit"]');
+  const status = modal.querySelector('#issue-report-status');
+  form.reset();
+  select.replaceChildren(new Option('กำลังโหลดหมวดหมู่…', ''));
+  select.disabled = true;
+  submit.disabled = true;
+  status.textContent = '';
+  status.className = 'issue-report-status';
+  modal.hidden = false;
+  modal.querySelector('.issue-report-close').focus();
+
+  if (!supabaseClient) {
+    status.textContent = 'ไม่สามารถเชื่อมต่อระบบรายงานได้ กรุณาลองใหม่หรือติดต่อผ่าน LINE';
+    return;
+  }
+  const { data: authData } = await supabaseClient.auth.getUser();
+  if (!authData?.user) {
+    status.textContent = 'กรุณาเข้าสู่ระบบก่อนส่งรายงาน';
+    return;
+  }
+  const { data, error } = await supabaseClient
+    .from('issue_categories')
+    .select('id,slug,name')
+    .eq('is_active', true)
+    .order('sort_order');
+  if (error) {
+    console.warn('Issue categories unavailable:', error.message);
+    status.textContent = 'ยังไม่สามารถโหลดหมวดหมู่ได้ กรุณาลองใหม่ภายหลัง';
+    return;
+  }
+  select.replaceChildren(new Option('เลือกหมวดหมู่', ''));
+  data.forEach(category => select.add(new Option(category.name, category.id)));
+  const requested = data.find(category => category.slug === defaultCategory);
+  if (requested) select.value = String(requested.id);
+  select.disabled = false;
+  submit.disabled = false;
+}
+
+function closeIssueReportForm() {
+  const modal = document.getElementById('issue-report-modal');
+  if (modal) modal.hidden = true;
+  if (issueReportTrigger?.focus) issueReportTrigger.focus();
+}
+
+async function submitIssueReport(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const submit = form.querySelector('[type="submit"]');
+  const status = form.querySelector('#issue-report-status');
+  const values = new FormData(form);
+  const { data: authData } = await supabaseClient.auth.getUser();
+  if (!authData?.user) {
+    status.textContent = 'Session หมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง';
+    return;
+  }
+  submit.disabled = true;
+  status.textContent = 'กำลังส่งรายงาน…';
+  const payload = {
+    category_id: Number(values.get('category')),
+    reporter_id: authData.user.id,
+    title: String(values.get('title') || '').trim(),
+    description: String(values.get('description') || '').trim(),
+    steps_to_reproduce: String(values.get('steps') || '').trim(),
+    page_url: `${location.origin}${location.pathname}${location.hash}`.slice(0, 800),
+    browser_info: `${navigator.userAgent} | ${window.innerWidth}x${window.innerHeight}`.slice(0, 800),
+    status: 'new'
+  };
+  const { error } = await supabaseClient.from('issue_reports').insert(payload);
+  if (error) {
+    console.warn('Issue report submission failed:', error.message);
+    status.textContent = 'ส่งรายงานไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่';
+    submit.disabled = false;
+    return;
+  }
+  status.textContent = 'ส่งรายงานเรียบร้อยแล้ว ขอบคุณที่ช่วยให้ ClassKru ดีขึ้น';
+  status.classList.add('success');
+  form.reset();
+  setTimeout(closeIssueReportForm, 1400);
+}
+
+document.addEventListener('keydown', event => {
+  const modal = document.getElementById('issue-report-modal');
+  if (event.key === 'Escape' && modal && !modal.hidden) closeIssueReportForm();
+});
