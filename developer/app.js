@@ -1,15 +1,15 @@
 'use strict';
 
-const state = { view: 'overview', overview: null, categories: [], reports: [] };
+const state = { view: 'overview', overview: null, reports: [] };
 const byId = id => document.getElementById(id);
 const ui = {
   loginView: byId('login-view'), consoleView: byId('console-view'), loginForm: byId('login-form'),
   password: byId('password-input'), togglePassword: byId('toggle-password'), loginButton: byId('login-button'),
   loginStatus: byId('login-status'), logout: byId('logout-button'), refresh: byId('refresh-button'),
-  globalStatus: byId('global-status'), summary: byId('summary-grid'), categories: byId('category-grid'),
+  globalStatus: byId('global-status'), summary: byId('summary-grid'),
   recent: byId('recent-list'), lastUpdated: byId('last-updated'), reportFilters: byId('report-filters'),
-  searchFilter: byId('search-filter'), categoryFilter: byId('category-filter'), statusFilter: byId('status-filter'),
-  reportsBody: byId('reports-body'), reportsEmpty: byId('reports-empty'), tableSelect: byId('table-select'),
+  searchFilter: byId('search-filter'), statusFilter: byId('status-filter'),
+  reportsCards: byId('reports-cards'), reportsEmpty: byId('reports-empty'), tableSelect: byId('table-select'),
   loadTable: byId('load-table-button'), databaseTable: byId('database-table'), modal: byId('detail-modal'),
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
 };
@@ -69,14 +69,12 @@ function statusPill(status) {
 }
 
 function reportDetail(report) {
-  ui.modalTitle.textContent = report.title || 'รายละเอียดรายงาน';
+  ui.modalTitle.textContent = 'รายละเอียดความคิดเห็น';
   ui.modalContent.replaceChildren();
   const fields = [
     ['สถานะ', STATUS_LABELS[report.status] || report.status],
-    ['หมวดหมู่', report.category?.name || report.category_id],
-    ['วันที่แจ้ง', formatDate(report.created_at, true)],
-    ['รายละเอียด', report.description],
-    ['ขั้นตอนที่ทำให้เกิดปัญหา', report.steps_to_reproduce || 'ไม่ได้ระบุ'],
+    ['วันที่และเวลา', formatDate(report.created_at, true)],
+    ['ความคิดเห็น', report.message],
     ['หน้าที่พบปัญหา', report.page_url || 'ไม่ได้ระบุ'],
     ['ข้อมูลเบราว์เซอร์', report.browser_info || 'ไม่ได้ระบุ'],
     ['Reporter ID', report.reporter_id || 'ไม่ระบุ'],
@@ -105,7 +103,6 @@ function rawDetail(title, row) {
 
 function renderOverview(data) {
   state.overview = data;
-  state.categories = data.categories || [];
   ui.summary.replaceChildren();
   const cards = [
     ['ทั้งหมด', data.total || 0, 'total'], ['ใหม่', data.statuses?.new || 0, 'new'],
@@ -118,37 +115,19 @@ function renderOverview(data) {
     ui.summary.append(card);
   });
 
-  ui.categories.replaceChildren();
-  state.categories.forEach(category => {
-    const card = element('article', 'category-card');
-    const heading = element('div');
-    heading.append(element('strong', '', category.name), element('b', '', category.count || 0));
-    card.append(heading, element('p', '', category.description || category.slug));
-    ui.categories.append(card);
-  });
-  if (!state.categories.length) ui.categories.append(element('p', 'database-note', 'ยังไม่มีหมวดหมู่ในฐานข้อมูล'));
-
   ui.recent.replaceChildren();
   (data.recent || []).forEach(report => {
     const button = element('button', 'recent-item');
     button.type = 'button';
     button.append(element('span', 'recent-date', formatDate(report.created_at)));
     const copy = element('span');
-    copy.append(element('strong', '', report.title), element('small', '', report.category?.name || 'ไม่ระบุหมวดหมู่'));
+    copy.append(element('strong', '', report.message), element('small', '', formatDate(report.created_at, true)));
     button.append(copy, statusPill(report.status));
     button.addEventListener('click', () => reportDetail(report));
     ui.recent.append(button);
   });
   if (!(data.recent || []).length) ui.recent.append(element('p', 'database-note', 'ยังไม่มีรายงานปัญหา'));
   ui.lastUpdated.textContent = `อัปเดต ${formatDate(new Date().toISOString(), true)}`;
-  populateCategoryFilter();
-}
-
-function populateCategoryFilter() {
-  const selected = ui.categoryFilter.value;
-  ui.categoryFilter.replaceChildren(new Option('ทุกหมวดหมู่', ''));
-  state.categories.forEach(category => ui.categoryFilter.add(new Option(category.name, category.id)));
-  ui.categoryFilter.value = selected;
 }
 
 async function loadOverview() {
@@ -164,26 +143,22 @@ async function loadOverview() {
 
 function renderReports(data) {
   state.reports = data.rows || [];
-  if (data.categories?.length) {
-    state.categories = data.categories;
-    populateCategoryFilter();
-  }
-  ui.reportsBody.replaceChildren();
+  ui.reportsCards.replaceChildren();
   state.reports.forEach(report => {
-    const row = document.createElement('tr');
-    const date = element('td', '', formatDate(report.created_at, true));
-    const category = element('td', '', report.category?.name || '—');
-    const titleCell = element('td', 'row-title');
-    titleCell.append(element('strong', '', report.title), element('small', '', report.description));
-    const status = document.createElement('td');
-    status.append(statusPill(report.status));
-    const action = document.createElement('td');
-    const button = element('button', 'row-button', 'เปิดดู');
+    const card = element('article', 'feedback-card');
+    const header = element('header', 'feedback-card-header');
+    const date = element('time', 'feedback-card-time', formatDate(report.created_at, true));
+    date.dateTime = report.created_at;
+    header.append(date, statusPill(report.status));
+    const message = element('p', 'feedback-card-message', report.message);
+    const footer = element('footer', 'feedback-card-footer');
+    footer.append(element('span', '', report.page_url || 'ไม่ระบุหน้า'));
+    const button = element('button', 'row-button', 'ดูรายละเอียด');
     button.type = 'button';
     button.addEventListener('click', () => reportDetail(report));
-    action.append(button);
-    row.append(date, category, titleCell, status, action);
-    ui.reportsBody.append(row);
+    footer.append(button);
+    card.append(header, message, footer);
+    ui.reportsCards.append(card);
   });
   ui.reportsEmpty.hidden = state.reports.length > 0;
 }
@@ -192,7 +167,6 @@ async function loadReports() {
   ui.globalStatus.textContent = 'กำลังโหลดรายงาน…';
   const params = new URLSearchParams({ resource: 'reports' });
   if (ui.searchFilter.value.trim()) params.set('q', ui.searchFilter.value.trim());
-  if (ui.categoryFilter.value) params.set('category', ui.categoryFilter.value);
   if (ui.statusFilter.value) params.set('status', ui.statusFilter.value);
   try {
     renderReports(await request(`/api/dev/data?${params}`));

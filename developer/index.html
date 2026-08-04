@@ -51,8 +51,7 @@
       <section id="view-overview" class="workspace-view active" aria-labelledby="overview-title">
         <div class="section-heading"><div><p class="eyebrow">ISSUE MONITOR</p><h2 id="overview-title">ภาพรวมรายงานปัญหา</h2></div><p id="last-updated">ยังไม่ได้โหลดข้อมูล</p></div>
         <div id="summary-grid" class="summary-grid" aria-label="สรุปจำนวนรายงาน"></div>
-        <div class="dashboard-grid">
-          <article class="panel"><div class="panel-heading"><div><p class="eyebrow">CATEGORIES</p><h3>หมวดหมู่จากฐานข้อมูล</h3></div></div><div id="category-grid" class="category-grid"></div></article>
+        <div class="dashboard-grid single-column">
           <article class="panel"><div class="panel-heading"><div><p class="eyebrow">LATEST</p><h3>รายการล่าสุด</h3></div><button type="button" data-open-view="reports">ดูทั้งหมด</button></div><div id="recent-list" class="recent-list"></div></article>
         </div>
       </section>
@@ -60,18 +59,17 @@
       <section id="view-reports" class="workspace-view" aria-labelledby="reports-title">
         <div class="section-heading"><div><p class="eyebrow">REPORTS</p><h2 id="reports-title">รายงานปัญหาทั้งหมด</h2></div><p>ข้อมูลล่าสุดไม่เกิน 500 รายการ</p></div>
         <form id="report-filters" class="filter-bar">
-          <label>ค้นหา<input id="search-filter" type="search" placeholder="หัวข้อหรือรายละเอียด" maxlength="100"></label>
-          <label>หมวดหมู่<select id="category-filter"><option value="">ทุกหมวดหมู่</option></select></label>
+          <label>ค้นหา<input id="search-filter" type="search" placeholder="ค้นหาข้อความความคิดเห็น" maxlength="100"></label>
           <label>สถานะ<select id="status-filter"><option value="">ทุกสถานะ</option><option value="new">ใหม่</option><option value="reviewing">กำลังตรวจสอบ</option><option value="resolved">แก้ไขแล้ว</option><option value="closed">ปิดรายการ</option></select></label>
           <button class="secondary-button" type="submit">กรองข้อมูล</button>
         </form>
-        <div class="table-shell"><table><thead><tr><th>วันที่</th><th>หมวดหมู่</th><th>หัวข้อ</th><th>สถานะ</th><th><span class="sr-only">เปิดรายละเอียด</span></th></tr></thead><tbody id="reports-body"></tbody></table></div>
+        <div id="reports-cards" class="feedback-card-grid" aria-live="polite"></div>
         <div id="reports-empty" class="empty-state" hidden>ไม่พบรายงานที่ตรงกับตัวกรอง</div>
       </section>
 
       <section id="view-database" class="workspace-view" aria-labelledby="database-title">
         <div class="section-heading"><div><p class="eyebrow">DATABASE VIEWER</p><h2 id="database-title">ข้อมูลในฐานข้อมูล</h2></div><span class="read-only-badge">ไม่สามารถแก้ไขหรือลบ</span></div>
-        <div class="database-toolbar"><label for="table-select">เลือกตาราง</label><select id="table-select"><option value="issue_reports">issue_reports</option><option value="issue_categories">issue_categories</option></select><button id="load-table-button" class="secondary-button" type="button">โหลดข้อมูล</button></div>
+        <div class="database-toolbar"><label for="table-select">ตาราง</label><select id="table-select"><option value="issue_reports">issue_reports</option></select><button id="load-table-button" class="secondary-button" type="button">โหลดข้อมูล</button></div>
         <p class="database-note">แสดงเฉพาะตารางที่อนุญาตไว้ฝั่งเซิร์ฟเวอร์ การเปลี่ยนชื่อ URL หรือคำสั่งจากเบราว์เซอร์ไม่สามารถเปิดตารางอื่นได้</p>
         <div id="database-table" class="table-shell database-table"></div>
       </section>

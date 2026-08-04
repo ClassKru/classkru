@@ -94,7 +94,6 @@ function openHelpDetail(key) {
 }
 
 let issueReportTrigger = null;
-let issueReportCategoryId = null;
 
 function ensureIssueReportModal() {
   let modal = document.getElementById('issue-report-modal');
@@ -103,7 +102,7 @@ function ensureIssueReportModal() {
   modal.id = 'issue-report-modal';
   modal.className = 'issue-report-modal';
   modal.hidden = true;
-  modal.innerHTML = `<section class="issue-report-card" role="dialog" aria-modal="true" aria-labelledby="issue-report-title"><header><div><span class="help-eyebrow">REPORT TO CLASSKRU</span><h2 id="issue-report-title">แจ้งปัญหาด่วน</h2></div><button class="issue-report-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button></header><form id="issue-report-form"><label>รายละเอียดปัญหา<textarea name="description" minlength="5" maxlength="4000" rows="8" required placeholder="พิมพ์ปัญหาที่พบได้เลย…"></textarea></label><div class="issue-report-actions"><button class="btn" type="button" data-close-report>ยกเลิก</button><button class="btn btn-primary" type="submit" disabled>ส่งรายงาน</button></div><p id="issue-report-status" class="issue-report-status" role="status" aria-live="polite"></p></form></section>`;
+  modal.innerHTML = `<section class="issue-report-card" role="dialog" aria-modal="true" aria-labelledby="issue-report-title"><header><div><span class="help-eyebrow">REPORT TO CLASSKRU</span><h2 id="issue-report-title">แจ้งปัญหาด่วน</h2></div><button class="issue-report-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button></header><form id="issue-report-form"><label>รายละเอียดปัญหา<textarea name="message" minlength="5" maxlength="4000" rows="8" required placeholder="พิมพ์ปัญหาที่พบได้เลย…"></textarea></label><div class="issue-report-actions"><button class="btn" type="button" data-close-report>ยกเลิก</button><button class="btn btn-primary" type="submit" disabled>ส่งรายงาน</button></div><p id="issue-report-status" class="issue-report-status" role="status" aria-live="polite"></p></form></section>`;
   document.body.append(modal);
   modal.querySelector('.issue-report-close').addEventListener('click', closeIssueReportForm);
   modal.querySelector('[data-close-report]').addEventListener('click', closeIssueReportForm);
@@ -116,7 +115,7 @@ async function openIssueReportForm() {
   issueReportTrigger = document.activeElement;
   const modal = ensureIssueReportModal();
   const form = modal.querySelector('form');
-  const description = form.querySelector('[name="description"]');
+  const message = form.querySelector('[name="message"]');
   const submit = form.querySelector('[type="submit"]');
   const status = modal.querySelector('#issue-report-status');
   form.reset();
@@ -124,7 +123,7 @@ async function openIssueReportForm() {
   status.textContent = 'กำลังเตรียมแบบฟอร์ม…';
   status.className = 'issue-report-status';
   modal.hidden = false;
-  description.focus();
+  message.focus();
 
   if (!supabaseClient) {
     status.textContent = 'ไม่สามารถเชื่อมต่อระบบรายงานได้ กรุณาลองใหม่หรือติดต่อผ่าน LINE';
@@ -134,20 +133,6 @@ async function openIssueReportForm() {
   if (!authData?.user) {
     status.textContent = 'กรุณาเข้าสู่ระบบก่อนส่งรายงาน';
     return;
-  }
-  if (!issueReportCategoryId) {
-    const { data, error } = await supabaseClient
-      .from('issue_categories')
-      .select('id')
-      .eq('slug', 'other')
-      .eq('is_active', true)
-      .limit(1);
-    if (error || !data?.length) {
-      console.warn('Issue report category unavailable:', error?.message || 'Missing default category');
-      status.textContent = 'ยังไม่สามารถเปิดระบบแจ้งปัญหาได้ กรุณาลองใหม่ภายหลัง';
-      return;
-    }
-    issueReportCategoryId = data[0].id;
   }
   status.textContent = '';
   submit.disabled = false;
@@ -172,13 +157,10 @@ async function submitIssueReport(event) {
   }
   submit.disabled = true;
   status.textContent = 'กำลังส่งรายงาน…';
-  const description = String(values.get('description') || '').trim();
+  const message = String(values.get('message') || '').trim();
   const payload = {
-    category_id: Number(issueReportCategoryId),
     reporter_id: authData.user.id,
-    title: `แจ้งปัญหา: ${description.replace(/\s+/g, ' ').slice(0, 124)}`,
-    description,
-    steps_to_reproduce: '',
+    message,
     page_url: `${location.origin}${location.pathname}${location.hash}`.slice(0, 800),
     browser_info: `${navigator.userAgent} | ${window.innerWidth}x${window.innerHeight}`.slice(0, 800),
     status: 'new'
