@@ -1,5 +1,5 @@
 // ==================== SCHEDULE GUARD (กันเช็คชื่อผิดวัน) ====================
-// วันในสัปดาห์ที่ห้องนี้มีคาบตามตาราง (เทียบเฉพาะ dow ไม่ผูก Week A/B เพื่อไม่เตือนพร่ำเพรื่อ)
+// วันในสัปดาห์ที่ห้องนี้มีคาบตามตาราง
 function classScheduledDoWs(classId) {
   const set = new Set();
   (appState.timetable || []).forEach(t => { if (t.classId === classId) set.add(t.dow); });

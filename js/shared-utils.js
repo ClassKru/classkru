@@ -116,10 +116,9 @@ function saveStudent() {
 function openPeriodModal(dow, period) {
   currentEditDow = Number(dow);
   currentEditPeriod = Number(period);
-  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
-  const existing = (appState.timetable || []).find(t => timetableEntryMatches(t, currentEditDow, currentEditPeriod, activeWeek));
+  const existing = (appState.timetable || []).find(t => timetableEntryMatches(t, currentEditDow, currentEditPeriod));
   
-  document.getElementById('modal-period-info').innerText = `${DAY_NAMES[dow]} · คาบ ${period} · Week ${activeWeek}`;
+  document.getElementById('modal-period-info').innerText = `${DAY_NAMES[currentEditDow]} · คาบ ${currentEditPeriod}`;
   
   const subjectSelect = document.getElementById('input-period-subject');
   const classSelect = document.getElementById('input-period-class');
@@ -156,12 +155,12 @@ function savePeriodSlot() {
   const classId = document.getElementById('input-period-class').value;
   if (!subject) { showToast('กรุณาเลือกวิชา', 'warning'); return; }
   if (!classId) { showToast('กรุณาเลือกห้องเรียน', 'warning'); return; }
-  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
+  const activeWeek = 'A';
   const c = appState.classes.find(x => x.id === classId);
   if (!c) { showToast('ไม่พบข้อมูลห้องเรียน กรุณาเลือกใหม่', 'warning'); return; }
 
   // Remove existing
-  appState.timetable = (appState.timetable || []).filter(t => !timetableEntryMatches(t, currentEditDow, currentEditPeriod, activeWeek));
+  appState.timetable = (appState.timetable || []).filter(t => !timetableEntryMatches(t, currentEditDow, currentEditPeriod));
   appState.timetable.push({ dow: Number(currentEditDow), period: Number(currentEditPeriod), classId, subject: c.subject || subject, className: c.className || '', week: activeWeek });
 
   saveState();
@@ -173,8 +172,7 @@ function savePeriodSlot() {
 }
 
 function deletePeriodSlot() {
-  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
-  appState.timetable = (appState.timetable || []).filter(t => !timetableEntryMatches(t, currentEditDow, currentEditPeriod, activeWeek));
+  appState.timetable = (appState.timetable || []).filter(t => !timetableEntryMatches(t, currentEditDow, currentEditPeriod));
   saveState();
   closePeriodModal();
   renderWebTimetable();
@@ -365,13 +363,15 @@ function initAppState() {
   if (saved) {
     appState = JSON.parse(saved);
     appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
+    const savedTimetable = JSON.stringify(appState.timetable || []);
     appState.timetable = normalizeTimetableEntries(appState.timetable);
-    appState.timetableWeek = normalizeTimetableWeek(appState.timetableWeek);
+    appState.timetableWeek = 'A';
     // Migrate: add periodSettings if missing
     if (!appState.periodSettings) {
       appState.periodSettings = { startTime: '08:30', duration: 50, breakTime: 0, count: 7 };
     }
     pruneEmptyAttendance();
+    if (savedTimetable !== JSON.stringify(appState.timetable)) saveStateLocalOnly(false);
   }
   else { initAppStateDefault(); }
 }
@@ -393,6 +393,7 @@ function pruneEmptyAttendance() {
 function initAppStateDefault() {
   appState.classes = [];
   appState.timetable = [];
+  appState.timetableWeek = 'A';
   appState.periodSettings = { startTime: '08:30', duration: 50, breakTime: 0, count: 7 };
   appState.lastModified = 0; // Extremely old so it ALWAYS pulls from cloud if exists
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
@@ -463,10 +464,14 @@ async function syncBackgroundCloud(email) {
       if (cloudModified > localModified || (cloudState.classes && cloudState.classes.length > 0 && appState.classes.length === 0)) {
         appState = cloudState;
         appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
+        const cloudTimetable = JSON.stringify(appState.timetable || []);
         appState.timetable = normalizeTimetableEntries(appState.timetable);
-        appState.timetableWeek = normalizeTimetableWeek(appState.timetableWeek);
+        appState.timetableWeek = 'A';
         pruneEmptyAttendance();
+        const timetableMigrated = cloudTimetable !== JSON.stringify(appState.timetable);
+        if (timetableMigrated) appState.lastModified = Date.now();
         saveStateLocalOnly(false);
+        if (timetableMigrated) await pushStateToCloudDirectly(email, appState);
         updateProfileImages();
         // deep-link (LINE OA) ชนะ activeWebScreen ที่ค้างใน cloud — แต่ถ้าผู้ใช้เปลี่ยนหน้าเองแล้ว pendingDeepLink=null
         navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard', pendingDeepLinkParam);
@@ -542,7 +547,7 @@ async function forcePullFromCloud() {
       appState = data.state;
       appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
       appState.timetable = normalizeTimetableEntries(appState.timetable);
-      appState.timetableWeek = normalizeTimetableWeek(appState.timetableWeek);
+      appState.timetableWeek = 'A';
       pruneEmptyAttendance();
       appState.lastModified = Date.now(); // Stamp it so it becomes the latest local
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));

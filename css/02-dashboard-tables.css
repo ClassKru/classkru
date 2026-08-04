@@ -95,24 +95,6 @@
   animation: blinker 2s infinite;
 }
 
-.week-toggle-container { display: flex; gap: 4px; }
-.btn-week-toggle {
-  border: 1px solid var(--border-color);
-  background: var(--bg-card);
-  padding: 6px 16px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  border-radius: var(--radius-btn);
-  cursor: pointer;
-  color: var(--text-muted);
-  transition: var(--transition-normal);
-}
-.btn-week-toggle.active {
-  background-color: var(--primary);
-  color: #ffffff;
-  border-color: var(--primary);
-}
-
 /* ========================================== */
 /* WEB TABLE                                   */
 /* ========================================== */

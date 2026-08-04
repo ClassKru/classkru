@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=280">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=280">
-  <link rel="stylesheet" href="css/03-reports.css?v=280">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=280">
-  <link rel="stylesheet" href="css/05-home.css?v=280">
-  <link rel="stylesheet" href="css/06-attendance.css?v=280">
-  <link rel="stylesheet" href="css/07-scores.css?v=280">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=280">
-    <link rel="stylesheet" href="css/09-games.css?v=280">
-  <link rel="stylesheet" href="css/10-help.css?v=280">
-  <link rel="stylesheet" href="css/11-public-help.css?v=280">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=282">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=282">
+  <link rel="stylesheet" href="css/03-reports.css?v=282">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=282">
+  <link rel="stylesheet" href="css/05-home.css?v=282">
+  <link rel="stylesheet" href="css/06-attendance.css?v=282">
+  <link rel="stylesheet" href="css/07-scores.css?v=282">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=282">
+    <link rel="stylesheet" href="css/09-games.css?v=282">
+  <link rel="stylesheet" href="css/10-help.css?v=282">
+  <link rel="stylesheet" href="css/11-public-help.css?v=282">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -327,14 +327,10 @@
               <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
                 <div>
                   <div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary)"></i> ตารางสอนประจำสัปดาห์</div>
-                  <p class="subtitle" style="margin-top:4px;">กำหนดคาบเรียน รองรับ Week A/B</p>
+                  <p class="subtitle" style="margin-top:4px;">กำหนดคาบเรียนสำหรับตารางสอนประจำสัปดาห์</p>
                 </div>
                 <div id="tt-desktop-controls" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                   <span id="timetable-period-count" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);"></span>
-                  <div class="week-toggle-container">
-                    <button class="btn-week-toggle active" id="btn-week-a" onclick="switchTimetableWeek('A')">Week A</button>
-                    <button class="btn-week-toggle" id="btn-week-b" onclick="switchTimetableWeek('B')">Week B</button>
-                  </div>
                   <button class="btn" style="padding:8px 16px;font-size:0.8rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="openTimetableImport()">
                     <i class="hgi-stroke hgi-google-sheet"></i> นำเข้าตารางสอน
                   </button>
@@ -353,10 +349,6 @@
               <div>
                 <div style="font-size:1.05rem;font-weight:800;color:var(--text-main);"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);margin-right:6px;"></i>ตารางสอน</div>
                 <div id="m-tt-summary" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;"></div>
-              </div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn-week-toggle active" id="m-btn-week-a" onclick="switchTimetableWeek('A')" style="font-size:0.72rem;padding:5px 10px;">Week A</button>
-                <button class="btn-week-toggle" id="m-btn-week-b" onclick="switchTimetableWeek('B')" style="font-size:0.72rem;padding:5px 10px;">Week B</button>
               </div>
             </div>
             <button class="btn hide-mobile" style="width:100%;margin-bottom:14px;padding:10px;font-size:0.85rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="openTimetableImport()">
@@ -1018,19 +1010,19 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=280"></script>
-  <script defer src="js/auth.js?v=280"></script>
-  <script defer src="js/shell.js?v=280"></script>
-  <script defer src="js/dashboard.js?v=280"></script>
-  <script defer src="js/classrooms.js?v=280"></script>
-  <script defer src="js/students.js?v=280"></script>
-  <script defer src="js/timetable.js?v=280"></script>
-  <script defer src="js/reports.js?v=280"></script>
-  <script defer src="js/attendance.js?v=280"></script>
-  <script defer src="js/scores.js?v=280"></script>
-  <script defer src="js/tools.js?v=280"></script>
-  <script defer src="js/shared-utils.js?v=280"></script>
-  <script defer src="js/extras.js?v=280"></script>
-  <script defer src="js/help.js?v=280"></script>
+  <script defer src="js/core.js?v=282"></script>
+  <script defer src="js/auth.js?v=282"></script>
+  <script defer src="js/shell.js?v=282"></script>
+  <script defer src="js/dashboard.js?v=282"></script>
+  <script defer src="js/classrooms.js?v=282"></script>
+  <script defer src="js/students.js?v=282"></script>
+  <script defer src="js/timetable.js?v=282"></script>
+  <script defer src="js/reports.js?v=282"></script>
+  <script defer src="js/attendance.js?v=282"></script>
+  <script defer src="js/scores.js?v=282"></script>
+  <script defer src="js/tools.js?v=282"></script>
+  <script defer src="js/shared-utils.js?v=282"></script>
+  <script defer src="js/extras.js?v=282"></script>
+  <script defer src="js/help.js?v=282"></script>
 </body>
 </html>

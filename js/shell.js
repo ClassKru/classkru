@@ -123,7 +123,7 @@ function navigateToWebScreen(screenId, param) {
     help: ['ศูนย์ช่วยเหลือ', 'วิธีใช้งาน แจ้งปัญหา และติดต่อทีมงาน'],
     classrooms: ['ห้องเรียนวิชาสอน', 'จัดการรายวิชาและเช็คชื่อด่วน'],
     students: ['จัดการรายชื่อเด็ก', 'เพิ่ม ลบ แก้ไข ย้ายห้อง'],
-    timetable: ['ตารางสอนสัปดาห์', 'กำหนดคาบเรียนรองรับ Week A/B'],
+    timetable: ['ตารางสอนสัปดาห์', 'กำหนดคาบเรียนประจำสัปดาห์'],
     attendance: ['Attendance Matrix', 'ประวัติเข้าเรียนรายคาบ'],
     scores: ['เก็บคะแนน', 'กรอกคะแนน รวมผล ตัดเกรดอัตโนมัติ'],
     reports: ['รายงานวิเคราะห์ผล', 'สถิติเชิงลึกรายห้องเรียน'],
@@ -214,10 +214,8 @@ function calculateNextClass() {
   const currentDow = now.getDay();
   if (appState.timetable.length === 0) return null;
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const activeWeek = appState.timetableWeek || 'A';
-
   const todayClasses = appState.timetable
-    .filter(p => p.dow === currentDow && (p.week === undefined || p.week === activeWeek))
+    .filter(p => Number(p.dow) === currentDow)
     .map(p => {
       const slot = TIMETABLE_SLOTS_MASTER.find(s => s.period === p.period) || { s:'08:30', e:'09:20' };
       const [sH,sM] = slot.s.split(':').map(Number);
@@ -236,7 +234,7 @@ function calculateNextClass() {
   for (let offset = 1; offset <= 7; offset++) {
     const nextDow = (currentDow + offset) % 7;
     const nextClasses = appState.timetable
-      .filter(p => p.dow === nextDow && (p.week === undefined || p.week === activeWeek))
+      .filter(p => Number(p.dow) === nextDow)
       .map(p => {
         const slot = TIMETABLE_SLOTS_MASTER.find(s => s.period === p.period) || { s:'08:30', e:'09:20' };
         return { ...p, startMin: slot.s.split(':').map(Number).reduce((h,m)=>h*60+m), timeString: `${slot.s} - ${slot.e} น.` };

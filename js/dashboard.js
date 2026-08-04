@@ -1,29 +1,5 @@
-function renderWebDashboard() {
-  const now = getNowDate();
-  const viewDate = homeSelectedDate || now;
-  const isToday = getTodayString(viewDate) === getTodayString(now);
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const viewDow = viewDate.getDay();
-  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
-
-  // ---- Date display ----
-  const dayEl = document.getElementById('home-day-name');
-  const dateEl = document.getElementById('home-date-big');
-  const yearEl = document.getElementById('home-year');
-  if (!dayEl) return;
-  dayEl.innerText = DAY_NAMES[viewDow];
-  dateEl.innerText = `${viewDate.getDate()} ${MONTH_NAMES[viewDate.getMonth()]}`;
-  yearEl.innerText = `พ.ศ. ${viewDate.getFullYear() + 543}`;
-  // สีการ์ดวันที่ตามสีประจำวัน
-  const dateCard = document.getElementById('home-date-card');
-  if (dateCard) {
-    const dc = DAY_CARD_COLORS[viewDow] || DAY_CARD_COLORS[3];
-    dateCard.style.background = dc.grad;
-    dateCard.style.boxShadow = `0 6px 18px ${dc.shadow}`;
-  }
-
-  // ---- Build slots for view day ----
-  const viewSlots = getTimetableEntriesForDay(viewDow, activeWeek)
+function buildDashboardScheduleSlots(date) {
+  return getTimetableEntriesForDay(date.getDay())
     .map(t => {
       const period = Number(t.period);
       const slot = getPeriodSlots().find(s => s.period === period) || { s:'08:30', e:'09:20' };
@@ -42,6 +18,54 @@ function renderWebDashboard() {
       };
     })
     .sort((a,b) => a.startMin - b.startMin);
+}
+
+function findNextDashboardScheduleDate(fromDate) {
+  for (let offset = 1; offset <= 7; offset++) {
+    const candidate = new Date(fromDate);
+    candidate.setDate(fromDate.getDate() + offset);
+    if (getTimetableEntriesForDay(candidate.getDay()).length > 0) return candidate;
+  }
+  return null;
+}
+
+function renderWebDashboard() {
+  const now = getNowDate();
+  const viewDate = homeSelectedDate || now;
+  const isToday = getTodayString(viewDate) === getTodayString(now);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const viewDow = viewDate.getDay();
+  appState.timetableWeek = 'A';
+
+  // ---- Date display ----
+  const dayEl = document.getElementById('home-day-name');
+  const dateEl = document.getElementById('home-date-big');
+  const yearEl = document.getElementById('home-year');
+  if (!dayEl) return;
+  dayEl.innerText = DAY_NAMES[viewDow];
+  dateEl.innerText = `${viewDate.getDate()} ${MONTH_NAMES[viewDate.getMonth()]}`;
+  yearEl.innerText = `พ.ศ. ${viewDate.getFullYear() + 543}`;
+  // สีการ์ดวันที่ตามสีประจำวัน
+  const dateCard = document.getElementById('home-date-card');
+  if (dateCard) {
+    const dc = DAY_CARD_COLORS[viewDow] || DAY_CARD_COLORS[3];
+    dateCard.style.background = dc.grad;
+    dateCard.style.boxShadow = `0 6px 18px ${dc.shadow}`;
+  }
+
+  // ---- Build slots for view day ----
+  let scheduleDate = viewDate;
+  let viewSlots = buildDashboardScheduleSlots(scheduleDate);
+  let showingUpcoming = false;
+  if (isToday && viewSlots.length === 0) {
+    const nextScheduleDate = findNextDashboardScheduleDate(now);
+    if (nextScheduleDate) {
+      scheduleDate = nextScheduleDate;
+      viewSlots = buildDashboardScheduleSlots(scheduleDate);
+      showingUpcoming = true;
+    }
+  }
+  const scheduleIsToday = getTodayString(scheduleDate) === getTodayString(now);
 
   // ---- Status badge → 2x2 attendance stats ----
   const badge = document.getElementById('home-status-badge');
@@ -67,12 +91,20 @@ function renderWebDashboard() {
 
   // ---- Schedule title ----
   const titleEl = document.getElementById('home-schedule-title');
-  if (titleEl) titleEl.innerText = isToday ? 'ตารางสอนวันนี้' : `${DAY_NAMES[viewDow]}ที่ ${viewDate.getDate()} ${MONTH_NAMES[viewDate.getMonth()]}`;
+  if (titleEl) {
+    titleEl.innerText = showingUpcoming
+      ? `ตารางสอนถัดไป · ${DAY_NAMES[scheduleDate.getDay()]}ที่ ${scheduleDate.getDate()} ${MONTH_NAMES[scheduleDate.getMonth()]}`
+      : isToday ? 'ตารางสอนวันนี้' : `${DAY_NAMES[viewDow]}ที่ ${viewDate.getDate()} ${MONTH_NAMES[viewDate.getMonth()]}`;
+  }
 
   // ---- Next class card (today only) ----
   const nextArea = document.getElementById('home-next-card-area');
   if (nextArea) {
     if (isToday) {
+      if (showingUpcoming) {
+        const nextSlot = viewSlots[0];
+        nextArea.innerHTML = `<div class="home-next-card is-upcoming" style="padding:13px 18px;gap:5px;" onclick="openSwipeAttendance('${nextSlot.classId}',new Date('${getTodayString(scheduleDate)}T00:00:00'))"><div class="next-tag">คาบถัดไป · ${DAY_NAMES[scheduleDate.getDay()]} ${scheduleDate.getDate()} ${MONTH_NAMES[scheduleDate.getMonth()]} · ${nextSlot.slotStart} น.</div><div class="next-subject" style="font-size:1rem;">${nextSlot.subject} <span style="font-weight:600;font-size:0.8rem;opacity:0.85;">· ${nextSlot.className}</span></div></div>`;
+      } else {
       const today = getTodayString(now);
       const timePassed = viewSlots.length > 0 && viewSlots.every(t => nowMin >= t.endMin);
       // เช็คว่าทุกคาบที่ผ่านเวลาแล้วถูกเช็คชื่อครบหรือยัง
@@ -101,6 +133,7 @@ function renderWebDashboard() {
       } else {
         nextArea.innerHTML = '';
       }
+      }
     } else {
       nextArea.innerHTML = '';
     }
@@ -109,7 +142,7 @@ function renderWebDashboard() {
   // ---- Unchecked warning (today only) ----
   const uncheckedEl = document.getElementById('home-unchecked-card');
   if (uncheckedEl) {
-    if (isToday) {
+    if (isToday && !showingUpcoming) {
       const today = getTodayString(now);
       const unchecked = viewSlots.filter(t => {
         if (nowMin < t.endMin) return false;
@@ -142,14 +175,14 @@ function renderWebDashboard() {
     return;
   }
 
-  const dateKey = getTodayString(viewDate);
+  const dateKey = getTodayString(scheduleDate);
   listEl.innerHTML = '';
   viewSlots.forEach(t => {
     const c = appState.classes.find(x => x.id === t.classId);
     const attData = c && (c.attendance || {})[dateKey];
     const checked = attData && c && Object.keys(attData).length >= c.students.length;
-    const isOngoing = isToday && nowMin >= t.startMin && nowMin < t.endMin;
-    const isPast = isToday && nowMin >= t.endMin;
+    const isOngoing = scheduleIsToday && nowMin >= t.startMin && nowMin < t.endMin;
+    const isPast = scheduleIsToday && nowMin >= t.endMin;
 
     let dotClass = 'unchecked', badgeHtml = '';
     if (isOngoing) { dotClass = 'ongoing'; badgeHtml = `<span class="home-schedule-badge" style="background:var(--color-leave-bg);color:var(--color-leave);">● กำลังสอน</span>`; }
@@ -160,7 +193,7 @@ function renderWebDashboard() {
     row.className = 'home-schedule-row' + (isOngoing ? ' is-now' : '');
     // hover = สีประจำห้อง, กดแล้วเปิดเช็คชื่อของวันที่กำลังดู
     row.style.setProperty('--row-hover', getClassColor(t.classId).bg);
-    row.onclick = () => openSwipeAttendance(t.classId, viewDate);
+    row.onclick = () => openSwipeAttendance(t.classId, scheduleDate);
     const dotCol = getClassColor(t.classId).text;
     row.innerHTML = `<div class="home-schedule-time">${t.slotStart}<br>${t.slotEnd}</div>
       <div class="home-schedule-info"><div class="home-schedule-subject" style="display:flex;align-items:center;gap:9px;"><span class="home-schedule-dot" style="background:${dotCol};"></span>${t.subject}</div><div class="home-schedule-class" style="margin-left:19px;">${t.className}</div></div>
@@ -213,9 +246,7 @@ function renderCalendar() {
   const today = getNowDate();
   const todayStr = getTodayString(today);
   const selectedStr = homeSelectedDate ? getTodayString(homeSelectedDate) : todayStr;
-  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
   const classDoWs = new Set((appState.timetable || [])
-    .filter(t => t.week === undefined || t.week === null || t.week === '' || normalizeTimetableWeek(t.week) === activeWeek)
     .map(t => Number(t.dow))
     .filter(dow => Number.isInteger(dow) && dow >= 0 && dow <= 6));
 

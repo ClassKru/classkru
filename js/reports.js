@@ -836,7 +836,7 @@ function confirmTimetableExcelImport() {
       classId: matchClass ? matchClass.id : '',
       subject: subject || (matchClass ? matchClass.subject : 'ไม่ระบุ'),
       className: className || (matchClass ? matchClass.className : ''),
-      week: appState.timetableWeek || 'A'
+      week: 'A'
     });
     imported++;
   });
