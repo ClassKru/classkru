@@ -114,10 +114,10 @@ function saveStudent() {
 }
 
 function openPeriodModal(dow, period) {
-  currentEditDow = dow;
-  currentEditPeriod = period;
-  const activeWeek = appState.timetableWeek || 'A';
-  const existing = appState.timetable.find(t => t.dow === dow && t.period === period && (t.week === undefined || t.week === activeWeek));
+  currentEditDow = Number(dow);
+  currentEditPeriod = Number(period);
+  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
+  const existing = (appState.timetable || []).find(t => timetableEntryMatches(t, currentEditDow, currentEditPeriod, activeWeek));
   
   document.getElementById('modal-period-info').innerText = `${DAY_NAMES[dow]} · คาบ ${period} · Week ${activeWeek}`;
   
@@ -155,25 +155,30 @@ function savePeriodSlot() {
   const subject = document.getElementById('input-period-subject').value;
   const classId = document.getElementById('input-period-class').value;
   if (!subject) { showToast('กรุณาเลือกวิชา', 'warning'); return; }
-  const activeWeek = appState.timetableWeek || 'A';
+  if (!classId) { showToast('กรุณาเลือกห้องเรียน', 'warning'); return; }
+  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
   const c = appState.classes.find(x => x.id === classId);
+  if (!c) { showToast('ไม่พบข้อมูลห้องเรียน กรุณาเลือกใหม่', 'warning'); return; }
 
   // Remove existing
-  appState.timetable = appState.timetable.filter(t => !(t.dow === currentEditDow && t.period === currentEditPeriod && (t.week === undefined || t.week === activeWeek)));
-  appState.timetable.push({ dow: currentEditDow, period: currentEditPeriod, classId, subject, className: c ? c.className : '', week: activeWeek });
+  appState.timetable = (appState.timetable || []).filter(t => !timetableEntryMatches(t, currentEditDow, currentEditPeriod, activeWeek));
+  appState.timetable.push({ dow: Number(currentEditDow), period: Number(currentEditPeriod), classId, subject: c.subject || subject, className: c.className || '', week: activeWeek });
 
   saveState();
   closePeriodModal();
   renderWebTimetable();
+  renderWebDashboard();
+  showToast('บันทึกตารางสอนแล้ว หน้าหลักอัปเดตเรียบร้อย', 'success');
   Tour.action('period-added');
 }
 
 function deletePeriodSlot() {
-  const activeWeek = appState.timetableWeek || 'A';
-  appState.timetable = appState.timetable.filter(t => !(t.dow === currentEditDow && t.period === currentEditPeriod && (t.week === undefined || t.week === activeWeek)));
+  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
+  appState.timetable = (appState.timetable || []).filter(t => !timetableEntryMatches(t, currentEditDow, currentEditPeriod, activeWeek));
   saveState();
   closePeriodModal();
   renderWebTimetable();
+  renderWebDashboard();
 }
 
 function openStudentDetailModal(studentId, classId) {
@@ -359,6 +364,9 @@ function initAppState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     appState = JSON.parse(saved);
+    appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
+    appState.timetable = normalizeTimetableEntries(appState.timetable);
+    appState.timetableWeek = normalizeTimetableWeek(appState.timetableWeek);
     // Migrate: add periodSettings if missing
     if (!appState.periodSettings) {
       appState.periodSettings = { startTime: '08:30', duration: 50, breakTime: 0, count: 7 };
@@ -454,6 +462,9 @@ async function syncBackgroundCloud(email) {
       // Pull from cloud if it's newer, or if we have no classes locally but cloud does
       if (cloudModified > localModified || (cloudState.classes && cloudState.classes.length > 0 && appState.classes.length === 0)) {
         appState = cloudState;
+        appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
+        appState.timetable = normalizeTimetableEntries(appState.timetable);
+        appState.timetableWeek = normalizeTimetableWeek(appState.timetableWeek);
         pruneEmptyAttendance();
         saveStateLocalOnly(false);
         updateProfileImages();
@@ -529,6 +540,9 @@ async function forcePullFromCloud() {
     if (error && error.code !== 'PGRST116') throw error;
     if (data && data.state) {
       appState = data.state;
+      appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
+      appState.timetable = normalizeTimetableEntries(appState.timetable);
+      appState.timetableWeek = normalizeTimetableWeek(appState.timetableWeek);
       pruneEmptyAttendance();
       appState.lastModified = Date.now(); // Stamp it so it becomes the latest local
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));

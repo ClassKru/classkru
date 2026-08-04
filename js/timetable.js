@@ -1,5 +1,5 @@
 function renderWebTimetable() {
-  const activeWeek = appState.timetableWeek || 'A';
+  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
   const dows = [1,2,3,4,5];
   const slots = getPeriodSlots();
   const now = getNowDate();
@@ -26,7 +26,7 @@ function renderWebTimetable() {
       const dt = DAY_TINT[d] || { bg:'#eef2ff', text:'#3730a3' };
       html += `<tr><td style="font-weight:800;font-size:0.85rem;text-align:center;background-color:${dt.bg};color:${dt.text};">${DAY_NAMES[d].slice(3)}</td>`;
       slots.forEach(slot => {
-        const entry = resolveEntry(appState.timetable.find(t => t.dow === d && t.period === slot.period && (t.week === undefined || t.week === activeWeek)));
+        const entry = resolveEntry((appState.timetable || []).find(t => timetableEntryMatches(t, d, slot.period, activeWeek)));
         const [sH,sM] = slot.s.split(':').map(Number);
         const [eH,eM] = slot.e.split(':').map(Number);
         const isNow = d === nowDow && nowMin >= sH*60+sM && nowMin < eH*60+eM;
@@ -60,7 +60,7 @@ function renderWebTimetable() {
   dows.forEach(d => {
     const isToday = d === nowDow;
     const classEntries = slots
-      .map(slot => ({ slot, entry: resolveEntry(appState.timetable.find(t => t.dow === d && t.period === slot.period && (t.week === undefined || t.week === activeWeek))) }))
+      .map(slot => ({ slot, entry: resolveEntry((appState.timetable || []).find(t => timetableEntryMatches(t, d, slot.period, activeWeek))) }))
       .filter(x => x.entry);
     const classCount = classEntries.length;
     totalClasses += classCount;
@@ -100,9 +100,10 @@ function renderWebTimetable() {
 }
 
 function switchTimetableWeek(week) {
-  appState.timetableWeek = week;
-  document.getElementById('btn-week-a').classList.toggle('active', week === 'A');
-  document.getElementById('btn-week-b').classList.toggle('active', week === 'B');
+  const activeWeek = normalizeTimetableWeek(week);
+  appState.timetableWeek = activeWeek;
+  document.getElementById('btn-week-a').classList.toggle('active', activeWeek === 'A');
+  document.getElementById('btn-week-b').classList.toggle('active', activeWeek === 'B');
   saveStateLocalOnly();
   renderWebTimetable();
 }

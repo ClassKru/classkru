@@ -101,6 +101,42 @@ function getPeriodSlots() {
 // Keep TIMETABLE_SLOTS_MASTER as alias for backward compatibility
 Object.defineProperty(window, 'TIMETABLE_SLOTS_MASTER', { get: () => getPeriodSlots(), configurable: true });
 
+function normalizeTimetableWeek(week) {
+  return String(week || '').toUpperCase() === 'B' ? 'B' : 'A';
+}
+
+function timetableEntryMatches(entry, dow, period, week) {
+  if (!entry || Number(entry.dow) !== Number(dow) || Number(entry.period) !== Number(period)) return false;
+  if (entry.week === undefined || entry.week === null || entry.week === '') return true;
+  return normalizeTimetableWeek(entry.week) === normalizeTimetableWeek(week);
+}
+
+function getTimetableEntriesForDay(dow, week = appState.timetableWeek || 'A') {
+  const targetDow = Number(dow);
+  return (Array.isArray(appState.timetable) ? appState.timetable : [])
+    .filter(entry => Number(entry.dow) === targetDow && (
+      entry.week === undefined || entry.week === null || entry.week === '' ||
+      normalizeTimetableWeek(entry.week) === normalizeTimetableWeek(week)
+    ));
+}
+
+function normalizeTimetableEntries(entries) {
+  if (!Array.isArray(entries)) return [];
+  return entries.reduce((normalized, entry) => {
+    const dow = Number(entry?.dow);
+    const period = Number(entry?.period);
+    if (!Number.isInteger(dow) || dow < 0 || dow > 6 || !Number.isInteger(period) || period < 1) return normalized;
+    const cleanEntry = { ...entry, dow, period };
+    if (entry.week !== undefined && entry.week !== null && entry.week !== '') {
+      cleanEntry.week = normalizeTimetableWeek(entry.week);
+    } else {
+      delete cleanEntry.week;
+    }
+    normalized.push(cleanEntry);
+    return normalized;
+  }, []);
+}
+
 
 const SB_URL = 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SB_KEY = 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';

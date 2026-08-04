@@ -846,6 +846,7 @@ function confirmTimetableExcelImport() {
   document.getElementById('excel-timetable-mapping-area').style.display = 'none';
   closeTimetableImport();
   renderWebTimetable();
+  renderWebDashboard();
 }
 
 // ==========================================

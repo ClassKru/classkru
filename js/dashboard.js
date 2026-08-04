@@ -4,7 +4,7 @@ function renderWebDashboard() {
   const isToday = getTodayString(viewDate) === getTodayString(now);
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const viewDow = viewDate.getDay();
-  const activeWeek = appState.timetableWeek || 'A';
+  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
 
   // ---- Date display ----
   const dayEl = document.getElementById('home-day-name');
@@ -23,13 +23,23 @@ function renderWebDashboard() {
   }
 
   // ---- Build slots for view day ----
-  const viewSlots = appState.timetable
-    .filter(t => t.dow === viewDow && (t.week === undefined || t.week === activeWeek))
+  const viewSlots = getTimetableEntriesForDay(viewDow, activeWeek)
     .map(t => {
-      const slot = TIMETABLE_SLOTS_MASTER.find(s => s.period === t.period) || { s:'08:30', e:'09:20' };
+      const period = Number(t.period);
+      const slot = getPeriodSlots().find(s => s.period === period) || { s:'08:30', e:'09:20' };
       const [sH,sM] = slot.s.split(':').map(Number);
       const [eH,eM] = slot.e.split(':').map(Number);
-      return { ...t, startMin: sH*60+sM, endMin: eH*60+eM, slotStart: slot.s, slotEnd: slot.e };
+      const linkedClass = appState.classes.find(c => c.id === t.classId);
+      return {
+        ...t,
+        period,
+        subject: linkedClass?.subject || t.subject || 'ไม่ระบุวิชา',
+        className: linkedClass?.className || t.className || '',
+        startMin: sH*60+sM,
+        endMin: eH*60+eM,
+        slotStart: slot.s,
+        slotEnd: slot.e
+      };
     })
     .sort((a,b) => a.startMin - b.startMin);
 
@@ -203,8 +213,11 @@ function renderCalendar() {
   const today = getNowDate();
   const todayStr = getTodayString(today);
   const selectedStr = homeSelectedDate ? getTodayString(homeSelectedDate) : todayStr;
-  const activeWeek = appState.timetableWeek || 'A';
-  const classDoWs = new Set(appState.timetable.filter(t => t.week === undefined || t.week === activeWeek).map(t => t.dow));
+  const activeWeek = normalizeTimetableWeek(appState.timetableWeek);
+  const classDoWs = new Set((appState.timetable || [])
+    .filter(t => t.week === undefined || t.week === null || t.week === '' || normalizeTimetableWeek(t.week) === activeWeek)
+    .map(t => Number(t.dow))
+    .filter(dow => Number.isInteger(dow) && dow >= 0 && dow <= 6));
 
   const firstDay = new Date(calViewYear, calViewMonth, 1);
   const startDow = firstDay.getDay();
