@@ -4,16 +4,37 @@ const { sendJson } = require('../_lib/http');
 const { verifySession } = require('../_lib/dev-auth');
 const { selectRows } = require('../_lib/supabase-admin');
 
-const ISSUE_REPORT_FIELDS = 'id,reporter_id,message,page_url,browser_info,status,created_at,updated_at';
+const ISSUE_REPORT_FIELDS = 'id,reporter_id,category,message,page_url,browser_info,status,created_at,updated_at';
+const LEGACY_ISSUE_REPORT_FIELDS = 'id,reporter_id,message,page_url,browser_info,status,created_at,updated_at';
 
 function normalize(value, maxLength = 120) {
   return String(value || '').trim().toLocaleLowerCase('th-TH').slice(0, maxLength);
 }
 
+function reportCategory(report) {
+  const legacyCategory = String(report.browser_info || '').match(/feedback-category:(issue|feature)/)?.[1];
+  if (legacyCategory) return legacyCategory;
+  return report.category === 'feature' ? 'feature' : 'issue';
+}
+
+async function loadReportRows() {
+  const options = { order: 'created_at.desc', limit: 500 };
+  try {
+    const rows = await selectRows('issue_reports', { ...options, select: ISSUE_REPORT_FIELDS });
+    return rows.map(report => ({ ...report, category: reportCategory(report) }));
+  } catch (error) {
+    if (error.code !== 'DATABASE_REQUEST_FAILED') throw error;
+    const rows = await selectRows('issue_reports', { ...options, select: LEGACY_ISSUE_REPORT_FIELDS });
+    return rows.map(report => ({ ...report, category: reportCategory(report) }));
+  }
+}
+
 function filterReports(rows, query) {
+  const category = normalize(query.category, 30);
   const status = normalize(query.status, 30);
   const search = normalize(query.q, 100);
   return rows.filter(row => {
+    if (category && row.category !== category) return false;
     if (status && row.status !== status) return false;
     if (!search) return true;
     return normalize(row.message, 4000).includes(search);
@@ -27,18 +48,20 @@ async function handler(req, res) {
 
   try {
     const resource = normalize(req.query.resource || 'overview', 30);
-    const reportRows = await selectRows('issue_reports', {
-      select: ISSUE_REPORT_FIELDS,
-      order: 'created_at.desc',
-      limit: 500
-    });
+    const reportRows = await loadReportRows();
 
     if (resource === 'overview') {
       const statuses = { new: 0, reviewing: 0, resolved: 0, closed: 0 };
-      reportRows.forEach(report => { statuses[report.status] = (statuses[report.status] || 0) + 1; });
+      const categories = { issue: 0, feature: 0 };
+      reportRows.forEach(report => {
+        statuses[report.status] = (statuses[report.status] || 0) + 1;
+        const category = report.category === 'feature' ? 'feature' : 'issue';
+        categories[category] += 1;
+      });
       return sendJson(res, 200, {
         total: reportRows.length,
         statuses,
+        categories,
         recent: reportRows.slice(0, 8)
       });
     }

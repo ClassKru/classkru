@@ -8,13 +8,14 @@ const ui = {
   loginStatus: byId('login-status'), logout: byId('logout-button'), refresh: byId('refresh-button'),
   globalStatus: byId('global-status'), summary: byId('summary-grid'),
   recent: byId('recent-list'), lastUpdated: byId('last-updated'), reportFilters: byId('report-filters'),
-  searchFilter: byId('search-filter'), statusFilter: byId('status-filter'),
+  searchFilter: byId('search-filter'), categoryFilter: byId('category-filter'), statusFilter: byId('status-filter'),
   reportsCards: byId('reports-cards'), reportsEmpty: byId('reports-empty'), tableSelect: byId('table-select'),
   loadTable: byId('load-table-button'), databaseTable: byId('database-table'), modal: byId('detail-modal'),
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
 };
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
+const CATEGORY_LABELS = Object.freeze({ issue: 'แจ้งปัญหา', feature: 'เสนอฟีเจอร์ใหม่' });
 
 async function request(path, options = {}) {
   const response = await fetch(path, {
@@ -68,10 +69,16 @@ function statusPill(status) {
   return element('span', `status-pill status-${status}`, STATUS_LABELS[status] || status || '—');
 }
 
+function categoryPill(category) {
+  const value = category === 'feature' ? 'feature' : 'issue';
+  return element('span', `category-pill category-${value}`, CATEGORY_LABELS[value]);
+}
+
 function reportDetail(report) {
   ui.modalTitle.textContent = 'รายละเอียดความคิดเห็น';
   ui.modalContent.replaceChildren();
   const fields = [
+    ['หมวดหมู่', CATEGORY_LABELS[report.category] || CATEGORY_LABELS.issue],
     ['สถานะ', STATUS_LABELS[report.status] || report.status],
     ['วันที่และเวลา', formatDate(report.created_at, true)],
     ['ความคิดเห็น', report.message],
@@ -105,7 +112,9 @@ function renderOverview(data) {
   state.overview = data;
   ui.summary.replaceChildren();
   const cards = [
-    ['ทั้งหมด', data.total || 0, 'total'], ['ใหม่', data.statuses?.new || 0, 'new'],
+    ['ทั้งหมด', data.total || 0, 'total'],
+    ['แจ้งปัญหา', data.categories?.issue || 0, 'issue'], ['เสนอฟีเจอร์ใหม่', data.categories?.feature || 0, 'feature'],
+    ['ใหม่', data.statuses?.new || 0, 'new'],
     ['กำลังตรวจสอบ', data.statuses?.reviewing || 0, 'reviewing'], ['แก้ไขแล้ว', data.statuses?.resolved || 0, 'resolved'],
     ['ปิดรายการ', data.statuses?.closed || 0, 'closed']
   ];
@@ -122,11 +131,13 @@ function renderOverview(data) {
     button.append(element('span', 'recent-date', formatDate(report.created_at)));
     const copy = element('span');
     copy.append(element('strong', '', report.message), element('small', '', formatDate(report.created_at, true)));
-    button.append(copy, statusPill(report.status));
+    const badges = element('span', 'recent-badges');
+    badges.append(categoryPill(report.category), statusPill(report.status));
+    button.append(copy, badges);
     button.addEventListener('click', () => reportDetail(report));
     ui.recent.append(button);
   });
-  if (!(data.recent || []).length) ui.recent.append(element('p', 'database-note', 'ยังไม่มีรายงานปัญหา'));
+  if (!(data.recent || []).length) ui.recent.append(element('p', 'database-note', 'ยังไม่มีความคิดเห็น'));
   ui.lastUpdated.textContent = `อัปเดต ${formatDate(new Date().toISOString(), true)}`;
 }
 
@@ -149,7 +160,9 @@ function renderReports(data) {
     const header = element('header', 'feedback-card-header');
     const date = element('time', 'feedback-card-time', formatDate(report.created_at, true));
     date.dateTime = report.created_at;
-    header.append(date, statusPill(report.status));
+    const badges = element('span', 'feedback-card-badges');
+    badges.append(categoryPill(report.category), statusPill(report.status));
+    header.append(date, badges);
     const message = element('p', 'feedback-card-message', report.message);
     const footer = element('footer', 'feedback-card-footer');
     footer.append(element('span', '', report.page_url || 'ไม่ระบุหน้า'));
@@ -167,6 +180,7 @@ async function loadReports() {
   ui.globalStatus.textContent = 'กำลังโหลดรายงาน…';
   const params = new URLSearchParams({ resource: 'reports' });
   if (ui.searchFilter.value.trim()) params.set('q', ui.searchFilter.value.trim());
+  if (ui.categoryFilter.value) params.set('category', ui.categoryFilter.value);
   if (ui.statusFilter.value) params.set('status', ui.statusFilter.value);
   try {
     renderReports(await request(`/api/dev/data?${params}`));

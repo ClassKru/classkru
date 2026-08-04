@@ -84,9 +84,9 @@ function openHelpDetail(key) {
   if (!item || !hub || !detail) return;
   hub.style.display = 'none';
   const action = key === 'report'
-    ? `<button class="btn btn-primary" type="button" onclick="openIssueReportForm()"><i class="hgi-stroke hgi-alert-02"></i> เปิดแบบฟอร์มแจ้งปัญหา</button><button class="btn" type="button" onclick="openClassKruLine('${item.title}')"><i class="hgi-stroke hgi-message-02"></i> ติดต่อผ่าน LINE</button>`
+    ? `<button class="btn btn-primary" type="button" onclick="openIssueReportForm('issue')"><i class="hgi-stroke hgi-alert-02"></i> เปิดแบบฟอร์มแจ้งปัญหา</button><button class="btn" type="button" onclick="openClassKruLine('${item.title}')"><i class="hgi-stroke hgi-message-02"></i> ติดต่อผ่าน LINE</button>`
     : key === 'feature'
-      ? `<button class="btn btn-primary" type="button" onclick="openIssueReportForm()"><i class="hgi-stroke hgi-bulb"></i> ส่งข้อเสนอแนะ</button>`
+      ? `<button class="btn btn-primary" type="button" onclick="openIssueReportForm('feature')"><i class="hgi-stroke hgi-bulb"></i> ส่งข้อเสนอแนะ</button>`
       : `<button class="btn btn-primary" type="button" onclick="openClassKruLine('${item.title}')"><i class="hgi-stroke hgi-message-02"></i> ติดต่อผ่าน LINE</button>`;
   detail.innerHTML = `<button class="help-back" onclick="renderHelpHub()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับศูนย์ช่วยเหลือ</button><div class="help-detail-heading"><span class="help-category-icon tint-green"><i class="hgi-stroke ${item.icon}"></i></span><div><span class="help-eyebrow">Help Center</span><h3>${item.title}</h3><p>${item.intro}</p></div></div>${item.steps ? `<div class="help-step-list">${item.steps.map(s => `<div class="help-step"><b>${s[0]}</b><div><strong>${s[1]}</strong><p>${s[2]}</p></div></div>`).join('')}</div>` : `<div class="help-tip-box"><strong>รายละเอียดที่ช่วยให้เราดูแลได้ไวขึ้น</strong><ul>${item.tips.map(t => `<li>${t}</li>`).join('')}</ul></div>`}<div class="help-detail-actions">${action}</div>`;
   detail.style.display = 'block';
@@ -102,7 +102,7 @@ function ensureIssueReportModal() {
   modal.id = 'issue-report-modal';
   modal.className = 'issue-report-modal';
   modal.hidden = true;
-  modal.innerHTML = `<section class="issue-report-card" role="dialog" aria-modal="true" aria-labelledby="issue-report-title"><header><div><span class="help-eyebrow">REPORT TO CLASSKRU</span><h2 id="issue-report-title">แจ้งปัญหาด่วน</h2></div><button class="issue-report-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button></header><form id="issue-report-form"><label>รายละเอียดปัญหา<textarea name="message" minlength="5" maxlength="4000" rows="8" required placeholder="พิมพ์ปัญหาที่พบได้เลย…"></textarea></label><div class="issue-report-actions"><button class="btn" type="button" data-close-report>ยกเลิก</button><button class="btn btn-primary" type="submit" disabled>ส่งรายงาน</button></div><p id="issue-report-status" class="issue-report-status" role="status" aria-live="polite"></p></form></section>`;
+  modal.innerHTML = `<section class="issue-report-card" role="dialog" aria-modal="true" aria-labelledby="issue-report-title"><header><div><span class="help-eyebrow">REPORT TO CLASSKRU</span><h2 id="issue-report-title">ส่งความคิดเห็นถึง ClassKru</h2></div><button class="issue-report-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button></header><form id="issue-report-form"><fieldset class="issue-report-category"><legend>ประเภทความคิดเห็น</legend><div class="issue-report-category-options"><label><input type="radio" name="category" value="issue" checked><span><i class="hgi-stroke hgi-alert-02"></i><b>แจ้งปัญหา</b></span></label><label><input type="radio" name="category" value="feature"><span><i class="hgi-stroke hgi-bulb"></i><b>เสนอฟีเจอร์ใหม่</b></span></label></div></fieldset><label>รายละเอียด<textarea name="message" minlength="5" maxlength="4000" rows="8" required placeholder="พิมพ์รายละเอียดที่ต้องการแจ้งได้เลย…"></textarea></label><div class="issue-report-actions"><button class="btn" type="button" data-close-report>ยกเลิก</button><button class="btn btn-primary" type="submit" disabled>ส่ง</button></div><p id="issue-report-status" class="issue-report-status" role="status" aria-live="polite"></p></form></section>`;
   document.body.append(modal);
   modal.querySelector('.issue-report-close').addEventListener('click', closeIssueReportForm);
   modal.querySelector('[data-close-report]').addEventListener('click', closeIssueReportForm);
@@ -111,7 +111,7 @@ function ensureIssueReportModal() {
   return modal;
 }
 
-async function openIssueReportForm() {
+async function openIssueReportForm(category = 'issue') {
   issueReportTrigger = document.activeElement;
   const modal = ensureIssueReportModal();
   const form = modal.querySelector('form');
@@ -119,6 +119,9 @@ async function openIssueReportForm() {
   const submit = form.querySelector('[type="submit"]');
   const status = modal.querySelector('#issue-report-status');
   form.reset();
+  const selectedCategory = category === 'feature' ? 'feature' : 'issue';
+  const categoryInput = form.querySelector(`[name="category"][value="${selectedCategory}"]`);
+  if (categoryInput) categoryInput.checked = true;
   submit.disabled = true;
   status.textContent = 'กำลังเตรียมแบบฟอร์ม…';
   status.className = 'issue-report-status';
@@ -158,14 +161,25 @@ async function submitIssueReport(event) {
   submit.disabled = true;
   status.textContent = 'กำลังส่งรายงาน…';
   const message = String(values.get('message') || '').trim();
+  const category = values.get('category') === 'feature' ? 'feature' : 'issue';
   const payload = {
     reporter_id: authData.user.id,
+    category,
     message,
     page_url: `${location.origin}${location.pathname}${location.hash}`.slice(0, 800),
     browser_info: `${navigator.userAgent} | ${window.innerWidth}x${window.innerHeight}`.slice(0, 800),
     status: 'new'
   };
-  const { error } = await supabaseClient.from('issue_reports').insert(payload);
+  let { error } = await supabaseClient.from('issue_reports').insert(payload);
+  const categoryColumnMissing = error && (
+    error.code === 'PGRST204' || String(error.message || '').toLowerCase().includes('category')
+  );
+  if (categoryColumnMissing) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.category;
+    fallbackPayload.browser_info = `${payload.browser_info} | feedback-category:${category}`.slice(0, 800);
+    ({ error } = await supabaseClient.from('issue_reports').insert(fallbackPayload));
+  }
   if (error) {
     console.warn('Issue report submission failed:', error.message);
     status.textContent = 'ส่งรายงานไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่';

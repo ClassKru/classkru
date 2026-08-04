@@ -42,14 +42,14 @@
 
       <nav class="console-nav" aria-label="เมนู Developer Console">
         <button class="nav-button active" type="button" data-view="overview" aria-current="page">ภาพรวม</button>
-        <button class="nav-button" type="button" data-view="reports">รายงานปัญหา</button>
+        <button class="nav-button" type="button" data-view="reports">ความคิดเห็น</button>
         <button class="nav-button" type="button" data-view="database">ข้อมูลในฐานข้อมูล</button>
       </nav>
 
       <div id="global-status" class="global-status" role="status" aria-live="polite"></div>
 
       <section id="view-overview" class="workspace-view active" aria-labelledby="overview-title">
-        <div class="section-heading"><div><p class="eyebrow">ISSUE MONITOR</p><h2 id="overview-title">ภาพรวมรายงานปัญหา</h2></div><p id="last-updated">ยังไม่ได้โหลดข้อมูล</p></div>
+        <div class="section-heading"><div><p class="eyebrow">FEEDBACK MONITOR</p><h2 id="overview-title">ภาพรวมความคิดเห็น</h2></div><p id="last-updated">ยังไม่ได้โหลดข้อมูล</p></div>
         <div id="summary-grid" class="summary-grid" aria-label="สรุปจำนวนรายงาน"></div>
         <div class="dashboard-grid single-column">
           <article class="panel"><div class="panel-heading"><div><p class="eyebrow">LATEST</p><h3>รายการล่าสุด</h3></div><button type="button" data-open-view="reports">ดูทั้งหมด</button></div><div id="recent-list" class="recent-list"></div></article>
@@ -57,9 +57,10 @@
       </section>
 
       <section id="view-reports" class="workspace-view" aria-labelledby="reports-title">
-        <div class="section-heading"><div><p class="eyebrow">REPORTS</p><h2 id="reports-title">รายงานปัญหาทั้งหมด</h2></div><p>ข้อมูลล่าสุดไม่เกิน 500 รายการ</p></div>
+        <div class="section-heading"><div><p class="eyebrow">FEEDBACK</p><h2 id="reports-title">ความคิดเห็นทั้งหมด</h2></div><p>เรียงจากรายการล่าสุด ไม่เกิน 500 รายการ</p></div>
         <form id="report-filters" class="filter-bar">
           <label>ค้นหา<input id="search-filter" type="search" placeholder="ค้นหาข้อความความคิดเห็น" maxlength="100"></label>
+          <label>หมวดหมู่<select id="category-filter"><option value="">ทุกหมวดหมู่</option><option value="issue">แจ้งปัญหา</option><option value="feature">เสนอฟีเจอร์ใหม่</option></select></label>
           <label>สถานะ<select id="status-filter"><option value="">ทุกสถานะ</option><option value="new">ใหม่</option><option value="reviewing">กำลังตรวจสอบ</option><option value="resolved">แก้ไขแล้ว</option><option value="closed">ปิดรายการ</option></select></label>
           <button class="secondary-button" type="submit">กรองข้อมูล</button>
         </form>
