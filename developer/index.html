@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'">
+  <title>ClassKru Developer Console</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <main class="page-shell">
+    <section id="login-view" class="login-view" aria-labelledby="login-title">
+      <div class="login-card">
+        <div class="brand-mark" aria-hidden="true">CK</div>
+        <p class="eyebrow">PRIVATE WORKSPACE</p>
+        <h1 id="login-title">ClassKru Developer</h1>
+        <p class="login-copy">พื้นที่อ่านรายงานปัญหาและข้อมูลระบบสำหรับผู้พัฒนาเท่านั้น</p>
+        <form id="login-form" novalidate>
+          <label for="password-input">รหัสผ่านผู้พัฒนา</label>
+          <div class="password-field">
+            <input id="password-input" name="password" type="password" autocomplete="current-password" required maxlength="160" aria-describedby="login-status">
+            <button id="toggle-password" type="button" aria-label="แสดงรหัสผ่าน" aria-pressed="false">แสดง</button>
+          </div>
+          <button id="login-button" class="primary-button" type="submit">เข้าสู่ Developer Console</button>
+          <p id="login-status" class="form-status" role="status" aria-live="polite"></p>
+        </form>
+        <div class="security-note"><span aria-hidden="true">🔒</span><p>ตรวจรหัสผ่านฝั่งเซิร์ฟเวอร์ ใช้ session แบบ HttpOnly และไม่เก็บรหัสผ่านในเบราว์เซอร์</p></div>
+        <a class="back-link" href="../">← กลับหน้า ClassKru</a>
+      </div>
+    </section>
+
+    <section id="console-view" class="console-view" hidden aria-labelledby="console-title">
+      <header class="console-header">
+        <div class="console-brand"><div class="brand-mark small" aria-hidden="true">CK</div><div><p class="eyebrow">DEVELOPER CONSOLE</p><h1 id="console-title">ศูนย์ข้อมูล ClassKru</h1></div></div>
+        <div class="header-actions"><span class="read-only-badge">อ่านอย่างเดียว</span><button id="refresh-button" type="button">รีเฟรช</button><button id="logout-button" type="button">ออกจากระบบ</button></div>
+      </header>
+
+      <nav class="console-nav" aria-label="เมนู Developer Console">
+        <button class="nav-button active" type="button" data-view="overview" aria-current="page">ภาพรวม</button>
+        <button class="nav-button" type="button" data-view="reports">รายงานปัญหา</button>
+        <button class="nav-button" type="button" data-view="database">ข้อมูลในฐานข้อมูล</button>
+      </nav>
+
+      <div id="global-status" class="global-status" role="status" aria-live="polite"></div>
+
+      <section id="view-overview" class="workspace-view active" aria-labelledby="overview-title">
+        <div class="section-heading"><div><p class="eyebrow">ISSUE MONITOR</p><h2 id="overview-title">ภาพรวมรายงานปัญหา</h2></div><p id="last-updated">ยังไม่ได้โหลดข้อมูล</p></div>
+        <div id="summary-grid" class="summary-grid" aria-label="สรุปจำนวนรายงาน"></div>
+        <div class="dashboard-grid">
+          <article class="panel"><div class="panel-heading"><div><p class="eyebrow">CATEGORIES</p><h3>หมวดหมู่จากฐานข้อมูล</h3></div></div><div id="category-grid" class="category-grid"></div></article>
+          <article class="panel"><div class="panel-heading"><div><p class="eyebrow">LATEST</p><h3>รายการล่าสุด</h3></div><button type="button" data-open-view="reports">ดูทั้งหมด</button></div><div id="recent-list" class="recent-list"></div></article>
+        </div>
+      </section>
+
+      <section id="view-reports" class="workspace-view" aria-labelledby="reports-title">
+        <div class="section-heading"><div><p class="eyebrow">REPORTS</p><h2 id="reports-title">รายงานปัญหาทั้งหมด</h2></div><p>ข้อมูลล่าสุดไม่เกิน 500 รายการ</p></div>
+        <form id="report-filters" class="filter-bar">
+          <label>ค้นหา<input id="search-filter" type="search" placeholder="หัวข้อหรือรายละเอียด" maxlength="100"></label>
+          <label>หมวดหมู่<select id="category-filter"><option value="">ทุกหมวดหมู่</option></select></label>
+          <label>สถานะ<select id="status-filter"><option value="">ทุกสถานะ</option><option value="new">ใหม่</option><option value="reviewing">กำลังตรวจสอบ</option><option value="resolved">แก้ไขแล้ว</option><option value="closed">ปิดรายการ</option></select></label>
+          <button class="secondary-button" type="submit">กรองข้อมูล</button>
+        </form>
+        <div class="table-shell"><table><thead><tr><th>วันที่</th><th>หมวดหมู่</th><th>หัวข้อ</th><th>สถานะ</th><th><span class="sr-only">เปิดรายละเอียด</span></th></tr></thead><tbody id="reports-body"></tbody></table></div>
+        <div id="reports-empty" class="empty-state" hidden>ไม่พบรายงานที่ตรงกับตัวกรอง</div>
+      </section>
+
+      <section id="view-database" class="workspace-view" aria-labelledby="database-title">
+        <div class="section-heading"><div><p class="eyebrow">DATABASE VIEWER</p><h2 id="database-title">ข้อมูลในฐานข้อมูล</h2></div><span class="read-only-badge">ไม่สามารถแก้ไขหรือลบ</span></div>
+        <div class="database-toolbar"><label for="table-select">เลือกตาราง</label><select id="table-select"><option value="issue_reports">issue_reports</option><option value="issue_categories">issue_categories</option></select><button id="load-table-button" class="secondary-button" type="button">โหลดข้อมูล</button></div>
+        <p class="database-note">แสดงเฉพาะตารางที่อนุญาตไว้ฝั่งเซิร์ฟเวอร์ การเปลี่ยนชื่อ URL หรือคำสั่งจากเบราว์เซอร์ไม่สามารถเปิดตารางอื่นได้</p>
+        <div id="database-table" class="table-shell database-table"></div>
+      </section>
+    </section>
+  </main>
+
+  <div id="detail-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="detail-title">
+    <article class="modal-card"><header><div><p class="eyebrow">DETAIL</p><h2 id="detail-title">รายละเอียด</h2></div><button id="close-modal" type="button" aria-label="ปิดรายละเอียด">×</button></header><div id="detail-content" class="detail-content"></div></article>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
