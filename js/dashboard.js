@@ -1,10 +1,41 @@
+function buildDashboardScheduleSlots(date) {
+  return getTimetableEntriesForDay(date.getDay())
+    .map(t => {
+      const period = Number(t.period);
+      const slot = getPeriodSlots().find(s => s.period === period) || { s:'08:30', e:'09:20' };
+      const [sH,sM] = slot.s.split(':').map(Number);
+      const [eH,eM] = slot.e.split(':').map(Number);
+      const linkedClass = appState.classes.find(c => c.id === t.classId);
+      return {
+        ...t,
+        period,
+        subject: linkedClass?.subject || t.subject || 'ไม่ระบุวิชา',
+        className: linkedClass?.className || t.className || '',
+        startMin: sH*60+sM,
+        endMin: eH*60+eM,
+        slotStart: slot.s,
+        slotEnd: slot.e
+      };
+    })
+    .sort((a,b) => a.startMin - b.startMin);
+}
+
+function findNextDashboardScheduleDate(fromDate) {
+  for (let offset = 1; offset <= 7; offset++) {
+    const candidate = new Date(fromDate);
+    candidate.setDate(fromDate.getDate() + offset);
+    if (getTimetableEntriesForDay(candidate.getDay()).length > 0) return candidate;
+  }
+  return null;
+}
+
 function renderWebDashboard() {
   const now = getNowDate();
   const viewDate = homeSelectedDate || now;
   const isToday = getTodayString(viewDate) === getTodayString(now);
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const viewDow = viewDate.getDay();
-  const activeWeek = appState.timetableWeek || 'A';
+  appState.timetableWeek = 'A';
 
   // ---- Date display ----
   const dayEl = document.getElementById('home-day-name');
@@ -23,15 +54,18 @@ function renderWebDashboard() {
   }
 
   // ---- Build slots for view day ----
-  const viewSlots = appState.timetable
-    .filter(t => t.dow === viewDow && (t.week === undefined || t.week === activeWeek))
-    .map(t => {
-      const slot = TIMETABLE_SLOTS_MASTER.find(s => s.period === t.period) || { s:'08:30', e:'09:20' };
-      const [sH,sM] = slot.s.split(':').map(Number);
-      const [eH,eM] = slot.e.split(':').map(Number);
-      return { ...t, startMin: sH*60+sM, endMin: eH*60+eM, slotStart: slot.s, slotEnd: slot.e };
-    })
-    .sort((a,b) => a.startMin - b.startMin);
+  let scheduleDate = viewDate;
+  let viewSlots = buildDashboardScheduleSlots(scheduleDate);
+  let showingUpcoming = false;
+  if (isToday && viewSlots.length === 0) {
+    const nextScheduleDate = findNextDashboardScheduleDate(now);
+    if (nextScheduleDate) {
+      scheduleDate = nextScheduleDate;
+      viewSlots = buildDashboardScheduleSlots(scheduleDate);
+      showingUpcoming = true;
+    }
+  }
+  const scheduleIsToday = getTodayString(scheduleDate) === getTodayString(now);
 
   // ---- Status badge → 2x2 attendance stats ----
   const badge = document.getElementById('home-status-badge');
@@ -57,49 +91,28 @@ function renderWebDashboard() {
 
   // ---- Schedule title ----
   const titleEl = document.getElementById('home-schedule-title');
-  if (titleEl) titleEl.innerText = isToday ? 'ตารางสอนวันนี้' : `${DAY_NAMES[viewDow]}ที่ ${viewDate.getDate()} ${MONTH_NAMES[viewDate.getMonth()]}`;
+  if (titleEl) {
+    titleEl.innerText = showingUpcoming
+      ? `ตารางสอนถัดไป · ${DAY_NAMES[scheduleDate.getDay()]}ที่ ${scheduleDate.getDate()} ${MONTH_NAMES[scheduleDate.getMonth()]}`
+      : isToday ? 'ตารางสอนวันนี้' : `${DAY_NAMES[viewDow]}ที่ ${viewDate.getDate()} ${MONTH_NAMES[viewDate.getMonth()]}`;
+  }
 
-  // ---- Next class card (today only) ----
+  // ---- Current teaching status ----
   const nextArea = document.getElementById('home-next-card-area');
   if (nextArea) {
-    if (isToday) {
-      const today = getTodayString(now);
-      const timePassed = viewSlots.length > 0 && viewSlots.every(t => nowMin >= t.endMin);
-      // เช็คว่าทุกคาบที่ผ่านเวลาแล้วถูกเช็คชื่อครบหรือยัง
-      const hasUnchecked = viewSlots.some(t => {
-        if (nowMin < t.endMin) return false;
-        const cls = appState.classes.find(x => x.id === t.classId);
-        if (!cls) return true;
-        const att = (cls.attendance || {})[today];
-        return !att || Object.keys(att).length < cls.students.length;
-      });
-      const allDone = timePassed && !hasUnchecked;
-      const ongoing = viewSlots.find(t => nowMin >= t.startMin && nowMin < t.endMin);
-      const nextSlot = viewSlots.find(t => nowMin < t.startMin);
-
-      if (viewSlots.length === 0) {
-        nextArea.innerHTML = `<div class="home-next-card is-done" style="background:#f2f2f7;border:1.5px solid var(--border-color);padding:14px 18px;"><div class="next-subject" style="color:var(--text-muted);font-size:0.95rem;">ไม่มีตารางสอนวันนี้</div></div>`;
-      } else if (allDone) {
-        nextArea.innerHTML = `<div class="home-next-card is-done" style="padding:12px 18px;flex-direction:row;align-items:center;gap:10px;"><div style="font-size:1.5rem;">✅</div><div><div class="next-subject" style="font-size:0.95rem;">เสร็จสิ้นทุกคาบแล้ว!</div><div class="next-meta" style="font-size:0.75rem;margin-top:2px;">ยอดเยี่ยมครับ คุณครู</div></div></div>`;
-      } else if (ongoing) {
-        const c = appState.classes.find(x => x.id === ongoing.classId);
-        const attToday = c && (c.attendance || {})[today];
-        const checked = attToday && c && Object.keys(attToday).length >= c.students.length;
-        nextArea.innerHTML = `<div class="home-next-card is-ongoing" style="padding:12px 18px;" onclick="openSwipeAttendance('${ongoing.classId}')"><div class="next-tag">🔴 กำลังสอน · คาบ ${ongoing.period}</div><div class="next-subject" style="font-size:1rem;">${ongoing.subject} <span style="font-weight:600;font-size:0.8rem;opacity:0.85;">· ${ongoing.className}</span></div><button class="next-action-btn" style="padding:5px 12px;font-size:0.75rem;margin-top:4px;" onclick="event.stopPropagation();openSwipeAttendance('${ongoing.classId}')"><i class="hgi-stroke hgi-task-done-01"></i> ${checked ? '✓ เช็คแล้ว' : 'เช็คชื่อ'}</button></div>`;
-      } else if (nextSlot) {
-        nextArea.innerHTML = `<div class="home-next-card is-upcoming" style="padding:13px 18px;gap:5px;" onclick="openSwipeAttendance('${nextSlot.classId}')"><div class="next-tag">คาบถัดไป · ${nextSlot.slotStart} น.</div><div class="next-subject" style="font-size:1rem;">${nextSlot.subject} <span style="font-weight:600;font-size:0.8rem;opacity:0.85;">· ${nextSlot.className}</span></div></div>`;
-      } else {
-        nextArea.innerHTML = '';
-      }
+    const currentSlots = buildDashboardScheduleSlots(now);
+    const ongoing = currentSlots.find(t => nowMin >= t.startMin && nowMin < t.endMin);
+    if (ongoing) {
+      nextArea.innerHTML = `<div class="home-next-card is-current-status is-ongoing" style="padding:13px 18px;gap:5px;"><div class="next-tag">● กำลังสอนขณะนี้ · ${ongoing.slotStart}–${ongoing.slotEnd} น.</div><div class="next-subject" style="font-size:1rem;">${ongoing.subject} <span style="font-weight:600;font-size:0.8rem;opacity:0.85;">· ${ongoing.className}</span></div></div>`;
     } else {
-      nextArea.innerHTML = '';
+      nextArea.innerHTML = `<div class="home-next-card is-current-status is-idle" style="padding:13px 18px;gap:4px;"><div class="next-tag">สถานะการสอนขณะนี้</div><div class="next-subject" style="font-size:0.95rem;">ไม่มีการเรียนการสอน</div></div>`;
     }
   }
 
   // ---- Unchecked warning (today only) ----
   const uncheckedEl = document.getElementById('home-unchecked-card');
   if (uncheckedEl) {
-    if (isToday) {
+    if (isToday && !showingUpcoming) {
       const today = getTodayString(now);
       const unchecked = viewSlots.filter(t => {
         if (nowMin < t.endMin) return false;
@@ -132,17 +145,17 @@ function renderWebDashboard() {
     return;
   }
 
-  const dateKey = getTodayString(viewDate);
+  const dateKey = getTodayString(scheduleDate);
   listEl.innerHTML = '';
   viewSlots.forEach(t => {
     const c = appState.classes.find(x => x.id === t.classId);
     const attData = c && (c.attendance || {})[dateKey];
     const checked = attData && c && Object.keys(attData).length >= c.students.length;
-    const isOngoing = isToday && nowMin >= t.startMin && nowMin < t.endMin;
-    const isPast = isToday && nowMin >= t.endMin;
+    const isOngoing = scheduleIsToday && nowMin >= t.startMin && nowMin < t.endMin;
+    const isPast = scheduleIsToday && nowMin >= t.endMin;
 
     let dotClass = 'unchecked', badgeHtml = '';
-    if (isOngoing) { dotClass = 'ongoing'; badgeHtml = `<span class="home-schedule-badge" style="background:var(--color-leave-bg);color:var(--color-leave);">● สอน</span>`; }
+    if (isOngoing) { dotClass = 'ongoing'; badgeHtml = `<span class="home-schedule-badge" style="background:var(--color-leave-bg);color:var(--color-leave);">● กำลังสอน</span>`; }
     else if (checked) { dotClass = 'present'; badgeHtml = `<span class="home-schedule-badge" style="background:var(--primary-light);color:var(--primary);">✓ เช็คแล้ว</span>`; }
     else if (isPast) { dotClass = 'absent'; badgeHtml = `<span class="home-schedule-badge" style="background:var(--color-absent-bg);color:var(--color-absent);">!</span>`; }
 
@@ -150,7 +163,7 @@ function renderWebDashboard() {
     row.className = 'home-schedule-row' + (isOngoing ? ' is-now' : '');
     // hover = สีประจำห้อง, กดแล้วเปิดเช็คชื่อของวันที่กำลังดู
     row.style.setProperty('--row-hover', getClassColor(t.classId).bg);
-    row.onclick = () => openSwipeAttendance(t.classId, viewDate);
+    row.onclick = () => openSwipeAttendance(t.classId, scheduleDate);
     const dotCol = getClassColor(t.classId).text;
     row.innerHTML = `<div class="home-schedule-time">${t.slotStart}<br>${t.slotEnd}</div>
       <div class="home-schedule-info"><div class="home-schedule-subject" style="display:flex;align-items:center;gap:9px;"><span class="home-schedule-dot" style="background:${dotCol};"></span>${t.subject}</div><div class="home-schedule-class" style="margin-left:19px;">${t.className}</div></div>
@@ -203,8 +216,9 @@ function renderCalendar() {
   const today = getNowDate();
   const todayStr = getTodayString(today);
   const selectedStr = homeSelectedDate ? getTodayString(homeSelectedDate) : todayStr;
-  const activeWeek = appState.timetableWeek || 'A';
-  const classDoWs = new Set(appState.timetable.filter(t => t.week === undefined || t.week === activeWeek).map(t => t.dow));
+  const classDoWs = new Set((appState.timetable || [])
+    .map(t => Number(t.dow))
+    .filter(dow => Number.isInteger(dow) && dow >= 0 && dow <= 6));
 
   const firstDay = new Date(calViewYear, calViewMonth, 1);
   const startDow = firstDay.getDay();

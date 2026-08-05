@@ -114,12 +114,11 @@ function saveStudent() {
 }
 
 function openPeriodModal(dow, period) {
-  currentEditDow = dow;
-  currentEditPeriod = period;
-  const activeWeek = appState.timetableWeek || 'A';
-  const existing = appState.timetable.find(t => t.dow === dow && t.period === period && (t.week === undefined || t.week === activeWeek));
+  currentEditDow = Number(dow);
+  currentEditPeriod = Number(period);
+  const existing = (appState.timetable || []).find(t => timetableEntryMatches(t, currentEditDow, currentEditPeriod));
   
-  document.getElementById('modal-period-info').innerText = `${DAY_NAMES[dow]} · คาบ ${period} · Week ${activeWeek}`;
+  document.getElementById('modal-period-info').innerText = `${DAY_NAMES[currentEditDow]} · คาบ ${currentEditPeriod}`;
   
   const subjectSelect = document.getElementById('input-period-subject');
   const classSelect = document.getElementById('input-period-class');
@@ -155,25 +154,29 @@ function savePeriodSlot() {
   const subject = document.getElementById('input-period-subject').value;
   const classId = document.getElementById('input-period-class').value;
   if (!subject) { showToast('กรุณาเลือกวิชา', 'warning'); return; }
-  const activeWeek = appState.timetableWeek || 'A';
+  if (!classId) { showToast('กรุณาเลือกห้องเรียน', 'warning'); return; }
+  const activeWeek = 'A';
   const c = appState.classes.find(x => x.id === classId);
+  if (!c) { showToast('ไม่พบข้อมูลห้องเรียน กรุณาเลือกใหม่', 'warning'); return; }
 
   // Remove existing
-  appState.timetable = appState.timetable.filter(t => !(t.dow === currentEditDow && t.period === currentEditPeriod && (t.week === undefined || t.week === activeWeek)));
-  appState.timetable.push({ dow: currentEditDow, period: currentEditPeriod, classId, subject, className: c ? c.className : '', week: activeWeek });
+  appState.timetable = (appState.timetable || []).filter(t => !timetableEntryMatches(t, currentEditDow, currentEditPeriod));
+  appState.timetable.push({ dow: Number(currentEditDow), period: Number(currentEditPeriod), classId, subject: c.subject || subject, className: c.className || '', week: activeWeek });
 
   saveState();
   closePeriodModal();
   renderWebTimetable();
+  renderWebDashboard();
+  showToast('บันทึกตารางสอนแล้ว หน้าหลักอัปเดตเรียบร้อย', 'success');
   Tour.action('period-added');
 }
 
 function deletePeriodSlot() {
-  const activeWeek = appState.timetableWeek || 'A';
-  appState.timetable = appState.timetable.filter(t => !(t.dow === currentEditDow && t.period === currentEditPeriod && (t.week === undefined || t.week === activeWeek)));
+  appState.timetable = (appState.timetable || []).filter(t => !timetableEntryMatches(t, currentEditDow, currentEditPeriod));
   saveState();
   closePeriodModal();
   renderWebTimetable();
+  renderWebDashboard();
 }
 
 function openStudentDetailModal(studentId, classId) {
@@ -191,6 +194,13 @@ function openStudentDetailModal(studentId, classId) {
   document.getElementById('student-detail-fullname').value = s.name || '';
   document.getElementById('student-detail-nickname').value = s.nickname || '';
   document.getElementById('student-detail-comment').value = s.comment || '';
+  const photoPreview = document.getElementById('student-detail-photo-preview');
+  if (photoPreview) {
+    photoPreview.src = s.photoBase64 || '';
+    photoPreview.style.display = s.photoBase64 ? 'block' : 'none';
+  }
+  const photoRemove = document.getElementById('student-detail-photo-remove');
+  if (photoRemove) photoRemove.style.display = s.photoBase64 ? 'inline-flex' : 'none';
 
   // เลิกนับ/แสดงสถิติ มา-สาย-ขาด-ลา ในหน้านี้แล้ว — modal นี้เป็น "แก้ไขข้อมูล" อย่างเดียว
   // ดูรายงานเข้าเรียนได้ที่หน้ารายงาน หรือ modal สรุปนักเรียน (openStudentSummaryModal)
@@ -352,11 +362,16 @@ function initAppState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     appState = JSON.parse(saved);
+    appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
+    const savedTimetable = JSON.stringify(appState.timetable || []);
+    appState.timetable = normalizeTimetableEntries(appState.timetable);
+    appState.timetableWeek = 'A';
     // Migrate: add periodSettings if missing
     if (!appState.periodSettings) {
       appState.periodSettings = { startTime: '08:30', duration: 50, breakTime: 0, count: 7 };
     }
     pruneEmptyAttendance();
+    if (savedTimetable !== JSON.stringify(appState.timetable)) saveStateLocalOnly(false);
   }
   else { initAppStateDefault(); }
 }
@@ -378,6 +393,7 @@ function pruneEmptyAttendance() {
 function initAppStateDefault() {
   appState.classes = [];
   appState.timetable = [];
+  appState.timetableWeek = 'A';
   appState.periodSettings = { startTime: '08:30', duration: 50, breakTime: 0, count: 7 };
   appState.lastModified = 0; // Extremely old so it ALWAYS pulls from cloud if exists
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
@@ -447,8 +463,15 @@ async function syncBackgroundCloud(email) {
       // Pull from cloud if it's newer, or if we have no classes locally but cloud does
       if (cloudModified > localModified || (cloudState.classes && cloudState.classes.length > 0 && appState.classes.length === 0)) {
         appState = cloudState;
+        appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
+        const cloudTimetable = JSON.stringify(appState.timetable || []);
+        appState.timetable = normalizeTimetableEntries(appState.timetable);
+        appState.timetableWeek = 'A';
         pruneEmptyAttendance();
+        const timetableMigrated = cloudTimetable !== JSON.stringify(appState.timetable);
+        if (timetableMigrated) appState.lastModified = Date.now();
         saveStateLocalOnly(false);
+        if (timetableMigrated) await pushStateToCloudDirectly(email, appState);
         updateProfileImages();
         // deep-link (LINE OA) ชนะ activeWebScreen ที่ค้างใน cloud — แต่ถ้าผู้ใช้เปลี่ยนหน้าเองแล้ว pendingDeepLink=null
         navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard', pendingDeepLinkParam);
@@ -522,6 +545,9 @@ async function forcePullFromCloud() {
     if (error && error.code !== 'PGRST116') throw error;
     if (data && data.state) {
       appState = data.state;
+      appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
+      appState.timetable = normalizeTimetableEntries(appState.timetable);
+      appState.timetableWeek = 'A';
       pruneEmptyAttendance();
       appState.lastModified = Date.now(); // Stamp it so it becomes the latest local
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
@@ -576,4 +602,3 @@ function deleteAllDataEverywhere() {
 // ==================== OCR SCAN IMPORT ====================
 let ocrTargetClassId = null;
 let ocrExtractedNames = [];
-

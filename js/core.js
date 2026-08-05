@@ -101,6 +101,40 @@ function getPeriodSlots() {
 // Keep TIMETABLE_SLOTS_MASTER as alias for backward compatibility
 Object.defineProperty(window, 'TIMETABLE_SLOTS_MASTER', { get: () => getPeriodSlots(), configurable: true });
 
+function normalizeTimetableWeek(week) {
+  return 'A';
+}
+
+function timetableEntryMatches(entry, dow, period) {
+  return Boolean(entry) && Number(entry.dow) === Number(dow) && Number(entry.period) === Number(period);
+}
+
+function getTimetableEntriesForDay(dow) {
+  const targetDow = Number(dow);
+  return (Array.isArray(appState.timetable) ? appState.timetable : [])
+    .filter(entry => Number(entry.dow) === targetDow);
+}
+
+function normalizeTimetableEntries(entries) {
+  if (!Array.isArray(entries)) return [];
+  const slots = new Map();
+  entries.forEach((entry, index) => {
+    const dow = Number(entry?.dow);
+    const period = Number(entry?.period);
+    if (!Number.isInteger(dow) || dow < 0 || dow > 6 || !Number.isInteger(period) || period < 1) return;
+    const originalWeek = String(entry.week || '').toUpperCase();
+    const priority = originalWeek === 'B' ? 1 : originalWeek === 'A' ? 2 : 3;
+    const key = `${dow}:${period}`;
+    const existing = slots.get(key);
+    if (!existing || priority > existing.priority) {
+      slots.set(key, { entry: { ...entry, dow, period, week: 'A' }, priority, index: existing?.index ?? index });
+    }
+  });
+  return [...slots.values()]
+    .sort((a, b) => a.index - b.index)
+    .map(item => item.entry);
+}
+
 
 const SB_URL = 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SB_KEY = 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
