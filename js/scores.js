@@ -212,19 +212,19 @@ function renderScoreMatrix(c) {
 
   // ชั้น 1: คะแนนเก็บ (คลุมก่อน+หลัง, โชว์ % รวมอ่านอย่างเดียว) | สอบกลางภาค % | สอบปลายภาค %
   let r1 = '<tr>' + nameCols
-    + `<th class="sc-bucket-head sc-cat-start" colspan="${collectCount}"><span class="sc-bk-name">คะแนนเก็บ</span> <span class="sc-bk-w sc-w-readonly">${collectW}%</span></th>`;
-  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start" colspan="${cspan(g)}" rowspan="2"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}</span></th>`; });
+    + `<th class="sc-bucket-head sc-cat-start sc-group-collect" colspan="${collectCount}"><span class="sc-bk-name">คะแนนเก็บ</span> <span class="sc-bk-w sc-w-readonly">${collectW}%</span></th>`;
+  examGroups.forEach(g => { r1 += `<th class="sc-bucket-head sc-cat-start sc-group-${g.key}" colspan="${cspan(g)}" rowspan="2"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}</span></th>`; });
   r1 += sumCols + '</tr>';
 
   // ชั้น 2: ระยะย่อย + สัดส่วน % แยก ก่อน/หลังกลางภาค
   let r2 = '<tr>';
-  collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start" colspan="${cspan(g)}"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}</span></th>`; });
+  collectGroups.forEach(g => { r2 += `<th class="sc-phase-head sc-cat-start sc-group-${g.key}" colspan="${cspan(g)}"><span class="sc-bk-name">${g.label}</span> <span class="sc-bk-w">${wInput(g.key)}</span></th>`; });
   r2 += '</tr>';
 
   // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) — บล็อกว่างเป็นปุ่ม + / รายการท้ายบล็อกมีปุ่ม + ชิดขอบในขวา
   let r3 = '<tr>';
   cols.forEach(({ g, it, placeholder, groupStart, groupEnd }) => {
-    const cs = groupStart ? ' sc-cat-start' : '';
+    const cs = groupStart ? ` sc-cat-start sc-group-${g.key}` : '';
     if (placeholder) {
       r3 += `<th class="sc-item-head sc-item-empty${cs}"><button class="sc-add-item-btn" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button></th>`;
     } else {
@@ -245,10 +245,11 @@ function renderScoreMatrix(c) {
       + `<td class="sc-c-no">${s.no || (index + 1)}</td>`
       + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
       + `<td class="sc-c-name">${escapeScore(s.name)}</td>`;
-    cols.forEach(({ it, placeholder, groupStart }) => {
-      if (placeholder) { body += `<td class="sc-cell-empty${groupStart ? ' sc-cat-start' : ''}"></td>`; return; }
+    cols.forEach(({ g, it, placeholder, groupStart }) => {
+      const cs = groupStart ? ` sc-cat-start sc-group-${g.key}` : '';
+      if (placeholder) { body += `<td class="sc-cell-empty${cs}"></td>`; return; }
       const v = clampMark((sc.marks[it.id] || {})[s.id], it.max);
-      body += `<td style="text-align:center;"${groupStart ? ' class="sc-cat-start"' : ''}><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
+      body += `<td class="sc-score-cell${cs}"><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
         onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;
     });
     body += scoreSummaryCells(c, s);
@@ -641,7 +642,7 @@ function renderMobileStudentPanel(c, sid) {
         </span>
       </div>`;
     }).join('');
-    return `<div class="msc-bucket">
+    return `<div class="msc-bucket msc-bucket-${b.key}">
       <div class="msc-bhead"><span class="msc-blabel">${b.label}</span><span class="msc-bweight">${w}%</span></div>
       ${rows}
       <button class="msc-add" onclick="openScoreItemModal('${c.id}',null,'${b.key}')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มรายการ</button>

@@ -3,13 +3,21 @@
 /* ========================================== */
 /* width:auto = คอลัมน์ขนาดพอดีเนื้อหา ไม่ยืดเต็มจอตอนรายการน้อย (เพิ่มรายการค่อยขยาย) */
 .score-matrix-table { width: auto; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; }
-.score-matrix-table th, .score-matrix-table td { padding: 3px 4px; }
+.score-matrix-table th, .score-matrix-table td { padding: 6px 7px; }
 /* เส้นตารางแนวตั้ง "เบา ๆ" ทุกคอลัมน์ (หัว+ตัว) — ใช้แทนเงา ช่วยกวาดสายตาตามคอลัมน์
    ใส่เฉพาะ border-right ด้านเดียว เส้นระหว่างช่องจึงไม่ซ้อนกันเป็น 2px */
 .score-matrix-table th, .score-matrix-table td { border-right: 1px solid #f0f2f5; }
 .score-matrix-table tr > *:last-child { border-right: none; }
-/* จุดเริ่มหมวด (ก่อน/หลังกลางภาค · กลางภาค · ปลายภาค) = เส้น 2px แยกกลุ่มให้ชัดกว่าเส้นตารางทั่วไป */
-.score-matrix-table .sc-cat-start { border-left: 2px solid #dfe3e8; }
+/* จุดเริ่มหมวด (ก่อน/หลังกลางภาค · กลางภาค · ปลายภาค) = เส้นหนาและเว้นช่องไฟก่อนข้อมูล */
+.score-matrix-table .sc-cat-start { border-left: 4px solid #cbd5e1; }
+.score-matrix-table tbody td.sc-cat-start { padding-left: 10px; }
+
+/* สีประจำกลุ่มช่วยกวาดสายตาจากหัวตารางลงมาถึงช่องกรอก โดยใช้โทนอ่อนเพื่อไม่แย่งข้อมูล */
+.sc-group-collect, .sc-group-before { --sc-group-accent: #2f9e72; --sc-group-tint: #eef9f3; }
+.sc-group-after { --sc-group-accent: #4f86d9; --sc-group-tint: #f0f5fd; }
+.sc-group-mid { --sc-group-accent: #d39524; --sc-group-tint: #fff8e8; }
+.sc-group-final { --sc-group-accent: #8b6bc7; --sc-group-tint: #f6f2fc; }
+.score-matrix-table .sc-cat-start[class*="sc-group-"] { border-left-color: var(--sc-group-accent); }
 /* หัวตาราง = ไม่ตีเส้น ไม่มีเงา (เอาเงาลอยออก) — คั่นหัว/เนื้อด้วยเส้นล่างเส้นเดียว (ดูที่ tbody tr แรก) */
 .score-matrix-table thead th {
   font-size: 0.86rem; font-weight: 700; color: var(--text-muted);
@@ -23,12 +31,13 @@
 .score-matrix-table tbody tr:first-child td { border-top: 1.5px solid var(--border-color); }
 /* หัวหมวดใหญ่ = เรียบเข้าชุดกับเนื้อตาราง (ไม่มีพื้นสี/กรอบ/เงา) บอกลำดับชั้นด้วยตัวหนา + จัดบรรทัดบนให้เท่ากัน */
 .score-matrix-table thead .sc-bucket-head {
-  color: var(--text-main); background: transparent;
+  color: var(--text-main); background: var(--sc-group-tint, transparent);
   border: none; font-size: 0.95rem; white-space: normal; line-height: 1.3;
-  vertical-align: top; padding-top: 8px;
+  vertical-align: top; padding: 10px 10px 8px;
   /* เส้นใต้คลุม "ช่วงกว้างของกลุ่ม" — บอกขอบเขต คะแนนเก็บ / สอบกลางภาค / สอบปลายภาค
      เลือกแบบนี้แทนการตีกรอบเต็ม เพราะกรอบทำให้ภาพรวมหนักและกลับไปเป็นทรงกล่องที่เอาออกไปแล้ว */
-  border-bottom: 2px solid #cbd5e1; padding-bottom: 5px;
+  border-top: 3px solid var(--sc-group-accent, #cbd5e1);
+  border-bottom: 2px solid var(--sc-group-accent, #cbd5e1);
 }
 /* หัวหมวด/ระยะ = ชื่ออยู่บรรทัดเดียวไม่ตัดคำ, %+ตัวเลขอยู่ด้วยกัน — ช่องแคบก็ตกลงบรรทัดใหม่ทั้งก้อน
    หัวกลุ่มคร่อมหลายคอลัมน์ จึงขยายฟอนต์ได้โดยไม่ดันความกว้างตาราง (ต่างจากชื่อรายการ) */
@@ -39,12 +48,9 @@
 .score-matrix-table thead .sc-bk-name { display: block; white-space: nowrap; font-size: 0.82rem; }
 /* % = ตัวเลขเขียวเข้มบนพื้นขาว (เลิกใช้พื้นเขียวอ่อน เพราะเด่นจนแย่งสายตาจากชื่อรายการ) */
 .score-matrix-table thead .sc-bk-w { display: block; white-space: nowrap; color: var(--primary-deep); margin-top: 1px; }
-/* หัวรายการ = สแต็กแนวตั้ง (ชื่อ / เต็ม+เฟือง) คุมกว้างไม่ให้ล้นคอลัมน์
-   72px: วัดจริงแล้ว "ตัวชี้วัด 2.1" (ยาวสุดที่ใช้ประจำ) ต้องการ 58px + padding 12px = 70px → เผื่อ 2px
-   (เดิม 78px เพราะคำว่า "เต็ม" ดันแถวล่างเป็น 70px — เปลี่ยนเป็น "/" แล้วปลดล็อกย่อได้)
-   ⚠️ ห้ามย่อต่ำกว่านี้ถ้ายังใช้ฟอนต์ 0.74rem — ชื่อจะโดน ellipsis จนแยก 1.1/1.2 ไม่ออก
-   ถ้าอยากแคบกว่านี้ต้องลดฟอนต์ชื่อเป็น 0.70rem ควบคู่กัน */
-.score-matrix-table .sc-item-head { transition: var(--transition-normal); vertical-align: top; width: 72px; min-width: 72px; max-width: 72px; box-sizing: border-box; padding-left: 2px; padding-right: 2px; }
+/* หัวรายการ = สแต็กแนวตั้ง (ชื่อ / เต็ม+เฟือง) เพิ่มความกว้างและ padding ให้ช่องกรอกไม่ชิดเส้นแบ่งกลุ่ม */
+.score-matrix-table .sc-item-head { transition: var(--transition-normal); vertical-align: top; width: 82px; min-width: 82px; max-width: 82px; box-sizing: border-box; padding: 7px 5px; }
+.score-matrix-table .sc-item-head.sc-cat-start { padding-left: 10px; }
 /* ชื่อรายการ — ดูเหมือนข้อความ คลิกพิมพ์แก้ได้ บรรทัดเดียว ยาวเกินเลื่อนในช่อง */
 /* padding แนวนอน 0 — คืนพื้นที่ 2px ให้ข้อความ ชดเชยเส้นแบ่งกลุ่มที่หนาขึ้นเป็น 2px
    (ไม่งั้น "ปลายภาค" ในคอลัมน์ที่ติดขอบกลุ่มจะโดน ellipsis) */
@@ -90,11 +96,11 @@
 /* หัวกลุ่มย่อยระยะ (ก่อน/หลังกลางภาค) ใต้ "คะแนนเก็บ" — โทนอ่อนกว่าหัวหมวด */
 /* หัวระยะ = ชิดบน ไม่ใช่กึ่งกลาง — กลุ่มที่มีรายการเดียว (ช่องแคบ) ข้อความจะตกเป็น 2 บรรทัด
    ถ้าจัดกึ่งกลาง บรรทัดแรกของแต่ละกลุ่มจะไม่ตรงกัน (เช่น "หลังกลางภาค" ลอยสูงกว่า "ก่อนกลางภาค") */
-.score-matrix-table thead .sc-phase-head { background: transparent; color: var(--text-muted); font-weight: 700; font-size: 0.84rem; text-align: center; white-space: normal; line-height: 1.3; vertical-align: top; padding-top: 6px; }
+.score-matrix-table thead .sc-phase-head { background: var(--sc-group-tint, transparent); color: var(--text-muted); font-weight: 700; font-size: 0.84rem; text-align: center; white-space: normal; line-height: 1.3; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--sc-group-accent, #dfe3e8); }
 /* เส้นแบ่งกลุ่มบนแถวหัวหมวด/หัวระยะ — ต้องประกาศซ้ำที่ specificity สูงกว่า
-   เพราะ `.sc-bucket-head { border:none }` (0,2,1) ชนะ `.sc-cat-start` (0,2,0) ทำให้เส้นหายเฉพาะ 2 แถวบน */
+   เพราะ `.sc-bucket-head { border:none }` ชนะ `.sc-cat-start` ทำให้เส้นหายเฉพาะ 2 แถวบน */
 .score-matrix-table thead .sc-bucket-head.sc-cat-start,
-.score-matrix-table thead .sc-phase-head.sc-cat-start { border-left: 2px solid #dfe3e8; }
+.score-matrix-table thead .sc-phase-head.sc-cat-start { border-left: 4px solid var(--sc-group-accent, #cbd5e1); }
 /* ช่องแก้สัดส่วน % inline บนหัวหมวด (แก้ได้เลยไม่ต้องเปิดตั้งค่า) */
 /* ช่อง % = ตัวเลขเปล่าบนพื้นขาว ไม่มีพื้นเขียว (พื้นเขียวเดิมเด่นจนแย่งสายตาจากชื่อรายการ)
    ยังคลิกพิมพ์แก้ได้ — บอกว่าแก้ได้ด้วยพื้นเทาตอน hover แทน */
@@ -107,6 +113,7 @@
 .score-matrix-table tbody tr:last-child td { border-bottom: none; }
 .score-matrix-table tbody tr { transition: var(--transition-normal); }
 .score-matrix-table tbody tr:hover td { background: #f7faf9; }
+.score-matrix-table .sc-score-cell { text-align: center; }
 
 /* คอลัมน์ระบุตัวตน (เลขที่/รหัส/ชื่อ) ตรึงซ้าย — โทนเดียวกับหน้าเช็คชื่อ */
 .score-matrix-table .sc-c-no   { position: sticky; left: 0;     width: 48px;  min-width: 48px;  text-align: center; background: var(--bg-card); z-index: 2; color: var(--text-muted); font-weight: 700; }
@@ -119,13 +126,13 @@
 
 /* อินพุตคะแนน — ลอกจาก .d-code-input (กระชับลงเพื่อลดพื้นที่ว่าง) */
 .score-cell-input {
-  width: 40px; text-align: center; font-variant-numeric: tabular-nums;
-  border: none; border-radius: 8px; padding: 2px 2px;
+  width: 44px; text-align: center; font-variant-numeric: tabular-nums;
+  border: 1px solid transparent; border-radius: 8px; padding: 5px 3px;
   font-size: 0.82rem; font-weight: 700; color: var(--text-main); background: var(--bg-light);
   transition: var(--transition-normal);
 }
 .score-cell-input::placeholder { color: #c7c7cc; font-weight: 400; }
-.score-cell-input:hover { background: #eaecef; }
+.score-cell-input:hover { background: #eaecef; border-color: #d9dde2; }
 .score-cell-input:focus { outline: none; background: var(--primary-light); box-shadow: 0 0 0 2px var(--primary-light-border); }
 /* ซ่อนลูกศรขึ้นลงของ input number (กรอกด้วยแป้นพิมพ์ ไม่ต้องใช้ spinner) */
 .score-cell-input::-webkit-outer-spin-button,
@@ -345,16 +352,26 @@
 .msc-g-low  { background: #fbeaf0; color: #993556; }
 .msc-g-zero { background: #fcebeb; color: #a32d2d; }
 
-/* บล็อกคะแนน (ก่อน/หลังกลางภาค · กลางภาค · ปลายภาค) */
-.msc-bucket { margin-bottom: 18px; }
-.msc-bhead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; padding: 0 2px; }
-.msc-blabel { font-size: 0.86rem; font-weight: 700; color: var(--text-main); }
-.msc-bweight { font-size: 0.72rem; color: var(--text-muted); }
+/* บล็อกคะแนน (ก่อน/หลังกลางภาค · กลางภาค · ปลายภาค) แยกกรอบและสีให้เห็นประเภทชัดบนมือถือ */
+.msc-bucket {
+  --msc-accent: #2f9e72; --msc-tint: #f4fbf7; --msc-border: #bfe2d2; --msc-divider: #d8eee3;
+  margin-bottom: 14px; padding: 13px 12px 12px;
+  border: 1px solid var(--msc-border);
+  border-left: 4px solid var(--msc-accent); border-radius: 12px; background: var(--msc-tint);
+}
+.msc-bucket-before { --msc-accent: #2f9e72; --msc-tint: #f4fbf7; --msc-border: #bfe2d2; --msc-divider: #d8eee3; }
+.msc-bucket-after { --msc-accent: #4f86d9; --msc-tint: #f5f8fd; --msc-border: #c6d8f2; --msc-divider: #dce7f7; }
+.msc-bucket-mid { --msc-accent: #d39524; --msc-tint: #fffbf1; --msc-border: #ead6a7; --msc-divider: #f2e6c8; }
+.msc-bucket-final { --msc-accent: #8b6bc7; --msc-tint: #faf7fd; --msc-border: #d9cbed; --msc-divider: #e8dff4; }
+.msc-bhead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; padding: 0 2px 9px; border-bottom: 2px solid var(--msc-divider); }
+.msc-blabel { font-size: 0.88rem; font-weight: 800; color: var(--text-main); }
+.msc-bweight { font-size: 0.74rem; font-weight: 700; color: var(--msc-accent); }
 /* แถวรายการ — เส้นบางๆ คั่นแต่ละช่อง */
 .msc-row {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 10px 2px; border-bottom: 1px solid var(--border-color);
+  padding: 11px 2px; border-bottom: 1px solid var(--msc-divider);
 }
+.msc-row:last-of-type { border-bottom: none; }
 .msc-row-name { font-size: 0.9rem; color: var(--text-main); cursor: pointer; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .msc-box {
   display: inline-flex; align-items: center; gap: 3px; background: var(--bg-light);
@@ -371,8 +388,8 @@
 /* ปุ่มเพิ่มรายการในบล็อก */
 .msc-add {
   display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%;
-  margin-top: 10px; padding: 9px; background: var(--primary-light); border: 1px dashed var(--primary-light-border);
-  border-radius: var(--radius-btn); color: var(--primary); font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  margin-top: 10px; padding: 9px; background: #fff; border: 1px dashed var(--msc-accent);
+  border-radius: var(--radius-btn); color: var(--msc-accent); font-size: 0.82rem; font-weight: 700; cursor: pointer;
   transition: var(--transition-normal);
 }
 .msc-add:active { transform: scale(0.98); }
