@@ -83,6 +83,8 @@
     .teacher-phase.is-live { background: var(--fresh-mint); color: var(--pk); }
     #start-question-btn.is-start { background: var(--fresh-coral-strong); border-color: var(--fresh-coral-strong); color: #fff; }
     #start-question-btn.is-started { background: var(--fresh-mint); border-color: var(--fresh-mint-strong); color: var(--pk); cursor: default; }
+    #start-question-btn.is-back,
+    .presentation-start-btn.is-back { background: var(--fresh-coral-strong); border-color: var(--fresh-coral-strong); color: #fff; }
     @media (max-width: 940px) {
       .grid { grid-template-columns: 1fr; }
       .qr-box { width: 178px; height: 178px; }
@@ -418,7 +420,9 @@
       min-width: 0;
     }
     .presentation-start-btn { display:none; min-width:190px; justify-self:start; }
+    .presentation-start-btn.is-start { background:var(--fresh-coral-strong); border-color:var(--fresh-coral-strong); color:#fff; }
     .presentation-stage.is-waiting .presentation-start-btn { display:inline-flex; grid-column:2; grid-row:2; margin-top:0; }
+    .presentation-stage.is-question .presentation-start-btn { display:inline-flex; align-self:flex-start; margin:0 0 18px; }
     @media (max-width: 640px) {
       .actions { grid-template-columns: 1fr 1fr; }
       .actions .btn { padding-left: 8px; padding-right: 8px; font-size: .8rem; }
@@ -1003,7 +1007,7 @@
           </div>
           <div class="actions">
             <button class="btn btn-primary" onclick="startSession()"><i class="hgi-stroke hgi-qr-code-01"></i> สร้างห้อง QR</button>
-            <button id="start-question-btn" class="btn is-start" onclick="startQuestionPhase()" style="visibility:hidden;pointer-events:none;"><i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม</button>
+            <button id="start-question-btn" class="btn is-start" onclick="toggleQuestionPhase()" style="visibility:hidden;pointer-events:none;"><i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม</button>
             <button id="presentation-toggle-btn" class="btn" onclick="togglePresentation()"><i class="hgi-stroke hgi-presentation-01"></i> เปิดจอนำเสนอ</button>
           </div>
         </section>
@@ -1120,7 +1124,7 @@
           </div>
         </div>
         <h2 id="presentation-question">รอนักเรียนเข้าร่วม</h2>
-        <button id="presentation-start-btn" class="btn btn-primary presentation-start-btn" onclick="startQuestionPhaseFromPresentation()"><i class="hgi-stroke hgi-play"></i> START · เริ่มตอบคำถาม</button>
+        <button id="presentation-start-btn" class="btn presentation-start-btn" onclick="togglePresentationQuestionPhase()"><i class="hgi-stroke hgi-play"></i> START · เริ่มตอบคำถาม</button>
         <div id="presentation-output" class="presentation-output"></div>
         <div class="presentation-footer"><span id="presentation-total-label">เข้าร่วมแล้ว <b id="presentation-total">0</b> คน</span><span>ข้อมูลจะแสดงแบบไม่เปิดเผยชื่อบนจอนี้</span></div>
       </section>
@@ -1486,12 +1490,44 @@
       renderSession();
     }
 
+    async function toggleQuestionPhase() {
+      const session = sessions[activeCode];
+      if (session?.phase === 'question') returnToWaitingPhase();
+      else startQuestionPhase();
+    }
+
+    async function returnToWaitingPhase() {
+      const session = sessions[activeCode];
+      if (!session) return;
+      const remote = await remoteSetPhase(activeCode, 'waiting');
+      session.phase = remote?.phase || 'waiting';
+      session.questionStartedAt = '';
+      saveSessions();
+      renderSession();
+    }
+
     async function startQuestionPhaseFromPresentation() {
       const session = sessions[activeCode];
       if (!session) return;
       const remote = await remoteSetPhase(activeCode, 'question');
       session.phase = remote?.phase || 'question';
       session.questionStartedAt = new Date().toISOString();
+      saveSessions();
+      renderPresentationSession();
+    }
+
+    async function togglePresentationQuestionPhase() {
+      const session = sessions[activeCode];
+      if (session?.phase === 'question') returnToWaitingPhaseFromPresentation();
+      else startQuestionPhaseFromPresentation();
+    }
+
+    async function returnToWaitingPhaseFromPresentation() {
+      const session = sessions[activeCode];
+      if (!session) return;
+      const remote = await remoteSetPhase(activeCode, 'waiting');
+      session.phase = remote?.phase || 'waiting';
+      session.questionStartedAt = '';
       saveSessions();
       renderPresentationSession();
     }
@@ -1533,10 +1569,10 @@
       const questionButton = document.getElementById('start-question-btn');
       questionButton.style.visibility = 'visible';
       questionButton.style.pointerEvents = 'auto';
-      questionButton.disabled = session.phase === 'question';
-      questionButton.className = `btn ${session.phase === 'question' ? 'is-started' : 'is-start'}`;
+      questionButton.disabled = false;
+      questionButton.className = `btn ${session.phase === 'question' ? 'is-back' : 'is-start'}`;
       questionButton.innerHTML = session.phase === 'question'
-        ? '<i class="hgi-stroke hgi-checkmark-circle-02"></i> คำถามกำลังเปิด'
+        ? '<i class="hgi-stroke hgi-arrow-left-02"></i> ย้อนกลับ · ห้องรอ'
         : '<i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม';
       renderLiveWall(session, participants);
       renderBackstage(participants, answers);
@@ -1628,7 +1664,12 @@
       const presentationStage = document.querySelector('.presentation-stage');
       presentationStage.classList.toggle('is-waiting', !isQuestion);
       presentationStage.classList.toggle('is-question', isQuestion);
-      document.getElementById('presentation-start-btn').style.display = isQuestion ? 'none' : 'inline-flex';
+      const presentationStartButton = document.getElementById('presentation-start-btn');
+      presentationStartButton.style.display = 'inline-flex';
+      presentationStartButton.className = `btn presentation-start-btn ${isQuestion ? 'is-back' : 'is-start'}`;
+      presentationStartButton.innerHTML = isQuestion
+        ? '<i class="hgi-stroke hgi-arrow-left-02"></i> ย้อนกลับ · ห้องรอ'
+        : '<i class="hgi-stroke hgi-play"></i> START · เริ่มตอบคำถาม';
       document.getElementById('presentation-room').textContent = session.roomLabel || 'เพิ่มนักเรียนเข้าห้อง';
       document.getElementById('presentation-code').textContent = session.code;
       const joinUrl = getJoinUrl(session.code);
