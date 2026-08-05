@@ -1680,7 +1680,7 @@
       document.getElementById('presentation-total-label').innerHTML = isQuestion
         ? `ตอบแล้ว <b id="presentation-total">${answers.length} / ${responses.length}</b> คน`
         : `เข้าร่วมแล้ว <b id="presentation-total">${responses.length}</b> คน`;
-      document.querySelector('.presentation-footer span:last-child').textContent = isQuestion ? 'คำตอบจะแสดงแบบไม่เปิดเผยชื่อ' : 'นักเรียนที่เข้าร่วมจะแสดงที่ด้านขวา';
+      document.querySelector('.presentation-footer span:last-child').textContent = isQuestion ? 'คำตอบแบบไม่เปิดเผยชื่อ' : '';
       if (isQuestion) renderLiveWall(session, responses, output);
       else renderJoinLobby(session, responses, output);
     }
