@@ -559,41 +559,46 @@
     }
     .join-lobby {
       display: grid;
-      gap: 16px;
-      align-content: center;
+      gap: 18px;
+      align-content: start;
+      min-height: 100%;
     }
-    .lobby-heading { color:var(--fresh-ink); font-size:1.2rem; font-weight:900; text-align:left; }
+    .lobby-heading { color:var(--fresh-ink); font-size:1.4rem; font-weight:900; text-align:left; }
     .lobby-count {
       display: grid;
       justify-items: center;
       gap: 5px;
+      margin-top: auto;
+      padding-top: 18px;
       color: var(--muted);
-      font-size: .86rem;
+      font-size: .78rem;
       font-weight: 800;
     }
     .lobby-count b {
-      color: var(--fresh-ink);
-      font-size: 3rem;
+      color: var(--muted);
+      font-size: 1.6rem;
       line-height: 1;
     }
     .lobby-chips {
       display: flex;
       flex-wrap: wrap;
       justify-content: flex-start;
-      gap: 9px;
+      align-content: flex-start;
+      gap: 12px;
+      min-height: 80px;
     }
     .lobby-chip {
       display: inline-flex;
       align-items: center;
       gap: 7px;
       max-width: 220px;
-      padding: 8px 11px;
+      padding: 13px 17px;
       border: 1px solid rgba(255,255,255,.78);
       border-radius: 999px;
       background: rgba(255,255,255,.78);
       color: var(--fresh-ink);
-      font-size: .82rem;
-      font-weight: 800;
+      font-size: 1.05rem;
+      font-weight: 900;
       box-shadow: 0 8px 20px rgba(16,35,63,.07);
     }
     .lobby-chip::before {
