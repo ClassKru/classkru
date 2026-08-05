@@ -562,6 +562,7 @@
       gap: 16px;
       align-content: center;
     }
+    .lobby-heading { color:var(--fresh-ink); font-size:1.2rem; font-weight:900; text-align:left; }
     .lobby-count {
       display: grid;
       justify-items: center;
@@ -578,7 +579,7 @@
     .lobby-chips {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 9px;
     }
     .lobby-chip {
@@ -859,7 +860,7 @@
     .presentation-stage.is-waiting .presentation-joinbar { flex-direction:column; gap:14px; width:100%; margin:0; padding:22px 24px 24px; }
     .presentation-stage.is-waiting .presentation-qr { width:min(320px, 30vw); height:min(320px, 30vw); }
     .presentation-stage.is-waiting .presentation-join-copy { text-align:center; }
-    .presentation-stage.is-waiting .presentation-output { min-height:0; width:100%; margin:0; }
+    .presentation-stage.is-waiting .presentation-output { min-height:360px; width:100%; margin:0; padding:26px; border:1px solid #dce8f2; border-radius:22px; background:#fff; box-shadow:0 12px 30px rgba(16,35,63,.08); }
     .presentation-stage.is-waiting .presentation-footer { grid-column:2; margin:0; }
     .presentation-stage.is-question .stage-kicker,
     .presentation-stage.is-question .presentation-joinbar { display:none; }
@@ -867,7 +868,6 @@
     .presentation-stage.is-question .presentation-output { width:100%; max-width:1100px; min-height:360px; margin:0; padding:clamp(18px,3vw,38px); border:1px solid rgba(183,210,247,.9); border-radius:22px; background:rgba(255,255,255,.52); }
     .presentation-stage.is-question .presentation-footer { width:100%; max-width:1100px; margin:20px 0 0; }
     .presentation-stage.is-waiting #presentation-question { display:none; }
-    .presentation-stage.is-waiting .presentation-output { min-height:0; width:min(900px,100%); }
     .presentation-qr { width:112px; height:112px; display:block; padding:6px; border-radius:12px; background:#fff; object-fit:contain; }
     .presentation-join-copy { display:grid; gap:5px; text-align:left; }
     .presentation-stage.is-waiting .presentation-join-copy { text-align:center; }
@@ -1533,7 +1533,8 @@
 
     function renderLiveWall(session, responses, target = document.getElementById('live-wall')) {
       const wall = target;
-      if (!responses.length) {
+      const isJoinWaiting = session.purpose === 'add_students' && session.phase !== 'question';
+      if (!responses.length && !isJoinWaiting) {
         wall.innerHTML = '<div class="empty-stage"><strong>รอนักเรียนเข้าร่วม</strong>สแกน QR แล้วส่งข้อมูลจากมือถือ</div>';
         return;
       }
@@ -1570,6 +1571,9 @@
       const cls = getClass() || (state.classes || []).find(item => item.id === session.classroomId);
       const summary = getReviewSummary(responses, cls);
       const answerCount = getSessionAnswers(session).length;
+      const lobbyMessage = responses.length
+        ? (session.phase === 'question' ? `เข้าห้องแล้ว · ตอบคำถาม ${answerCount} คน` : `เข้าห้องรอแล้ว · พร้อมนำเข้า ${summary.ready} รายการ`)
+        : 'เมื่อมีนักเรียนเข้ามา รายชื่อจะแสดงที่นี่';
       const chips = responses.map(response => {
         const status = getReviewStatus(response, responses, cls);
         const chipClass = status.type === 'imported' ? 'imported' : status.canImport ? '' : 'issue';
@@ -1578,7 +1582,8 @@
       }).join('');
       wall.innerHTML = `
         <div class="join-lobby">
-          <div class="lobby-count"><b>${responses.length}</b><span>${session.phase === 'question' ? `เข้าห้องแล้ว · ตอบคำถาม ${answerCount} คน` : `เข้าห้องรอแล้ว · พร้อมนำเข้า ${summary.ready} รายการ`}</span></div>
+          <div class="lobby-heading">นักเรียนที่เข้าร่วม</div>
+          <div class="lobby-count"><b>${responses.length}</b><span>${lobbyMessage}</span></div>
           <div class="lobby-chips">${chips}</div>
         </div>`;
     }
