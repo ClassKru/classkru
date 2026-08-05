@@ -567,26 +567,26 @@
       align-content: start;
       min-height: 100%;
     }
-    .lobby-heading { color:var(--fresh-ink); font-size:1.4rem; font-weight:900; text-align:left; }
+    .lobby-heading { color:var(--game-blue); font-size:1.35rem; font-weight:900; text-align:left; letter-spacing:.02em; }
     .lobby-count {
       display: grid;
       justify-items: center;
       gap: 5px;
       margin-top: auto;
-      padding-top: 18px;
+      padding-top: 14px;
       color: var(--muted);
-      font-size: .78rem;
+      font-size: .82rem;
       font-weight: 800;
     }
     .lobby-count b {
       color: var(--muted);
-      font-size: 1.6rem;
+      font-size: 1rem;
       line-height: 1;
     }
     .lobby-chips {
       display: flex;
       flex-wrap: wrap;
-      justify-content: flex-start;
+      justify-content: center;
       align-content: flex-start;
       gap: 12px;
       min-height: 80px;
@@ -601,10 +601,14 @@
       border-radius: 999px;
       background: rgba(255,255,255,.78);
       color: var(--fresh-ink);
-      font-size: 1.05rem;
+      font-size: 1.12rem;
       font-weight: 900;
       box-shadow: 0 8px 20px rgba(16,35,63,.07);
     }
+    .lobby-chip:nth-child(4n+1) { background:#e5f8ff; border-color:#b8e9fb; }
+    .lobby-chip:nth-child(4n+2) { background:#fff1c9; border-color:#fde08a; }
+    .lobby-chip:nth-child(4n+3) { background:#ffe7ee; border-color:#ffc3d2; }
+    .lobby-chip:nth-child(4n) { background:#e9e2ff; border-color:#d1c4ff; }
     .lobby-chip::before {
       content: '';
       width: 8px;
@@ -865,7 +869,7 @@
       font-size: clamp(1.8rem, 4vw, 3.4rem);
     }
     .presentation-joinbar { display:flex; align-items:center; gap:24px; width:fit-content; margin:0 auto 24px; padding:18px 24px 18px 18px; border:1px solid rgba(255,255,255,.9); border-radius:22px; background:rgba(255,255,255,.78); box-shadow:0 10px 24px rgba(16,35,63,.08); }
-    .presentation-stage.is-waiting .stage-kicker { grid-column:1 / -1; align-self:end; margin:0; }
+    .presentation-stage.is-waiting .stage-kicker { display:none; }
     .presentation-stage.is-waiting .presentation-joinbar { flex-direction:column; gap:14px; width:100%; margin:0; padding:22px 24px 24px; }
     .presentation-stage.is-waiting .presentation-joinbar { grid-column:1; grid-row:2 / span 2; }
     .presentation-stage.is-waiting .presentation-qr { width:min(320px, 30vw); height:min(320px, 30vw); }
@@ -873,6 +877,7 @@
     .presentation-stage.is-waiting .presentation-output { min-height:360px; width:100%; margin:0; padding:26px; border:1px solid #dce8f2; border-radius:22px; background:#fff; box-shadow:0 12px 30px rgba(16,35,63,.08); }
     .presentation-stage.is-waiting .presentation-output { grid-column:2; grid-row:3; }
     .presentation-stage.is-waiting .presentation-footer { grid-column:2; grid-row:4; margin:0; }
+    .presentation-stage.is-waiting .presentation-footer { display:none; }
     .presentation-stage.is-question .stage-kicker,
     .presentation-stage.is-question .presentation-joinbar { display:none; }
     .presentation-stage.is-question .presentation-question { width:100%; max-width:1100px; margin:0 0 26px; }
@@ -1115,7 +1120,6 @@
     <div class="presentation-shell">
       <div class="presentation-topbar"><div><span class="presentation-kicker">CLASSKRU · LIVE ACTIVITY</span><h1 id="presentation-room">เพิ่มนักเรียนเข้าห้อง</h1></div><span class="presentation-code" id="presentation-code">-</span></div>
       <section class="presentation-stage">
-        <p class="stage-kicker">กิจกรรมกำลังดำเนินอยู่</p>
         <div class="presentation-joinbar">
           <img id="presentation-qr" class="presentation-qr" alt="QR Code สำหรับเข้าร่วมกิจกรรม">
           <div class="presentation-join-copy">
@@ -1615,11 +1619,8 @@
     }
 
     function renderJoinLobby(session, responses, wall) {
-      const cls = getClass() || (state.classes || []).find(item => item.id === session.classroomId);
-      const summary = getReviewSummary(responses, cls);
-      const answerCount = getSessionAnswers(session).length;
       const lobbyMessage = responses.length
-        ? (session.phase === 'question' ? `เข้าห้องแล้ว · ตอบคำถาม ${answerCount} คน` : `เข้าห้องรอแล้ว · พร้อมนำเข้า ${summary.ready} รายการ`)
+        ? 'สมาชิกกำลังรอเริ่มกิจกรรม'
         : 'เมื่อมีนักเรียนเข้ามา รายชื่อจะแสดงที่นี่';
       const chips = responses.map(response => {
         const status = getReviewStatus(response, responses, cls);
@@ -1629,9 +1630,9 @@
       }).join('');
       wall.innerHTML = `
         <div class="join-lobby">
-          <div class="lobby-heading">นักเรียนที่เข้าร่วม</div>
-          <div class="lobby-count"><b>${responses.length}</b><span>${lobbyMessage}</span></div>
+          <div class="lobby-heading">Member</div>
           <div class="lobby-chips">${chips}</div>
+          <div class="lobby-count"><span>${lobbyMessage}</span></div>
         </div>`;
     }
 
