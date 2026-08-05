@@ -417,6 +417,8 @@
     .actions .btn:last-child {
       min-width: 0;
     }
+    .presentation-start-btn { display:none; min-width:190px; justify-self:start; }
+    .presentation-stage.is-waiting .presentation-start-btn { display:inline-flex; grid-column:2; margin-top:14px; }
     @media (max-width: 640px) {
       .actions { grid-template-columns: 1fr 1fr; }
       .actions .btn { padding-left: 8px; padding-right: 8px; font-size: .8rem; }
@@ -993,8 +995,7 @@
             </label>
           </div>
           <div class="actions">
-            <button class="btn btn-primary" onclick="startSession()"><i class="hgi-stroke hgi-play"></i> เปิดรับคำตอบใหม่</button>
-            <button class="btn btn-soft" onclick="saveCurrentSession()"><i class="hgi-stroke hgi-floppy-disk"></i> อัปเดตคำถาม</button>
+            <button class="btn btn-primary" onclick="startSession()"><i class="hgi-stroke hgi-qr-code-01"></i> สร้างห้อง QR</button>
             <button id="start-question-btn" class="btn is-start" onclick="startQuestionPhase()" style="visibility:hidden;pointer-events:none;"><i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม</button>
             <button id="presentation-toggle-btn" class="btn" onclick="togglePresentation()"><i class="hgi-stroke hgi-presentation-01"></i> เปิดจอนำเสนอ</button>
           </div>
@@ -1114,6 +1115,7 @@
         <h2 id="presentation-question">รอนักเรียนเข้าร่วม</h2>
         <div id="presentation-output" class="presentation-output"></div>
         <div class="presentation-footer"><span id="presentation-total-label">เข้าร่วมแล้ว <b id="presentation-total">0</b> คน</span><span>ข้อมูลจะแสดงแบบไม่เปิดเผยชื่อบนจอนี้</span></div>
+        <button id="presentation-start-btn" class="btn btn-primary presentation-start-btn" onclick="startQuestionPhaseFromPresentation()"><i class="hgi-stroke hgi-play"></i> START · เริ่มตอบคำถาม</button>
       </section>
     </div>
   </main>
@@ -1421,7 +1423,7 @@
       const answerType = document.getElementById('answer-type').value;
       const options = getOptions();
       if (answerType === 'choice' && options.length < 2) {
-        alert('กรุณากรอกตัวเลือกอย่างน้อย 2 ตัวเลือก โดยคั่นด้วยเครื่องหมายจุลภาค เช่น พร้อมมาก, พอไหว, ยังไม่พร้อม');
+        alert('กรุณากรอกตัวเลือกอย่างน้อย 2 ช่อง จากตัวเลือก 1-4 ก่อนสร้างห้อง QR');
         document.getElementById('option-input-1').focus();
         return false;
       }
@@ -1430,6 +1432,8 @@
 
     async function startSession() {
       if (!validateAnswerConfig()) return;
+      // Reserve the popup during the click gesture so browsers do not block the auto-opened waiting room.
+      const reservedWindow = presentationWindow && !presentationWindow.closed ? presentationWindow : window.open('about:blank', '_blank');
       activeCode = `CK-${Math.floor(1000 + Math.random() * 9000)}`;
       const draft = buildSession(activeCode, false);
       const remote = await remoteCreateSession(draft);
@@ -1437,6 +1441,7 @@
       teacherFormDirty = false;
       saveSessions();
       renderSession();
+      openPresentationWindow(activeCode, reservedWindow);
     }
 
     async function saveCurrentSession() {
@@ -1468,6 +1473,16 @@
       session.questionStartedAt = new Date().toISOString();
       saveSessions();
       renderSession();
+    }
+
+    async function startQuestionPhaseFromPresentation() {
+      const session = sessions[activeCode];
+      if (!session) return;
+      const remote = await remoteSetPhase(activeCode, 'question');
+      session.phase = remote?.phase || 'question';
+      session.questionStartedAt = new Date().toISOString();
+      saveSessions();
+      renderPresentationSession();
     }
 
     function renderSession() {
@@ -1597,6 +1612,7 @@
       const presentationStage = document.querySelector('.presentation-stage');
       presentationStage.classList.toggle('is-waiting', !isQuestion);
       presentationStage.classList.toggle('is-question', isQuestion);
+      document.getElementById('presentation-start-btn').style.display = isQuestion ? 'none' : 'inline-flex';
       document.getElementById('presentation-room').textContent = session.roomLabel || 'เพิ่มนักเรียนเข้าห้อง';
       document.getElementById('presentation-code').textContent = session.code;
       const joinUrl = getJoinUrl(session.code);
@@ -1622,9 +1638,19 @@
         updatePresentationButton();
         return;
       }
-      const presentationUrl = `${location.pathname}?present=${encodeURIComponent(activeCode)}`;
-      presentationWindow = window.open(presentationUrl, '_blank');
-      if (!presentationWindow) alert('เบราว์เซอร์บล็อกแท็บใหม่ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้');
+      openPresentationWindow(activeCode);
+      updatePresentationButton();
+    }
+
+    function openPresentationWindow(code, targetWindow = null) {
+      const presentationUrl = `${location.pathname}?present=${encodeURIComponent(code)}`;
+      presentationWindow = targetWindow || window.open(presentationUrl, '_blank');
+      if (!presentationWindow) {
+        alert('เบราว์เซอร์บล็อกแท็บใหม่ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้');
+        return;
+      }
+      presentationWindow.location.href = presentationUrl;
+      presentationWindow.focus?.();
       updatePresentationButton();
     }
 
