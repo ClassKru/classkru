@@ -831,22 +831,30 @@
       background: linear-gradient(135deg, rgba(223,244,255,.98), rgba(239,231,255,.88) 52%, rgba(223,251,240,.92));
       box-shadow: 0 18px 44px rgba(16,35,63,.12);
     }
+    .presentation-stage.is-waiting { display:grid; grid-template-columns:minmax(300px,.8fr) minmax(420px,1.2fr); align-items:center; gap:clamp(28px,6vw,90px); padding:clamp(28px,7vw,90px); }
+    .presentation-stage.is-question { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:clamp(30px,6vw,78px); }
     .presentation-stage h2 {
       color: var(--fresh-ink);
       font-size: clamp(1.8rem, 4vw, 3.4rem);
     }
     .presentation-joinbar { display:flex; align-items:center; gap:24px; width:fit-content; margin:0 auto 24px; padding:18px 24px 18px 18px; border:1px solid rgba(255,255,255,.9); border-radius:22px; background:rgba(255,255,255,.78); box-shadow:0 10px 24px rgba(16,35,63,.08); }
-    .presentation-stage.is-waiting { align-items:center; text-align:center; }
-    .presentation-stage.is-waiting .stage-kicker,
-    .presentation-stage.is-waiting .presentation-footer { display:none; }
-    .presentation-stage.is-waiting .presentation-joinbar { flex-direction:column; gap:14px; padding:22px 24px 24px; }
-    .presentation-stage.is-waiting .presentation-qr { width:min(420px, 62vw); height:min(420px, 62vw); }
+    .presentation-stage.is-waiting .stage-kicker { grid-column:1 / -1; align-self:end; margin:0; }
+    .presentation-stage.is-waiting .presentation-joinbar { flex-direction:column; gap:14px; width:100%; margin:0; padding:22px 24px 24px; }
+    .presentation-stage.is-waiting .presentation-qr { width:min(320px, 30vw); height:min(320px, 30vw); }
+    .presentation-stage.is-waiting .presentation-join-copy { text-align:center; }
+    .presentation-stage.is-waiting .presentation-output { min-height:0; width:100%; margin:0; }
+    .presentation-stage.is-waiting .presentation-footer { grid-column:2; margin:0; }
+    .presentation-stage.is-question .stage-kicker,
+    .presentation-stage.is-question .presentation-joinbar { display:none; }
+    .presentation-stage.is-question .presentation-question { width:100%; max-width:1100px; margin:0 0 26px; }
+    .presentation-stage.is-question .presentation-output { width:100%; max-width:1100px; min-height:360px; margin:0; padding:clamp(18px,3vw,38px); border:1px solid rgba(183,210,247,.9); border-radius:22px; background:rgba(255,255,255,.52); }
+    .presentation-stage.is-question .presentation-footer { width:100%; max-width:1100px; margin:20px 0 0; }
     .presentation-stage.is-waiting #presentation-question { display:none; }
     .presentation-stage.is-waiting .presentation-output { min-height:0; width:min(900px,100%); }
     .presentation-qr { width:112px; height:112px; display:block; padding:6px; border-radius:12px; background:#fff; object-fit:contain; }
     .presentation-join-copy { display:grid; gap:5px; text-align:left; }
     .presentation-stage.is-waiting .presentation-join-copy { text-align:center; }
-    .presentation-join-copy strong { color:var(--fresh-ink); font-size:1.8rem; letter-spacing:.08em; }
+    .presentation-join-copy strong { color:var(--fresh-ink); font-size:1.8rem; letter-spacing:0; }
     .presentation-join-copy span { color:var(--primary); font-weight:900; }
     .presentation-join-copy small { display:none; }
     .presentation-footer b {
@@ -909,6 +917,10 @@
         grid-template-columns: repeat(2, 1fr);
       }
       .presentation-joinbar { width:100%; }
+      .presentation-stage.is-waiting { display:flex; flex-direction:column; gap:20px; padding:22px 16px; }
+      .presentation-stage.is-waiting .stage-kicker { align-self:auto; }
+      .presentation-stage.is-waiting .presentation-qr { width:min(280px,70vw); height:min(280px,70vw); }
+      .presentation-stage.is-waiting .presentation-footer { width:100%; }
       .review-row {
         grid-template-columns: 1fr;
       }
@@ -1080,12 +1092,12 @@
           <img id="presentation-qr" class="presentation-qr" alt="QR Code สำหรับเข้าร่วมกิจกรรม">
           <div class="presentation-join-copy">
             <span>QR / รหัสเข้าร่วม</span>
-            <strong id="presentation-join-code">-</strong>
+            <strong id="presentation-room-label">-</strong>
           </div>
         </div>
         <h2 id="presentation-question">รอนักเรียนเข้าร่วม</h2>
         <div id="presentation-output" class="presentation-output"></div>
-        <div class="presentation-footer"><span>เข้าร่วมแล้ว <b id="presentation-total">0</b> คน</span><span>ข้อมูลจะแสดงแบบไม่เปิดเผยชื่อบนจอนี้</span></div>
+        <div class="presentation-footer"><span id="presentation-total-label">เข้าร่วมแล้ว <b id="presentation-total">0</b> คน</span><span>ข้อมูลจะแสดงแบบไม่เปิดเผยชื่อบนจอนี้</span></div>
       </section>
     </div>
   </main>
@@ -1540,16 +1552,23 @@
         return;
       }
       const responses = getSessionParticipants(session);
+      const answers = getSessionAnswers(session);
+      const isQuestion = session.phase === 'question';
       const presentationStage = document.querySelector('.presentation-stage');
-      presentationStage.classList.toggle('is-waiting', session.phase !== 'question');
+      presentationStage.classList.toggle('is-waiting', !isQuestion);
+      presentationStage.classList.toggle('is-question', isQuestion);
       document.getElementById('presentation-room').textContent = session.roomLabel || 'เพิ่มนักเรียนเข้าห้อง';
       document.getElementById('presentation-code').textContent = session.code;
       const joinUrl = getJoinUrl(session.code);
-      document.getElementById('presentation-join-code').textContent = session.code;
+      document.getElementById('presentation-room-label').textContent = session.roomLabel || 'ห้องเรียน';
       document.getElementById('presentation-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&data=${encodeURIComponent(joinUrl)}`;
-      document.getElementById('presentation-question').textContent = session.phase === 'question' ? (session.question || 'คำถามเปิดคาบ') : 'กำลังรอนักเรียนเข้าห้อง';
-      document.getElementById('presentation-total').textContent = responses.length;
-      renderLiveWall(session, responses, output);
+      document.getElementById('presentation-question').textContent = session.question || 'คำถามเปิดคาบ';
+      document.getElementById('presentation-total-label').innerHTML = isQuestion
+        ? `ตอบแล้ว <b id="presentation-total">${answers.length} / ${responses.length}</b> คน`
+        : `เข้าร่วมแล้ว <b id="presentation-total">${responses.length}</b> คน`;
+      document.querySelector('.presentation-footer span:last-child').textContent = isQuestion ? 'คำตอบจะแสดงแบบไม่เปิดเผยชื่อ' : 'นักเรียนที่เข้าร่วมจะแสดงที่ด้านขวา';
+      if (isQuestion) renderLiveWall(session, responses, output);
+      else renderJoinLobby(session, responses, output);
     }
 
     function togglePresentation() {
