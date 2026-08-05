@@ -1001,10 +1001,9 @@
         </section>
 
         <section class="card qr-card">
-            <h2>QR / รหัสเข้าร่วม</h2>
+            <h2>QR / เข้าร่วมกิจกรรม</h2>
             <div class="qr-box"><img id="qr-img" alt="QR Code"></div>
-            <div id="join-code" class="code">-</div>
-            <a id="join-link" class="link" href="#" target="_blank" rel="noopener">เปิดรับคำตอบเพื่อสร้างลิงก์</a>
+            <a id="join-link" class="link" href="#" target="_blank" rel="noopener">ลิงก์เข้าร่วม</a>
             <div class="stats">
               <div class="stat"><b id="stat-total">0</b>เข้าร่วมแล้ว</div>
               <div class="stat"><b id="stat-answered">0</b>ตอบแล้ว</div>
@@ -1065,13 +1064,13 @@
         <h2>เข้าร่วมกิจกรรม</h2>
         <p style="margin-top:-6px;color:var(--muted);font-weight:700;line-height:1.6;">กรอกข้อมูลเพื่อเข้าห้องรอ ครูจะเปิดคำถามให้เมื่อพร้อม</p>
         <div class="form-grid">
-          <label>ชื่อ-นามสกุล <span class="required-label">จำเป็น</span>
+          <label>ชื่อ-นามสกุล <span class="required-label" title="จำเป็น" aria-label="จำเป็น">*</span>
             <input id="student-first-name" class="input" required aria-required="true" placeholder="เช่น สมชาย ใจดี">
           </label>
-          <label>ชื่อเล่น <span class="required-label">จำเป็น</span>
+          <label>ชื่อเล่น <span class="required-label" title="จำเป็น" aria-label="จำเป็น">*</span>
             <input id="student-nickname" class="input" required aria-required="true" placeholder="เช่น บอล">
           </label>
-          <label>เลขที่ <span class="required-label">จำเป็น</span>
+          <label>เลขที่ <span class="required-label" title="จำเป็น" aria-label="จำเป็น">*</span>
             <input id="student-no" class="input" required aria-required="true" inputmode="numeric" placeholder="12">
           </label>
           <label>รหัสนักเรียน <span class="optional-label">ถ้ามี</span>
@@ -1479,8 +1478,7 @@
         const questionButton = document.getElementById('start-question-btn');
         questionButton.style.visibility = 'hidden';
         questionButton.style.pointerEvents = 'none';
-        document.getElementById('join-code').textContent = '-';
-        document.getElementById('join-link').textContent = 'เปิดรับคำตอบเพื่อสร้างลิงก์';
+        document.getElementById('join-link').textContent = 'ลิงก์เข้าร่วม';
         document.getElementById('join-link').href = '#';
         document.getElementById('qr-img').removeAttribute('src');
         document.getElementById('stage-question').textContent = 'เปิดกิจกรรมเพื่อรับนักเรียนเข้าห้อง';
@@ -1494,8 +1492,7 @@
         return;
       }
       const url = getJoinUrl(session.code);
-      document.getElementById('join-code').textContent = session.code;
-      document.getElementById('join-link').textContent = url;
+      document.getElementById('join-link').textContent = 'ลิงก์เข้าร่วม';
       document.getElementById('join-link').href = url;
       document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
       const participants = getSessionParticipants(session);
