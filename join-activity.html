@@ -399,19 +399,27 @@
     }
     .choice-inputs .input { min-width: 0; }
     .actions {
-      align-items: center;
-      min-height: 40px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+      min-height: 90px;
+      gap: 8px;
     }
     .actions .btn {
-      flex: 0 0 auto;
-      min-width: 132px;
+      width: 100%;
+      min-width: 0;
+      min-height: 40px;
       white-space: nowrap;
     }
     .actions .btn:first-child {
-      min-width: 162px;
+      min-width: 0;
     }
     .actions .btn:last-child {
-      min-width: 148px;
+      min-width: 0;
+    }
+    @media (max-width: 640px) {
+      .actions { grid-template-columns: 1fr 1fr; }
+      .actions .btn { padding-left: 8px; padding-right: 8px; font-size: .8rem; }
     }
     .setup-summary {
       border-left-color: var(--fresh-sky-strong);
@@ -955,8 +963,6 @@
         <button class="btn" type="button" onclick="returnToClassroom()"><i class="hgi-stroke hgi-cancel-01"></i> ปิดหน้ากิจกรรม</button>
       </div>
 
-      <div class="note">เปิด QR ให้นักเรียนกรอกข้อมูลของตัวเอง ระบบจะรวมรายชื่อไว้ให้ครูตรวจ แล้วกดนำเข้าห้องเรียนได้ทีเดียว <span id="join-backend-status" style="display:block;margin-top:4px;font-size:.78rem;">กำลังตรวจสอบฐานข้อมูลกลาง...</span></div>
-
       <div class="grid">
         <section class="card settings-card">
           <h2>ตั้งค่ากิจกรรมรับนักเรียน</h2>
@@ -989,8 +995,8 @@
           <div class="actions">
             <button class="btn btn-primary" onclick="startSession()"><i class="hgi-stroke hgi-play"></i> เปิดรับคำตอบใหม่</button>
             <button class="btn btn-soft" onclick="saveCurrentSession()"><i class="hgi-stroke hgi-floppy-disk"></i> อัปเดตคำถาม</button>
-            <button id="start-question-btn" class="btn is-start" onclick="startQuestionPhase()" style="display:none;"><i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม</button>
-            <button class="btn" onclick="togglePresentation()"><i class="hgi-stroke hgi-presentation-01"></i> เปิดจอนำเสนอ</button>
+            <button id="start-question-btn" class="btn is-start" onclick="startQuestionPhase()" style="visibility:hidden;pointer-events:none;"><i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม</button>
+            <button id="presentation-toggle-btn" class="btn" onclick="togglePresentation()"><i class="hgi-stroke hgi-presentation-01"></i> เปิดจอนำเสนอ</button>
           </div>
         </section>
 
@@ -1129,6 +1135,7 @@
     let currentClassId = new URLSearchParams(location.search).get('classId') || '';
     let activeCode = '';
     let timer = null;
+    let presentationWindow = null;
     let joinSupabase = null;
     let joinBackendReady = false;
     let joinRemoteMode = false;
@@ -1467,7 +1474,11 @@
     function renderSession() {
       const session = activeCode ? sessions[activeCode] : null;
       document.getElementById('options-wrap').style.display = document.getElementById('answer-type').value === 'choice' ? 'grid' : 'none';
+      updatePresentationButton();
       if (!session) {
+        const questionButton = document.getElementById('start-question-btn');
+        questionButton.style.visibility = 'hidden';
+        questionButton.style.pointerEvents = 'none';
         document.getElementById('join-code').textContent = '-';
         document.getElementById('join-link').textContent = 'เปิดรับคำตอบเพื่อสร้างลิงก์';
         document.getElementById('join-link').href = '#';
@@ -1497,7 +1508,8 @@
       document.getElementById('stat-answered').textContent = answers.length;
       document.getElementById('stat-pending').textContent = summary.ready;
       const questionButton = document.getElementById('start-question-btn');
-      questionButton.style.display = 'inline-flex';
+      questionButton.style.visibility = 'visible';
+      questionButton.style.pointerEvents = 'auto';
       questionButton.disabled = session.phase === 'question';
       questionButton.className = `btn ${session.phase === 'question' ? 'is-started' : 'is-start'}`;
       questionButton.innerHTML = session.phase === 'question'
@@ -1607,9 +1619,26 @@
         alert('กรุณาเปิดรับคำตอบก่อนเปิดจอนำเสนอ');
         return;
       }
+      if (presentationWindow && !presentationWindow.closed) {
+        presentationWindow.close();
+        presentationWindow = null;
+        updatePresentationButton();
+        return;
+      }
       const presentationUrl = `${location.pathname}?present=${encodeURIComponent(activeCode)}`;
-      const presentationTab = window.open(presentationUrl, '_blank');
-      if (!presentationTab) alert('เบราว์เซอร์บล็อกแท็บใหม่ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้');
+      presentationWindow = window.open(presentationUrl, '_blank');
+      if (!presentationWindow) alert('เบราว์เซอร์บล็อกแท็บใหม่ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้');
+      updatePresentationButton();
+    }
+
+    function updatePresentationButton() {
+      const button = document.getElementById('presentation-toggle-btn');
+      if (!button) return;
+      const isOpen = presentationWindow && !presentationWindow.closed;
+      button.className = `btn ${isOpen ? 'btn-soft' : ''}`;
+      button.innerHTML = isOpen
+        ? '<i class="hgi-stroke hgi-cancel-01"></i> ปิดจอนำเสนอ'
+        : '<i class="hgi-stroke hgi-presentation-01"></i> เปิดจอนำเสนอ';
     }
 
     function returnToClassroom() {
