@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --primary:#1d9e75; --pk:#0f6e56; --pbg:#f0fdf4; --pbd:#86efac;
@@ -917,7 +918,7 @@
         <button class="btn" type="button" onclick="returnToClassroom()"><i class="hgi-stroke hgi-cancel-01"></i> ปิดหน้ากิจกรรม</button>
       </div>
 
-      <div class="note">เปิด QR ให้นักเรียนกรอกข้อมูลของตัวเอง ระบบจะรวมรายชื่อไว้ให้ครูตรวจ แล้วกดนำเข้าห้องเรียนได้ทีเดียว</div>
+      <div class="note">เปิด QR ให้นักเรียนกรอกข้อมูลของตัวเอง ระบบจะรวมรายชื่อไว้ให้ครูตรวจ แล้วกดนำเข้าห้องเรียนได้ทีเดียว <span id="join-backend-status" style="display:block;margin-top:4px;font-size:.78rem;">กำลังตรวจสอบฐานข้อมูลกลาง...</span></div>
 
       <div class="grid">
         <section class="card settings-card">
@@ -1061,6 +1062,8 @@
 
   <script>
     const STORAGE_KEY = 'classkru_mobile_v4';
+    const JOIN_SUPABASE_URL = 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
+    const JOIN_SUPABASE_KEY = 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
     // v2 starts with a clean roster-import flow; legacy demo sessions remain untouched.
     const JOIN_KEY = 'classkru_join_activity_sessions_v2';
     const sampleResponses = [
@@ -1073,17 +1076,22 @@
     let currentClassId = new URLSearchParams(location.search).get('classId') || '';
     let activeCode = '';
     let timer = null;
+    let joinSupabase = null;
+    let joinBackendReady = false;
+    let joinRemoteMode = false;
+    let joinRemoteUnavailable = false;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initJoinBackend();
       const params = new URLSearchParams(location.search);
       const joinCode = params.get('join');
       const presentationCode = params.get('present');
       if (presentationCode) renderPresentationView(presentationCode);
       else if (joinCode) {
         renderStudentView(joinCode);
-        timer = setInterval(() => {
+        timer = setInterval(async () => {
           sessions = loadJson(JOIN_KEY, {});
-          renderStudentView(joinCode);
+          await renderStudentView(joinCode);
         }, 1200);
       }
       else renderTeacherView();
@@ -1129,6 +1137,151 @@
       return String(value || '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[ch]));
     }
 
+    async function initJoinBackend() {
+      if (!window.supabase) {
+        setJoinBackendStatus('โหมดเครื่องนี้: ยังไม่ได้โหลดฐานข้อมูลกลาง');
+        return;
+      }
+      try {
+        joinSupabase = window.supabase.createClient(JOIN_SUPABASE_URL, JOIN_SUPABASE_KEY);
+        joinBackendReady = true;
+        setJoinBackendStatus('เชื่อมต่อฐานข้อมูลกลางแล้ว');
+      } catch (error) {
+        console.warn('ClassKru QR backend unavailable', error);
+        setJoinBackendStatus('โหมดเครื่องนี้: เชื่อมต่อฐานข้อมูลกลางไม่ได้');
+      }
+    }
+
+    function setJoinBackendStatus(message) {
+      const el = document.getElementById('join-backend-status');
+      if (el) el.textContent = message;
+    }
+
+    function canUseJoinBackend() {
+      return joinBackendReady && joinSupabase && !joinRemoteUnavailable;
+    }
+
+    function markJoinBackendUnavailable(error) {
+      joinRemoteUnavailable = true;
+      console.warn('ClassKru QR backend request failed; using local fallback', error);
+      setJoinBackendStatus('ยังไม่ได้ติดตั้งตารางกิจกรรมบน Supabase: ใช้โหมดเครื่องนี้ชั่วคราว');
+    }
+
+    function normalizeRemoteSession(raw) {
+      if (!raw || !raw.code) return null;
+      const participants = (raw.participants || []).map(item => ({
+        id: item.id,
+        firstName: item.first_name || item.firstName || '',
+        nickname: item.nickname || '',
+        no: item.student_no || item.no || '',
+        code: item.student_code || item.code || '',
+        participantKey: item.participant_key || item.participantKey || '',
+        studentKey: item.participant_key || item.studentKey || '',
+        status: item.status || 'new',
+        createdAt: item.created_at || item.createdAt || ''
+      }));
+      const answers = (raw.answers || []).map(item => ({
+        id: item.id,
+        participantId: item.participant_id || item.participantId,
+        answer: item.answer || '',
+        createdAt: item.created_at || item.createdAt || '',
+        updatedAt: item.updated_at || item.updatedAt || ''
+      }));
+      return {
+        code: raw.code,
+        classroomId: raw.classroomId || raw.classroom_id || '',
+        roomLabel: raw.roomLabel || raw.room_label || '',
+        question: raw.question || '',
+        answerType: raw.answerType || raw.answer_type || 'choice',
+        options: Array.isArray(raw.options) ? raw.options : [],
+        phase: raw.phase || 'waiting',
+        status: raw.status || 'open',
+        createdAt: raw.createdAt || raw.created_at || new Date().toISOString(),
+        questionStartedAt: raw.questionStartedAt || raw.question_started_at || '',
+        participants,
+        answers
+      };
+    }
+
+    async function joinRpc(name, args) {
+      if (!canUseJoinBackend()) return null;
+      const { data, error } = await joinSupabase.rpc(name, args);
+      if (error) { markJoinBackendUnavailable(error); return null; }
+      return data;
+    }
+
+    async function getJoinTeacherEmail() {
+      if (!joinSupabase) return '';
+      const { data } = await joinSupabase.auth.getUser();
+      return data?.user?.email || localStorage.getItem('classmanager_email') || '';
+    }
+
+    async function remoteCreateSession(session) {
+      const teacherEmail = await getJoinTeacherEmail();
+      if (!teacherEmail) {
+        setJoinBackendStatus('ต้องเข้าสู่ระบบครูก่อนใช้ฐานข้อมูลกลาง');
+        return null;
+      }
+      const raw = await joinRpc('join_activity_create_session', {
+        p_code: session.code, p_classroom_id: session.classroomId, p_room_label: session.roomLabel,
+        p_question: session.question, p_answer_type: session.answerType, p_options: session.options,
+        p_teacher_email: teacherEmail
+      });
+      const remote = normalizeRemoteSession(raw);
+      if (remote) joinRemoteMode = true;
+      return remote;
+    }
+
+    async function remoteUpdateSession(session) {
+      const raw = await joinRpc('join_activity_update_session', {
+        p_code: session.code, p_question: session.question, p_answer_type: session.answerType, p_options: session.options
+      });
+      return normalizeRemoteSession(raw);
+    }
+
+    async function remoteSetPhase(code, phase) {
+      const raw = await joinRpc('join_activity_set_phase', { p_code: code, p_phase: phase });
+      return normalizeRemoteSession(raw);
+    }
+
+    async function remoteGetSession(code) {
+      const raw = await joinRpc('join_activity_get_session', { p_code: code });
+      const remote = normalizeRemoteSession(raw);
+      if (remote) joinRemoteMode = true;
+      return remote;
+    }
+
+    async function refreshRemoteTeacherSession() {
+      if (!activeCode || !canUseJoinBackend()) return;
+      const raw = await joinRpc('join_activity_teacher_snapshot', { p_code: activeCode });
+      const remote = normalizeRemoteSession(raw);
+      if (remote) {
+        sessions[activeCode] = { ...sessions[activeCode], ...remote };
+        saveSessions();
+      }
+    }
+
+    function getParticipantToken(code) {
+      const key = `classkru_join_participant_token_${code}`;
+      let token = localStorage.getItem(key);
+      if (!token) { const id = window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`; token = `token-${id}`; localStorage.setItem(key, token); }
+      return token;
+    }
+
+    async function remoteRegisterParticipant(code, profile, participantKey, token) {
+      const raw = await joinRpc('join_activity_register', {
+        p_code: code, p_participant_key: participantKey, p_participant_token: token,
+        p_first_name: profile.firstName, p_nickname: profile.nickname, p_student_no: profile.no, p_student_code: profile.code
+      });
+      return raw || null;
+    }
+
+    async function remoteSubmitAnswer(code, participantId, token, answer) {
+      return await joinRpc('join_activity_submit_answer', {
+        p_code: code, p_participant_id: participantId, p_participant_token: token, p_answer: answer
+      });
+    }
+
     function renderTeacherView() {
       document.getElementById('teacher-view').style.display = 'block';
       const classSelect = document.getElementById('class-select');
@@ -1149,8 +1302,9 @@
       updateRoomLabel();
       findLatestSession();
       renderSession();
-      timer = setInterval(() => {
-        sessions = loadJson(JOIN_KEY, {});
+      timer = setInterval(async () => {
+        if (joinRemoteMode) await refreshRemoteTeacherSession();
+        else sessions = loadJson(JOIN_KEY, {});
         renderSession();
         if (document.getElementById('import-review-overlay')?.classList.contains('show')) renderImportReview();
       }, 1200);
@@ -1199,29 +1353,34 @@
       };
     }
 
-    function startSession() {
+    async function startSession() {
       activeCode = `CK-${Math.floor(1000 + Math.random() * 9000)}`;
-      sessions[activeCode] = buildSession(activeCode, false);
+      const draft = buildSession(activeCode, false);
+      const remote = await remoteCreateSession(draft);
+      sessions[activeCode] = remote ? { ...draft, ...remote, studentsSnapshot: draft.studentsSnapshot } : draft;
       saveSessions();
       renderSession();
     }
 
-    function saveCurrentSession() {
+    async function saveCurrentSession() {
       if (!activeCode) startSession();
       else {
-        sessions[activeCode] = buildSession(activeCode, true);
+        const draft = buildSession(activeCode, true);
+        const remote = await remoteUpdateSession(draft);
+        sessions[activeCode] = remote ? { ...draft, ...remote, studentsSnapshot: draft.studentsSnapshot } : draft;
         saveSessions();
         renderSession();
       }
     }
 
-    function startQuestionPhase() {
+    async function startQuestionPhase() {
       const session = sessions[activeCode];
       if (!session) {
         alert('กรุณาเปิดรับคำตอบใหม่ก่อน');
         return;
       }
-      session.phase = 'question';
+      const remote = await remoteSetPhase(activeCode, 'question');
+      session.phase = remote?.phase || 'question';
       session.questionStartedAt = new Date().toISOString();
       saveSessions();
       renderSession();
@@ -1542,8 +1701,10 @@
       renderImportReview();
     }
 
-    function renderStudentView(code) {
+    async function renderStudentView(code) {
       document.getElementById('student-view').style.display = 'grid';
+      const remoteSession = await remoteGetSession(code);
+      if (remoteSession) sessions[code] = { ...sessions[code], ...remoteSession };
       const session = sessions[code];
       if (!session) {
         document.getElementById('student-room').textContent = 'ไม่พบกิจกรรม';
@@ -1612,7 +1773,7 @@
       };
     }
 
-    function submitStudentProfile() {
+    async function submitStudentProfile() {
       const session = sessions[activeCode];
       if (!session) return;
       const profile = getStudentProfile();
@@ -1625,15 +1786,19 @@
       const cls = state.classes.find(item => item.id === session.classroomId);
       const existingStudent = findExistingStudent(cls, profile);
       const duplicate = session.participants.find(item => (item.participantKey || item.studentKey) === participantKey);
-      const participant = duplicate || { id: `participant-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, participantKey, createdAt: new Date().toISOString() };
+      const participantToken = getParticipantToken(activeCode);
+      const remote = await remoteRegisterParticipant(activeCode, profile, participantKey, participantToken);
+      if (remote?.participantToken) localStorage.setItem(`classkru_join_participant_token_${activeCode}`, remote.participantToken);
+      const participant = duplicate || { id: remote?.id || `participant-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, participantKey, createdAt: new Date().toISOString() };
+      if (remote?.id) participant.id = remote.id;
       Object.assign(participant, { ...profile, participantKey, studentKey: participantKey, status: existingStudent ? 'existing' : (duplicate?.status === 'imported' ? 'imported' : 'new'), updatedAt: new Date().toISOString() });
       if (!duplicate) session.participants.push(participant);
       localStorage.setItem(getParticipantIdentityKey(activeCode), participant.id);
       saveSessions();
-      renderStudentView(activeCode);
+      await renderStudentView(activeCode);
     }
 
-    function submitStudentAnswer() {
+    async function submitStudentAnswer() {
       const session = sessions[activeCode];
       const participant = findParticipant(session, getStoredParticipantId(activeCode));
       const answer = getStudentAnswer();
@@ -1646,13 +1811,20 @@
         alert('กรุณาเลือกหรือพิมพ์คำตอบก่อนส่ง');
         return;
       }
+      if (joinRemoteMode) {
+        const remote = await remoteSubmitAnswer(activeCode, participant.id, getParticipantToken(activeCode), answer);
+        if (!remote) {
+          alert('ยังส่งคำตอบไปยังระบบกลางไม่ได้ กรุณาลองใหม่อีกครั้ง');
+          return;
+        }
+      }
       session.answers = getSessionAnswers(session);
       const existing = session.answers.find(item => item.participantId === participant.id);
       const answerRecord = existing || { id: `answer-${Date.now()}`, participantId: participant.id, createdAt: new Date().toISOString() };
       Object.assign(answerRecord, { answer, updatedAt: new Date().toISOString() });
       if (!existing) session.answers.push(answerRecord);
       saveSessions();
-      renderStudentView(activeCode);
+      await renderStudentView(activeCode);
     }
   </script>
 </body>
