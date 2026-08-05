@@ -1372,6 +1372,10 @@
       });
       updateRoomLabel();
       findLatestSession();
+      if (!activeCode) {
+        document.getElementById('answer-type').value = 'short';
+        document.getElementById('options-wrap').style.display = 'none';
+      }
       renderSession();
       timer = setInterval(async () => {
         if (joinRemoteMode) await refreshRemoteTeacherSession();
