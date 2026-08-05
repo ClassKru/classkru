@@ -1652,16 +1652,23 @@
     async function renderPresentationView(code) {
       document.getElementById('presentation-view').style.display = 'block';
       activeCode = code;
+      syncPresentationFromLocal();
       if (canUseJoinBackend()) await refreshRemoteTeacherSession();
       renderPresentationSession();
       timer = setInterval(async () => {
+        syncPresentationFromLocal();
         if (canUseJoinBackend()) {
           await refreshRemoteTeacherSession();
-        } else {
-          sessions = loadJson(JOIN_KEY, {});
         }
         renderPresentationSession();
       }, 1200);
+    }
+
+    function syncPresentationFromLocal() {
+      const localSessions = loadJson(JOIN_KEY, {});
+      const localSession = localSessions[activeCode];
+      if (!localSession) return;
+      sessions[activeCode] = { ...sessions[activeCode], ...localSession };
     }
 
     function renderPresentationSession() {
