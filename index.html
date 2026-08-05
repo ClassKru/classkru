@@ -40,6 +40,41 @@
 </head>
 <body>
 
+  <!-- PUBLIC JOIN SCREEN (local prototype) -->
+  <div id="public-join-screen" class="ck-public-join" style="display:none;">
+    <div class="ck-public-phone">
+      <div class="ck-public-head">
+        <img src="logo.png?v=2" alt="ClassKru">
+        <div>
+          <strong id="public-join-room">เข้าร่วมห้องเรียน</strong>
+          <span id="public-join-code">รหัสห้อง</span>
+        </div>
+      </div>
+      <div class="ck-public-card" id="public-join-form-card">
+        <div class="ck-public-question">
+          <span>คำถามวันนี้</span>
+          <strong id="public-join-question">...</strong>
+        </div>
+        <div id="public-join-answer-area" class="ck-public-answer-area"></div>
+        <div class="ck-public-fields">
+          <label>ชื่อจริง<input id="public-first-name" class="form-control" placeholder="เช่น สมชาย"></label>
+          <label>ชื่อเล่น<input id="public-nickname" class="form-control" placeholder="เช่น บอล"></label>
+          <div class="ck-public-two-col">
+            <label>เลขที่<input id="public-student-no" class="form-control" inputmode="numeric" placeholder="12"></label>
+            <label>รหัสนักเรียน<input id="public-student-code" class="form-control" placeholder="ไม่บังคับ"></label>
+          </div>
+        </div>
+        <p class="ck-public-note">ข้อมูลนี้จะถูกส่งให้ครูตรวจสอบก่อนเพิ่มเข้ารายชื่อห้องเรียน</p>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="submitPublicJoinResponse()"><i class="hgi-stroke hgi-task-done-01"></i> ส่งคำตอบและเข้าร่วม</button>
+      </div>
+      <div class="ck-public-card ck-public-success" id="public-join-success" style="display:none;">
+        <div class="ck-public-success-icon">✓</div>
+        <strong>เข้าร่วมสำเร็จ</strong>
+        <span>คำตอบถูกส่งให้ครูแล้ว กรุณารอครูเริ่มกิจกรรม</span>
+      </div>
+    </div>
+  </div>
+
   <!-- LOGIN SCREEN -->
   <div id="login-overlay" class="modal-overlay show" style="z-index:10000;backdrop-filter:none;background:linear-gradient(160deg,#f0fdf4 0%,#ffffff 50%,#f0fdf4 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:24px;overflow-y:auto;">
     <div id="login-content" style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;margin:auto 0;">
@@ -292,6 +327,7 @@
               <div class="subtitle" id="web-students-count-label">พบ 0 คน</div>
               <div class="students-action-btns" style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn" style="background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);" onclick="openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
+                <button class="btn ck-checkin-activity-btn desktop-only-flex" onclick="openClassJoinActivity()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียนผ่านกิจกรรม</button>
                 <button class="btn desktop-only-flex" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
                 <button class="btn btn-danger desktop-only-flex" onclick="deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i> ลบทั้งหมด</button>
                 <button class="ck-class-menu-btn mobile-only-flex" aria-label="ตัวเลือกเพิ่มเติม" style="align-items:center;" onclick="toggleStudentsActionMenu(event)"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
@@ -910,6 +946,81 @@
 <div class="form-group" style="margin-bottom:12px;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">ชื่อเล่น</label><input id="student-detail-nickname" type="text" class="form-control" style="font-size:0.9rem;padding:8px 10px;" placeholder="ไม่บังคับ"></div>
 <div class="form-group"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);" for="student-detail-comment">หมายเหตุ</label><textarea id="student-detail-comment" class="form-control" style="height:56px;font-size:0.85rem;" placeholder="บันทึกของครู..."></textarea></div>
 <div style="display:flex;gap:10px;margin-top:20px;"><button class="btn" style="flex:1;" onclick="closeStudentDetailModal()">ยกเลิก</button><button class="btn btn-primary" style="flex:2;" onclick="saveStudentDetailChanges()">บันทึก</button></div></div></div>
+
+  <!-- LOCAL PROTOTYPE: CLASS JOIN ACTIVITY -->
+  <div class="modal-overlay" id="modal-join-activity" onclick="if(event.target===this) closeClassJoinActivity()" style="z-index:9100;">
+    <div class="bottom-sheet ck-join-sheet">
+      <div class="modal-header">
+        <div>
+          <h3><i class="hgi-stroke hgi-user-add-01" style="color:var(--primary);"></i> เพิ่มนักเรียนผ่านกิจกรรม</h3>
+          <div id="join-activity-class-label" class="ck-join-class-label">ห้องเรียน</div>
+        </div>
+        <button class="btn btn-text" onclick="closeClassJoinActivity()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+
+      <div class="ck-join-prototype-note">
+        Prototype local: ยังไม่บันทึกข้อมูลจริง ใช้ทดลอง flow ให้นักเรียนกรอกชื่อจริงผ่านกิจกรรมเปิดคาบ
+      </div>
+
+      <div class="ck-join-layout">
+        <section class="ck-join-panel">
+          <div class="ck-join-section-title">1. ตั้งคำถามกิจกรรม</div>
+          <div class="form-group">
+            <label for="join-question-input">คำถามที่ครูออกแบบเอง</label>
+            <textarea id="join-question-input" class="form-control" rows="2" oninput="renderJoinActivityPreview()">วันนี้รู้สึกพร้อมเรียนแค่ไหน?</textarea>
+          </div>
+          <div class="ck-join-two-col">
+            <div class="form-group">
+              <label for="join-answer-type">รูปแบบคำตอบ</label>
+              <select id="join-answer-type" class="form-control" onchange="renderJoinActivityPreview()">
+                <option value="short">คำตอบสั้น</option>
+                <option value="choice" selected>ตัวเลือก</option>
+                <option value="scale">ระดับ 1-5</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="join-display-mode">แสดงบนจอครู</label>
+              <select id="join-display-mode" class="form-control" onchange="renderJoinActivityPreview()">
+                <option value="anonymous" selected>ไม่โชว์ชื่อ</option>
+                <option value="nickname">โชว์ชื่อเล่น</option>
+                <option value="count">โชว์เฉพาะจำนวน</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" id="join-options-wrap">
+            <label for="join-options-input">ตัวเลือกคำตอบ</label>
+            <input id="join-options-input" class="form-control" value="พร้อมมาก, พอไหว, ง่วงนิดหน่อย, ยังไม่พร้อม" oninput="renderJoinActivityPreview()">
+          </div>
+          <div class="ck-join-actions">
+            <button class="btn btn-primary" onclick="mockStartJoinActivity()"><i class="hgi-stroke hgi-play"></i> เปิดรับคำตอบ</button>
+            <button class="btn" onclick="mockAddJoinResponse()"><i class="hgi-stroke hgi-add-01"></i> จำลองนักเรียนตอบ</button>
+          </div>
+        </section>
+
+        <section class="ck-join-panel ck-join-share">
+          <div class="ck-join-section-title">2. QR / รหัสเข้าร่วม</div>
+          <img class="ck-join-qr-img" id="join-qr-img" alt="QR Code สำหรับเข้าร่วมกิจกรรม">
+          <div class="ck-join-code" id="join-code-label">CK-4821</div>
+          <a class="ck-join-link" id="join-link-label" href="#" target="_blank" rel="noopener">สร้างลิงก์หลังเปิดรับ</a>
+          <div class="ck-join-mini-stats">
+            <span><b id="join-stat-total">0</b> ตอบแล้ว</span>
+            <span><b id="join-stat-pending">0</b> รอตรวจ</span>
+          </div>
+        </section>
+      </div>
+
+      <div class="ck-join-layout ck-join-layout-bottom">
+        <section class="ck-join-panel">
+          <div class="ck-join-section-title">จอครู: Live Wall</div>
+          <div id="join-live-wall" class="ck-join-live-wall"></div>
+        </section>
+        <section class="ck-join-panel">
+          <div class="ck-join-section-title">ข้อมูลหลังบ้านที่ครูตรวจได้</div>
+          <div id="join-pending-list" class="ck-join-pending-list"></div>
+        </section>
+      </div>
+    </div>
+  </div>
 
   <!-- STUDENT SUMMARY MODAL (ดูข้อมูล: เข้าเรียน + คะแนน/เกรด — คนละอันกับหน้าแก้ไข) -->
   <div class="modal-overlay" id="modal-student-summary" onclick="if(event.target===this) closeStudentSummaryModal()" style="z-index:9000;">
