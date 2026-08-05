@@ -1042,7 +1042,6 @@
     <div class="phone">
       <div class="student-head">
         <h1 id="student-room">ClassKru</h1>
-        <p id="student-code">รหัสกิจกรรม</p>
       </div>
       <section id="student-form-card" class="card student-card">
         <h2>เข้าร่วมกิจกรรม</h2>
@@ -1795,13 +1794,11 @@
       const session = sessions[code];
       if (!session) {
         document.getElementById('student-room').textContent = 'ไม่พบกิจกรรม';
-        document.getElementById('student-code').textContent = code || '-';
         showStudentState('missing');
         return;
       }
       activeCode = code;
       document.getElementById('student-room').textContent = session.roomLabel || 'ClassKru';
-      document.getElementById('student-code').textContent = session.code;
       const participant = findParticipant(session, getStoredParticipantId(code));
       const answer = getSessionAnswers(session).find(item => item.participantId === participant?.id);
       if (!participant) {
@@ -1836,6 +1833,9 @@
 
     function renderAnswerInput(session) {
       const area = document.getElementById('student-answer-area');
+      const signature = JSON.stringify({ answerType: session.answerType, options: session.options || [] });
+      if (area.dataset.answerSignature === signature) return;
+      const previousAnswer = getStudentAnswer();
       if (session.answerType === 'choice' && session.options && session.options.length) {
         area.innerHTML = `<div class="choice-list">${session.options.map((opt, idx) => `<label class="choice"><input type="radio" name="answer" value="${escapeHtml(opt)}" ${idx === 0 ? 'checked' : ''}><span>${escapeHtml(opt)}</span></label>`).join('')}</div>`;
       } else if (session.answerType === 'scale') {
@@ -1843,6 +1843,11 @@
       } else {
         area.innerHTML = '<textarea id="answer-text" class="input" placeholder="พิมพ์คำตอบของคุณ"></textarea>';
       }
+      area.dataset.answerSignature = signature;
+      const text = document.getElementById('answer-text');
+      if (text && previousAnswer) text.value = previousAnswer;
+      const choice = [...area.querySelectorAll('input[name="answer"]')].find(input => input.value === previousAnswer);
+      if (choice) choice.checked = true;
     }
 
     function getStudentAnswer() {
