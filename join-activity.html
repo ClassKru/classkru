@@ -391,6 +391,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .choice-inputs {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .choice-inputs .input { min-width: 0; }
     .actions {
       align-items: center;
       min-height: 40px;
@@ -971,7 +977,12 @@
               </select>
             </label>
             <label id="options-wrap">ตัวเลือกคำตอบ
-              <input id="options-input" class="input" placeholder="เช่น พร้อมมาก, พอไหว, ง่วงนิดหน่อย, ยังไม่พร้อม">
+              <div class="choice-inputs">
+                <input id="option-input-1" class="input" placeholder="ตัวเลือก 1">
+                <input id="option-input-2" class="input" placeholder="ตัวเลือก 2">
+                <input id="option-input-3" class="input" placeholder="ตัวเลือก 3">
+                <input id="option-input-4" class="input" placeholder="ตัวเลือก 4">
+              </div>
             </label>
           </div>
           <div class="actions">
@@ -1150,7 +1161,7 @@
       return (state.classes || []).find(c => c.id === currentClassId) || null;
     }
     function getOptions() {
-      return (document.getElementById('options-input').value || '').split(',').map(v => v.trim()).filter(Boolean);
+      return [1, 2, 3, 4].map(index => document.getElementById(`option-input-${index}`).value.trim()).filter(Boolean);
     }
     function getSessionParticipants(session) {
       if (!session) return [];
@@ -1337,7 +1348,7 @@
         updateRoomLabel();
         renderSession();
       };
-      ['question-input','answer-type','options-input'].forEach(id => {
+      ['question-input','answer-type','option-input-1','option-input-2','option-input-3','option-input-4'].forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
           teacherFormDirty = true;
           document.getElementById('options-wrap').style.display = document.getElementById('answer-type').value === 'choice' ? 'grid' : 'none';
@@ -1371,7 +1382,9 @@
         const savedOptions = s.options || [];
         const oldDefaultOptions = ['พร้อมมาก', 'พอไหว', 'ง่วงนิดหน่อย', 'ยังไม่พร้อม'];
         const isOldDefault = savedOptions.length === oldDefaultOptions.length && savedOptions.every((item, index) => item === oldDefaultOptions[index]);
-        document.getElementById('options-input').value = isOldDefault ? '' : savedOptions.join(', ');
+        [1, 2, 3, 4].forEach(index => {
+          document.getElementById(`option-input-${index}`).value = isOldDefault ? '' : (savedOptions[index - 1] || '');
+        });
       }
     }
 
@@ -1402,7 +1415,7 @@
       const options = getOptions();
       if (answerType === 'choice' && options.length < 2) {
         alert('กรุณากรอกตัวเลือกอย่างน้อย 2 ตัวเลือก โดยคั่นด้วยเครื่องหมายจุลภาค เช่น พร้อมมาก, พอไหว, ยังไม่พร้อม');
-        document.getElementById('options-input').focus();
+        document.getElementById('option-input-1').focus();
         return false;
       }
       return true;
