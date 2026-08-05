@@ -834,6 +834,12 @@
       color: var(--fresh-ink);
       font-size: clamp(1.8rem, 4vw, 3.4rem);
     }
+    .presentation-joinbar { display:flex; align-items:center; gap:18px; width:fit-content; margin:-8px 0 22px; padding:12px 16px 12px 12px; border:1px solid rgba(255,255,255,.9); border-radius:18px; background:rgba(255,255,255,.78); box-shadow:0 10px 24px rgba(16,35,63,.08); }
+    .presentation-qr { width:112px; height:112px; display:block; padding:6px; border-radius:12px; background:#fff; object-fit:contain; }
+    .presentation-join-copy { display:grid; gap:5px; }
+    .presentation-join-copy strong { color:var(--fresh-ink); font-size:1.35rem; letter-spacing:.08em; }
+    .presentation-join-copy span { color:var(--primary); font-weight:900; }
+    .presentation-join-copy small { max-width:280px; color:var(--muted); font-weight:700; overflow-wrap:anywhere; }
     .presentation-footer b {
       color: var(--text);
     }
@@ -893,6 +899,7 @@
       .review-stats {
         grid-template-columns: repeat(2, 1fr);
       }
+      .presentation-joinbar { width:100%; }
       .review-row {
         grid-template-columns: 1fr;
       }
@@ -1058,7 +1065,20 @@
   <main id="presentation-view" class="presentation-page" style="display:none;">
     <div class="presentation-shell">
       <div class="presentation-topbar"><div><span class="presentation-kicker">CLASSKRU · LIVE ACTIVITY</span><h1 id="presentation-room">เพิ่มนักเรียนเข้าห้อง</h1></div><span class="presentation-code" id="presentation-code">-</span></div>
-      <section class="presentation-stage"><p class="stage-kicker">กิจกรรมกำลังดำเนินอยู่</p><h2 id="presentation-question">รอนักเรียนเข้าร่วม</h2><div id="presentation-output" class="presentation-output"></div><div class="presentation-footer"><span>เข้าร่วมแล้ว <b id="presentation-total">0</b> คน</span><span>ข้อมูลจะแสดงแบบไม่เปิดเผยชื่อบนจอนี้</span></div></section>
+      <section class="presentation-stage">
+        <p class="stage-kicker">กิจกรรมกำลังดำเนินอยู่</p>
+        <div class="presentation-joinbar">
+          <img id="presentation-qr" class="presentation-qr" alt="QR Code สำหรับเข้าร่วมกิจกรรม">
+          <div class="presentation-join-copy">
+            <span>สแกน QR เพื่อเข้าร่วม</span>
+            <strong id="presentation-join-code">-</strong>
+            <small id="presentation-join-link">-</small>
+          </div>
+        </div>
+        <h2 id="presentation-question">รอนักเรียนเข้าร่วม</h2>
+        <div id="presentation-output" class="presentation-output"></div>
+        <div class="presentation-footer"><span>เข้าร่วมแล้ว <b id="presentation-total">0</b> คน</span><span>ข้อมูลจะแสดงแบบไม่เปิดเผยชื่อบนจอนี้</span></div>
+      </section>
     </div>
   </main>
 
@@ -1082,6 +1102,7 @@
     let joinBackendReady = false;
     let joinRemoteMode = false;
     let joinRemoteUnavailable = false;
+    let teacherFormDirty = false;
 
     document.addEventListener('DOMContentLoaded', async () => {
       await initJoinBackend();
@@ -1293,11 +1314,13 @@
       classSelect.onchange = () => {
         currentClassId = classSelect.value;
         activeCode = '';
+        teacherFormDirty = false;
         updateRoomLabel();
         renderSession();
       };
       ['question-input','answer-type','options-input'].forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
+          teacherFormDirty = true;
           document.getElementById('options-wrap').style.display = document.getElementById('answer-type').value === 'choice' ? 'grid' : 'none';
         });
       });
@@ -1322,7 +1345,7 @@
       if (!cls) return;
       const list = Object.values(sessions).filter(s => s.classroomId === cls.id).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
       activeCode = list[0]?.code || '';
-      if (activeCode) {
+      if (activeCode && !teacherFormDirty) {
         const s = sessions[activeCode];
         document.getElementById('question-input').value = s.question || 'วันนี้รู้สึกพร้อมเรียนแค่ไหน?';
         document.getElementById('answer-type').value = s.answerType || 'choice';
@@ -1360,6 +1383,7 @@
       const draft = buildSession(activeCode, false);
       const remote = await remoteCreateSession(draft);
       sessions[activeCode] = remote ? { ...draft, ...remote, studentsSnapshot: draft.studentsSnapshot } : draft;
+      teacherFormDirty = false;
       saveSessions();
       renderSession();
     }
@@ -1370,6 +1394,7 @@
         const draft = buildSession(activeCode, true);
         const remote = await remoteUpdateSession(draft);
         sessions[activeCode] = remote ? { ...draft, ...remote, studentsSnapshot: draft.studentsSnapshot } : draft;
+        teacherFormDirty = false;
         saveSessions();
         renderSession();
       }
@@ -1509,6 +1534,10 @@
       const responses = getSessionParticipants(session);
       document.getElementById('presentation-room').textContent = session.roomLabel || 'เพิ่มนักเรียนเข้าห้อง';
       document.getElementById('presentation-code').textContent = session.code;
+      const joinUrl = getJoinUrl(session.code);
+      document.getElementById('presentation-join-code').textContent = session.code;
+      document.getElementById('presentation-join-link').textContent = joinUrl;
+      document.getElementById('presentation-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(joinUrl)}`;
       document.getElementById('presentation-question').textContent = session.phase === 'question' ? (session.question || 'คำถามเปิดคาบ') : 'กำลังรอนักเรียนเข้าห้อง';
       document.getElementById('presentation-total').textContent = responses.length;
       renderLiveWall(session, responses, output);
