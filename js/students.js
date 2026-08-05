@@ -1,3 +1,15 @@
+// หน้าเพิ่มนักเรียนแบบแท็บใหม่จะเขียนรายชื่อเข้าที่เก็บข้อมูลเดียวกัน
+// อีเวนต์นี้ทำให้หน้าจัดการเดิมเห็นรายชื่อใหม่ทันทีโดยไม่ต้องรีเฟรชเอง
+window.addEventListener('storage', (event) => {
+  if (event.key !== 'classkru_mobile_v4' || !event.newValue) return;
+  try {
+    appState = JSON.parse(event.newValue);
+    if (typeof renderWebStudents === 'function') renderWebStudents();
+  } catch (error) {
+    console.warn('ClassKru student roster sync failed', error);
+  }
+});
+
 // มือถือ: ช่องค้นหาซ่อนไว้ ให้หัวจอสูงเท่าหน้าอื่น (52px) — แตะแว่นขยายค่อยกางออกมา
 // ปิดแล้วล้างคำค้นด้วย ไม่งั้นรายชื่อจะถูกกรองค้างโดยที่ผู้ใช้มองไม่เห็นช่องค้นหา
 function toggleStudentsSearch() {
@@ -107,12 +119,319 @@ function toggleStudentsActionMenu(ev) {
   menu.dataset.for = 'students-actions';
   menu.innerHTML = `
     <button onclick="closeClassMenu();openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียน</span></button>
+    <button onclick="closeClassMenu();openClassJoinActivity()"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียนผ่านกิจกรรม</span></button>
     <button onclick="closeClassMenu();triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i><span>นำเข้า Excel</span></button>
     <button class="danger" onclick="closeClassMenu();deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i><span>ลบทั้งหมด</span></button>`;
   document.body.appendChild(menu);
   menu.style.top = (r.bottom + window.scrollY + 6) + 'px';
   menu.style.left = (r.right + window.scrollX - menu.offsetWidth) + 'px';
   setTimeout(() => document.addEventListener('click', closeClassMenuOnOutside), 0);
+}
+
+// Local working prototype: เปิดรับนักเรียนผ่านกิจกรรมเพิ่มนักเรียนในเครื่องนี้
+const JOIN_ACTIVITY_STORAGE_KEY = 'classkru_join_activity_sessions_v2';
+let activeJoinSessionCode = null;
+let joinActivityRefreshTimer = null;
+const JOIN_ACTIVITY_SAMPLE = [
+  { firstName: 'สมชาย', lastName: 'ใจดี', nickname: 'บอล', no: 12, code: '12345', answer: 'พร้อมมาก', status: 'matched' },
+  { firstName: 'มาลี', lastName: 'สดใส', nickname: 'มายด์', no: 8, code: '13008', answer: 'พอไหว', status: 'matched' },
+  { firstName: 'ธนา', lastName: '', nickname: 'นัท', no: 51, code: '', answer: 'ง่วงนิดหน่อย', status: 'pending' },
+  { firstName: 'พิมพ์', lastName: '', nickname: 'พิม', no: '', code: '', answer: 'อยากเริ่มด้วยเกม', status: 'pending' }
+];
+
+function openClassJoinActivity() {
+  if (!currentClassId) {
+    alert('กรุณาเลือกห้องเรียนก่อนเปิดกิจกรรมเพิ่มนักเรียน');
+    return;
+  }
+  const activityUrl = `join-activity.html?classId=${encodeURIComponent(currentClassId)}`;
+  const activityTab = window.open(activityUrl, '_blank');
+  if (!activityTab) window.location.href = activityUrl;
+}
+
+function closeClassJoinActivity() {
+  const modal = document.getElementById('modal-join-activity');
+  if (modal) modal.classList.remove('show');
+  if (joinActivityRefreshTimer) clearInterval(joinActivityRefreshTimer);
+  joinActivityRefreshTimer = null;
+}
+
+function getJoinQuestion() {
+  return (document.getElementById('join-question-input')?.value || '').trim() || 'วันนี้รู้สึกพร้อมเรียนแค่ไหน?';
+}
+
+function getJoinDisplayMode() {
+  return document.getElementById('join-display-mode')?.value || 'anonymous';
+}
+
+function getJoinAnswerType() {
+  return document.getElementById('join-answer-type')?.value || 'choice';
+}
+
+function getJoinOptions() {
+  return (document.getElementById('join-options-input')?.value || '')
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean);
+}
+
+function getJoinSessions() {
+  try { return JSON.parse(localStorage.getItem(JOIN_ACTIVITY_STORAGE_KEY) || '{}') || {}; }
+  catch (e) { return {}; }
+}
+
+function saveJoinSessions(sessions) {
+  localStorage.setItem(JOIN_ACTIVITY_STORAGE_KEY, JSON.stringify(sessions));
+}
+
+function getActiveJoinSession() {
+  if (!activeJoinSessionCode) return null;
+  return getJoinSessions()[activeJoinSessionCode] || null;
+}
+
+function createJoinActivitySession(resetResponses = true) {
+  const cls = appState.classes.find(c => c.id === currentClassId);
+  if (!cls) return null;
+  const sessions = getJoinSessions();
+  const code = activeJoinSessionCode || `CK-${Math.floor(1000 + Math.random() * 9000)}`;
+  const previous = sessions[code] || {};
+  sessions[code] = {
+    code,
+    classroomId: cls.id,
+    roomLabel: `${cls.subject} (${cls.className})`,
+    question: getJoinQuestion(),
+    answerType: getJoinAnswerType(),
+    options: getJoinOptions(),
+    displayMode: getJoinDisplayMode(),
+    status: 'open',
+    createdAt: previous.createdAt || new Date().toISOString(),
+    studentsSnapshot: (cls.students || []).map(s => ({
+      id: s.id,
+      name: s.name || '',
+      no: s.no || s.studentNo || '',
+      studentCode: s.studentCode || ''
+    })),
+    responses: resetResponses ? [] : (previous.responses || [])
+  };
+  activeJoinSessionCode = code;
+  saveJoinSessions(sessions);
+  updateJoinShareBox(sessions[code]);
+  return sessions[code];
+}
+
+function updateJoinActivitySessionFromForm() {
+  const session = getActiveJoinSession();
+  if (!session) return createJoinActivitySession(false);
+  const sessions = getJoinSessions();
+  sessions[session.code] = {
+    ...session,
+    question: getJoinQuestion(),
+    answerType: getJoinAnswerType(),
+    options: getJoinOptions(),
+    displayMode: getJoinDisplayMode()
+  };
+  saveJoinSessions(sessions);
+  updateJoinShareBox(sessions[session.code]);
+  return sessions[session.code];
+}
+
+function getJoinUrl(code) {
+  return `${location.origin}${location.pathname}#join:${encodeURIComponent(code)}`;
+}
+
+function updateJoinShareBox(session) {
+  if (!session) return;
+  const url = getJoinUrl(session.code);
+  const codeEl = document.getElementById('join-code-label');
+  const linkEl = document.getElementById('join-link-label');
+  const qrEl = document.getElementById('join-qr-img');
+  if (codeEl) codeEl.innerText = session.code;
+  if (linkEl) {
+    linkEl.innerText = url;
+    linkEl.href = url;
+  }
+  if (qrEl) {
+    qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
+  }
+}
+
+function renderJoinActivityPreview() {
+  const answerType = document.getElementById('join-answer-type')?.value || 'short';
+  const optionWrap = document.getElementById('join-options-wrap');
+  if (optionWrap) optionWrap.style.display = answerType === 'choice' ? 'block' : 'none';
+  const session = updateJoinActivitySessionFromForm();
+  const responses = session ? (session.responses || []) : [];
+
+  const liveWall = document.getElementById('join-live-wall');
+  const pendingList = document.getElementById('join-pending-list');
+  const totalEl = document.getElementById('join-stat-total');
+  const pendingEl = document.getElementById('join-stat-pending');
+  if (!liveWall || !pendingList) return;
+
+  const displayMode = getJoinDisplayMode();
+  const question = getJoinQuestion();
+  const pendingCount = responses.filter(r => r.status !== 'matched').length;
+  if (totalEl) totalEl.innerText = responses.length;
+  if (pendingEl) pendingEl.innerText = pendingCount;
+
+  if (displayMode === 'count') {
+    liveWall.innerHTML = `
+      <div class="ck-join-count-wall">
+        <span>${responses.length}</span>
+        <strong>คำตอบแล้ว</strong>
+        <small>${question}</small>
+      </div>`;
+  } else if (responses.length === 0) {
+    liveWall.innerHTML = '<div class="ck-join-empty">ยังไม่มีคำตอบจากนักเรียน</div>';
+  } else {
+    liveWall.innerHTML = responses.map((r, idx) => {
+      const name = displayMode === 'nickname' ? (r.nickname || `นักเรียน ${idx + 1}`) : `นักเรียนคนที่ ${idx + 1}`;
+      return `<div class="ck-join-answer-card"><strong>${name}</strong><span>${escapeJoinHtml(r.answer)}</span></div>`;
+    }).join('');
+  }
+
+  pendingList.innerHTML = responses.map((r) => {
+    const statusText = r.status === 'matched' ? 'พบในรายชื่อเดิม' : 'รอตรวจสอบ';
+    const statusClass = r.status === 'matched' ? 'is-matched' : 'is-pending';
+    const fullName = `${r.firstName || '-'} ${r.lastName || ''}`.trim();
+    return `
+      <div class="ck-join-student-row">
+        <div>
+          <strong>${escapeJoinHtml(fullName)}</strong>
+          <span>ชื่อเล่น ${escapeJoinHtml(r.nickname || '-')} · เลขที่ ${escapeJoinHtml(String(r.no || '-'))} · รหัส ${escapeJoinHtml(r.code || '-')}</span>
+        </div>
+        <em class="${statusClass}">${statusText}</em>
+      </div>`;
+  }).join('') || '<div class="ck-join-empty">ยังไม่มีข้อมูลหลังบ้าน</div>';
+}
+
+function mockStartJoinActivity() {
+  createJoinActivitySession(true);
+  renderJoinActivityPreview();
+}
+
+function mockAddJoinResponse() {
+  const session = getActiveJoinSession() || createJoinActivitySession(false);
+  if (!session) return;
+  const sessions = getJoinSessions();
+  const responses = sessions[session.code].responses || [];
+  if (responses.length < JOIN_ACTIVITY_SAMPLE.length) {
+    responses.push({ ...JOIN_ACTIVITY_SAMPLE[responses.length], id: `sample-${Date.now()}` });
+  } else {
+    const next = responses.length + 1;
+    responses.push({
+      id: `sample-${Date.now()}`,
+      firstName: `นักเรียนใหม่ ${next}`,
+      lastName: '',
+      nickname: `คนที่ ${next}`,
+      no: '',
+      code: '',
+      answer: next % 2 ? 'อยากทำกิจกรรมกลุ่ม' : 'ยังไม่พร้อม',
+      status: 'pending'
+    });
+  }
+  sessions[session.code].responses = responses;
+  saveJoinSessions(sessions);
+  renderJoinActivityPreview();
+}
+
+function showPublicJoinScreen() {
+  const code = decodeURIComponent((location.hash || '').replace(/^#join:/, '').trim());
+  const sessions = getJoinSessions();
+  const session = sessions[code];
+  document.getElementById('login-overlay').style.display = 'none';
+  document.getElementById('main-app').style.display = 'none';
+  const screen = document.getElementById('public-join-screen');
+  if (screen) screen.style.display = 'flex';
+  if (!session) {
+    document.getElementById('public-join-room').innerText = 'ไม่พบกิจกรรม';
+    document.getElementById('public-join-code').innerText = code || '-';
+    document.getElementById('public-join-question').innerText = 'ลิงก์นี้หมดอายุหรือยังไม่ได้เปิดจากเครื่องนี้';
+    document.getElementById('public-join-answer-area').innerHTML = '';
+    return;
+  }
+  document.getElementById('public-join-room').innerText = session.roomLabel || 'เข้าร่วมห้องเรียน';
+  document.getElementById('public-join-code').innerText = session.code;
+  document.getElementById('public-join-question').innerText = session.question || 'ตอบคำถามเช็กอิน';
+  renderPublicJoinAnswer(session);
+}
+
+function renderPublicJoinAnswer(session) {
+  const area = document.getElementById('public-join-answer-area');
+  if (!area) return;
+  if (session.answerType === 'choice' && session.options && session.options.length) {
+    area.innerHTML = session.options.map((opt, idx) => `
+      <label class="ck-public-choice">
+        <input type="radio" name="public-answer-choice" value="${escapeJoinHtml(opt)}" ${idx === 0 ? 'checked' : ''}>
+        <span>${escapeJoinHtml(opt)}</span>
+      </label>`).join('');
+  } else if (session.answerType === 'scale') {
+    area.innerHTML = `
+      <div class="ck-public-scale">
+        ${[1,2,3,4,5].map(n => `<label><input type="radio" name="public-answer-choice" value="${n}" ${n === 3 ? 'checked' : ''}><span>${n}</span></label>`).join('')}
+      </div>`;
+  } else {
+    area.innerHTML = '<textarea id="public-answer-text" class="form-control" rows="3" placeholder="พิมพ์คำตอบของคุณ"></textarea>';
+  }
+}
+
+function getPublicJoinAnswer() {
+  const text = document.getElementById('public-answer-text');
+  if (text) return text.value.trim();
+  return document.querySelector('input[name="public-answer-choice"]:checked')?.value || '';
+}
+
+function submitPublicJoinResponse() {
+  const code = decodeURIComponent((location.hash || '').replace(/^#join:/, '').trim());
+  const sessions = getJoinSessions();
+  const session = sessions[code];
+  if (!session) return;
+  const firstName = document.getElementById('public-first-name').value.trim();
+  const nickname = document.getElementById('public-nickname').value.trim();
+  const no = document.getElementById('public-student-no').value.trim();
+  const studentCode = document.getElementById('public-student-code').value.trim();
+  const answer = getPublicJoinAnswer();
+  if (!firstName || !nickname || (!no && !studentCode) || !answer) {
+    alert('กรุณากรอกชื่อจริง ชื่อเล่น เลขที่หรือรหัสนักเรียน และคำตอบ');
+    return;
+  }
+  const matched = matchPublicJoinStudent(session, firstName, no, studentCode);
+  sessions[code].responses = sessions[code].responses || [];
+  sessions[code].responses.push({
+    id: `resp-${Date.now()}`,
+    firstName,
+    lastName: '',
+    nickname,
+    no,
+    code: studentCode,
+    answer,
+    status: matched ? 'matched' : 'pending',
+    createdAt: new Date().toISOString()
+  });
+  saveJoinSessions(sessions);
+  document.getElementById('public-join-form-card').style.display = 'none';
+  document.getElementById('public-join-success').style.display = 'block';
+}
+
+function matchPublicJoinStudent(session, firstName, no, studentCode) {
+  const students = session.studentsSnapshot || [];
+  const normalizedName = firstName.replace(/\s+/g, '').toLowerCase();
+  return students.some(s => {
+    const codeMatch = studentCode && String(s.studentCode || '') === String(studentCode);
+    const noMatch = no && String(s.no || '') === String(no);
+    const nameMatch = normalizedName && String(s.name || '').replace(/\s+/g, '').toLowerCase().includes(normalizedName);
+    return codeMatch || (noMatch && nameMatch);
+  });
+}
+
+function escapeJoinHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }[ch]));
 }
 
 // ==================== WEB TIMETABLE ====================
@@ -172,4 +491,3 @@ const DAY_TINT = {
   4: { bg:'#ffedd5', text:'#c2410c' }, // พฤหัสบดี ส้ม
   5: { bg:'#dbeafe', text:'#1d4ed8' }, // ศุกร์ ฟ้า
 };
-
