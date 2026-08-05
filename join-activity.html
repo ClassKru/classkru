@@ -81,6 +81,8 @@
     .student-state .state-meta { margin-top: 16px; padding: 12px; border-radius: 14px; background: var(--soft); color: var(--pk); font-weight: 800; }
     .teacher-phase { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 7px 11px; border-radius: 999px; background: var(--fresh-amber); color: var(--fresh-ink); font-size: .78rem; font-weight: 800; }
     .teacher-phase.is-live { background: var(--fresh-mint); color: var(--pk); }
+    #start-question-btn.is-start { background: var(--fresh-coral-strong); border-color: var(--fresh-coral-strong); color: #fff; }
+    #start-question-btn.is-started { background: var(--fresh-mint); border-color: var(--fresh-mint-strong); color: var(--pk); cursor: default; }
     @media (max-width: 940px) {
       .grid { grid-template-columns: 1fr; }
       .qr-box { width: 178px; height: 178px; }
@@ -947,7 +949,7 @@
           <div class="actions">
             <button class="btn btn-primary" onclick="startSession()"><i class="hgi-stroke hgi-play"></i> เปิดรับคำตอบใหม่</button>
             <button class="btn btn-soft" onclick="saveCurrentSession()"><i class="hgi-stroke hgi-floppy-disk"></i> อัปเดตคำถาม</button>
-            <button id="start-question-btn" class="btn btn-soft" onclick="startQuestionPhase()" style="display:none;"><i class="hgi-stroke hgi-rocket-02"></i> เปิดคำถามให้นักเรียนตอบ</button>
+            <button id="start-question-btn" class="btn is-start" onclick="startQuestionPhase()" style="display:none;"><i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม</button>
             <button class="btn" onclick="togglePresentation()"><i class="hgi-stroke hgi-presentation-01"></i> เปิดจอนำเสนอ</button>
           </div>
         </section>
@@ -1086,7 +1088,7 @@
       const params = new URLSearchParams(location.search);
       const joinCode = params.get('join');
       const presentationCode = params.get('present');
-      if (presentationCode) renderPresentationView(presentationCode);
+      if (presentationCode) await renderPresentationView(presentationCode);
       else if (joinCode) {
         renderStudentView(joinCode);
         timer = setInterval(async () => {
@@ -1419,7 +1421,12 @@
       document.getElementById('stat-answered').textContent = answers.length;
       document.getElementById('stat-pending').textContent = summary.ready;
       const questionButton = document.getElementById('start-question-btn');
-      questionButton.style.display = session.phase === 'question' ? 'none' : 'inline-flex';
+      questionButton.style.display = 'inline-flex';
+      questionButton.disabled = session.phase === 'question';
+      questionButton.className = `btn ${session.phase === 'question' ? 'is-started' : 'is-start'}`;
+      questionButton.innerHTML = session.phase === 'question'
+        ? '<i class="hgi-stroke hgi-checkmark-circle-02"></i> คำถามกำลังเปิด'
+        : '<i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม';
       renderLiveWall(session, participants);
       renderBackstage(participants, answers);
     }
@@ -1431,8 +1438,15 @@
         return;
       }
       if (session.purpose === 'add_students') {
-        renderJoinLobby(session, responses, wall);
-        return;
+        if (session.phase !== 'question') {
+          renderJoinLobby(session, responses, wall);
+          return;
+        }
+        responses = getSessionAnswers(session);
+        if (!responses.length) {
+          wall.innerHTML = '<div class="empty-stage"><strong>คำถามเปิดแล้ว</strong>กำลังรอคำตอบจากนักเรียน</div>';
+          return;
+        }
       }
       const counts = responses.reduce((map, response) => {
         const answer = String(response.answer || 'ไม่ระบุ').trim();
@@ -1469,12 +1483,17 @@
         </div>`;
     }
 
-    function renderPresentationView(code) {
+    async function renderPresentationView(code) {
       document.getElementById('presentation-view').style.display = 'block';
       activeCode = code;
+      if (canUseJoinBackend()) await refreshRemoteTeacherSession();
       renderPresentationSession();
-      timer = setInterval(() => {
-        sessions = loadJson(JOIN_KEY, {});
+      timer = setInterval(async () => {
+        if (canUseJoinBackend()) {
+          await refreshRemoteTeacherSession();
+        } else {
+          sessions = loadJson(JOIN_KEY, {});
+        }
         renderPresentationSession();
       }, 1200);
     }
@@ -1619,10 +1638,11 @@
         cls.students.push({
           id: studentId,
           name: response.firstName,
+          no: response.no || '',
           nickname: response.nickname || '',
           studentNo: response.no || '',
           studentCode: response.code || '',
-          comment: 'เพิ่มผ่านกิจกรรม QR'
+          comment: ''
         });
         response.status = 'imported';
         response.studentId = studentId;
@@ -1704,7 +1724,17 @@
     async function renderStudentView(code) {
       document.getElementById('student-view').style.display = 'grid';
       const remoteSession = await remoteGetSession(code);
-      if (remoteSession) sessions[code] = { ...sessions[code], ...remoteSession };
+      if (remoteSession) {
+        const localSession = sessions[code] || {};
+        // The public session RPC intentionally omits private participant/answer rows.
+        // Keep this device's identity and answer while refreshing the shared phase.
+        sessions[code] = {
+          ...localSession,
+          ...remoteSession,
+          participants: remoteSession.participants.length ? remoteSession.participants : (localSession.participants || []),
+          answers: remoteSession.answers.length ? remoteSession.answers : (localSession.answers || [])
+        };
+      }
       const session = sessions[code];
       if (!session) {
         document.getElementById('student-room').textContent = 'ไม่พบกิจกรรม';
