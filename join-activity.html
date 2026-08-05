@@ -418,7 +418,7 @@
       min-width: 0;
     }
     .presentation-start-btn { display:none; min-width:190px; justify-self:start; }
-    .presentation-stage.is-waiting .presentation-start-btn { display:inline-flex; grid-column:2; margin-top:14px; }
+    .presentation-stage.is-waiting .presentation-start-btn { display:inline-flex; grid-column:2; grid-row:2; margin-top:0; }
     @media (max-width: 640px) {
       .actions { grid-template-columns: 1fr 1fr; }
       .actions .btn { padding-left: 8px; padding-right: 8px; font-size: .8rem; }
@@ -849,7 +849,7 @@
       background: linear-gradient(135deg, rgba(223,244,255,.98), rgba(239,231,255,.88) 52%, rgba(223,251,240,.92));
       box-shadow: 0 18px 44px rgba(16,35,63,.12);
     }
-    .presentation-stage.is-waiting { display:grid; grid-template-columns:minmax(300px,.8fr) minmax(420px,1.2fr); align-items:center; gap:clamp(28px,6vw,90px); padding:clamp(28px,7vw,90px); }
+    .presentation-stage.is-waiting { display:grid; grid-template-columns:minmax(300px,.8fr) minmax(420px,1.2fr); grid-template-rows:auto auto 1fr auto; align-items:center; gap:clamp(20px,4vw,54px); padding:clamp(28px,7vw,90px); }
     .presentation-stage.is-question { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:clamp(30px,6vw,78px); }
     .presentation-stage h2 {
       color: var(--fresh-ink);
@@ -858,10 +858,12 @@
     .presentation-joinbar { display:flex; align-items:center; gap:24px; width:fit-content; margin:0 auto 24px; padding:18px 24px 18px 18px; border:1px solid rgba(255,255,255,.9); border-radius:22px; background:rgba(255,255,255,.78); box-shadow:0 10px 24px rgba(16,35,63,.08); }
     .presentation-stage.is-waiting .stage-kicker { grid-column:1 / -1; align-self:end; margin:0; }
     .presentation-stage.is-waiting .presentation-joinbar { flex-direction:column; gap:14px; width:100%; margin:0; padding:22px 24px 24px; }
+    .presentation-stage.is-waiting .presentation-joinbar { grid-column:1; grid-row:2 / span 2; }
     .presentation-stage.is-waiting .presentation-qr { width:min(320px, 30vw); height:min(320px, 30vw); }
     .presentation-stage.is-waiting .presentation-join-copy { text-align:center; }
     .presentation-stage.is-waiting .presentation-output { min-height:360px; width:100%; margin:0; padding:26px; border:1px solid #dce8f2; border-radius:22px; background:#fff; box-shadow:0 12px 30px rgba(16,35,63,.08); }
-    .presentation-stage.is-waiting .presentation-footer { grid-column:2; margin:0; }
+    .presentation-stage.is-waiting .presentation-output { grid-column:2; grid-row:3; }
+    .presentation-stage.is-waiting .presentation-footer { grid-column:2; grid-row:4; margin:0; }
     .presentation-stage.is-question .stage-kicker,
     .presentation-stage.is-question .presentation-joinbar { display:none; }
     .presentation-stage.is-question .presentation-question { width:100%; max-width:1100px; margin:0 0 26px; }
