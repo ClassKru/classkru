@@ -1222,6 +1222,8 @@
       try {
         joinSupabase = window.supabase.createClient(JOIN_SUPABASE_URL, JOIN_SUPABASE_KEY);
         joinBackendReady = true;
+        // Let Supabase restore the teacher session before the presentation tab polls.
+        await joinSupabase.auth.getSession();
         setJoinBackendStatus('เชื่อมต่อฐานข้อมูลกลางแล้ว');
       } catch (error) {
         console.warn('ClassKru QR backend unavailable', error);
@@ -1280,10 +1282,14 @@
       };
     }
 
-    async function joinRpc(name, args) {
+    async function joinRpc(name, args, options = {}) {
       if (!canUseJoinBackend()) return null;
       const { data, error } = await joinSupabase.rpc(name, args);
-      if (error) { markJoinBackendUnavailable(error); return null; }
+      if (error) {
+        if (!options.soft) markJoinBackendUnavailable(error);
+        else console.warn(`ClassKru QR backend request failed: ${name}`, error);
+        return null;
+      }
       return data;
     }
 
@@ -1330,10 +1336,16 @@
 
     async function refreshRemoteTeacherSession() {
       if (!activeCode || !canUseJoinBackend()) return;
-      const raw = await joinRpc('join_activity_teacher_snapshot', { p_code: activeCode });
-      const remote = normalizeRemoteSession(raw);
-      if (remote) {
-        sessions[activeCode] = { ...sessions[activeCode], ...remote };
+      const teacherRaw = await joinRpc('join_activity_teacher_snapshot', { p_code: activeCode }, { soft: true });
+      const teacher = normalizeRemoteSession(teacherRaw);
+      if (teacher) {
+        const current = sessions[activeCode] || {};
+        sessions[activeCode] = {
+          ...current,
+          ...teacher,
+          participants: teacher.participants || current.participants || [],
+          answers: teacher.answers || current.answers || []
+        };
         saveSessions();
       }
     }
