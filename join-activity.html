@@ -188,6 +188,7 @@
     .pill.imported { color:var(--pk); background:var(--pbg); }
     .pill.existing { color:#866000; background:#fff7d6; }
     .optional-label { color:var(--muted); font-size:.72rem; font-weight:700; }
+    .required-label { color:var(--fresh-coral-strong); font-size:.72rem; font-weight:800; }
     .presentation-page { min-height:100vh; padding:clamp(22px,5vw,70px); background:linear-gradient(135deg,#f3f6ff 0%,#fffaf0 55%,#ecfcf7 100%); }
     .presentation-shell { width:min(1320px,100%); margin:0 auto; }
     .presentation-topbar { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:20px; }
@@ -1058,14 +1059,14 @@
         <h2>เข้าร่วมกิจกรรม</h2>
         <p style="margin-top:-6px;color:var(--muted);font-weight:700;line-height:1.6;">กรอกข้อมูลเพื่อเข้าห้องรอ ครูจะเปิดคำถามให้เมื่อพร้อม</p>
         <div class="form-grid">
-          <label>ชื่อ-นามสกุล
-            <input id="student-first-name" class="input" placeholder="เช่น สมชาย ใจดี">
+          <label>ชื่อ-นามสกุล <span class="required-label">จำเป็น</span>
+            <input id="student-first-name" class="input" required aria-required="true" placeholder="เช่น สมชาย ใจดี">
           </label>
-          <label>ชื่อเล่น <span class="optional-label">ถ้ามี</span>
-            <input id="student-nickname" class="input" placeholder="เช่น บอล">
+          <label>ชื่อเล่น <span class="required-label">จำเป็น</span>
+            <input id="student-nickname" class="input" required aria-required="true" placeholder="เช่น บอล">
           </label>
-          <label>เลขที่ <span class="optional-label">ถ้ามี</span>
-            <input id="student-no" class="input" inputmode="numeric" placeholder="12">
+          <label>เลขที่ <span class="required-label">จำเป็น</span>
+            <input id="student-no" class="input" required aria-required="true" inputmode="numeric" placeholder="12">
           </label>
           <label>รหัสนักเรียน <span class="optional-label">ถ้ามี</span>
             <input id="student-code-input" class="input" placeholder="เช่น 13001">
@@ -1902,8 +1903,13 @@
       const session = sessions[activeCode];
       if (!session) return;
       const profile = getStudentProfile();
-      if (!profile.firstName) {
-        alert('กรุณากรอกชื่อ-นามสกุลก่อนเข้าห้องรอ');
+      const missing = [
+        !profile.firstName && 'ชื่อ-นามสกุล',
+        !profile.nickname && 'ชื่อเล่น',
+        !profile.no && 'เลขที่'
+      ].filter(Boolean);
+      if (missing.length) {
+        alert(`กรุณากรอกข้อมูลให้ครบ: ${missing.join(', ')}`);
         return;
       }
       session.participants = getSessionParticipants(session);
