@@ -1397,7 +1397,19 @@
       };
     }
 
+    function validateAnswerConfig() {
+      const answerType = document.getElementById('answer-type').value;
+      const options = getOptions();
+      if (answerType === 'choice' && options.length < 2) {
+        alert('กรุณากรอกตัวเลือกอย่างน้อย 2 ตัวเลือก โดยคั่นด้วยเครื่องหมายจุลภาค เช่น พร้อมมาก, พอไหว, ยังไม่พร้อม');
+        document.getElementById('options-input').focus();
+        return false;
+      }
+      return true;
+    }
+
     async function startSession() {
+      if (!validateAnswerConfig()) return;
       activeCode = `CK-${Math.floor(1000 + Math.random() * 9000)}`;
       const draft = buildSession(activeCode, false);
       const remote = await remoteCreateSession(draft);
@@ -1408,6 +1420,7 @@
     }
 
     async function saveCurrentSession() {
+      if (!validateAnswerConfig()) return;
       if (!activeCode) startSession();
       else {
         const draft = buildSession(activeCode, true);
@@ -1425,6 +1438,11 @@
         alert('กรุณาเปิดรับคำตอบใหม่ก่อน');
         return;
       }
+      if (!validateAnswerConfig()) return;
+      const draft = buildSession(activeCode, true);
+      Object.assign(session, draft);
+      const updated = await remoteUpdateSession(draft);
+      if (updated) Object.assign(session, updated, { participants: draft.participants, answers: draft.answers });
       const remote = await remoteSetPhase(activeCode, 'question');
       session.phase = remote?.phase || 'question';
       session.questionStartedAt = new Date().toISOString();
@@ -1836,8 +1854,10 @@
       const signature = JSON.stringify({ answerType: session.answerType, options: session.options || [] });
       if (area.dataset.answerSignature === signature) return;
       const previousAnswer = getStudentAnswer();
-      if (session.answerType === 'choice' && session.options && session.options.length) {
-        area.innerHTML = `<div class="choice-list">${session.options.map((opt, idx) => `<label class="choice"><input type="radio" name="answer" value="${escapeHtml(opt)}" ${idx === 0 ? 'checked' : ''}><span>${escapeHtml(opt)}</span></label>`).join('')}</div>`;
+      if (session.answerType === 'choice') {
+        area.innerHTML = session.options && session.options.length
+          ? `<div class="choice-list">${session.options.map((opt, idx) => `<label class="choice"><input type="radio" name="answer" value="${escapeHtml(opt)}" ${idx === 0 ? 'checked' : ''}><span>${escapeHtml(opt)}</span></label>`).join('')}</div>`
+          : '<div class="state-meta">ครูยังไม่ได้ตั้งตัวเลือก กรุณารอครูอัปเดตคำถาม</div>';
       } else if (session.answerType === 'scale') {
         area.innerHTML = `<div class="scale">${[1,2,3,4,5].map(n => `<label><input type="radio" name="answer" value="${n}" ${n === 3 ? 'checked' : ''}><span>${n}</span></label>`).join('')}</div>`;
       } else {
