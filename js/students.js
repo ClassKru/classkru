@@ -184,6 +184,18 @@ function saveJoinSessions(sessions) {
   localStorage.setItem(JOIN_ACTIVITY_STORAGE_KEY, JSON.stringify(sessions));
 }
 
+// รหัสห้องเดิมเป็น CK-1000..CK-9999 = มีแค่ 9,000 ค่า และ code เป็น unique ถาวรในตาราง
+// ชนเมื่อไหร่ระบบจะเงียบตกไปเป็นโหมดเครื่องเดียว นักเรียนสแกน QR แล้วเข้าไม่ได้
+// ต้องตรงกับ generateJoinCode() ใน join-activity.html
+const JOIN_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function generateJoinCode() {
+  const buf = new Uint32Array(6);
+  window.crypto.getRandomValues(buf);
+  let out = '';
+  for (let i = 0; i < buf.length; i++) out += JOIN_CODE_ALPHABET[buf[i] % JOIN_CODE_ALPHABET.length];
+  return `CK-${out}`;
+}
+
 function getActiveJoinSession() {
   if (!activeJoinSessionCode) return null;
   return getJoinSessions()[activeJoinSessionCode] || null;
@@ -193,7 +205,7 @@ function createJoinActivitySession(resetResponses = true) {
   const cls = appState.classes.find(c => c.id === currentClassId);
   if (!cls) return null;
   const sessions = getJoinSessions();
-  const code = activeJoinSessionCode || `CK-${Math.floor(1000 + Math.random() * 9000)}`;
+  const code = activeJoinSessionCode || generateJoinCode();
   const previous = sessions[code] || {};
   sessions[code] = {
     code,

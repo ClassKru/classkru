@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เพิ่มนักเรียนเข้าห้อง | ClassKru</title>
+  <meta name="description" content="สแกน QR หรือเปิดลิงก์จากคุณครู เพื่อเข้าร่วมกิจกรรมในห้องเรียน">
+  <!-- ห้องกิจกรรมเป็นลิงก์ชั่วคราว ไม่ต้องให้ search engine เก็บ -->
+  <meta name="robots" content="noindex, nofollow">
+  <!-- แชร์ลิงก์เข้าร่วมใน LINE แล้วขึ้นการ์ดพร้อมรูปและคำอธิบาย -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ClassKru">
+  <meta property="og:locale" content="th_TH">
+  <meta property="og:title" content="เข้าร่วมกิจกรรมในห้องเรียน | ClassKru">
+  <meta property="og:description" content="สแกน QR หรือเปิดลิงก์จากคุณครู เพื่อเข้าร่วมกิจกรรมในห้องเรียน">
+  <meta property="og:image" content="https://classkru-kohl.vercel.app/logo.png?v=2">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:image:alt" content="โลโก้ ClassKru">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -46,6 +60,15 @@
     .qr-card { text-align: center; }
     .qr-box { width: 210px; height: 210px; margin: 0 auto 12px; padding: 10px; border-radius: 22px; background: var(--card); border: 1px solid var(--border); box-shadow: var(--sh-md); }
     .qr-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .qr-box img[hidden] { display: none; }
+    .qr-placeholder { width: 100%; height: 100%; display: grid; place-items: center; text-align: center; padding: 14px; color: var(--muted); font-size: .8rem; font-weight: 800; line-height: 1.6; }
+    .qr-placeholder[hidden] { display: none; }
+    .join-status { display: grid; gap: 4px; margin-top: 10px; padding: 10px 12px; border-radius: 12px; text-align: left; font-size: .78rem; font-weight: 700; line-height: 1.55; }
+    .join-status[hidden] { display: none; }
+    .join-status b { font-size: .82rem; font-weight: 800; }
+    .join-status.is-danger { border: 1px solid #f7c9c9; background: #fdf1f1; color: #a52a2a; }
+    .join-status.is-warn { border: 1px solid #f5dfae; background: #fdf7e9; color: #8a6316; }
+    .join-status.is-ok { border: 1px solid #cbe9da; background: #f2faf6; color: #1d6a4f; }
     .code { color: var(--primary); font-size: 2rem; font-weight: 800; letter-spacing: 4px; line-height: 1; margin-top: 8px; }
     .link { display: block; margin: 9px auto 0; max-width: 320px; color: var(--muted); font-size: .8rem; font-weight: 700; overflow-wrap: anywhere; text-decoration: none; }
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
@@ -1302,8 +1325,12 @@
 
         <section class="card qr-card">
             <h2>QR / เข้าร่วมกิจกรรม</h2>
-            <div class="qr-box"><img id="qr-img" alt="QR Code"></div>
+            <div class="qr-box">
+              <img id="qr-img" alt="QR Code สำหรับเข้าร่วมกิจกรรม" hidden>
+              <div id="qr-placeholder" class="qr-placeholder">กด “สร้างห้อง QR”<br>เพื่อสร้างรหัสเข้าร่วม</div>
+            </div>
             <a id="join-link" class="link" href="#" target="_blank" rel="noopener">ลิงก์เข้าร่วม</a>
+            <div id="join-backend-status" class="join-status" role="status" hidden></div>
             <div class="stats">
               <div class="stat"><b id="stat-total">0</b>เข้าร่วมแล้ว</div>
               <div class="stat"><b id="stat-answered">0</b>ตอบแล้ว</div>
@@ -1439,6 +1466,8 @@
     let joinBackendReady = false;
     let joinRemoteMode = false;
     let joinRemoteUnavailable = false;
+    let joinBackendIssue = null;      // ผลจาก classifyJoinError() ของความล้มเหลวล่าสุด
+    let joinBackendMessage = '';      // ข้อความที่จะโชว์ให้ครูเห็นจริง ๆ
     let teacherFormDirty = false;
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -1493,6 +1522,19 @@
     function getJoinUrl(code) {
       return `${location.origin}${location.pathname}?join=${encodeURIComponent(code)}`;
     }
+
+    // รหัสห้องเดิมเป็น CK-1000..CK-9999 = มีแค่ 9,000 ค่า และ code เป็น unique ถาวรในตาราง
+    // ยิ่งใช้นาน ยิ่งชนบ่อย (สร้างไปแล้ว 900 ห้อง = โอกาสชน 10% ต่อครั้ง) แล้วชนทีก็เงียบไปเลย
+    // 6 ตัวจาก 31 อักขระ = ~887 ล้านค่า ทั้งกันชนและกันคนนอกไล่สุ่มรหัสหาห้องที่เปิดอยู่
+    // ตัด 0/O/1/I/L ออก เพราะรหัสถูกโชว์ตัวใหญ่บนจอนำเสนอ ครูอ่านออกเสียงแล้วต้องไม่สับสน
+    const JOIN_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+    function generateJoinCode() {
+      const buf = new Uint32Array(6);
+      window.crypto.getRandomValues(buf);
+      let out = '';
+      for (let i = 0; i < buf.length; i++) out += JOIN_CODE_ALPHABET[buf[i] % JOIN_CODE_ALPHABET.length];
+      return `CK-${out}`;
+    }
     function escapeHtml(value) {
       return String(value || '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[ch]));
     }
@@ -1513,18 +1555,72 @@
     }
 
     function setJoinBackendStatus(message) {
-      const el = document.getElementById('join-backend-status');
-      if (el) el.textContent = message;
+      joinBackendMessage = message || '';
+      renderJoinBackendStatus();
     }
 
     function canUseJoinBackend() {
       return joinBackendReady && joinSupabase && !joinRemoteUnavailable;
     }
 
+    // แยกสาเหตุก่อน เพราะเดิมทุก error ขึ้นข้อความเดียวกันหมดว่า "ยังไม่ได้ติดตั้งตาราง"
+    // ซึ่งมักไม่ใช่สาเหตุจริง ครูเลยแจ้งปัญหาผิดจุด
+    // latch = ปิดการใช้ฐานข้อมูลกลางทั้งหน้าจนกว่าจะ reload — ทำเฉพาะกรณีที่ลองใหม่ก็ไม่หาย
+    function classifyJoinError(error) {
+      const code = String(error && error.code || '');
+      const msg = String(error && error.message || '');
+      const status = error && error.status;
+      if (code === '42P01' || /relation .* does not exist|could not find the function/i.test(msg)) {
+        return { kind: 'no_tables', latch: true, message: 'ยังไม่ได้ติดตั้งตารางกิจกรรมบน Supabase' };
+      }
+      if (code === '23505' || /duplicate key|unique constraint/i.test(msg)) {
+        return { kind: 'code_taken', latch: false, message: 'รหัสห้องซ้ำ กำลังสุ่มรหัสใหม่' };
+      }
+      if (status === 401 || status === 403 || /teacher authentication required|jwt|not authenticated/i.test(msg)) {
+        return { kind: 'auth', latch: false, message: 'ต้องเข้าสู่ระบบครูก่อน จึงจะเปิดห้องให้นักเรียนเข้าร่วมได้' };
+      }
+      if (/failed to fetch|networkerror|timeout|load failed/i.test(msg)) {
+        return { kind: 'network', latch: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่' };
+      }
+      return { kind: 'unknown', latch: false, message: msg || 'เชื่อมต่อฐานข้อมูลกลางไม่ได้' };
+    }
+
     function markJoinBackendUnavailable(error) {
-      joinRemoteUnavailable = true;
-      console.warn('ClassKru QR backend request failed; using local fallback', error);
-      setJoinBackendStatus('ยังไม่ได้ติดตั้งตารางกิจกรรมบน Supabase: ใช้โหมดเครื่องนี้ชั่วคราว');
+      const issue = classifyJoinError(error);
+      joinBackendIssue = issue;
+      // เดิม latch ทุกกรณี พอเน็ตสะดุดครั้งเดียวก็ค้างโหมดเครื่องเดียวยาวจนกว่าจะ reload
+      if (issue.latch) joinRemoteUnavailable = true;
+      console.warn('ClassKru QR backend request failed:', issue.kind, error);
+      setJoinBackendStatus(issue.message);
+    }
+
+    // เดิมข้อความสถานะถูกเขียนลง #join-backend-status ที่ "ไม่มีอยู่จริงในหน้า"
+    // ทุกคำเตือนเลยหายไปเงียบ ๆ ครูไม่มีทางรู้ว่าห้องที่เพิ่งสร้างนักเรียนเข้าไม่ได้
+    function renderJoinBackendStatus() {
+      const el = document.getElementById('join-backend-status');
+      if (!el) return;
+      const session = activeCode ? sessions[activeCode] : null;
+      if (session && session.isRemote === false) {
+        el.hidden = false;
+        el.className = 'join-status is-danger';
+        el.innerHTML = `<b>⚠️ ห้องนี้ยังไม่ได้บันทึกขึ้นระบบกลาง — นักเรียนสแกน QR แล้วจะเข้าไม่ได้</b>`
+          + (joinBackendMessage ? `<span>${escapeHtml(joinBackendMessage)}</span>` : '')
+          + `<span>แก้แล้วให้กด “สร้างห้อง QR” ใหม่อีกครั้ง</span>`;
+        return;
+      }
+      if (session && session.isRemote) {
+        el.hidden = false;
+        el.className = 'join-status is-ok';
+        el.innerHTML = '<span>เชื่อมต่อระบบกลางแล้ว · นักเรียนสแกน QR เข้าร่วมได้</span>';
+        return;
+      }
+      if (joinBackendIssue) {
+        el.hidden = false;
+        el.className = 'join-status is-warn';
+        el.innerHTML = `<span>${escapeHtml(joinBackendMessage)}</span>`;
+        return;
+      }
+      el.hidden = true;
     }
 
     function normalizeRemoteSession(raw) {
@@ -1579,7 +1675,9 @@
     async function remoteCreateSession(session) {
       const teacherEmail = await getJoinTeacherEmail();
       if (!teacherEmail) {
-        setJoinBackendStatus('ต้องเข้าสู่ระบบครูก่อนใช้ฐานข้อมูลกลาง');
+        // ไม่ latch — ครูล็อกอินแล้วกดสร้างใหม่ได้ทันที ไม่ต้อง reload
+        joinBackendIssue = { kind: 'auth', latch: false, message: 'ต้องเข้าสู่ระบบครูก่อน จึงจะเปิดห้องให้นักเรียนเข้าร่วมได้' };
+        setJoinBackendStatus(joinBackendIssue.message);
         return null;
       }
       const raw = await joinRpc('join_activity_create_session', {
@@ -1734,12 +1832,27 @@
 
     async function startSession() {
       if (!validateAnswerConfig()) return;
+      // ไม่มีห้องเรียนให้เลือก buildSession() จะคืน null แล้วปุ่มจะเงียบไปเฉย ๆ — บอกครูให้ชัดแทน
+      if (!getClass()) {
+        alert('กรุณาเลือกห้องเรียนก่อนสร้างห้อง QR\n\nถ้ายังไม่มีห้องเรียนในรายการ ให้เข้าสู่ระบบแล้วสร้างห้องเรียนก่อน');
+        document.getElementById('class-select').focus();
+        return;
+      }
       // Reserve the popup during the click gesture so browsers do not block the auto-opened waiting room.
       const reservedWindow = presentationWindow && !presentationWindow.closed ? presentationWindow : window.open('about:blank', '_blank');
-      activeCode = `CK-${Math.floor(1000 + Math.random() * 9000)}`;
-      const draft = buildSession(activeCode, false);
-      const remote = await remoteCreateSession(draft);
-      sessions[activeCode] = remote ? { ...draft, ...remote, studentsSnapshot: draft.studentsSnapshot } : draft;
+      let draft = null;
+      let remote = null;
+      // ถ้าบังเอิญสุ่มรหัสไปชนกับห้องเก่า ให้สุ่มใหม่แทนที่จะเงียบตกเป็นโหมดเครื่องเดียว
+      for (let attempt = 0; attempt < 5; attempt++) {
+        activeCode = generateJoinCode();
+        draft = buildSession(activeCode, false);
+        joinBackendIssue = null;
+        remote = await remoteCreateSession(draft);
+        if (remote || !joinBackendIssue || joinBackendIssue.kind !== 'code_taken') break;
+      }
+      sessions[activeCode] = remote
+        ? { ...draft, ...remote, studentsSnapshot: draft.studentsSnapshot, isRemote: true }
+        : { ...draft, isRemote: false };
       teacherFormDirty = false;
       saveSessions();
       renderSession();
@@ -1830,6 +1943,9 @@
         document.getElementById('join-link').textContent = 'ลิงก์เข้าร่วม';
         document.getElementById('join-link').href = '#';
         document.getElementById('qr-img').removeAttribute('src');
+        document.getElementById('qr-img').hidden = true;
+        document.getElementById('qr-placeholder').hidden = false;
+        renderJoinBackendStatus();
         document.getElementById('stage-question').textContent = 'เปิดกิจกรรมเพื่อรับนักเรียนเข้าห้อง';
         document.getElementById('stage-total').textContent = '0';
         document.getElementById('stage-hint').textContent = 'นักเรียนที่ส่งข้อมูลจะปรากฏในรายการด้านล่าง';
@@ -1844,6 +1960,9 @@
       document.getElementById('join-link').textContent = 'ลิงก์เข้าร่วม';
       document.getElementById('join-link').href = url;
       document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
+      document.getElementById('qr-img').hidden = false;
+      document.getElementById('qr-placeholder').hidden = true;
+      renderJoinBackendStatus();
       const participants = getSessionParticipants(session);
       const answers = getSessionAnswers(session);
       const summary = getReviewSummary(participants, getClass());
