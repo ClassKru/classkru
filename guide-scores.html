@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>คะแนนและ ปพ.5 | คู่มือ ClassKru</title>
-  <meta name="description" content="วิธีตั้งอัตราส่วนคะแนน กรอกคะแนนนักเรียน ตั้งเกณฑ์เกรด และออกใบ ปพ.5 เป็นไฟล์ Excel และ PDF">
+  <meta name="description" content="วิธีตั้งสัดส่วนคะแนน เพิ่มรายการคะแนน กรอกคะแนน ตั้งเกณฑ์เกรด และออกไฟล์คะแนนเป็น Excel และ PDF ทีละขั้นพร้อมภาพประกอบ">
   <link rel="canonical" href="https://classkru-kohl.vercel.app/guide-scores.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="ClassKru">
   <meta property="og:locale" content="th_TH">
   <meta property="og:title" content="คะแนนและ ปพ.5 — คู่มือ ClassKru">
-  <meta property="og:description" content="วิธีตั้งอัตราส่วนคะแนน กรอกคะแนนนักเรียน ตั้งเกณฑ์เกรด และออกใบ ปพ.5 เป็นไฟล์ Excel และ PDF">
+  <meta property="og:description" content="ตั้งสัดส่วนคะแนน กรอกคะแนน ตั้งเกณฑ์เกรด และออกไฟล์ Excel/PDF">
   <meta property="og:url" content="https://classkru-kohl.vercel.app/guide-scores.html">
   <meta property="og:image" content="https://classkru-kohl.vercel.app/logo.png?v=2">
   <meta property="og:image:width" content="1024">
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/guide.css?v=288">
+  <link rel="stylesheet" href="css/guide.css?v=289">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,25 +36,184 @@
 <header class="g-article-head">
   <span class="n">หมวด 3</span>
   <h1>คะแนนและ ปพ.5</h1>
-  <p>ตั้งอัตราส่วนคะแนน กรอกคะแนน และออกใบ ปพ.5</p>
-  <span class="g-meta">✏️ กำลังจัดทำเนื้อหา</span>
+  <p>ตั้งค่าครั้งเดียวตอนต้นเทอม แล้วกรอกคะแนนไปเรื่อย ๆ ระบบคำนวณคะแนนรวมและเกรดให้เอง</p>
+  <span class="g-meta">⏱ ตั้งค่าครั้งแรกประมาณ 10 นาที · 6 ขั้นตอน</span>
 </header>
 
 <section class="g-section">
-  <div class="g-soon">
-    <p><strong>หมวดนี้กำลังเขียนอยู่</strong> — หัวข้อที่จะมีในหน้านี้</p>
-    <ul>
-      <li>ตั้งอัตราส่วนคะแนนให้ตรงกับที่โรงเรียนกำหนด (ระหว่างภาค / กลางภาค / ปลายภาค)</li>
-      <li>เพิ่มรายการคะแนน และกำหนดคะแนนเต็มของแต่ละรายการ</li>
-      <li>กรอกคะแนนบนคอมพิวเตอร์และบนมือถือ</li>
-      <li>ตั้งเกณฑ์เกรด และดูเกรดที่ระบบคำนวณให้</li>
-      <li>ออกไฟล์ Excel และ PDF สำหรับใบ ปพ.5</li>
-    </ul>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">1</span>
+      <h3>เข้าใจโครงคะแนนก่อน จะตั้งค่าง่ายขึ้นมาก</h3>
+    </div>
+    <div class="g-step-body">
+      <p>ClassKru แบ่งคะแนนเป็น <strong>4 ช่อง</strong> ตามที่โรงเรียนไทยใช้กัน แต่ละช่องมี <strong>สัดส่วน (%)</strong> ของตัวเอง รวมกันได้ 100</p>
+      <ul>
+        <li><strong>คะแนนเก็บ · ก่อนกลางภาค</strong> — ใบงาน quiz ชิ้นงาน ช่วงครึ่งเทอมแรก</li>
+        <li><strong>คะแนนเก็บ · หลังกลางภาค</strong> — ของครึ่งเทอมหลัง</li>
+        <li><strong>สอบกลางภาค</strong></li>
+        <li><strong>สอบปลายภาค</strong></li>
+      </ul>
+      <p>สิ่งที่ต้องเข้าใจคือ <strong>คะแนนเต็มของแต่ละงาน ไม่เกี่ยวกับสัดส่วน</strong> — ระบบจะเทียบบัญญัติไตรยางศ์ให้เอง</p>
+      <div class="g-tip">
+        <span>🧮</span>
+        <span><b>ตัวอย่าง</b> ช่อง “ก่อนกลางภาค” ตั้งไว้ 40% มีงาน 3 ชิ้น เต็ม 10 + 10 + 20 = <b>เต็มรวม 40</b><br>
+        นักเรียนได้ 6 + 9 + 16 = <b>31 คะแนน</b><br>
+        ระบบคิดเป็น 31 ÷ 40 × 40% = <b>31 คะแนนจาก 100</b> ในช่องนี้<br><br>
+        แปลว่าครูจะเพิ่มงานกี่ชิ้น เต็มเท่าไรก็ได้ ไม่ต้องคำนวณให้พอดี 40 เอง</span>
+      </div>
+      <div class="g-tip is-warn">
+        <span>⚠️</span>
+        <span><b>ฟอร์ม ปพ.5 ของจริงใช้ 3 ส่วน</b> คือ คะแนนหน่วยการเรียน · กลางภาค · ปลายภาค ไม่ได้แยกก่อน/หลังกลางภาค<br>
+        ตอนส่งออก ClassKru จะ<b>รวมก่อน+หลังกลางภาคเป็น “คะแนนเก็บ” ให้อัตโนมัติ</b> — ที่แยก 2 ช่องในระบบเพื่อให้ครูจัดการงานสองครึ่งเทอมได้สะดวกขึ้นเท่านั้น</span>
+      </div>
+    </div>
   </div>
-  <div class="g-tip">
-    <span>💡</span>
-    <span>ระหว่างนี้ถ้าติดตรงไหน ทัก <a href="https://line.me/R/ti/p/@731idhsu" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">LINE ของ ClassKru</a> ได้เลย ทีมงานตอบให้โดยตรง · หรือกดปุ่ม <b>?</b> มุมจอในระบบเพื่อแจ้งปัญหา</span>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">2</span>
+      <h3>ตั้งสัดส่วนคะแนนและเกณฑ์เกรด</h3>
+    </div>
+    <div class="g-step-body">
+      <p>เข้าห้องเรียน → แท็บ <strong>“คะแนน”</strong> → กดปุ่ม <strong>“ตั้งค่า”</strong> มุมขวาบน</p>
+      <figure>
+        <img src="guide-img/11-scores-settings.png" alt="หน้าต่างตั้งค่าคะแนนและเกรด มีช่องกรอกสัดส่วนคะแนน 4 ช่อง เกณฑ์ตัดเกรด 8 ระดับ และเวลาเรียนขั้นต่ำ" loading="lazy">
+        <figcaption>หน้าต่างตั้งค่า — สังเกตมุมขวาบนบอก “รวม 100%” ให้ตรวจได้ทันที</figcaption>
+      </figure>
+      <p><strong>สัดส่วนคะแนน</strong> — กรอกให้ตรงกับที่โรงเรียนกำหนด ค่าเริ่มต้นคือ 40 : 30 : 10 : 20 (คะแนนเก็บรวม 70)</p>
+      <p><strong>เกณฑ์ตัดเกรด</strong> — กรอกคะแนนขั้นต่ำของแต่ละเกรด ค่าเริ่มต้นเป็นเกณฑ์มาตรฐาน 80 / 75 / 70 / 65 / 60 / 55 / 50</p>
+      <p><strong>เวลาเรียนขั้นต่ำ</strong> — บันทึกเกณฑ์ มส. ของวิชานี้ไว้ให้ครูอ้างอิง · ดูเวลาเรียนจริงรายคนได้ที่การ์ดสรุปนักเรียน (ขั้นที่ 6)</p>
+      <div class="g-tip">
+        <span>💡</span>
+        <span><b>ตั้งครั้งเดียวตอนต้นเทอม</b> แล้วไม่ต้องแตะอีก · ถ้าเปลี่ยนสัดส่วนกลางเทอม คะแนนรวมของทุกคนจะคำนวณใหม่ทันที ไม่ต้องกรอกอะไรซ้ำ</span>
+      </div>
+    </div>
   </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">3</span>
+      <h3>เพิ่มรายการคะแนน</h3>
+    </div>
+    <div class="g-step-body">
+      <p>ในตารางคะแนน แต่ละช่องจะมีปุ่ม <strong>+</strong> อยู่ท้ายรายการสุดท้ายของช่องนั้น กดเพื่อเพิ่มงานใหม่เข้าช่องนั้นได้เลย</p>
+      <figure>
+        <img src="guide-img/12-score-item-modal.png" alt="หน้าต่างเพิ่มรายการคะแนน มีช่องชื่อรายการ หมวดคะแนน ประเภท คะแนนเต็ม วันที่ และหมายเหตุ" loading="lazy">
+        <figcaption>หน้าต่างเพิ่มรายการคะแนน</figcaption>
+      </figure>
+      <ul>
+        <li><strong>ชื่อรายการ</strong> — ตั้งให้ตัวเองเข้าใจ เช่น “ใบงานที่ 1” “Quiz บทที่ 1-2”</li>
+        <li><strong>หมวดคะแนน</strong> — ล็อกตามช่องที่กดปุ่ม + มา เปลี่ยนไม่ได้ตรงนี้ ถ้าใส่ผิดช่องให้ลบแล้วเพิ่มใหม่</li>
+        <li><strong>คะแนนเต็ม</strong> — เต็มของงานชิ้นนี้ ไม่ต้องสนใจว่ารวมกันแล้วได้เท่าไร</li>
+        <li><strong>ประเภท / วันที่ / หมายเหตุ</strong> — ไม่บังคับ ใส่ไว้ช่วยให้ตัวเองจำได้ว่างานชิ้นไหนเป็นอะไร ไม่มีผลต่อการคำนวณ</li>
+      </ul>
+      <div class="g-tip is-warn">
+        <span>⚠️</span>
+        <span><b>ลบรายการ = ลบคะแนนของนักเรียนทุกคนในรายการนั้นด้วย</b> ระบบจะถามยืนยันก่อน แต่ลบแล้วเรียกคืนไม่ได้ — ถ้าแค่พิมพ์ชื่อผิด ให้กดแก้ไขแทนการลบ</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">4</span>
+      <h3>กรอกคะแนน</h3>
+    </div>
+    <div class="g-step-body">
+      <p><strong>บนคอมพิวเตอร์</strong> — เห็นทั้งห้องพร้อมกันเป็นตาราง กรอกในช่องได้เลย คอลัมน์ <strong>รวม</strong> และ <strong>เกรด</strong> ทางขวาจะอัปเดตทันทีที่พิมพ์</p>
+      <figure>
+        <img src="guide-img/10-scores-matrix.png" alt="ตารางคะแนนบนคอมพิวเตอร์ แสดงกลุ่มคะแนนเก็บ 70 เปอร์เซ็นต์ สอบกลางภาค 10 สอบปลายภาค 20 พร้อมคะแนนรายคนและเกรด" loading="lazy">
+        <figcaption>ตารางคะแนน — หัวตารางบอกสัดส่วนของแต่ละช่อง และคะแนนเต็มของแต่ละงาน</figcaption>
+      </figure>
+      <p>สังเกตนักเรียนเลขที่ 20 ในภาพ ยังไม่ได้กรอกคะแนนสอบปลายภาค ช่องจึงเป็นขีด <strong>–</strong> และคะแนนรวมคิดเฉพาะส่วนที่กรอกแล้ว — <strong>กรอกไม่ครบก็ใช้งานได้ ไม่พัง</strong> ค่อยมาเติมทีหลังได้</p>
+
+      <p><strong>บนมือถือ</strong> — จอแคบเกินกว่าจะแสดงตารางทั้งห้อง จึงเปลี่ยนเป็นการ์ดรายชื่อ แตะชื่อนักเรียนเพื่อเข้าไปกรอกทีละคน</p>
+      <figure class="is-phone">
+        <img src="guide-img/14-scores-mobile.png" alt="หน้าคะแนนบนมือถือ แสดงการ์ดรายชื่อนักเรียนเรียงตามเลขที่" loading="lazy">
+        <figcaption>แตะการ์ดนักเรียนที่ต้องการ</figcaption>
+      </figure>
+      <figure class="is-phone">
+        <img src="guide-img/15-scores-mobile-entry.png" alt="หน้ากรอกคะแนนรายคนบนมือถือ ด้านบนแสดงคะแนนรวมและเกรด ด้านล่างแยกรายการตามหมวดคะแนน" loading="lazy">
+        <figcaption>หน้ากรอกรายคน — คะแนนรวมและเกรดโชว์อยู่ด้านบนตลอด</figcaption>
+      </figure>
+      <div class="g-tip">
+        <span>💡</span>
+        <span><b>ทำงานคนละแบบให้เหมาะกับสถานการณ์</b><br>
+        • ตรวจงานเป็นปึกทีเดียว → ใช้<b>คอมพิวเตอร์</b> ไล่กรอกลงคอลัมน์เดียวรวดเดียวจบ<br>
+        • กรอกคะแนนสอบปากเปล่าหรืองานหน้าชั้น → ใช้<b>มือถือ</b> เปิดทีละคนสะดวกกว่า</span>
+      </div>
+      <p>ทุกช่องที่กรอก <strong>บันทึกอัตโนมัติ</strong> ไม่มีปุ่มเซฟ และระบบจะไม่ยอมให้กรอกเกินคะแนนเต็มหรือติดลบ</p>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">5</span>
+      <h3>ออกไฟล์คะแนนส่งฝ่ายวิชาการ</h3>
+    </div>
+    <div class="g-step-body">
+      <p>กดปุ่ม <strong>“ส่งออก”</strong> มุมขวาบนของหน้าคะแนน แล้วเลือกรูปแบบไฟล์</p>
+      <figure>
+        <img src="guide-img/13-scores-export.png" alt="หน้าต่างส่งออกคะแนน มีตัวเลือก Excel และ PDF" loading="lazy">
+        <figcaption>เลือกได้ 2 รูปแบบ</figcaption>
+      </figure>
+      <ul>
+        <li><strong>Excel (.xlsx)</strong> — ได้ตารางคะแนนรายชิ้นพร้อมคะแนนเต็ม เหมาะสำหรับเอาไปคัดลอกลงไฟล์ ปพ.5 ของโรงเรียน หรือแก้ไขต่อ</li>
+        <li><strong>PDF</strong> — เปิดหน้าพิมพ์ของเบราว์เซอร์ แล้วเลือก <strong>“บันทึกเป็น PDF”</strong> เหมาะสำหรับส่งไฟล์หรือพิมพ์เก็บเข้าแฟ้ม</li>
+      </ul>
+      <div class="g-tip is-warn">
+        <span>⚠️</span>
+        <span><b>ถ้ากด PDF แล้วไม่มีอะไรเกิดขึ้น</b> เบราว์เซอร์บล็อกหน้าต่างพิมพ์อยู่ — ให้กดอนุญาต Pop-up ของเว็บนี้ แล้วลองใหม่</span>
+      </div>
+      <div class="g-tip">
+        <span>💡</span>
+        <span>ไฟล์ที่ได้จะมี<b>สัดส่วนคะแนนกำกับอยู่บนหัวตาราง</b> ฝ่ายวิชาการจึงตรวจได้ทันทีว่าใช้เกณฑ์อะไร ไม่ต้องอธิบายเพิ่ม</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">6</span>
+      <h3>ดูสรุปรายคน — มุมมองที่ตรงกับ ปพ.5 ที่สุด</h3>
+    </div>
+    <div class="g-step-body">
+      <p>แตะชื่อนักเรียนในตาราง จะเปิดการ์ดสรุปของคนนั้น ซึ่งรวมทุกอย่างที่ต้องกรอกลง ปพ.5 ไว้ในหน้าเดียว</p>
+      <figure>
+        <img src="guide-img/16-student-summary.png" alt="การ์ดสรุปรายคน แสดงสถิติการเข้าเรียน เวลาเรียนเป็นเปอร์เซ็นต์ คะแนนรวม เกรด และคะแนนแยกเป็นคะแนนเก็บ สอบกลางภาค สอบปลายภาค" loading="lazy">
+        <figcaption>การ์ดสรุปรายคน — คะแนนถูกแยกเป็น 3 ส่วนตามฟอร์ม ปพ.5 พอดี</figcaption>
+      </figure>
+      <p>จุดที่มีประโยชน์ที่สุดคือแถวล่าง — ระบบ<strong>รวมก่อน+หลังกลางภาคเป็น “คะแนนเก็บ” ให้แล้ว</strong> ได้เป็น 3 ช่องตรงกับฟอร์ม ปพ.5 พอดี คัดลอกลงแบบฟอร์มได้ทันทีโดยไม่ต้องบวกเอง</p>
+      <p>ด้านบนยังบอก <strong>เวลาเรียน (%)</strong> ที่คำนวณจากการเช็กชื่อให้ด้วย ใช้ตรวจว่าใครเข้าข่ายติด มส. ตามเกณฑ์ที่ตั้งไว้</p>
+      <div class="g-tip">
+        <span>💡</span>
+        <span>ก่อนกรอก ปพ.5 ให้เปิดการ์ดนี้ทีละคน แล้วคัดลอก 4 ตัวเลข: <b>คะแนนเก็บ · กลางภาค · ปลายภาค · เกรด</b> — ครบตามที่ฟอร์มต้องการพอดี</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">?</span>
+      <h3>คำถามที่ครูถามบ่อย</h3>
+    </div>
+    <div class="g-step-body">
+      <p><strong>สัดส่วนรวมไม่ครบ 100 ได้ไหม?</strong><br>
+      ได้ ระบบไม่บังคับ แต่คะแนนรวมจะไม่เต็ม 100 ทำให้เกรดเพี้ยน — ดูมุมขวาบนของหน้าตั้งค่าว่าขึ้น “รวม 100%” หรือยัง</p>
+
+      <p><strong>อยากให้เกรดต่างจากที่ระบบคำนวณ ทำได้ไหม?</strong><br>
+      ตอนนี้ยังแก้เกรดรายคนโดยตรงไม่ได้ ถ้าเกรดออกมาไม่ตรงที่ต้องการให้ปรับ <strong>เกณฑ์ตัดเกรด</strong> ที่หน้าตั้งค่าแทน ซึ่งจะมีผลกับทั้งห้องพร้อมกัน</p>
+
+      <p><strong>ยังไม่ได้เช็กชื่อ จะกรอกคะแนนได้ไหม?</strong><br>
+      ได้ คะแนนกับการเช็กชื่อแยกกันคนละส่วน ไม่ต้องทำอย่างใดอย่างหนึ่งให้เสร็จก่อน</p>
+
+      <p><strong>เปลี่ยนคะแนนเต็มของงานที่กรอกไปแล้ว จะเป็นอย่างไร?</strong><br>
+      คะแนนที่กรอกไว้ยังอยู่ครบ ระบบจะคำนวณใหม่ตามคะแนนเต็มใหม่ทันที แต่ถ้าลดคะแนนเต็มลงจนต่ำกว่าที่นักเรียนบางคนได้ ระบบจะตัดให้เท่ากับคะแนนเต็มใหม่</p>
+    </div>
+  </div>
+
 </section>
 
 <nav class="g-pager" aria-label="ไปหมวดอื่น">
