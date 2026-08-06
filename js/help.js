@@ -9,7 +9,7 @@ const HELP_DETAILS = {
 };
 
 const PUBLIC_HELP_DETAILS = {
-  'getting-started': { title: 'เริ่มต้นใช้งาน ClassKru', intro: 'เริ่มจากสร้างห้องเรียน เพิ่มรายชื่อ แล้วเช็กชื่อได้ทันที', items: ['สมัครบัญชีหรือเข้าสู่ระบบ', 'สร้างห้องเรียนและเพิ่มรายชื่อนักเรียน', 'เลือกคาบเรียนเพื่อเริ่มเช็กชื่อ'] },
+  'getting-started': { title: 'เริ่มต้นใช้งาน ClassKru', intro: 'เริ่มจากสร้างห้องเรียน เพิ่มรายชื่อ แล้วเช็กชื่อได้ทันที', items: ['สมัครบัญชีหรือเข้าสู่ระบบ', 'สร้างห้องเรียนและเพิ่มรายชื่อนักเรียน', 'เลือกคาบเรียนเพื่อเริ่มเช็กชื่อ'], link: { href: 'guide.html', label: 'อ่านคู่มือทีละขั้นพร้อมภาพประกอบ' } },
   account: { title: 'บัญชีและรหัสผ่าน', intro: 'จัดการการเข้าสู่ระบบได้ง่าย ๆ จากหน้า Login', items: ['สมัครใหม่ด้วยอีเมล หรือดำเนินการต่อด้วย Google', 'กรอกอีเมลแล้วกด “ลืมรหัสผ่าน?” เพื่อรับลิงก์ตั้งรหัสใหม่', 'หากไม่พบอีเมล ลองตรวจสอบโฟลเดอร์จดหมายขยะ'] },
   report: { title: 'แจ้งปัญหา', intro: 'รายละเอียดที่ครบช่วยให้ทีมงานตรวจสอบและตอบกลับได้เร็วขึ้น', items: ['ชื่อหน้าหรือฟีเจอร์ที่พบปัญหา', 'ขั้นตอนก่อนเกิดปัญหา', 'ภาพหน้าจอหรือข้อความแจ้งเตือน'] },
   contact: { title: 'ติดต่อทีมงานผ่าน LINE', intro: 'มีคำถามก่อนเริ่มใช้งาน หรืออยากให้ทีมงานช่วยแนะนำเบื้องต้น ทัก LINE ได้เลย', items: ['บอกสิ่งที่ต้องการให้ช่วยอย่างสั้น ๆ', 'แนบภาพหน้าจอได้เมื่อจำเป็น', 'LINE เป็นช่องทางติดต่อทีมงาน ไม่ใช่ขั้นตอนบังคับในการใช้งานระบบ'] }
@@ -54,7 +54,7 @@ function openPublicHelpDetail(key) {
   hub.style.display = 'none';
   const action = key === 'contact' || key === 'report'
     ? `<button class="btn btn-primary" type="button" onclick="openClassKruLine('${key === 'report' ? 'แจ้งปัญหา' : 'ติดต่อเรา'}')"><i class="hgi-stroke hgi-message-02"></i> ติดต่อผ่าน LINE</button><button class="btn" type="button" onclick="closePublicHelp();document.getElementById('login-email')?.focus();">เข้าสู่ระบบ</button>`
-    : `<button class="btn btn-primary" type="button" onclick="closePublicHelp();document.getElementById('login-email')?.focus();"><i class="hgi-stroke hgi-login-03"></i> กลับไปเข้าสู่ระบบ</button>`;
+    : `${item.link ? `<a class="btn btn-primary" href="${item.link.href}"><i class="hgi-stroke hgi-book-open-01"></i> ${item.link.label}</a>` : ''}<button class="btn${item.link ? '' : ' btn-primary'}" type="button" onclick="closePublicHelp();document.getElementById('login-email')?.focus();"><i class="hgi-stroke hgi-login-03"></i> กลับไปเข้าสู่ระบบ</button>`;
   detail.innerHTML = `<button class="help-back" type="button" onclick="renderPublicHelpHub()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับศูนย์ช่วยเหลือ</button><div class="help-detail-heading"><span class="help-category-icon tint-green"><i class="hgi-stroke hgi-help-circle"></i></span><div><span class="help-eyebrow">ClassKru Help Center</span><h3>${item.title}</h3><p>${item.intro}</p></div></div><div class="help-tip-box"><strong>สิ่งที่ควรรู้</strong><ul>${item.items.map(item => `<li>${item}</li>`).join('')}</ul></div><div class="help-detail-actions">${action}</div>`;
   detail.style.display = 'block';
 }

@@ -413,10 +413,17 @@ function startMainTour() {
   Tour.start(MAIN_TOUR_STEPS, { onEnd: finishOnboarding });
 }
 
+// เปิดทัวร์ซ้ำจากศูนย์ช่วยเหลือ — เดิมทัวร์เปิดได้ครั้งเดียวตอนยังไม่มีห้องเรียน
+// ครูที่ใช้ไปแล้วจะไม่มีทางกลับมาดูได้อีก ทั้งที่ toast บอกว่าเปิดซ้ำได้
+function replayMainTour() {
+  if (typeof closePublicHelp === 'function') closePublicHelp();
+  Tour.start(MAIN_TOUR_STEPS, { onEnd: finishOnboarding });
+}
+
 function finishOnboarding(completed) {
   appState.onboarding = { done: true };
   saveState();
-  if (completed) showToast('พร้อมใช้งานแล้ว 🎉 เปิดคู่มือซ้ำได้ที่ปุ่ม ? มุมจอ', 'success');
+  if (completed) showToast('พร้อมใช้งานแล้ว 🎉 ดูทัวร์ซ้ำได้ที่ ศูนย์ช่วยเหลือ', 'success');
 }
 
 function skipOnboarding() {

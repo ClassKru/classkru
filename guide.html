@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คู่มือใช้งาน | ClassKru</title>
+  <meta name="description" content="วิธีใช้ ClassKru ทีละขั้น พร้อมภาพประกอบ ตั้งแต่สร้างห้องเรียน เช็กชื่อ กรอกคะแนน ไปจนถึงออกรายงาน">
+  <link rel="canonical" href="https://classkru-kohl.vercel.app/guide.html">
+  <!-- แชร์ลิงก์ใน LINE/Facebook แล้วขึ้นการ์ดพร้อมรูปและคำอธิบาย -->
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="ClassKru">
+  <meta property="og:locale" content="th_TH">
+  <meta property="og:title" content="คู่มือใช้งาน ClassKru">
+  <meta property="og:description" content="วิธีใช้ ClassKru ทีละขั้น พร้อมภาพประกอบ ตั้งแต่สร้างห้องเรียน เช็กชื่อ กรอกคะแนน ไปจนถึงออกรายงาน">
+  <meta property="og:url" content="https://classkru-kohl.vercel.app/guide.html">
+  <meta property="og:image" content="https://classkru-kohl.vercel.app/logo.png?v=2">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:image:alt" content="โลโก้ ClassKru">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="css/guide.css?v=286">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="g-nav">
+  <div class="g-nav-inner">
+    <a class="g-brand" href="home.html"><img src="logo.png?v=2" alt="ClassKru"><span>คู่มือใช้งาน</span></a>
+    <a class="g-nav-login" href="index.html">เข้าสู่ระบบ</a>
+  </div>
+</nav>
+
+<header class="g-hero">
+  <span class="g-eyebrow">CLASSKRU GUIDE</span>
+  <h1>คู่มือใช้งาน ClassKru</h1>
+  <p>ทำตามทีละขั้นพร้อมภาพประกอบ ตั้งแต่สร้างห้องเรียนครั้งแรก ไปจนถึงออกรายงานส่งฝ่ายวิชาการ</p>
+</header>
+
+<!-- โซนสำหรับครูที่ยังไม่เคยใช้ — ให้เห็นภาพรวมก่อนว่าคุ้มไหมที่จะเริ่ม -->
+<section class="g-intro">
+  <div class="g-intro-box">
+    <h2>ClassKru ช่วยอะไรคุณครูได้บ้าง</h2>
+    <p>เครื่องมือจัดการชั้นเรียนสำหรับครูไทย ใช้ได้ทั้งบนมือถือและคอมพิวเตอร์ · ใช้งานฟรี</p>
+    <div class="g-can">
+      <div><b>เช็กชื่อใน 1 นาที</b>ปัดการ์ดหรือกดปุ่ม บันทึกอัตโนมัติ</div>
+      <div><b>คะแนนตรงแบบ ปพ.5</b>กรอกครั้งเดียว ออกใบ ปพ.5 ได้เลย</div>
+      <div><b>ตารางสอนเตือนคาบ</b>หน้าแรกบอกว่าคาบไหนยังไม่ได้เช็ก</div>
+      <div><b>รายงานส่งวิชาการ</b>ออกไฟล์ Excel และ PDF ได้ทันที</div>
+    </div>
+    <div class="g-cta">
+      <a href="index.html">เริ่มใช้งานฟรี</a>
+      <a href="#s1">ดูวิธีใช้ทีละขั้น</a>
+    </div>
+  </div>
+</section>
+
+<!-- สารบัญ — เพิ่มหมวดใหม่ได้โดยเติมการ์ดตรงนี้ แล้วเพิ่ม <section> ด้านล่าง -->
+<section class="g-toc">
+  <h2>เลือกหัวข้อที่ต้องการ</h2>
+  <div class="g-toc-grid">
+    <a class="g-toc-card" href="#s1">
+      <span class="n">หมวด 1</span>
+      <strong>เริ่มต้นใช้งาน</strong>
+      <small>สร้างห้องเรียน เพิ่มนักเรียน และเช็กชื่อครั้งแรก</small>
+    </a>
+    <div class="g-toc-card is-soon">
+      <span class="n">หมวด 2</span>
+      <strong>เช็กชื่อประจำวัน</strong>
+      <small>แก้ย้อนหลัง ตารางสอน และการเตือนคาบ</small>
+      <span class="g-badge-soon">กำลังจัดทำ</span>
+    </div>
+    <div class="g-toc-card is-soon">
+      <span class="n">หมวด 3</span>
+      <strong>คะแนนและ ปพ.5</strong>
+      <small>ตั้งอัตราส่วน กรอกคะแนน และออกใบ ปพ.5</small>
+      <span class="g-badge-soon">กำลังจัดทำ</span>
+    </div>
+    <div class="g-toc-card is-soon">
+      <span class="n">หมวด 4</span>
+      <strong>QR และกิจกรรมหน้าชั้น</strong>
+      <small>เพิ่มนักเรียนด้วย QR และเปิดกิจกรรมถามตอบ</small>
+      <span class="g-badge-soon">กำลังจัดทำ</span>
+    </div>
+    <div class="g-toc-card is-soon">
+      <span class="n">หมวด 5</span>
+      <strong>เกมและเครื่องมือ</strong>
+      <small>เกมการศึกษาและเครื่องมือหน้าชั้นเรียน</small>
+      <span class="g-badge-soon">กำลังจัดทำ</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ หมวด 1: เริ่มต้นใช้งาน ══════════ -->
+<section class="g-section" id="s1">
+  <div class="g-section-head">
+    <span class="n">หมวด 1</span>
+    <h2>เริ่มต้นใช้งาน</h2>
+    <p>ใช้เวลาประมาณ 10 นาที ทำครั้งเดียวจบ หลังจากนี้เช็กชื่อได้ทุกวันภายในไม่กี่สิบวินาที</p>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">1</span>
+      <h3>สร้างห้องเรียนวิชาแรก</h3>
+    </div>
+    <div class="g-step-body">
+      <p>หลังเข้าสู่ระบบครั้งแรก เมนู <strong>“ห้องเรียนวิชาสอน”</strong> จะยังว่างอยู่ กดปุ่ม <strong>“เพิ่มห้องเรียน”</strong> มุมขวาบนเพื่อเริ่ม</p>
+      <figure>
+        <img src="guide-img/01-classrooms-empty.png" alt="หน้าห้องเรียนวิชาสอนตอนยังไม่มีห้องเรียน มีปุ่มเพิ่มห้องเรียนอยู่มุมขวาบน" loading="lazy">
+        <figcaption>หน้าห้องเรียนตอนยังไม่มีข้อมูล — กดปุ่มเขียวมุมขวาบน</figcaption>
+      </figure>
+      <p>กรอก <strong>ชื่อวิชา</strong> กับ <strong>ห้องเรียน</strong> แล้วเลือกสีประจำห้อง สีนี้จะใช้แยกห้องในตารางสอนและหน้าแรก เลือกให้ต่างกันจะดูง่ายกว่า</p>
+      <figure>
+        <img src="guide-img/02-add-class-modal.png" alt="หน้าต่างเพิ่มห้องเรียน มีช่องชื่อวิชา ช่องห้องเรียน และแถบเลือกสีประจำห้อง" loading="lazy">
+        <figcaption>กรอกชื่อวิชา ห้องเรียน แล้วเลือกสี</figcaption>
+      </figure>
+      <div class="g-tip">
+        <span>💡</span>
+        <span><b>สอนวิชาเดียวหลายห้อง?</b> สร้างแยกห้องละรายการ เช่น “วิทยาศาสตร์ ม.3/1” และ “วิทยาศาสตร์ ม.3/2” เพราะรายชื่อนักเรียนและคะแนนแยกกันคนละชุด</span>
+      </div>
+      <p>สร้างครบทุกห้องที่สอนแล้วจะได้หน้าตาแบบนี้ — แต่ละการ์ดบอกจำนวนนักเรียนและอัตราการเข้าเรียน พร้อมปุ่มลัดไปหน้าคะแนน นักเรียน และการเข้าเรียน</p>
+      <figure>
+        <img src="guide-img/03-classrooms-list.png" alt="หน้าห้องเรียนที่มีการ์ด 3 ห้อง แต่ละการ์ดมีชื่อวิชา ห้อง จำนวนนักเรียน เปอร์เซ็นต์เข้าเรียน และปุ่มลัด" loading="lazy">
+        <figcaption>การ์ดห้องเรียนพร้อมปุ่มลัด 3 ปุ่ม</figcaption>
+      </figure>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">2</span>
+      <h3>เพิ่มรายชื่อนักเรียน</h3>
+    </div>
+    <div class="g-step-body">
+      <p>กดปุ่ม <strong>“นักเรียน”</strong> บนการ์ดห้องเรียน แล้วเพิ่มรายชื่อได้ 3 วิธี</p>
+      <ul>
+        <li><strong>พิมพ์เอง</strong> — เหมาะเมื่อมีไม่กี่คน หรือเพิ่มนักเรียนย้ายเข้าทีหลัง</li>
+        <li><strong>นำเข้าจาก Excel</strong> — เร็วที่สุดถ้ามีไฟล์รายชื่ออยู่แล้ว ดาวน์โหลดไฟล์ต้นแบบจากในระบบ กรอกแล้วอัปโหลดกลับ</li>
+        <li><strong>สแกนจากรูปภาพ</strong> — ถ่ายรูปเอกสารรายชื่อ ระบบจะอ่านตัวอักษรให้ แล้วตรวจแก้ก่อนบันทึก</li>
+      </ul>
+      <figure>
+        <img src="guide-img/04-students-list.png" alt="หน้ารายชื่อนักเรียนแสดงเลขที่ ชื่อ และรหัสประจำตัวของนักเรียนในห้อง" loading="lazy">
+        <figcaption>รายชื่อนักเรียนหลังเพิ่มเสร็จ</figcaption>
+      </figure>
+      <div class="g-tip is-warn">
+        <span>⚠️</span>
+        <span><b>เรื่องรูปนักเรียน</b> รูปเป็นฟีเจอร์เสริม ไม่จำเป็นต่อการเช็กชื่อ ควรเพิ่มเมื่อได้รับอนุญาตจากผู้ปกครองแล้วเท่านั้น และห้ามนำไปเผยแพร่ต่อ — อ่านเพิ่มที่ <a href="privacy.html" style="color:inherit;text-decoration:underline">นโยบายความเป็นส่วนตัว</a></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">3</span>
+      <h3>เช็กชื่อครั้งแรก</h3>
+    </div>
+    <div class="g-step-body">
+      <p>กดปุ่ม <strong>“การเข้าเรียน”</strong> บนการ์ดห้อง ระบบจะเปิดหน้าเช็กชื่อของวันนี้ให้อัตโนมัติ</p>
+
+      <p><strong>บนมือถือ</strong> — นักเรียนจะขึ้นทีละคนเป็นการ์ด เลือกได้ 2 วิธี</p>
+      <ul>
+        <li><strong>ปัดการ์ด</strong> — ปัดซ้าย = ลา · แตะกลาง = มา · ปัดขวา = ขาด</li>
+        <li><strong>กดปุ่มด้านล่าง</strong> — สาย · ขาด · มา · ลา และปุ่ม <strong>ย้อน</strong> ไว้แก้เมื่อกดพลาด</li>
+      </ul>
+      <figure class="is-phone">
+        <img src="guide-img/05-checkin-mobile-card.png" alt="หน้าเช็กชื่อบนมือถือ แสดงการ์ดนักเรียนพร้อมคำแนะนำการปัด และแถบปุ่มสถานะด้านล่าง" loading="lazy">
+        <figcaption>หน้าเช็กชื่อบนมือถือ — ปัดการ์ดหรือกดปุ่มด้านล่าง</figcaption>
+      </figure>
+      <div class="g-tip">
+        <span>💡</span>
+        <span>ถ้าวันนั้นมากันเกือบครบ กด <b>“มาทุกคน”</b> ก่อน แล้วค่อยแก้เฉพาะคนที่ขาดหรือลา จะเร็วกว่ากดทีละคนมาก</span>
+      </div>
+
+      <p><strong>บนคอมพิวเตอร์</strong> — จะเห็นรายชื่อทั้งห้องพร้อมกัน แต่ละแถวมีปุ่มสถานะให้กดได้เลย เหมาะกับการเช็กย้อนหลังหลายวันรวดเดียว</p>
+      <figure>
+        <img src="guide-img/06-checkin-desktop.png" alt="หน้าเช็กชื่อบนคอมพิวเตอร์ แสดงรายชื่อนักเรียนทั้งห้องพร้อมปุ่มเลือกสถานะในแต่ละแถว" loading="lazy">
+        <figcaption>หน้าเช็กชื่อบนคอมพิวเตอร์ — เห็นทั้งห้องพร้อมกัน</figcaption>
+      </figure>
+      <p>ระบบ <strong>บันทึกให้อัตโนมัติทันทีที่กด</strong> ไม่ต้องกดเซฟ ปิดหน้าไปแล้วกลับมาแก้ทีหลังได้</p>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">4</span>
+      <h3>ลงตารางสอน เพื่อให้ระบบเตือนคาบให้</h3>
+    </div>
+    <div class="g-step-body">
+      <p>ขั้นนี้ <strong>ข้ามได้</strong> ถ้ายังไม่พร้อม — เช็กชื่อได้ตามปกติอยู่แล้ว แต่ถ้าลงตารางสอนไว้ หน้าแรกจะทำงานให้คุณเยอะขึ้นมาก</p>
+      <p>เข้าเมนู <strong>“ตารางสอนประจำสัปดาห์”</strong> แล้วแตะช่องในตารางเพื่อเลือกวิชาและห้องที่สอนคาบนั้น</p>
+      <div class="g-tip">
+        <span>💡</span>
+        <span><b>แนะนำให้ลงตารางสอนบนคอมพิวเตอร์</b> เพราะแตะช่องในตารางได้ง่ายกว่ามือถือมาก · ถ้ามีตารางเป็นไฟล์ Excel อยู่แล้ว ใช้ปุ่ม “นำเข้าตารางสอน” จะเร็วกว่า</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title">
+      <span class="g-step-num">5</span>
+      <h3>ใช้หน้าแรกเป็นศูนย์รวมประจำวัน</h3>
+    </div>
+    <div class="g-step-body">
+      <p>เมื่อลงตารางสอนแล้ว หน้าแรกจะสรุปให้ทุกวันว่า</p>
+      <ul>
+        <li>วันนี้มีคาบอะไรบ้าง เวลาไหน — <strong>แตะการ์ดคาบเพื่อไปเช็กชื่อได้ทันที</strong></li>
+        <li>คาบไหน <strong>เช็กแล้ว</strong> คาบไหน <strong>ยังไม่ได้เช็ก</strong></li>
+        <li>ถ้าลืมเช็ก จะมีแถบเตือนสีส้มขึ้นให้เห็นชัด</li>
+      </ul>
+      <figure>
+        <img src="guide-img/07-dashboard.png" alt="หน้าแรกแสดงวันที่ สรุปการเข้าเรียน แถบเตือนคาบที่ยังไม่ได้เช็กชื่อ และตารางสอนวันนี้" loading="lazy">
+        <figcaption>หน้าแรก — แถบสีส้มเตือนว่ายังมี 2 คาบที่ยังไม่ได้เช็กชื่อ</figcaption>
+      </figure>
+      <figure class="is-phone">
+        <img src="guide-img/08-dashboard-mobile.png" alt="หน้าแรกบนมือถือ แสดงวันที่ สรุปการเข้าเรียน และตารางสอนวันนี้" loading="lazy">
+        <figcaption>หน้าแรกบนมือถือ</figcaption>
+      </figure>
+      <div class="g-tip">
+        <span>🎉</span>
+        <span><b>ถึงตรงนี้ถือว่าพร้อมใช้งานจริงแล้ว</b> ที่เหลือคือคะแนน รายงาน และเครื่องมือหน้าชั้น ซึ่งค่อยเรียนรู้ทีหลังได้ ไม่ต้องรีบ</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ หมวด 2 ══════════ -->
+<section class="g-section" id="s2">
+  <div class="g-section-head">
+    <span class="n">หมวด 2</span>
+    <h2>เช็กชื่อประจำวัน</h2>
+    <p>เทคนิคใช้งานประจำ แก้ย้อนหลัง และการอ่านสถานะบนหน้าแรก</p>
+  </div>
+  <div class="g-soon">
+    <p><strong>กำลังจัดทำ</strong> — หัวข้อที่จะมีในหมวดนี้</p>
+    <ul>
+      <li>แก้การเช็กชื่อย้อนหลัง และเปลี่ยนวันที่ที่กำลังเช็ก</li>
+      <li>ปุ่ม “มาทุกคน” และ “ล้างข้อมูล” ใช้ตอนไหน</li>
+      <li>อ่านสถานะคาบบนหน้าแรก และการเตือนเมื่อลืมเช็ก</li>
+      <li>สลับห้องเรียนระหว่างเช็กชื่อโดยไม่ต้องย้อนกลับ</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ หมวด 3 ══════════ -->
+<section class="g-section" id="s3">
+  <div class="g-section-head">
+    <span class="n">หมวด 3</span>
+    <h2>คะแนนและ ปพ.5</h2>
+    <p>ตั้งอัตราส่วนคะแนน กรอกคะแนน และออกใบ ปพ.5</p>
+  </div>
+  <div class="g-soon">
+    <p><strong>กำลังจัดทำ</strong> — หัวข้อที่จะมีในหมวดนี้</p>
+    <ul>
+      <li>ตั้งอัตราส่วนคะแนนให้ตรงกับที่โรงเรียนกำหนด (ระหว่างภาค / กลางภาค / ปลายภาค)</li>
+      <li>เพิ่มรายการคะแนน และกำหนดคะแนนเต็มของแต่ละรายการ</li>
+      <li>กรอกคะแนนบนคอมพิวเตอร์และบนมือถือ</li>
+      <li>ตั้งเกณฑ์เกรด และดูเกรดที่ระบบคำนวณให้</li>
+      <li>ออกไฟล์ Excel และ PDF สำหรับใบ ปพ.5</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ หมวด 4 ══════════ -->
+<section class="g-section" id="s4">
+  <div class="g-section-head">
+    <span class="n">หมวด 4</span>
+    <h2>QR และกิจกรรมหน้าชั้น</h2>
+    <p>ให้นักเรียนสแกน QR เพื่อกรอกข้อมูลเข้าห้อง และเปิดกิจกรรมถามตอบสด</p>
+  </div>
+  <div class="g-soon">
+    <p><strong>กำลังจัดทำ</strong> — หัวข้อที่จะมีในหมวดนี้</p>
+    <ul>
+      <li>สร้างห้อง QR ให้นักเรียนกรอกชื่อเข้าห้องเรียนเอง</li>
+      <li>ตรวจรายชื่อก่อนนำเข้า และการจัดการชื่อซ้ำ</li>
+      <li>เปิดกิจกรรมถามตอบ — คำตอบสั้น ตัวเลือก และระดับ 1-5</li>
+      <li>ใช้จอนำเสนอฉายหน้าห้อง</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════ หมวด 5 ══════════ -->
+<section class="g-section" id="s5">
+  <div class="g-section-head">
+    <span class="n">หมวด 5</span>
+    <h2>เกมและเครื่องมือ</h2>
+    <p>เกมการศึกษาและเครื่องมือช่วยจัดการหน้าชั้นเรียน</p>
+  </div>
+  <div class="g-soon">
+    <p><strong>กำลังจัดทำ</strong> — หัวข้อที่จะมีในหมวดนี้</p>
+    <ul>
+      <li>เกมการศึกษาที่มีให้ใช้ และเหมาะกับวิชา/ระดับชั้นไหน</li>
+      <li>วิธีฉายเกมหน้าห้องและให้นักเรียนเล่นร่วมกัน</li>
+      <li>เครื่องมือหน้าชั้นเรียน เช่น สุ่มชื่อและจับเวลา</li>
+    </ul>
+  </div>
+</section>
+
+<footer class="g-foot">
+  <div>ยังหาคำตอบไม่เจอ? ทักทีมงานได้ที่ <a href="https://line.me/R/ti/p/@731idhsu" target="_blank" rel="noopener">LINE ของ ClassKru</a> หรือกดปุ่ม <b>?</b> มุมจอในระบบเพื่อแจ้งปัญหา</div>
+  <div class="g-foot-links">
+    <a href="home.html">หน้าแรก</a>
+    <a href="index.html">เข้าสู่ระบบ</a>
+    <a href="privacy.html">นโยบายความเป็นส่วนตัว</a>
+  </div>
+</footer>
+
+</body>
+</html>
