@@ -4,6 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>เพิ่มนักเรียนเข้าห้อง | ClassKru</title>
+  <meta name="description" content="สแกน QR หรือเปิดลิงก์จากคุณครู เพื่อเข้าร่วมกิจกรรมในห้องเรียน">
+  <!-- ห้องกิจกรรมเป็นลิงก์ชั่วคราว ไม่ต้องให้ search engine เก็บ -->
+  <meta name="robots" content="noindex, nofollow">
+  <!-- แชร์ลิงก์เข้าร่วมใน LINE แล้วขึ้นการ์ดพร้อมรูปและคำอธิบาย -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ClassKru">
+  <meta property="og:locale" content="th_TH">
+  <meta property="og:title" content="เข้าร่วมกิจกรรมในห้องเรียน | ClassKru">
+  <meta property="og:description" content="สแกน QR หรือเปิดลิงก์จากคุณครู เพื่อเข้าร่วมกิจกรรมในห้องเรียน">
+  <meta property="og:image" content="https://classkru-kohl.vercel.app/logo.png?v=2">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:image:alt" content="โลโก้ ClassKru">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -46,6 +60,9 @@
     .qr-card { text-align: center; }
     .qr-box { width: 210px; height: 210px; margin: 0 auto 12px; padding: 10px; border-radius: 22px; background: var(--card); border: 1px solid var(--border); box-shadow: var(--sh-md); }
     .qr-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .qr-box img[hidden] { display: none; }
+    .qr-placeholder { width: 100%; height: 100%; display: grid; place-items: center; text-align: center; padding: 14px; color: var(--muted); font-size: .8rem; font-weight: 800; line-height: 1.6; }
+    .qr-placeholder[hidden] { display: none; }
     .code { color: var(--primary); font-size: 2rem; font-weight: 800; letter-spacing: 4px; line-height: 1; margin-top: 8px; }
     .link { display: block; margin: 9px auto 0; max-width: 320px; color: var(--muted); font-size: .8rem; font-weight: 700; overflow-wrap: anywhere; text-decoration: none; }
     .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
@@ -1302,7 +1319,10 @@
 
         <section class="card qr-card">
             <h2>QR / เข้าร่วมกิจกรรม</h2>
-            <div class="qr-box"><img id="qr-img" alt="QR Code"></div>
+            <div class="qr-box">
+              <img id="qr-img" alt="QR Code สำหรับเข้าร่วมกิจกรรม" hidden>
+              <div id="qr-placeholder" class="qr-placeholder">กด “สร้างห้อง QR”<br>เพื่อสร้างรหัสเข้าร่วม</div>
+            </div>
             <a id="join-link" class="link" href="#" target="_blank" rel="noopener">ลิงก์เข้าร่วม</a>
             <div class="stats">
               <div class="stat"><b id="stat-total">0</b>เข้าร่วมแล้ว</div>
@@ -1734,6 +1754,12 @@
 
     async function startSession() {
       if (!validateAnswerConfig()) return;
+      // ไม่มีห้องเรียนให้เลือก buildSession() จะคืน null แล้วปุ่มจะเงียบไปเฉย ๆ — บอกครูให้ชัดแทน
+      if (!getClass()) {
+        alert('กรุณาเลือกห้องเรียนก่อนสร้างห้อง QR\n\nถ้ายังไม่มีห้องเรียนในรายการ ให้เข้าสู่ระบบแล้วสร้างห้องเรียนก่อน');
+        document.getElementById('class-select').focus();
+        return;
+      }
       // Reserve the popup during the click gesture so browsers do not block the auto-opened waiting room.
       const reservedWindow = presentationWindow && !presentationWindow.closed ? presentationWindow : window.open('about:blank', '_blank');
       activeCode = `CK-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -1830,6 +1856,8 @@
         document.getElementById('join-link').textContent = 'ลิงก์เข้าร่วม';
         document.getElementById('join-link').href = '#';
         document.getElementById('qr-img').removeAttribute('src');
+        document.getElementById('qr-img').hidden = true;
+        document.getElementById('qr-placeholder').hidden = false;
         document.getElementById('stage-question').textContent = 'เปิดกิจกรรมเพื่อรับนักเรียนเข้าห้อง';
         document.getElementById('stage-total').textContent = '0';
         document.getElementById('stage-hint').textContent = 'นักเรียนที่ส่งข้อมูลจะปรากฏในรายการด้านล่าง';
@@ -1844,6 +1872,8 @@
       document.getElementById('join-link').textContent = 'ลิงก์เข้าร่วม';
       document.getElementById('join-link').href = url;
       document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(url)}`;
+      document.getElementById('qr-img').hidden = false;
+      document.getElementById('qr-placeholder').hidden = true;
       const participants = getSessionParticipants(session);
       const answers = getSessionAnswers(session);
       const summary = getReviewSummary(participants, getClass());

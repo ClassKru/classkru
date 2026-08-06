@@ -6,8 +6,9 @@ body{margin:0;background:#fbfcfb;color:var(--ink);font-family:"Noto Sans Thai",s
 .privacy-hero{padding:48px 20px 34px;text-align:center}
 .privacy-hero img{width:76px;display:block;margin:0 auto 4px}
 .privacy-hero span{color:var(--green);font-size:.8rem;font-weight:800}
-.privacy-hero h1{margin:18px 0 8px;font-size:clamp(1.65rem,4vw,2.25rem);line-height:1.3}
-.privacy-hero p{max-width:560px;margin:0 auto;color:var(--muted);font-size:.92rem}
+/* text-wrap:balance กันไทยตัดบรรทัดกลางคำจนเหลือคำเดียวห้อยบรรทัดล่าง (เช่น "ผู้ใช้|งาน") */
+.privacy-hero h1{margin:18px 0 8px;font-size:clamp(1.65rem,4vw,2.25rem);line-height:1.3;text-wrap:balance}
+.privacy-hero p{max-width:560px;margin:0 auto;color:var(--muted);font-size:.92rem;text-wrap:balance}
 .privacy-hero small{display:block;margin-top:13px;color:#8c958f;font-size:.72rem}
 .privacy-card{margin-top:14px;padding:24px 26px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
 .privacy-card h2{margin:0 0 7px;color:var(--deep);font-size:1.08rem}
