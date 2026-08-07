@@ -366,7 +366,7 @@ function openRandomGroupTool() {
       </div>
       <div class="tl-groups" id="gr-out"><div class="tl-empty">กดจับกลุ่มเพื่อเริ่ม</div></div>
       <div class="tl-chips" id="gr-chips">${chips}</div>
-      <div class="tl-btns"><button class="tl-btn" onclick="_grShuffle()">จับกลุ่ม</button></div>`);
+      <div class="tl-btns"><button class="tl-btn" id="gr-go" onclick="_grShuffle()">จับกลุ่ม</button></div>`);
   _grRenderCounts();
   _tlCleanup['tool-group-overlay'] = null;
 }
@@ -385,30 +385,65 @@ function _grSetCount(n) {
   _grCount = n;
   document.querySelectorAll('#gr-chips .tl-chip').forEach(b => b.classList.toggle('on', Number(b.dataset.n) === n));
 }
+let _grBusy = false;
+
+function _grName(s) {
+  const nick = (s.nickname || '').trim();
+  const first = (s.name || '').trim().split(/\s+/)[0] || '';
+  return nick || first || '(ไม่มีชื่อ)';
+}
+function _grDeal(pool, n) {                                      // แจกวน = ขนาดกลุ่มต่างกันไม่เกิน 1
+  const groups = Array.from({ length: n }, () => []);
+  pool.forEach((s, i) => groups[i % n].push(s));
+  return groups;
+}
+function _grPaint(groups, animate) {
+  const out = document.getElementById('gr-out'); if (!out) return;
+  out.innerHTML = groups.map((g, gi) => {
+    const names = g.map(s => `<li>${_tlEsc(_grName(s))}</li>`).join('');
+    const delay = animate ? ` style="animation-delay:${gi * 70}ms"` : '';
+    return `<div class="tl-group g${gi % 6}${animate ? ' is-in' : ''}"${delay}>
+        <div class="tl-group-h"><span>กลุ่ม ${gi + 1}</span><b>${g.length} คน</b></div>
+        <ul>${names}</ul>
+      </div>`;
+  }).join('');
+}
 function _grShuffle() {
+  if (_grBusy) return;
   const c = _rnClass(); if (!c || !c.students) return;
-  const out = document.getElementById('gr-out');
+  const out = document.getElementById('gr-out'), go = document.getElementById('gr-go');
   let pool = _grMode === 'present' ? c.students.filter(_rnIsPresent) : c.students.slice();
   if (pool.length === 0) {
     out.innerHTML = `<div class="tl-empty">${_grMode === 'present' ? 'ยังไม่มีคนเช็คว่ามา' : 'ไม่มีรายชื่อในห้อง'}</div>`;
     return;
   }
-  for (let i = pool.length - 1; i > 0; i--) {                    // Fisher–Yates
-    const j = Math.floor(Math.random() * (i + 1));
-    const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
-  }
+  const mix = arr => {                                           // Fisher–Yates
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  };
   const n = Math.min(_grCount, pool.length);                     // คนน้อยกว่ากลุ่ม = ลดจำนวนกลุ่มลง
-  const groups = Array.from({ length: n }, () => []);
-  pool.forEach((s, i) => groups[i % n].push(s));                 // แจกวน = ขนาดกลุ่มต่างกันไม่เกิน 1
-  out.innerHTML = groups.map((g, gi) => {
-    const names = g.map(s => {
-      const nick = (s.nickname || '').trim();
-      const first = (s.name || '').trim().split(/\s+/)[0] || '';
-      return `<li>${_tlEsc(nick || first || '(ไม่มีชื่อ)')}</li>`;
-    }).join('');
-    return `<div class="tl-group g${gi % 6}">
-        <div class="tl-group-h">กลุ่ม ${gi + 1} <b>${g.length}</b></div>
-        <ul>${names}</ul>
-      </div>`;
-  }).join('');
+  const final = _grDeal(mix(pool.slice()), n);
+
+  const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (still) { _grPaint(final, false); return; }
+
+  // เฟสสับไพ่ — ชื่อสลับไปมาก่อนลงตัว (ให้ลุ้นแบบเดียวกับสุ่มรายชื่อ)
+  // จำนวนคนต่อกลุ่มคงที่ทุกจังหวะ การ์ดเลยไม่กระตุกเปลี่ยนขนาด
+  _grBusy = true; go.disabled = true; go.style.opacity = '.6';
+  const ticks = 8, deadline = Date.now() + 1600;                 // เส้นตาย: กันค้างตอนแท็บถูกซ่อน (ดู _rnSpin)
+  let i = 0;
+  const step = () => {
+    _grPaint(_grDeal(mix(pool.slice()), n), false);
+    i++;
+    if (i >= ticks || Date.now() >= deadline) {
+      _grPaint(final, true);                                     // ลงตัว + การ์ดเด้งขึ้นทีละใบ
+      _grBusy = false; go.disabled = false; go.style.opacity = '1';
+      return;
+    }
+    setTimeout(step, 60 + i * 14);                               // ค่อยๆ ช้าลง
+  };
+  step();
 }
