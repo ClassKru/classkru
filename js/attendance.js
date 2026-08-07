@@ -1,5 +1,5 @@
 // ==================== SCHEDULE GUARD (กันเช็คชื่อผิดวัน) ====================
-// วันในสัปดาห์ที่ห้องนี้มีคาบตามตาราง (เทียบเฉพาะ dow ไม่ผูก Week A/B เพื่อไม่เตือนพร่ำเพรื่อ)
+// วันในสัปดาห์ที่ห้องนี้มีคาบตามตาราง
 function classScheduledDoWs(classId) {
   const set = new Set();
   (appState.timetable || []).forEach(t => { if (t.classId === classId) set.add(t.dow); });
@@ -269,6 +269,111 @@ function editCurrentSwipeStudent(event) {
   if (!student) return;
   openStudentDetailModal(student.id, swipeClassId);
 }
+
+function openSwipeStudentPhoto(event) {
+  if (event) event.stopPropagation();
+  if (!ensureStudentPhotoPermission()) return;
+  document.getElementById('swipe-student-photo-input')?.click();
+}
+
+// รูปนักเรียนเป็นข้อมูลส่วนบุคคล: ให้ครูรับทราบหน้าที่และยืนยันสิทธิ์ก่อนใช้ฟีเจอร์ทดลองครั้งแรก
+function ensureStudentPhotoPermission() {
+  const key = 'classkru_photo_notice_ack_v1';
+  if (localStorage.getItem(key) === '1') return true;
+  const accepted = window.confirm(
+    'รูปนักเรียนเป็นข้อมูลส่วนบุคคล\n\n' +
+    'โปรดใช้เฉพาะรูปที่ได้รับอนุญาตจากผู้ปกครองหรือผู้มีสิทธิ์ และใช้เพื่อช่วยจัดการชั้นเรียนเท่านั้น\n\n' +
+    'อ่านนโยบายความเป็นส่วนตัวได้ที่หน้าแรกของ ClassKru\n\n' +
+    'ต้องการเพิ่มรูปต่อหรือไม่?'
+  );
+  if (accepted) localStorage.setItem(key, '1');
+  return accepted;
+}
+
+function processStudentPhotoFile(file, student, onDone) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 256;
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2;
+      const sy = (img.height - side) / 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = max;
+      canvas.height = max;
+      canvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, max, max);
+      student.photoBase64 = canvas.toDataURL('image/jpeg', 0.78);
+      onDone();
+    };
+    img.onerror = () => showToast('เปิดรูปไม่สำเร็จ', 'error');
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleSwipeStudentPhoto(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showToast('กรุณาเลือกไฟล์รูปภาพ', 'warning');
+    event.target.value = '';
+    return;
+  }
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  const student = c && c.students[swipeStudentIndex];
+  if (!student) return;
+
+  processStudentPhotoFile(file, student, () => {
+    saveState();
+    renderSwipeCard();
+    showToast('บันทึกรูปนักเรียนแล้ว', 'success');
+  });
+  event.target.value = '';
+}
+
+function openStudentDetailPhoto(event) {
+  if (event) event.stopPropagation();
+  if (!ensureStudentPhotoPermission()) return;
+  document.getElementById('student-detail-photo-input')?.click();
+}
+
+function handleStudentDetailPhoto(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showToast('กรุณาเลือกไฟล์รูปภาพ', 'warning');
+    event.target.value = '';
+    return;
+  }
+  const c = appState.classes.find(x => x.id === currentClassId);
+  const student = c && c.students.find(x => x.id === detailedStudentId);
+  if (!student) return;
+  processStudentPhotoFile(file, student, () => {
+    const preview = document.getElementById('student-detail-photo-preview');
+    if (preview) { preview.src = student.photoBase64; preview.style.display = 'block'; }
+    saveState();
+    if (swipeClassId === currentClassId) renderSwipeCard();
+    showToast('บันทึกรูปนักเรียนแล้ว', 'success');
+  });
+  event.target.value = '';
+}
+
+function removeStudentDetailPhoto(event) {
+  if (event) event.stopPropagation();
+  const c = appState.classes.find(x => x.id === currentClassId);
+  const student = c && c.students.find(x => x.id === detailedStudentId);
+  if (!student || !student.photoBase64) return;
+  if (!window.confirm('ต้องการลบรูปนักเรียนนี้หรือไม่?')) return;
+  delete student.photoBase64;
+  const preview = document.getElementById('student-detail-photo-preview');
+  const removeButton = document.getElementById('student-detail-photo-remove');
+  if (preview) { preview.src = ''; preview.style.display = 'none'; }
+  if (removeButton) removeButton.style.display = 'none';
+  saveState();
+  if (swipeClassId === currentClassId) renderSwipeCard();
+  showToast('ลบรูปนักเรียนแล้ว', 'success');
+}
 // รีเฟรชหน้าเช็คชื่อถ้ากำลังเปิดอยู่ (หลังเพิ่ม/นำเข้านักเรียน)
 function refreshSwipeIfOpen() {
   const ov = document.getElementById('swipe-overlay');
@@ -432,14 +537,13 @@ function renderSwipeCard() {
 
   document.getElementById('swipe-card-no').innerText = `เลขที่ ${student.no || (swipeStudentIndex + 1)}`;
   document.getElementById('swipe-card-code').innerText = student.studentCode ? `รหัส ${student.studentCode}` : '';
-  // avatar: ชื่อเล่น ถ้ามี, ไม่มีก็ใช้ชื่อจริงคำแรก. ป้าย "ชื่อเล่น" โชว์เฉพาะตอนมีชื่อเล่นจริง
+  // รูปนักเรียนถ้ามี; ถ้าไม่มี ใช้ชื่อเล่นหรือเลขที่เป็น fallback
   const nick = (student.nickname || '').trim();
   const seatNo = student.no || (swipeStudentIndex + 1);
-  // ชื่อเล่นถ้ามี, ไม่มีก็แสดงเลขที่ (เลขล้วนในวง) แทนชื่อจริงคำแรกแบบเดิม
-  document.getElementById('swipe-card-avatar').innerText = nick || seatNo;
-  const nickLabel = document.getElementById('swipe-card-nick-label');
-  nickLabel.innerText = nick ? 'ชื่อเล่น' : 'เลขที่';
-  nickLabel.style.display = 'block';
+  const avatar = document.getElementById('swipe-card-avatar');
+  avatar.classList.toggle('has-photo', !!student.photoBase64);
+  if (student.photoBase64) avatar.innerHTML = `<img src="${student.photoBase64}" alt="">`;
+  else avatar.innerText = nick || seatNo;
   document.getElementById('swipe-card-name').innerText = student.name;
   document.getElementById('swipe-card-stats').innerHTML = `
     <span class="sc-stat present">มา ${histPresent}</span>

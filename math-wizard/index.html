@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#24114e">
+  <title>Math Wizard – ศึกจอมเวทย์คณิตศาสตร์</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell" aria-labelledby="game-title">
+    <header class="game-header">
+      <a class="back-link" href="../index.html#games" aria-label="กลับไปหน้าเกมการศึกษา">← <span>ศูนย์เกม</span></a>
+      <div class="game-brand"><span aria-hidden="true">✦</span><div><h1 id="game-title">Math Wizard</h1><p>ศึกจอมเวทย์คณิตศาสตร์</p></div></div>
+      <div class="hud" aria-label="สถานะการต่อสู้">
+        <div class="hud-item"><span>คะแนน</span><strong id="score-value">0</strong></div>
+        <div class="hud-item"><span>คอมโบ</span><strong id="combo-value">0</strong></div>
+        <div class="hud-item mana-hud"><span>มานา</span><strong id="mana-value">20</strong></div>
+        <div class="hud-item"><span>ด่าน</span><strong id="stage-value">1</strong></div>
+      </div>
+      <button id="sound-toggle" class="icon-button" type="button" aria-label="เปิดเสียง" aria-pressed="true">🔊</button>
+    </header>
+
+    <section class="battle-area" aria-label="สนามต่อสู้จอมเวทย์">
+      <div class="sky-stars" aria-hidden="true"></div>
+      <div class="castle castle-left" aria-hidden="true"></div><div class="castle castle-right" aria-hidden="true"></div>
+      <div class="battle-status" id="battle-status" aria-live="polite">เตรียมคาถาให้พร้อม</div>
+
+      <article class="combatant player-side" aria-label="จอมเวทย์ฝึกหัด">
+        <div class="combatant-top"><span>APPRENTICE WIZARD</span><strong id="player-hp-label">100 / 100 HP</strong></div>
+        <div class="health-track player-health"><div id="player-hp-bar" class="health-fill"></div></div>
+        <div id="player-character" class="wizard-character" aria-hidden="true">
+          <div class="wizard-hat"></div><div class="wizard-head"></div><div class="wizard-body"><i></i></div><div class="wizard-wand"></div>
+          <div class="wizard-aura"></div><div class="magic-circle player-circle"><span>✦</span></div>
+        </div>
+      </article>
+
+      <div class="spell-stage" aria-hidden="true">
+        <div id="spell-circle" class="spell-circle"><span>✦</span><span>✧</span><span>✦</span></div>
+        <div id="spell-projectile" class="spell-projectile"></div>
+        <div id="spell-burst" class="spell-burst"></div>
+        <div id="damage-number" class="damage-number"></div>
+      </div>
+
+      <article class="combatant monster-side" aria-label="มอนสเตอร์ฝ่ายตรงข้าม">
+        <div class="combatant-top monster-name"><span id="monster-name">Mystic Slime</span><strong id="monster-hp-label">80 / 80 HP</strong></div>
+        <div class="health-track monster-health"><div id="monster-hp-bar" class="health-fill"></div></div>
+        <div id="monster-character" class="monster-character" aria-hidden="true"></div>
+      </article>
+    </section>
+
+    <section class="challenge-panel" aria-labelledby="challenge-title">
+      <div class="challenge-topline">
+        <div><p class="section-kicker">BOOK OF SPELLS</p><h2 id="challenge-title">แก้โจทย์เพื่อร่ายเวท</h2></div>
+        <div class="timer-box" id="timer-box" aria-label="เวลาที่เหลือ"><span>เวลา</span><strong id="timer-value">15.0</strong><small>วินาที</small></div>
+      </div>
+      <div class="timer-track"><div id="timer-bar" class="timer-fill"></div></div>
+      <div class="difficulty-switch" role="group" aria-label="เลือกระดับความยาก">
+        <button class="difficulty-button is-active" type="button" data-difficulty="easy">ง่าย <small>15 วินาที</small></button>
+        <button class="difficulty-button" type="button" data-difficulty="medium">กลาง <small>10 วินาที</small></button>
+        <button class="difficulty-button" type="button" data-difficulty="hard">ยาก <small>7 วินาที</small></button>
+      </div>
+      <p id="question-text" class="question-text">กด “เริ่มผจญภัย” เพื่อเปิดคัมภีร์คาถา</p>
+      <div id="answer-grid" class="answer-grid" role="group" aria-label="ตัวเลือกคำตอบ">
+        <button type="button" class="answer-button" disabled><b>1</b><span>—</span></button><button type="button" class="answer-button" disabled><b>2</b><span>—</span></button><button type="button" class="answer-button" disabled><b>3</b><span>—</span></button><button type="button" class="answer-button" disabled><b>4</b><span>—</span></button>
+      </div>
+      <div class="skill-bar" aria-label="สกิลใช้มานา">
+        <p>สกิลเวท <span>ใช้ช่วยพลิกการต่อสู้</span></p>
+        <div class="skill-list">
+          <button class="skill-button fire" type="button" data-skill="fireball" disabled><span>🔥</span><b>Fireball</b><small>30 มานา</small></button>
+          <button class="skill-button lightning" type="button" data-skill="lightning" disabled><span>⚡</span><b>Lightning</b><small>50 มานา</small></button>
+          <button class="skill-button meteor" type="button" data-skill="meteor" disabled><span>☄️</span><b>Meteor</b><small>100 มานา</small></button>
+        </div>
+      </div>
+      <p class="keyboard-hint">แป้นพิมพ์: <kbd>1</kbd>–<kbd>4</kbd> ตอบคำถาม · <kbd>F</kbd> Fireball · <kbd>L</kbd> Lightning · <kbd>M</kbd> Meteor</p>
+    </section>
+  </main>
+
+  <div id="modal-layer" class="modal-layer is-visible" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <section class="modal-card">
+      <div id="modal-emblem" class="modal-emblem" aria-hidden="true">✦</div>
+      <p id="modal-kicker" class="section-kicker">MAGIC ACADEMY</p>
+      <h2 id="modal-title">พร้อมร่ายเวทหรือยัง?</h2>
+      <p id="modal-message">ตอบโจทย์คณิตศาสตร์ให้ถูกต้องเพื่อส่งคาถาไปพิชิตมอนสเตอร์ สร้างคอมโบเพื่อปลุกพลังเวทขั้นสูง!</p>
+      <div id="modal-rewards" class="modal-rewards" hidden></div>
+      <div class="modal-actions"><button id="modal-primary" class="primary-action" type="button">เริ่มผจญภัย</button><a id="modal-exit" class="secondary-action" href="../index.html#games" hidden>ออกสู่ศูนย์เกม</a></div>
+      <button id="stats-button" class="stats-button" type="button">สถิติของฉัน</button>
+      <div id="stats-panel" class="stats-panel" hidden></div>
+    </section>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -387,9 +387,9 @@ const MAIN_TOUR_STEPS = [
   { nav: 'timetable', target: '#web-timetable-matrix-container td[onclick^="openPeriodModal"]', title: 'ลงตารางสอน (ไม่บังคับ)', desktopOnly: true,
     body: 'แตะช่องในตารางเพื่อลงคาบสอน แล้วเลือก<b>วิชา/ห้อง</b>ที่คุณเพิ่งสร้าง<br><br>ลงไว้แล้วหน้าแรกจะ<b>เตือนคาบถัดไป</b>ให้อัตโนมัติ · ยังไม่พร้อมก็ข้ามได้',
     advance: 'action:period-added' },
-  // แนะนำปุ่มลัดบนหน้าตาราง (Week A/B + จัดการคาบ) — แค่ให้รู้จัก เดี๋ยวครูกลับมาปรับเองทีหลัง
+  // แนะนำปุ่มลัดบนหน้าตาราง — แค่ให้รู้จัก เดี๋ยวครูกลับมาปรับเองทีหลัง
   { target: '#tt-desktop-controls', title: 'ปุ่มลัดบนหน้าตาราง', desktopOnly: true,
-    body: 'รู้จักไว้นิดหน่อย เดี๋ยวกลับมาปรับทีหลังได้:<br>• <b>Week A / B</b> — สลับตารางสัปดาห์คู่/คี่ (ถ้าโรงเรียนใช้ระบบนี้)<br>• <b>จัดการคาบ</b> — ตั้งเวลาเริ่ม จำนวนคาบ และเวลาพัก' },
+    body: 'รู้จักไว้นิดหน่อย เดี๋ยวกลับมาปรับทีหลังได้:<br>• <b>นำเข้าตารางสอน</b> — เพิ่มหลายคาบจาก Excel<br>• <b>จัดการคาบ</b> — ตั้งเวลาเริ่ม จำนวนคาบ และเวลาพัก' },
   // ตารางสอน (มือถือ) — หน้ามือถือดูอย่างเดียว ลงคาบทำบนคอม
   { nav: 'timetable', title: 'ตารางสอน (ไม่บังคับ)', mobileOnly: true,
     body: 'ถ้าลงตารางสอนไว้ หน้าแรกจะ<b>เตือนคาบถัดไป</b>ให้อัตโนมัติ<br><br>💡 แนะนำจัดตารางบน<b>คอมพิวเตอร์</b> (แตะช่องลงคาบได้ง่ายกว่า) · ยังไม่พร้อมก็ข้ามได้ เช็คชื่อได้เลย' },
@@ -413,10 +413,17 @@ function startMainTour() {
   Tour.start(MAIN_TOUR_STEPS, { onEnd: finishOnboarding });
 }
 
+// เปิดทัวร์ซ้ำจากศูนย์ช่วยเหลือ — เดิมทัวร์เปิดได้ครั้งเดียวตอนยังไม่มีห้องเรียน
+// ครูที่ใช้ไปแล้วจะไม่มีทางกลับมาดูได้อีก ทั้งที่ toast บอกว่าเปิดซ้ำได้
+function replayMainTour() {
+  if (typeof closePublicHelp === 'function') closePublicHelp();
+  Tour.start(MAIN_TOUR_STEPS, { onEnd: finishOnboarding });
+}
+
 function finishOnboarding(completed) {
   appState.onboarding = { done: true };
   saveState();
-  if (completed) showToast('พร้อมใช้งานแล้ว 🎉 เปิดคู่มือซ้ำได้ที่ปุ่ม ? มุมจอ', 'success');
+  if (completed) showToast('พร้อมใช้งานแล้ว 🎉 ดูทัวร์ซ้ำได้ที่ ศูนย์ช่วยเหลือ', 'success');
 }
 
 function skipOnboarding() {

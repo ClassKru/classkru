@@ -4,15 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ClassKru — Connected Classroom System</title>
-  <link rel="stylesheet" href="css/01-base-layout.css?v=218">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=218">
-  <link rel="stylesheet" href="css/03-reports.css?v=218">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=218">
-  <link rel="stylesheet" href="css/05-home.css?v=218">
-  <link rel="stylesheet" href="css/06-attendance.css?v=218">
-  <link rel="stylesheet" href="css/07-scores.css?v=218">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=218">
-    <link rel="stylesheet" href="css/09-games.css?v=218">
+  <meta name="description" content="เช็กชื่อเร็ว จัดการนักเรียน ตารางสอน และรายงาน ครบในที่เดียว เพื่อคุณครู ใช้งานฟรี">
+  <link rel="canonical" href="https://classkru-kohl.vercel.app/">
+  <!-- แชร์ลิงก์ใน LINE/Facebook แล้วขึ้นการ์ดพร้อมรูปและคำอธิบาย -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ClassKru">
+  <meta property="og:locale" content="th_TH">
+  <meta property="og:title" content="ClassKru — ผู้ช่วยในชั้นเรียน">
+  <meta property="og:description" content="เช็กชื่อเร็ว จัดการนักเรียน ตารางสอน และรายงาน ครบในที่เดียว เพื่อคุณครู ใช้งานฟรี">
+  <meta property="og:url" content="https://classkru-kohl.vercel.app/">
+  <meta property="og:image" content="https://classkru-kohl.vercel.app/logo.png?v=2">
+  <meta property="og:image:width" content="1024">
+  <meta property="og:image:height" content="1024">
+  <meta property="og:image:alt" content="โลโก้ ClassKru">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=290">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=290">
+  <link rel="stylesheet" href="css/03-reports.css?v=290">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=290">
+  <link rel="stylesheet" href="css/05-home.css?v=290">
+  <link rel="stylesheet" href="css/06-attendance.css?v=290">
+  <link rel="stylesheet" href="css/07-scores.css?v=290">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=290">
+    <link rel="stylesheet" href="css/09-games.css?v=290">
+  <link rel="stylesheet" href="css/10-help.css?v=290">
+  <link rel="stylesheet" href="css/11-public-help.css?v=290">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -38,12 +54,49 @@
 </head>
 <body>
 
+  <!-- PUBLIC JOIN SCREEN (local prototype) -->
+  <div id="public-join-screen" class="ck-public-join" style="display:none;">
+    <div class="ck-public-phone">
+      <div class="ck-public-head">
+        <img src="logo.png?v=2" alt="ClassKru">
+        <div>
+          <strong id="public-join-room">เข้าร่วมห้องเรียน</strong>
+          <span id="public-join-code">รหัสห้อง</span>
+        </div>
+      </div>
+      <div class="ck-public-card" id="public-join-form-card">
+        <div class="ck-public-question">
+          <span>คำถามวันนี้</span>
+          <strong id="public-join-question">...</strong>
+        </div>
+        <div id="public-join-answer-area" class="ck-public-answer-area"></div>
+        <div class="ck-public-fields">
+          <label>ชื่อจริง<input id="public-first-name" class="form-control" placeholder="เช่น สมชาย"></label>
+          <label>ชื่อเล่น<input id="public-nickname" class="form-control" placeholder="เช่น บอล"></label>
+          <div class="ck-public-two-col">
+            <label>เลขที่<input id="public-student-no" class="form-control" inputmode="numeric" placeholder="12"></label>
+            <label>รหัสนักเรียน<input id="public-student-code" class="form-control" placeholder="ไม่บังคับ"></label>
+          </div>
+        </div>
+        <p class="ck-public-note">ข้อมูลนี้จะถูกส่งให้ครูตรวจสอบก่อนเพิ่มเข้ารายชื่อห้องเรียน</p>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="submitPublicJoinResponse()"><i class="hgi-stroke hgi-task-done-01"></i> ส่งคำตอบและเข้าร่วม</button>
+      </div>
+      <div class="ck-public-card ck-public-success" id="public-join-success" style="display:none;">
+        <div class="ck-public-success-icon">✓</div>
+        <strong>เข้าร่วมสำเร็จ</strong>
+        <span>คำตอบถูกส่งให้ครูแล้ว กรุณารอครูเริ่มกิจกรรม</span>
+      </div>
+    </div>
+  </div>
+
   <!-- LOGIN SCREEN -->
   <div id="login-overlay" class="modal-overlay show" style="z-index:10000;backdrop-filter:none;background:linear-gradient(160deg,#f0fdf4 0%,#ffffff 50%,#f0fdf4 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:24px;overflow-y:auto;">
-    <div style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;margin:auto 0;">
+    <div id="login-content" style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;margin:auto 0;">
 
       <!-- Logo -->
-      <img src="logo.png?v=2" style="width:112px;height:auto;object-fit:contain;display:block;margin-bottom:-4px;">
+      <a href="home.html" aria-label="กลับหน้าแรก ClassKru" style="display:inline-flex;border-radius:16px;transition:transform 0.18s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <img src="logo.png?v=2" style="width:112px;height:auto;object-fit:contain;display:block;margin-bottom:-4px;">
+      </a>
 
       <!-- Heading -->
       <h2 id="auth-heading" style="font-size:1.55rem;font-weight:800;color:var(--text-main);text-align:center;letter-spacing:-0.3px;margin:0 0 8px;">เข้าสู่ระบบ ClassKru</h2>
@@ -124,10 +177,37 @@
           สมัครฟรี ใช้งานได้ทันที<br>จำรหัสผ่านไม่ได้? เข้าด้วย Google จะง่ายกว่า
         </div>
       </div>
+      <a href="home.html" style="display:inline-flex;align-items:center;gap:5px;margin-top:16px;color:var(--text-muted);font-size:0.82rem;font-weight:600;transition:color 0.18s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+        <i class="hgi-stroke hgi-arrow-left-01"></i> กลับหน้าแรก
+      </a>
+    </div>
+
+    <!-- Public Help: เข้าได้ก่อนล็อกอิน -->
+    <div id="public-help-view" class="public-help-view" style="display:none;">
+      <div class="public-help-topbar">
+        <button class="public-help-back" type="button" onclick="closePublicHelp()" title="กลับเข้าสู่ระบบ" aria-label="กลับเข้าสู่ระบบ"><i class="hgi-stroke hgi-arrow-left-01"></i></button>
+        <span class="public-help-brand">ClassKru Help Center</span>
+        <span class="public-help-status"><i class="hgi-stroke hgi-shield-01"></i> ไม่ต้องล็อกอิน</span>
+      </div>
+      <div id="public-help-hub">
+        <div class="public-help-hero">
+          <span class="help-eyebrow">ยินดีช่วยเสมอ</span>
+          <h2>มีอะไรให้ช่วยไหม?</h2>
+          <p>เลือกหัวข้อที่ต้องการ หรือทักทีมงานได้เลย</p>
+        </div>
+        <div class="public-help-grid">
+          <button class="public-help-card" type="button" onclick="openPublicHelpDetail('getting-started')"><span class="public-help-icon tint-green"><i class="hgi-stroke hgi-book-02"></i></span><span><strong>เริ่มต้นใช้งาน</strong><small>ตั้งค่าระบบครั้งแรก</small></span><i class="hgi-stroke hgi-arrow-right-01 card-arrow"></i></button>
+          <button class="public-help-card" type="button" onclick="openPublicHelpDetail('account')"><span class="public-help-icon tint-blue"><i class="hgi-stroke hgi-lock-password"></i></span><span><strong>บัญชีและรหัสผ่าน</strong><small>สมัคร ล็อกอิน หรือลืมรหัสผ่าน</small></span><i class="hgi-stroke hgi-arrow-right-01 card-arrow"></i></button>
+          <button class="public-help-card" type="button" onclick="openPublicHelpDetail('report')"><span class="public-help-icon tint-amber"><i class="hgi-stroke hgi-alert-02"></i></span><span><strong>แจ้งปัญหา</strong><small>ส่งรายละเอียดให้ทีมงานตรวจสอบ</small></span><i class="hgi-stroke hgi-arrow-right-01 card-arrow"></i></button>
+          <button class="public-help-card" type="button" onclick="openPublicHelpDetail('contact')"><span class="public-help-icon tint-coral"><i class="hgi-stroke hgi-message-02"></i></span><span><strong>ติดต่อทีมงาน</strong><small>สอบถามการใช้งานได้โดยตรง</small></span><i class="hgi-stroke hgi-arrow-right-01 card-arrow"></i></button>
+        </div>
+        <div class="public-help-footer"><span>พร้อมเริ่มใช้งานแล้ว?</span><button type="button" class="btn btn-primary" onclick="closePublicHelp();document.getElementById('login-email')?.focus();">เข้าสู่ระบบ</button></div>
+      </div>
+      <div id="public-help-detail" style="display:none;"></div>
     </div>
 
     <!-- Help button -->
-    <div id="help-fab" style="position:fixed;bottom:24px;right:24px;width:38px;height:38px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,0.15);cursor:pointer;">?</div>
+    <button id="help-fab" type="button" onclick="showPublicHelp()" title="ศูนย์ช่วยเหลือ" aria-label="ศูนย์ช่วยเหลือ" style="position:fixed;bottom:24px;right:24px;width:38px;height:38px;border-radius:50%;background:var(--primary);color:white;border:none;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;box-shadow:0 2px 10px rgba(0,0,0,0.15);cursor:pointer;">?</button>
   </div>
 
   <!-- MAIN APP SHELL -->
@@ -145,7 +225,7 @@
         <button class="nav-item" data-screen="students" onclick="navigateToWebScreen('students')" style="display:none;"><i class="hgi-stroke hgi-user-multiple"></i><span>จัดการรายชื่อเด็ก</span></button>
         <button class="nav-item" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอนประจำสัปดาห์</span></button>
         <button class="nav-item" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกมการศึกษา</span></button>
-        <button class="nav-item" data-screen="contact help-guide feature-request" onclick="navigateToWebScreen('contact')"><i class="hgi-stroke hgi-customer-service-01"></i><span>ศูนย์ช่วยเหลือ</span></button>
+        <button class="nav-item" data-screen="help" onclick="navigateToWebScreen('help')"><i class="hgi-stroke hgi-customer-service-01"></i><span>ศูนย์ช่วยเหลือ</span></button>
         <button class="nav-item" data-screen="attendance" onclick="navigateToWebScreen('attendance')" style="display:none;"><i class="hgi-stroke hgi-table"></i><span>Attendance Matrix</span></button>
         <!-- เมนู "รายงานวิเคราะห์ผล" ถูกยกออก — เข้ารายงาน (การเข้าเรียน) ผ่านการ์ดหน้าห้องเรียนวิชาสอนเท่านั้น -->
         <button class="nav-item" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่าระบบ</span></button>
@@ -197,68 +277,39 @@
           </div>
         </div>
 
-        <!-- CONTACT -->
-        <div id="web-screen-contact" class="fade-in" style="display:none;">
-          <section class="ck-guide-hero">
-            <div>
-              <span class="ck-guide-eyebrow"><i class="hgi-stroke hgi-customer-service-01"></i> ศูนย์ช่วยเหลือ ClassKru</span>
-              <h2>ศูนย์ช่วยเหลือ</h2>
-              <p>เลือกหัวข้อที่ต้องการ ระบบจะพาไปช่องทางที่เหมาะสมและช่วยแยกเรื่องให้ทีมงานดูแลง่ายขึ้น</p>
-            </div>
+        <!-- HELP CENTER -->
+        <div id="web-screen-help" class="fade-in" style="display:none;">
+          <section class="ck-help-hero">
+            <span class="ck-help-eyebrow"><i class="hgi-stroke hgi-customer-service-01"></i> Help Center</span>
+            <h2>ศูนย์ช่วยเหลือ</h2>
+            <p>เลือกหัวข้อที่ต้องการ เพื่อดูวิธีใช้งาน หรือทักทีมงานผ่าน LINE สำหรับการช่วยเหลือเบื้องต้น</p>
           </section>
-
-          <section class="ck-contact-grid" aria-label="หัวข้อติดต่อทีมงาน">
-            <button class="ck-contact-card" onclick="navigateToWebScreen('help-guide')">
-              <span class="ck-contact-icon is-green"><i class="hgi-stroke hgi-book-open-01"></i></span>
-              <span><strong>วิธีใช้งาน</strong><small>หน้านี้เตรียมไว้สำหรับอัปเดตคู่มือ</small></span>
+          <section class="ck-help-grid" aria-label="หัวข้อศูนย์ช่วยเหลือ">
+            <a class="ck-help-card" href="guide.html" target="_blank" rel="noopener">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-book-open-01"></i></span>
+              <span><strong>วิธีใช้งาน</strong><small>คู่มือทีละขั้นพร้อมภาพประกอบ</small></span>
+            </a>
+            <button class="ck-help-card" type="button" onclick="replayMainTour()">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-rocket-01"></i></span>
+              <span><strong>ดูทัวร์อีกครั้ง</strong><small>ให้ระบบพาทำทีละขั้นในหน้าจอจริง</small></span>
             </button>
-            <button class="ck-contact-card" onclick="openSupportForm('bug')">
-              <span class="ck-contact-icon is-red"><i class="hgi-stroke hgi-alert-02"></i></span>
-              <span><strong>แจ้งปัญหา</strong><small>ลิงก์สำหรับฟอร์มแจ้งปัญหา รอใส่ลิงก์จริง</small></span>
+            <button class="ck-help-card" type="button" onclick="openIssueReportForm('issue')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-alert-02"></i></span>
+              <span><strong>แจ้งปัญหา</strong><small>บันทึกรายละเอียดให้ทีมงานตรวจสอบผ่านระบบ</small></span>
             </button>
-            <button class="ck-contact-card" onclick="navigateToWebScreen('feature-request')">
-              <span class="ck-contact-icon is-yellow"><i class="hgi-stroke hgi-bulb"></i></span>
-              <span><strong>เสนอฟีเจอร์</strong><small>กรอกไอเดียสั้นๆ เพื่อส่งเข้าฟอร์มภายหลัง</small></span>
+            <button class="ck-help-card" type="button" onclick="openIssueReportForm('feature')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-bulb"></i></span>
+              <span><strong>เสนอฟีเจอร์</strong><small>ส่งไอเดียที่อยากให้ ClassKru เพิ่ม</small></span>
             </button>
-            <button class="ck-contact-card" onclick="openLineSupport('staff')">
-              <span class="ck-contact-icon is-blue"><i class="hgi-stroke hgi-message-01"></i></span>
-              <span><strong>ติดต่อทีมงาน</strong><small>กลับไปแชท LINE พร้อมข้อความขอความช่วยเหลือ</small></span>
+            <button class="ck-help-card" type="button" onclick="openHelpLine('ติดต่อเรา')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-message-01"></i></span>
+              <span><strong>ติดต่อผ่าน LINE</strong><small>สอบถามการเริ่มใช้งาน หรือขอคำแนะนำจากทีมงาน</small></span>
             </button>
           </section>
-        </div>
-
-        <!-- HELP GUIDE PLACEHOLDER -->
-        <div id="web-screen-help-guide" class="fade-in" style="display:none;">
-          <section class="ck-guide-hero">
-            <div>
-              <span class="ck-guide-eyebrow"><i class="hgi-stroke hgi-book-open-01"></i> วิธีใช้งาน</span>
-              <h2>วิธีใช้งาน ClassKru</h2>
-              <p>หน้านี้เตรียมไว้สำหรับอัปเดตคู่มือการใช้งานในภายหลัง</p>
-            </div>
-            <button class="btn" onclick="navigateToWebScreen('contact')"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับศูนย์ช่วยเหลือ</button>
-          </section>
-          <section class="ck-empty-panel">
-            <i class="hgi-stroke hgi-book-open-01"></i>
-            <strong>รออัปเดตคู่มือ</strong>
-            <span>ทีมงานจะเพิ่มเนื้อหาวิธีใช้งานในหน้านี้ภายหลัง</span>
-          </section>
-        </div>
-
-        <!-- FEATURE REQUEST PLACEHOLDER -->
-        <div id="web-screen-feature-request" class="fade-in" style="display:none;">
-          <section class="ck-guide-hero">
-            <div>
-              <span class="ck-guide-eyebrow"><i class="hgi-stroke hgi-bulb"></i> เสนอฟีเจอร์</span>
-              <h2>เสนอฟีเจอร์</h2>
-              <p>พิมพ์ไอเดียสั้นๆ ที่อยากให้ ClassKru เพิ่มหรือปรับปรุง</p>
-            </div>
-            <button class="btn" onclick="navigateToWebScreen('contact')"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับศูนย์ช่วยเหลือ</button>
-          </section>
-          <section class="card ck-feature-box">
-            <label for="feature-request-text">ไอเดียของคุณ</label>
-            <textarea id="feature-request-text" class="form-control" rows="4" placeholder="เช่น อยากให้มีสรุปรายงานรายเดือนแบบ PDF"></textarea>
-            <button class="btn btn-primary" onclick="submitFeatureRequest()"><i class="hgi-stroke hgi-message-01"></i> ส่งข้อเสนอ</button>
-          </section>
+          <div class="ck-line-note">
+            <i class="hgi-stroke hgi-information-circle"></i>
+            <span>LINE เป็นช่องทางติดต่อทีมงาน ไม่ใช่ขั้นตอนบังคับในการเข้าใช้งาน ClassKru</span>
+          </div>
         </div>
 
         <!-- CLASSROOMS -->
@@ -294,6 +345,7 @@
               <div class="subtitle" id="web-students-count-label">พบ 0 คน</div>
               <div class="students-action-btns" style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn" style="background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);" onclick="openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
+                <button class="btn ck-checkin-activity-btn desktop-only-flex" onclick="openClassJoinActivity()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียนผ่านกิจกรรม</button>
                 <button class="btn desktop-only-flex" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
                 <button class="btn btn-danger desktop-only-flex" onclick="deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i> ลบทั้งหมด</button>
                 <button class="ck-class-menu-btn mobile-only-flex" aria-label="ตัวเลือกเพิ่มเติม" style="align-items:center;" onclick="toggleStudentsActionMenu(event)"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
@@ -329,14 +381,10 @@
               <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
                 <div>
                   <div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary)"></i> ตารางสอนประจำสัปดาห์</div>
-                  <p class="subtitle" style="margin-top:4px;">กำหนดคาบเรียน รองรับ Week A/B</p>
+                  <p class="subtitle" style="margin-top:4px;">กำหนดคาบเรียนสำหรับตารางสอนประจำสัปดาห์</p>
                 </div>
                 <div id="tt-desktop-controls" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                   <span id="timetable-period-count" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);"></span>
-                  <div class="week-toggle-container">
-                    <button class="btn-week-toggle active" id="btn-week-a" onclick="switchTimetableWeek('A')">Week A</button>
-                    <button class="btn-week-toggle" id="btn-week-b" onclick="switchTimetableWeek('B')">Week B</button>
-                  </div>
                   <button class="btn" style="padding:8px 16px;font-size:0.8rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="openTimetableImport()">
                     <i class="hgi-stroke hgi-google-sheet"></i> นำเข้าตารางสอน
                   </button>
@@ -355,10 +403,6 @@
               <div>
                 <div style="font-size:1.05rem;font-weight:800;color:var(--text-main);"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);margin-right:6px;"></i>ตารางสอน</div>
                 <div id="m-tt-summary" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;"></div>
-              </div>
-              <div style="display:flex;gap:6px;">
-                <button class="btn-week-toggle active" id="m-btn-week-a" onclick="switchTimetableWeek('A')" style="font-size:0.72rem;padding:5px 10px;">Week A</button>
-                <button class="btn-week-toggle" id="m-btn-week-b" onclick="switchTimetableWeek('B')" style="font-size:0.72rem;padding:5px 10px;">Week B</button>
               </div>
             </div>
             <button class="btn hide-mobile" style="width:100%;margin-bottom:14px;padding:10px;font-size:0.85rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="openTimetableImport()">
@@ -417,7 +461,7 @@
             <div id="web-rep-content-overall" class="web-rep-panel fade-in" style="display:none;">
               <div class="report-grid-3col">
                 <div class="card" style="text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 12px;"><span style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;">Class Health Score</span><div style="position:relative;width:120px;height:120px;margin-bottom:12px;"><svg width="120" height="120" class="radial-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" stroke="var(--border-color)" stroke-width="8" fill="transparent"/><circle cx="50" cy="50" r="40" stroke="var(--tab-overall-accent)" stroke-width="8" fill="transparent" id="web-rep-overall-circle" class="radial-fill"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;"><span style="font-size:1.65rem;font-weight:800;" id="web-rep-overall-pct">0%</span></div></div><span class="warning-badge" id="web-rep-overall-health-badge" style="font-size:0.85rem;padding:6px 16px;border-radius:20px;font-weight:700;">ปกติ</span></div>
-                <div class="card" style="justify-content:center;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;">สถิติสะสม</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-absent);" id="web-rep-overall-absent">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">ขาดสะสม</div></div><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-late-text);" id="web-rep-overall-late">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">สายสะสม</div></div></div></div>
+                <div class="card" style="justify-content:center;"><div style="font-size:0.9rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;">สถิติสะสม</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-present);" id="web-rep-overall-present">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">มาสะสม</div></div><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-leave);" id="web-rep-overall-leave">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">ลาสะสม</div></div><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-absent);" id="web-rep-overall-absent">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">ขาดสะสม</div></div><div style="padding:16px 10px;border-radius:12px;border:1px solid var(--border-color);text-align:center;background:#fafafa;"><strong style="font-size:1.35rem;font-weight:800;color:var(--color-late-text);" id="web-rep-overall-late">0</strong><div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;margin-top:4px;">สายสะสม</div></div></div></div>
                 <div class="card" style="background:var(--tab-overall-bg);border-color:var(--tab-overall-accent);justify-content:center;"><div style="font-weight:700;color:var(--tab-overall-accent);font-size:1rem;margin-bottom:10px;"><i class="hgi-stroke hgi-alert-02"></i> วิเคราะห์ความเสี่ยง</div><div id="web-rep-overall-insights" style="font-size:0.85rem;line-height:1.6;"></div></div>
               </div>
             </div>
@@ -459,11 +503,40 @@
             </div>
           </section>
 
-          <section class="games-section games-section-upcoming" aria-labelledby="games-upcoming-title">
-            <div class="games-section-heading"><div><span class="games-category-label">กำลังเตรียม</span><h3 id="games-upcoming-title">หมวดเกมถัดไป</h3></div><span class="games-count">เพิ่มเกมได้ในภายหลัง</span></div>
-            <div class="games-grid games-grid-upcoming">
-              <article class="game-card game-card-placeholder"><div class="game-card-icon">➗</div><div class="game-card-content"><h4>คณิตคิดไว</h4><p>พื้นที่สำหรับเกมฝึกคิดคำนวณและตรรกะ</p></div><span class="game-coming-badge">เร็ว ๆ นี้</span></article>
-              <article class="game-card game-card-placeholder"><div class="game-card-icon">🔎</div><div class="game-card-content"><h4>นักสำรวจความรู้</h4><p>พื้นที่สำหรับเกมวิทยาศาสตร์และความรู้รอบตัว</p></div><span class="game-coming-badge">เร็ว ๆ นี้</span></article>
+          <section class="games-section" aria-labelledby="games-math-title">
+            <div class="games-section-heading"><div><span class="games-category-label">หมวดเกม</span><h3 id="games-math-title">คณิตศาสตร์และตรรกะ</h3></div><span class="games-count">2 เกมพร้อมเล่น</span></div>
+            <div class="games-grid">
+              <article class="game-card game-card-featured">
+                <div class="game-card-icon">🧙</div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Math Wizard</h4><p>ศึกจอมเวทย์คณิตศาสตร์ ใช้คำตอบที่ถูกต้องร่ายเวทพิชิตมอนสเตอร์</p><div class="game-meta"><span>3 ระดับความยาก</span><span>เวทและคอมโบ</span></div></div>
+                <a class="btn games-play-button" href="math-wizard/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
+              </article>
+              <article class="game-card game-card-featured">
+                <div class="game-card-icon">🍕</div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Fraction Pizza Master</h4><p>แบ่งและเลือกพิซซ่าตามออเดอร์ เพื่อเข้าใจเศษส่วนผ่านภาพและการลงมือทำ</p><div class="game-meta"><span>เล่นแบบออฟไลน์</span><span>ไม่เก็บข้อมูล</span></div></div>
+                <a class="btn games-play-button" href="fraction-pizza-master/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
+              </article>
+            </div>
+          </section>
+
+          <section class="games-section" aria-labelledby="games-science-title">
+            <div class="games-section-heading"><div><span class="games-category-label">หมวดเกม</span><h3 id="games-science-title">วิทยาศาสตร์</h3></div><span class="games-count">3 เกมพร้อมเล่น</span></div>
+            <div class="games-grid">
+              <article class="game-card game-card-featured">
+                <div class="game-card-icon">🌿</div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Green City</h4><p>สร้างเมืองสีเขียวแห่งอนาคต ตอบคำถามสิ่งแวดล้อมแล้วเปลี่ยนเมืองให้สดใส</p><div class="game-meta"><span>City Builder</span><span>สิ่งแวดล้อม</span></div></div>
+                <a class="btn games-play-button" href="green-city/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
+              </article>
+              <article class="game-card game-card-featured">
+                <div class="game-card-icon">🏗️</div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Elevator Rescue</h4><p>รับบทวิศวกรกู้ภัย ออกแบบระบบรอกและลิฟต์ด้วยหลักแรง งาน และพลังงาน</p><div class="game-meta"><span>Physics Simulator</span><span>ระบบรอก</span></div></div>
+                <a class="btn games-play-button" href="elevator-rescue/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
+              </article>
+              <article class="game-card game-card-featured">
+                <div class="game-card-icon">🧬</div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Molecule Builder</h4><p>ทดลองลากอะตอมและสร้างพันธะ เพื่อประกอบโมเลกุลตามหลักเวเลนซ์และสูตรเคมี</p><div class="game-meta"><span>Chemistry Lab</span><span>Drag &amp; Drop</span></div></div>
+                <a class="btn games-play-button" href="molecule-builder/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
+              </article>
             </div>
           </section>
         </div>
@@ -539,7 +612,7 @@
     </nav>
 
     <!-- ปุ่มคู่มือการใช้งาน (เล่นทัวร์สอนใช้งานซ้ำได้ทุกเมื่อ) -->
-    <button class="tour-fab" onclick="startMainTour()" aria-label="คู่มือการใช้งาน" title="คู่มือการใช้งาน"><i class="hgi-stroke hgi-help-circle"></i></button>
+    <button class="tour-fab" onclick="navigateToWebScreen('help')" aria-label="เปิดศูนย์ช่วยเหลือ" title="ศูนย์ช่วยเหลือ"><i class="hgi-stroke hgi-help-circle"></i></button>
 
   </div>
 
@@ -607,16 +680,17 @@
             <span class="swipe-card-no" id="swipe-card-no"></span>
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="swipe-card-code" id="swipe-card-code"></span>
+              <button class="swipe-card-photo" id="swipe-card-photo" onclick="openSwipeStudentPhoto(event)" title="ถ่ายหรือเลือกรูปนักเรียน"><i class="hgi-stroke hgi-camera-01"></i></button>
               <button class="swipe-card-edit" id="swipe-card-edit" onclick="editCurrentSwipeStudent(event)" title="แก้ไขข้อมูลนักเรียน"><i class="hgi-stroke hgi-edit-02"></i></button>
             </div>
           </div>
           <div class="swipe-card-divider"></div>
           <div class="swipe-card-avatar" id="swipe-card-avatar"></div>
-          <div class="swipe-card-nick-label" id="swipe-card-nick-label">ชื่อเล่น</div>
           <div class="swipe-card-name" id="swipe-card-name"></div>
           <div class="swipe-card-stats" id="swipe-card-stats"></div>
           <div class="swipe-card-guide"><b style="color:var(--color-leave)">← ปัดซ้าย = ลา</b> · แตะ = <b style="color:var(--color-present)">มา</b> · <b style="color:var(--color-absent)">ปัดขวา = ขาด →</b></div>
         </div>
+        <input id="swipe-student-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleSwipeStudentPhoto(event)">
         <!-- Done state -->
         <div class="swipe-done-state" id="swipe-done-state" style="display:none;">
           <i class="hgi-stroke hgi-checkmark-circle-02" style="font-size:3rem;color:var(--primary);margin-bottom:12px;"></i>
@@ -815,6 +889,20 @@
   </div>
 
   <!-- OCR SCAN MODAL -->
+  <div class="modal-overlay" id="modal-help-line" onclick="if(event.target===this) closeHelpLineModal()" style="z-index:9000;">
+    <div class="bottom-sheet ck-line-help-modal">
+      <div class="modal-header">
+        <h3><i class="hgi-stroke hgi-message-01"></i> ติดต่อเรา</h3>
+        <button class="btn btn-text" type="button" onclick="closeHelpLineModal()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+      <div class="ck-line-help-body">
+        <img class="ck-line-help-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&amp;data=https%3A%2F%2Fline.me%2FR%2Fti%2Fp%2F%40731idhsu" alt="QR Code สำหรับติดต่อเราผ่าน LINE">
+        <p>ใช้มือถือสแกน QR Code เพื่อเปิด LINE</p>
+        <strong>ติดต่อผ่าน LINE</strong>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modal-ocr-scan" onclick="if(event.target===this) closeOcrModal()" style="z-index:660;">
     <div class="bottom-sheet" style="width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;">
       <div class="modal-header">
@@ -867,7 +955,7 @@
 
   <div class="modal-overlay" id="modal-period" onclick="if(event.target===this) closePeriodModal()"><div class="bottom-sheet"><div class="modal-header"><h3 id="modal-period-title">แก้ไขคาบเรียน</h3><button class="btn btn-text" onclick="closePeriodModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;" id="modal-period-info">วันจันทร์ · คาบ 5</div><div class="form-group"><label for="input-period-subject">วิชา</label><select id="input-period-subject" class="form-control" style="appearance:auto;" onchange="filterPeriodClassBySubject()"><option value="">-- เลือก --</option></select></div><div class="form-group"><label for="input-period-class">ห้อง</label><select id="input-period-class" class="form-control" style="appearance:auto;"><option value="">-- เลือก --</option></select></div><div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closePeriodModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-danger" id="btn-period-delete" onclick="deletePeriodSlot()" style="flex:1;display:none;">ลบ</button><button class="btn btn-primary" onclick="savePeriodSlot()" style="flex:2;">บันทึก</button></div></div></div>
 
-  <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><!-- สถิติ มา/สาย/ขาด/ลา ถูกตัดออก — modal นี้ทำหน้าที่ "แก้ไขข้อมูลนักเรียน" อย่างเดียว
+  <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:14px;background:var(--bg-light);border:1px solid var(--border-color);border-radius:12px;"><img id="student-detail-photo-preview" alt="" style="display:none;width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-light-border);"><div style="flex:1;min-width:0;"><div style="font-size:0.78rem;font-weight:700;color:var(--text-main);">รูปนักเรียน <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ · รุ่นทดลอง)</span></div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">ใช้เฉพาะรูปที่ได้รับอนุญาต และลบได้ทุกเมื่อ</div></div><button type="button" class="btn" style="padding:7px 10px;font-size:0.78rem;white-space:nowrap;" onclick="openStudentDetailPhoto(event)"><i class="hgi-stroke hgi-camera-01"></i> เพิ่มรูป</button><button type="button" id="student-detail-photo-remove" class="btn btn-text" style="display:none;padding:7px 8px;font-size:0.78rem;white-space:nowrap;color:var(--color-absent);" onclick="removeStudentDetailPhoto(event)"><i class="hgi-stroke hgi-delete-02"></i> ลบรูป</button><input id="student-detail-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleStudentDetailPhoto(event)"></div><!-- สถิติ มา/สาย/ขาด/ลา ถูกตัดออก — modal นี้ทำหน้าที่ "แก้ไขข้อมูลนักเรียน" อย่างเดียว
      การรายงานผลเข้าเรียนมีหน้าเฉพาะอยู่แล้ว (รายงานวิเคราะห์ผล + modal สรุปนักเรียน) --><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
   <div class="form-group" style="margin:0;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">เลขที่</label><input id="student-detail-no" type="number" class="form-control" style="font-size:0.9rem;padding:8px 10px;" min="1"></div>
   <div class="form-group" style="margin:0;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">รหัสประจำตัว</label><input id="student-detail-code" type="text" class="form-control" style="font-size:0.9rem;padding:8px 10px;" placeholder="เช่น 12345"></div>
@@ -876,6 +964,81 @@
 <div class="form-group" style="margin-bottom:12px;"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);">ชื่อเล่น</label><input id="student-detail-nickname" type="text" class="form-control" style="font-size:0.9rem;padding:8px 10px;" placeholder="ไม่บังคับ"></div>
 <div class="form-group"><label style="font-size:0.72rem;font-weight:700;color:var(--text-muted);" for="student-detail-comment">หมายเหตุ</label><textarea id="student-detail-comment" class="form-control" style="height:56px;font-size:0.85rem;" placeholder="บันทึกของครู..."></textarea></div>
 <div style="display:flex;gap:10px;margin-top:20px;"><button class="btn" style="flex:1;" onclick="closeStudentDetailModal()">ยกเลิก</button><button class="btn btn-primary" style="flex:2;" onclick="saveStudentDetailChanges()">บันทึก</button></div></div></div>
+
+  <!-- LOCAL PROTOTYPE: CLASS JOIN ACTIVITY -->
+  <div class="modal-overlay" id="modal-join-activity" onclick="if(event.target===this) closeClassJoinActivity()" style="z-index:9100;">
+    <div class="bottom-sheet ck-join-sheet">
+      <div class="modal-header">
+        <div>
+          <h3><i class="hgi-stroke hgi-user-add-01" style="color:var(--primary);"></i> เพิ่มนักเรียนผ่านกิจกรรม</h3>
+          <div id="join-activity-class-label" class="ck-join-class-label">ห้องเรียน</div>
+        </div>
+        <button class="btn btn-text" onclick="closeClassJoinActivity()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+
+      <div class="ck-join-prototype-note">
+        Prototype local: ยังไม่บันทึกข้อมูลจริง ใช้ทดลอง flow ให้นักเรียนกรอกชื่อจริงผ่านกิจกรรมเปิดคาบ
+      </div>
+
+      <div class="ck-join-layout">
+        <section class="ck-join-panel">
+          <div class="ck-join-section-title">1. ตั้งคำถามกิจกรรม</div>
+          <div class="form-group">
+            <label for="join-question-input">คำถามที่ครูออกแบบเอง</label>
+            <textarea id="join-question-input" class="form-control" rows="2" oninput="renderJoinActivityPreview()">วันนี้รู้สึกพร้อมเรียนแค่ไหน?</textarea>
+          </div>
+          <div class="ck-join-two-col">
+            <div class="form-group">
+              <label for="join-answer-type">รูปแบบคำตอบ</label>
+              <select id="join-answer-type" class="form-control" onchange="renderJoinActivityPreview()">
+                <option value="short">คำตอบสั้น</option>
+                <option value="choice" selected>ตัวเลือก</option>
+                <option value="scale">ระดับ 1-5</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="join-display-mode">แสดงบนจอครู</label>
+              <select id="join-display-mode" class="form-control" onchange="renderJoinActivityPreview()">
+                <option value="anonymous" selected>ไม่โชว์ชื่อ</option>
+                <option value="nickname">โชว์ชื่อเล่น</option>
+                <option value="count">โชว์เฉพาะจำนวน</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" id="join-options-wrap">
+            <label for="join-options-input">ตัวเลือกคำตอบ</label>
+            <input id="join-options-input" class="form-control" value="พร้อมมาก, พอไหว, ง่วงนิดหน่อย, ยังไม่พร้อม" oninput="renderJoinActivityPreview()">
+          </div>
+          <div class="ck-join-actions">
+            <button class="btn btn-primary" onclick="mockStartJoinActivity()"><i class="hgi-stroke hgi-play"></i> เปิดรับคำตอบ</button>
+            <button class="btn" onclick="mockAddJoinResponse()"><i class="hgi-stroke hgi-add-01"></i> จำลองนักเรียนตอบ</button>
+          </div>
+        </section>
+
+        <section class="ck-join-panel ck-join-share">
+          <div class="ck-join-section-title">2. QR / รหัสเข้าร่วม</div>
+          <img class="ck-join-qr-img" id="join-qr-img" alt="QR Code สำหรับเข้าร่วมกิจกรรม">
+          <div class="ck-join-code" id="join-code-label">CK-4821</div>
+          <a class="ck-join-link" id="join-link-label" href="#" target="_blank" rel="noopener">สร้างลิงก์หลังเปิดรับ</a>
+          <div class="ck-join-mini-stats">
+            <span><b id="join-stat-total">0</b> ตอบแล้ว</span>
+            <span><b id="join-stat-pending">0</b> รอตรวจ</span>
+          </div>
+        </section>
+      </div>
+
+      <div class="ck-join-layout ck-join-layout-bottom">
+        <section class="ck-join-panel">
+          <div class="ck-join-section-title">จอครู: Live Wall</div>
+          <div id="join-live-wall" class="ck-join-live-wall"></div>
+        </section>
+        <section class="ck-join-panel">
+          <div class="ck-join-section-title">ข้อมูลหลังบ้านที่ครูตรวจได้</div>
+          <div id="join-pending-list" class="ck-join-pending-list"></div>
+        </section>
+      </div>
+    </div>
+  </div>
 
   <!-- STUDENT SUMMARY MODAL (ดูข้อมูล: เข้าเรียน + คะแนน/เกรด — คนละอันกับหน้าแก้ไข) -->
   <div class="modal-overlay" id="modal-student-summary" onclick="if(event.target===this) closeStudentSummaryModal()" style="z-index:9000;">
@@ -976,18 +1139,19 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=218"></script>
-  <script defer src="js/auth.js?v=218"></script>
-  <script defer src="js/shell.js?v=218"></script>
-  <script defer src="js/dashboard.js?v=218"></script>
-  <script defer src="js/classrooms.js?v=218"></script>
-  <script defer src="js/students.js?v=218"></script>
-  <script defer src="js/timetable.js?v=218"></script>
-  <script defer src="js/reports.js?v=218"></script>
-  <script defer src="js/attendance.js?v=218"></script>
-  <script defer src="js/scores.js?v=218"></script>
-  <script defer src="js/tools.js?v=218"></script>
-  <script defer src="js/shared-utils.js?v=218"></script>
-  <script defer src="js/extras.js?v=218"></script>
+  <script defer src="js/core.js?v=290"></script>
+  <script defer src="js/auth.js?v=290"></script>
+  <script defer src="js/shell.js?v=290"></script>
+  <script defer src="js/dashboard.js?v=290"></script>
+  <script defer src="js/classrooms.js?v=290"></script>
+  <script defer src="js/students.js?v=290"></script>
+  <script defer src="js/timetable.js?v=290"></script>
+  <script defer src="js/reports.js?v=290"></script>
+  <script defer src="js/attendance.js?v=290"></script>
+  <script defer src="js/scores.js?v=290"></script>
+  <script defer src="js/tools.js?v=290"></script>
+  <script defer src="js/shared-utils.js?v=290"></script>
+  <script defer src="js/extras.js?v=290"></script>
+  <script defer src="js/help.js?v=290"></script>
 </body>
 </html>

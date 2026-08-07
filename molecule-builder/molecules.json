@@ -1,0 +1,78 @@
+{
+  "elements": [
+    { "symbol": "H", "name": "Hydrogen", "thai": "ไฮโดรเจน", "atomicNumber": 1, "valence": 1, "metal": false, "color": "#e9f3ff" },
+    { "symbol": "C", "name": "Carbon", "thai": "คาร์บอน", "atomicNumber": 6, "valence": 4, "metal": false, "color": "#48566a" },
+    { "symbol": "N", "name": "Nitrogen", "thai": "ไนโตรเจน", "atomicNumber": 7, "valence": 4, "metal": false, "color": "#5979ff" },
+    { "symbol": "O", "name": "Oxygen", "thai": "ออกซิเจน", "atomicNumber": 8, "valence": 2, "metal": false, "color": "#ff5e6c" },
+    { "symbol": "Na", "name": "Sodium", "thai": "โซเดียม", "atomicNumber": 11, "valence": 1, "metal": true, "color": "#aa72eb" },
+    { "symbol": "Mg", "name": "Magnesium", "thai": "แมกนีเซียม", "atomicNumber": 12, "valence": 2, "metal": true, "color": "#55cfc1" },
+    { "symbol": "P", "name": "Phosphorus", "thai": "ฟอสฟอรัส", "atomicNumber": 15, "valence": 5, "metal": false, "color": "#e79a55" },
+    { "symbol": "S", "name": "Sulfur", "thai": "กำมะถัน", "atomicNumber": 16, "valence": 6, "metal": false, "color": "#e8d84e" },
+    { "symbol": "Cl", "name": "Chlorine", "thai": "คลอรีน", "atomicNumber": 17, "valence": 1, "metal": false, "color": "#4fc56a" },
+    { "symbol": "K", "name": "Potassium", "thai": "โพแทสเซียม", "atomicNumber": 19, "valence": 1, "metal": true, "color": "#b676d7" },
+    { "symbol": "Ca", "name": "Calcium", "thai": "แคลเซียม", "atomicNumber": 20, "valence": 2, "metal": true, "color": "#73b6d6" },
+    { "symbol": "Fe", "name": "Iron", "thai": "เหล็ก", "atomicNumber": 26, "valence": 3, "metal": true, "color": "#b66f56" }
+  ],
+  "molecules": [
+    {
+      "id": "water", "name": "Water", "thaiName": "น้ำ", "formula": "H2O", "displayFormula": "H₂O", "atomOrder": ["H", "O"], "atoms": { "H": 2, "O": 1 },
+      "bonds": [["H", "O", 1, "single"], ["H", "O", 1, "single"]],
+      "bondType": "โคเวเลนต์ขั้ว", "state": "ของเหลว", "boiling": "100 °C (1 atm)", "melting": "0 °C", "description": "โมเลกุลมีขั้ว ประกอบด้วยไฮโดรเจนสองอะตอมและออกซิเจนหนึ่งอะตอม", "use": "น้ำดื่ม ตัวทำละลาย และองค์ประกอบสำคัญของสิ่งมีชีวิต", "hint": ["Hydrogen สร้างพันธะได้เพียง 1", "Oxygen มักสร้างพันธะโคเวเลนต์รวม 2"]
+    },
+    {
+      "id": "carbon-dioxide", "name": "Carbon dioxide", "thaiName": "คาร์บอนไดออกไซด์", "formula": "CO2", "displayFormula": "CO₂", "atomOrder": ["C", "O"], "atoms": { "C": 1, "O": 2 },
+      "bonds": [["C", "O", 2, "double"], ["C", "O", 2, "double"]],
+      "bondType": "โคเวเลนต์คู่", "state": "ก๊าซ", "boiling": "ระเหิด −78.5 °C (1 atm)", "melting": "−56.6 °C (ที่จุดไตรภาค)", "description": "โมเลกุลเชิงเส้นที่คาร์บอนสร้างพันธะคู่กับออกซิเจนทั้งสองด้าน", "use": "การสังเคราะห์ด้วยแสง เครื่องดับเพลิง และน้ำอัดลม", "hint": ["Carbon สร้างพันธะได้รวม 4", "ลองใช้พันธะคู่กับ Oxygen"]
+    },
+    {
+      "id": "ammonia", "name": "Ammonia", "thaiName": "แอมโมเนีย", "formula": "NH3", "displayFormula": "NH₃", "atomOrder": ["N", "H"], "atoms": { "N": 1, "H": 3 },
+      "bonds": [["N", "H", 1, "single"], ["N", "H", 1, "single"], ["N", "H", 1, "single"]],
+      "bondType": "โคเวเลนต์ขั้ว", "state": "ก๊าซ", "boiling": "−33.3 °C", "melting": "−77.7 °C", "description": "ไนโตรเจนเชื่อมกับไฮโดรเจนสามอะตอม มีรูปร่างพีระมิดฐานสามเหลี่ยม", "use": "ผลิตปุ๋ย สารทำความเย็น และวัตถุดิบทางเคมี", "hint": ["Nitrogen ในแอมโมเนียสร้างพันธะเดี่ยว 3 พันธะ", "Hydrogen แต่ละตัวเชื่อมได้ครั้งเดียว"]
+    },
+    {
+      "id": "methane", "name": "Methane", "thaiName": "มีเทน", "formula": "CH4", "displayFormula": "CH₄", "atomOrder": ["C", "H"], "atoms": { "C": 1, "H": 4 },
+      "bonds": [["C", "H", 1, "single"], ["C", "H", 1, "single"], ["C", "H", 1, "single"], ["C", "H", 1, "single"]],
+      "bondType": "โคเวเลนต์เดี่ยว", "state": "ก๊าซ", "boiling": "−161.5 °C", "melting": "−182.5 °C", "description": "ไฮโดรคาร์บอนที่เล็กที่สุด มีคาร์บอนอยู่กลางและไฮโดรเจนสี่อะตอม", "use": "องค์ประกอบหลักของก๊าซธรรมชาติและเชื้อเพลิง", "hint": ["Carbon ต้องใช้เวเลนซ์ทั้ง 4", "ใช้พันธะเดี่ยวเชื่อม Hydrogen รอบ Carbon"]
+    },
+    {
+      "id": "oxygen", "name": "Oxygen", "thaiName": "ก๊าซออกซิเจน", "formula": "O2", "displayFormula": "O₂", "atomOrder": ["O"], "atoms": { "O": 2 },
+      "bonds": [["O", "O", 2, "double"]],
+      "bondType": "โคเวเลนต์คู่", "state": "ก๊าซ", "boiling": "−183.0 °C", "melting": "−218.8 °C", "description": "ออกซิเจนสองอะตอมแบ่งปันอิเล็กตรอนสองคู่ เกิดเป็นพันธะคู่", "use": "การหายใจ การแพทย์ และกระบวนการเผาไหม้", "hint": ["Oxygen แต่ละอะตอมต้องการพันธะรวม 2", "อะตอมสองตัวอาจเชื่อมด้วยพันธะคู่"]
+    },
+    {
+      "id": "nitrogen", "name": "Nitrogen", "thaiName": "ก๊าซไนโตรเจน", "formula": "N2", "displayFormula": "N₂", "atomOrder": ["N"], "atoms": { "N": 2 },
+      "bonds": [["N", "N", 3, "triple"]],
+      "bondType": "โคเวเลนต์สาม", "state": "ก๊าซ", "boiling": "−195.8 °C", "melting": "−210.0 °C", "description": "ไนโตรเจนสองอะตอมยึดกันด้วยพันธะสามที่แข็งแรงมาก", "use": "บรรยากาศ การถนอมอาหาร และไนโตรเจนเหลว", "hint": ["Nitrogen สองอะตอมต้องแบ่งปันอิเล็กตรอนหลายคู่", "ลองใช้พันธะสาม"]
+    },
+    {
+      "id": "sodium-chloride", "name": "Sodium chloride", "thaiName": "โซเดียมคลอไรด์", "formula": "NaCl", "displayFormula": "NaCl", "atomOrder": ["Na", "Cl"], "atoms": { "Na": 1, "Cl": 1 },
+      "bonds": [["Na", "Cl", 1, "ionic"]],
+      "bondType": "ไอออนิก", "state": "ของแข็งผลึก", "boiling": "1,465 °C", "melting": "801 °C", "description": "โซเดียมถ่ายโอนอิเล็กตรอนให้คลอรีน เกิดไอออนประจุตรงข้ามที่ดึงดูดกัน", "use": "เกลือปรุงอาหาร การถนอมอาหาร และสารตั้งต้นในอุตสาหกรรม", "hint": ["Sodium เป็นโลหะ ส่วน Chlorine เป็นอโลหะ", "ลองเลือกพันธะไอออนิก"]
+    },
+    {
+      "id": "hydrogen-chloride", "name": "Hydrogen chloride", "thaiName": "ไฮโดรเจนคลอไรด์", "formula": "HCl", "displayFormula": "HCl", "atomOrder": ["H", "Cl"], "atoms": { "H": 1, "Cl": 1 },
+      "bonds": [["H", "Cl", 1, "single"]],
+      "bondType": "โคเวเลนต์ขั้ว", "state": "ก๊าซ", "boiling": "−85.1 °C", "melting": "−114.2 °C", "description": "ไฮโดรเจนและคลอรีนแบ่งปันอิเล็กตรอนหนึ่งคู่ เมื่อละลายน้ำให้สารละลายกรดไฮโดรคลอริก", "use": "ผลิตสารเคมี ทำความสะอาดโลหะ และพบเป็นกรดในกระเพาะอาหารเมื่ออยู่ในน้ำ", "hint": ["ทั้ง H และ Cl สร้างพันธะเดี่ยวได้ 1", "สารนี้ไม่ใช่พันธะไอออนิกในสถานะแก๊ส"]
+    },
+    {
+      "id": "calcium-carbonate", "name": "Calcium carbonate", "thaiName": "แคลเซียมคาร์บอเนต", "formula": "CaCO3", "displayFormula": "CaCO₃", "atomOrder": ["Ca", "C", "O"], "atoms": { "Ca": 1, "C": 1, "O": 3 },
+      "bonds": [["C", "O", 2, "double"], ["C", "O", 1, "single"], ["C", "O", 1, "single"], ["Ca", "O", 1, "ionic"]],
+      "bondType": "ไอออนิกและโคเวเลนต์", "state": "ของแข็ง", "boiling": "ไม่เดือด (สลายตัว)", "melting": "สลายตัวราว 825 °C", "description": "ประกอบด้วยไอออนแคลเซียมและคาร์บอเนต ภายในคาร์บอเนตมีเรโซแนนซ์", "use": "หินปูน ชอล์ก เปลือกหอย ปูนซีเมนต์ และยาลดกรด", "hint": ["Carbonate มี Carbon เชื่อม Oxygen สามตัว", "Ca กับกลุ่ม carbonate ยึดกันแบบไอออนิก"]
+    },
+    {
+      "id": "sulfuric-acid", "name": "Sulfuric acid", "thaiName": "กรดซัลฟิวริก", "formula": "H2SO4", "displayFormula": "H₂SO₄", "atomOrder": ["H", "S", "O"], "atoms": { "H": 2, "S": 1, "O": 4 },
+      "bonds": [["S", "O", 2, "double"], ["S", "O", 2, "double"], ["S", "O", 1, "single"], ["S", "O", 1, "single"], ["O", "H", 1, "single"], ["O", "H", 1, "single"]],
+      "bondType": "โคเวเลนต์ขั้ว", "state": "ของเหลว", "boiling": "337 °C (เริ่มสลายตัว)", "melting": "10.3 °C", "description": "กรดแก่ที่มีซัลเฟอร์เป็นอะตอมกลาง เชื่อมกับออกซิเจนสี่อะตอม", "use": "ผลิตปุ๋ย แบตเตอรี่รถยนต์ และกระบวนการอุตสาหกรรม", "hint": ["Sulfur รองรับเวเลนซ์ขยายได้ถึง 6 ในแบบจำลองนี้", "Hydrogen ต้องเชื่อมผ่าน Oxygen"]
+    },
+    {
+      "id": "ammonium-nitrate", "name": "Ammonium nitrate", "thaiName": "แอมโมเนียมไนเตรต", "formula": "NH4NO3", "displayFormula": "NH₄NO₃", "atomOrder": ["N", "H", "O"], "atoms": { "N": 2, "H": 4, "O": 3 },
+      "bonds": [["N", "H", 1, "single"], ["N", "H", 1, "single"], ["N", "H", 1, "single"], ["N", "H", 1, "single"], ["N", "O", 2, "double"], ["N", "O", 1, "single"], ["N", "O", 1, "single"], ["N", "O", 1, "ionic"]],
+      "bondType": "ไอออนิกและโคเวเลนต์", "state": "ของแข็ง", "boiling": "สลายตัวเมื่อให้ความร้อน", "melting": "169.6 °C", "description": "เกลือของไอออนแอมโมเนียมและไนเตรต มีทั้งแรงยึดเหนี่ยวไอออนิกและพันธะโคเวเลนต์", "use": "ใช้เป็นปุ๋ย ต้องจัดเก็บและใช้งานตามมาตรการความปลอดภัย", "hint": ["แยกคิดเป็นกลุ่ม ammonium และ nitrate", "กลุ่มทั้งสองยึดกันด้วยแรงไอออนิก"]
+    },
+    {
+      "id": "glucose", "name": "Glucose", "thaiName": "กลูโคส", "formula": "C6H12O6", "displayFormula": "C₆H₁₂O₆", "atomOrder": ["C", "H", "O"], "atoms": { "C": 6, "H": 12, "O": 6 },
+      "bonds": [["C", "C", 1, "single"], ["C", "C", 1, "single"], ["C", "C", 1, "single"], ["C", "C", 1, "single"], ["C", "C", 1, "single"], ["C", "O", 2, "double"], ["C", "O", 1, "single"], ["C", "O", 1, "single"], ["C", "O", 1, "single"], ["C", "O", 1, "single"], ["C", "O", 1, "single"], ["O", "H", 1, "single"], ["O", "H", 1, "single"], ["O", "H", 1, "single"], ["O", "H", 1, "single"], ["O", "H", 1, "single"], ["C", "H", 1, "single"], ["C", "H", 1, "single"], ["C", "H", 1, "single"], ["C", "H", 1, "single"], ["C", "H", 1, "single"], ["C", "H", 1, "single"], ["C", "H", 1, "single"]],
+      "bondType": "โคเวเลนต์", "state": "ของแข็ง", "boiling": "ไม่เดือด (สลายตัว)", "melting": "ประมาณ 146 °C (α-D-glucose)", "description": "น้ำตาลโมเลกุลเดี่ยวและแหล่งพลังงานหลักของเซลล์ ภารกิจใช้โครงสร้างสายเปิดแบบย่อ", "use": "พบในผลไม้ น้ำผึ้ง เลือด และเกิดจากการสังเคราะห์ด้วยแสง", "hint": ["เริ่มจากต่อ Carbon เป็นสาย 6 ตัว", "โครงสร้างสายเปิดมี C=O หนึ่งพันธะ และหมู่ O–H ห้ากลุ่ม"]
+    }
+  ]
+}

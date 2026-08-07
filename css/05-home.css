@@ -19,7 +19,23 @@
   text-align: center;
   box-shadow: 0 6px 18px rgba(13,138,95,0.28);
   position: relative;
+  /* ปล่อยให้ปฏิทินซึ่งเป็นลูกของการ์ดแสดงออกมาด้านล่างได้ */
+  overflow: visible;
   transition: var(--transition-normal);
+}
+.home-date-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255,255,255,0.28), transparent 32%),
+    linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 48%, rgba(0,0,0,0.08) 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+.home-date-card > * {
+  position: relative;
+  z-index: 1;
 }
 .home-date-card:hover {
   transform: translateY(-2px);
@@ -210,10 +226,22 @@
 
 .home-next-card:hover { filter: brightness(0.97); }
 .home-next-card:active { transform: scale(0.99); }
+.home-next-card.is-current-status { cursor: default; }
+.home-next-card.is-current-status:hover { filter: none; }
+.home-next-card.is-current-status:active { transform: none; }
 
 .home-next-card.is-ongoing {
-  background: linear-gradient(135deg, #007aff, #0055d4);
-  color: #fff;
+  background: linear-gradient(135deg, #e8f4ff, #d7ebff);
+  border: 1px solid #c5def6;
+  color: #173b66;
+  box-shadow: 0 6px 18px rgba(69, 137, 207, 0.14);
+}
+
+.home-next-card.is-ongoing .next-tag { color: #3975ae; opacity: 1; }
+.home-next-card.is-ongoing .next-action-btn {
+  background: #cfe6ff;
+  border-color: #9bc8f5;
+  color: #2e70b6;
 }
 
 .home-next-card.is-upcoming {
@@ -226,6 +254,15 @@
   border: 1.5px solid var(--primary-light-border);
   color: var(--primary);
 }
+
+.home-next-card.is-idle {
+  background: #f2f2f7;
+  border: 1.5px solid var(--border-color);
+  color: var(--text-muted);
+  box-shadow: none;
+}
+
+.home-next-card.is-idle .next-tag { color: var(--text-muted); opacity: .78; }
 
 .home-next-card .next-tag {
   font-size: 0.72rem;
@@ -350,4 +387,3 @@
   .home-next-card .next-subject { font-size: 1.05rem; }
   .home-calendar-popup { width: 280px; left: 0; right: auto; }
 }
-

@@ -1,16 +1,7 @@
 // ==================== URL ROUTING (#hash) — รองรับ LINE OA ลิงก์เข้าหน้าตรงๆ ====================
 // หน้าที่ลิงก์เข้าได้จาก URL เช่น classkru-kohl.vercel.app/#reports
 // 'checkin' คือหน้าเช็คชื่อ (เดิมเป็น overlay ที่ไม่มี URL ของตัวเอง) — ต้องมี param บอกห้อง
-const ROUTABLE_SCREENS = ['dashboard','contact','help-guide','feature-request','classrooms','students','timetable','attendance','scores','reports','games','settings','checkin'];
-const LINE_OA_ID = '@731idhsu';
-const SUPPORT_FORM_URLS = {
-  bug: '',
-  feature: ''
-};
-
-function getLineSupportUrl(message) {
-  return `https://line.me/R/oaMessage/${encodeURIComponent(LINE_OA_ID)}/?${encodeURIComponent(message)}`;
-}
+const ROUTABLE_SCREENS = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','games','settings','checkin'];
 
 // รูปแบบ hash: "#reports" หรือแบบมีพารามิเตอร์ "#checkin:c_1712345678"
 // คืน { screen, param } — screen เป็น null ถ้า hash ไม่ถูกต้อง
@@ -106,7 +97,7 @@ function navigateToWebScreen(screenId, param) {
   // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
   setRouteHash('#' + screenId);
 
-  const screens = ['dashboard','contact','help-guide','feature-request','classrooms','students','timetable','attendance','scores','reports','games','settings'];
+  const screens = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','games','settings'];
   screens.forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = s === screenId ? 'block' : 'none';
@@ -130,12 +121,10 @@ function navigateToWebScreen(screenId, param) {
   const subEl = document.getElementById('web-header-subtitle');
   const titles = {
     dashboard: ['หน้าหลัก', 'ตารางสอนและเช็คชื่อด่วน'],
-    contact: ['ศูนย์ช่วยเหลือ', 'เลือกหัวข้อเพื่อให้ทีมงานช่วยได้ตรงจุด'],
-    'help-guide': ['วิธีใช้งาน', 'รออัปเดตคู่มือ'],
-    'feature-request': ['เสนอฟีเจอร์', 'ส่งไอเดียให้ทีมงานพิจารณา'],
+    help: ['ศูนย์ช่วยเหลือ', 'วิธีใช้งาน แจ้งปัญหา และติดต่อทีมงาน'],
     classrooms: ['ห้องเรียนวิชาสอน', 'จัดการรายวิชาและเช็คชื่อด่วน'],
     students: ['จัดการรายชื่อเด็ก', 'เพิ่ม ลบ แก้ไข ย้ายห้อง'],
-    timetable: ['ตารางสอนสัปดาห์', 'กำหนดคาบเรียนรองรับ Week A/B'],
+    timetable: ['ตารางสอนสัปดาห์', 'กำหนดคาบเรียนประจำสัปดาห์'],
     attendance: ['Attendance Matrix', 'ประวัติเข้าเรียนรายคาบ'],
     scores: ['เก็บคะแนน', 'กรอกคะแนน รวมผล ตัดเกรดอัตโนมัติ'],
     reports: ['รายงานวิเคราะห์ผล', 'สถิติเชิงลึกรายห้องเรียน'],
@@ -155,6 +144,22 @@ function navigateToWebScreen(screenId, param) {
   else if (screenId === 'attendance') loadWebAttendanceMatrix();
   else if (screenId === 'scores') viewClassScores(detailClassId);
   else if (screenId === 'reports') showWebClassReport(detailClassId);
+  else if (screenId === 'help') renderHelpHub();
+}
+
+function openHelpLine(topic) {
+  const message = encodeURIComponent(`#${topic}`);
+  const lineMessageUrl = `https://line.me/R/oaMessage/${encodeURIComponent('@731idhsu')}/?${message}`;
+  const isMobile = window.matchMedia('(max-width: 768px)').matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    window.location.href = lineMessageUrl;
+    return;
+  }
+  document.getElementById('modal-help-line')?.classList.add('show');
+}
+
+function closeHelpLineModal() {
+  document.getElementById('modal-help-line')?.classList.remove('show');
 }
 
 function openLineSupport(type) {
@@ -197,7 +202,7 @@ function applyCheckinRoute(classId) {
   setRouteHash('#checkin:' + classId);   // เข้าจากการ์ดห้อง = push (ปุ่ม back ปิดหน้านี้ได้) · สลับแท็บ = replace
 
   // ซ่อนหน้าอื่นทั้งหมด (overlay ทับอยู่แล้ว แต่ต้องให้ state ตรงกัน)
-  ['dashboard','contact','help-guide','feature-request','classrooms','students','timetable','attendance','scores','reports','games','settings'].forEach(s => {
+  ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','games','settings'].forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = 'none';
   });
@@ -239,10 +244,8 @@ function calculateNextClass() {
   const currentDow = now.getDay();
   if (appState.timetable.length === 0) return null;
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  const activeWeek = appState.timetableWeek || 'A';
-
   const todayClasses = appState.timetable
-    .filter(p => p.dow === currentDow && (p.week === undefined || p.week === activeWeek))
+    .filter(p => Number(p.dow) === currentDow)
     .map(p => {
       const slot = TIMETABLE_SLOTS_MASTER.find(s => s.period === p.period) || { s:'08:30', e:'09:20' };
       const [sH,sM] = slot.s.split(':').map(Number);
@@ -261,7 +264,7 @@ function calculateNextClass() {
   for (let offset = 1; offset <= 7; offset++) {
     const nextDow = (currentDow + offset) % 7;
     const nextClasses = appState.timetable
-      .filter(p => p.dow === nextDow && (p.week === undefined || p.week === activeWeek))
+      .filter(p => Number(p.dow) === nextDow)
       .map(p => {
         const slot = TIMETABLE_SLOTS_MASTER.find(s => s.period === p.period) || { s:'08:30', e:'09:20' };
         return { ...p, startMin: slot.s.split(':').map(Number).reduce((h,m)=>h*60+m), timeString: `${slot.s} - ${slot.e} น.` };
