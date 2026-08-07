@@ -1,0 +1,17 @@
+(function(){
+const RAW=['ณัฐวุฒิ ใจดี','ปาริชาต แสงทอง','ธีรภัทร วงศ์สุข','กัญญา พรหมมา','ศิริพร ทองมี','อนุชา บุญมาก','พิมพ์ชนก ศรีสุข','วรากร นาคเงิน','ชลธิชา ดวงแก้ว','ภาณุพงศ์ รักเรียน','สุชานันท์ ทรงศรี','กิตติพงษ์ ยอดเยี่ยม','นภัสสร จันทร์เพ็ญ','ธนกฤต พูลผล','อารียา สมบูรณ์','ปฏิภาณ เกิดผล','เมธาวี ขวัญเมือง','จิรายุ ตั้งใจ','พีรพัฒน์ มั่นคง','ศศิธร บัวงาม'];
+const NAMES=RAW.map((name,i)=>({id:'s'+(i+1),name,no:String(i+1),studentNo:String(i+1),studentCode:'3010'+String(i+1).padStart(2,'0')}));
+const today=new Date(), iso=d=>d.toISOString().slice(0,10);
+const daysAgo=n=>{const d=new Date(today);d.setDate(d.getDate()-n);return iso(d);};
+const attendance={};
+const startDay=1;
+for(let day=startDay;day<12;day++){const date=daysAgo(day);attendance[date]={};
+ NAMES.forEach((s,i)=>{const r=(i*7+day*3)%20;attendance[date][s.id]=r===0?'absent':r===1?'late':r===2?'leave':'present';});}
+const scoreItems=[{id:'k1',name:'ใบงานที่ 1',max:10,group:'ระหว่างภาค'},{id:'k2',name:'ใบงานที่ 2',max:10,group:'ระหว่างภาค'},{id:'k3',name:'ทดสอบย่อย',max:20,group:'ระหว่างภาค'},{id:'m1',name:'กลางภาค',max:20,group:'กลางภาค'},{id:'f1',name:'ปลายภาค',max:30,group:'ปลายภาค'}];
+const scores={};NAMES.forEach((s,i)=>{scores[s.id]={};scoreItems.forEach((it,j)=>{scores[s.id][it.id]=Math.max(0,Math.round(it.max*(0.62+((i*3+j*5)%35)/100)));});});
+const classes=[{id:'c1',subject:'วิทยาศาสตร์',className:'ม.3/1',students:NAMES,attendance,scores,scoreItems},
+{id:'c2',subject:'วิทยาศาสตร์',className:'ม.3/2',students:NAMES.slice(0,16),attendance:{},scores:{},scoreItems},
+{id:'c3',subject:'ฟิสิกส์',className:'ม.6/1',students:NAMES.slice(0,12),attendance:{},scores:{},scoreItems}];
+const timetable=[{dow:1,period:1,classId:'c1',week:'A'},{dow:1,period:3,classId:'c2',week:'A'},{dow:2,period:2,classId:'c3',week:'A'},{dow:3,period:1,classId:'c1',week:'A'},{dow:4,period:1,classId:'c1',week:'A'},{dow:4,period:3,classId:'c2',week:'A'},{dow:4,period:5,classId:'c3',week:'A'},{dow:5,period:2,classId:'c1',week:'A'}];
+localStorage.setItem('classkru_mobile_v4',JSON.stringify({classes,timetable,timetableWeek:'A',activeWebScreen:'dashboard',holidays:[],periodSettings:{startTime:'08:30',duration:50,breakTime:0,count:7},onboarding:{done:true}}));
+})()

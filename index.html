@@ -18,17 +18,17 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=285">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=285">
-  <link rel="stylesheet" href="css/03-reports.css?v=285">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=285">
-  <link rel="stylesheet" href="css/05-home.css?v=285">
-  <link rel="stylesheet" href="css/06-attendance.css?v=285">
-  <link rel="stylesheet" href="css/07-scores.css?v=285">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=285">
-    <link rel="stylesheet" href="css/09-games.css?v=285">
-  <link rel="stylesheet" href="css/10-help.css?v=285">
-  <link rel="stylesheet" href="css/11-public-help.css?v=285">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=290">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=290">
+  <link rel="stylesheet" href="css/03-reports.css?v=290">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=290">
+  <link rel="stylesheet" href="css/05-home.css?v=290">
+  <link rel="stylesheet" href="css/06-attendance.css?v=290">
+  <link rel="stylesheet" href="css/07-scores.css?v=290">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=290">
+    <link rel="stylesheet" href="css/09-games.css?v=290">
+  <link rel="stylesheet" href="css/10-help.css?v=290">
+  <link rel="stylesheet" href="css/11-public-help.css?v=290">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -285,10 +285,14 @@
             <p>เลือกหัวข้อที่ต้องการ เพื่อดูวิธีใช้งาน หรือทักทีมงานผ่าน LINE สำหรับการช่วยเหลือเบื้องต้น</p>
           </section>
           <section class="ck-help-grid" aria-label="หัวข้อศูนย์ช่วยเหลือ">
-            <div class="ck-help-card is-pending" aria-disabled="true">
+            <a class="ck-help-card" href="guide.html" target="_blank" rel="noopener">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-book-open-01"></i></span>
-              <span><strong>วิธีใช้งาน</strong><small>รออัปเดตเนื้อหา</small></span>
-            </div>
+              <span><strong>วิธีใช้งาน</strong><small>คู่มือทีละขั้นพร้อมภาพประกอบ</small></span>
+            </a>
+            <button class="ck-help-card" type="button" onclick="replayMainTour()">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-rocket-01"></i></span>
+              <span><strong>ดูทัวร์อีกครั้ง</strong><small>ให้ระบบพาทำทีละขั้นในหน้าจอจริง</small></span>
+            </button>
             <button class="ck-help-card" type="button" onclick="openIssueReportForm('issue')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-alert-02"></i></span>
               <span><strong>แจ้งปัญหา</strong><small>บันทึกรายละเอียดให้ทีมงานตรวจสอบผ่านระบบ</small></span>
@@ -1135,19 +1139,19 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=285"></script>
-  <script defer src="js/auth.js?v=285"></script>
-  <script defer src="js/shell.js?v=285"></script>
-  <script defer src="js/dashboard.js?v=285"></script>
-  <script defer src="js/classrooms.js?v=285"></script>
-  <script defer src="js/students.js?v=285"></script>
-  <script defer src="js/timetable.js?v=285"></script>
-  <script defer src="js/reports.js?v=285"></script>
-  <script defer src="js/attendance.js?v=285"></script>
-  <script defer src="js/scores.js?v=285"></script>
-  <script defer src="js/tools.js?v=285"></script>
-  <script defer src="js/shared-utils.js?v=285"></script>
-  <script defer src="js/extras.js?v=285"></script>
-  <script defer src="js/help.js?v=285"></script>
+  <script defer src="js/core.js?v=290"></script>
+  <script defer src="js/auth.js?v=290"></script>
+  <script defer src="js/shell.js?v=290"></script>
+  <script defer src="js/dashboard.js?v=290"></script>
+  <script defer src="js/classrooms.js?v=290"></script>
+  <script defer src="js/students.js?v=290"></script>
+  <script defer src="js/timetable.js?v=290"></script>
+  <script defer src="js/reports.js?v=290"></script>
+  <script defer src="js/attendance.js?v=290"></script>
+  <script defer src="js/scores.js?v=290"></script>
+  <script defer src="js/tools.js?v=290"></script>
+  <script defer src="js/shared-utils.js?v=290"></script>
+  <script defer src="js/extras.js?v=290"></script>
+  <script defer src="js/help.js?v=290"></script>
 </body>
 </html>

@@ -1,0 +1,117 @@
+/* คู่มือใช้งาน ClassKru — ใช้ design token ชุดเดียวกับ home.css */
+:root { --g-primary:#1d9e75; --g-deep:#0f6e56; --g-bg:#fbfcfb; --g-card:#fff; --g-text:#202522; --g-muted:#737b76; --g-border:#e6ece8; --g-soft:#f2faf6; --g-shadow:0 8px 24px rgba(28,56,43,.08),0 1px 3px rgba(20,30,24,.05); }
+* { box-sizing:border-box; margin:0; padding:0; font-family:"Noto Sans Thai","DM Sans",-apple-system,BlinkMacSystemFont,sans-serif; }
+html { scroll-behavior:smooth; }
+body { background:var(--g-bg); color:var(--g-text); line-height:1.75; }
+a { color:inherit; text-decoration:none; }
+img { max-width:100%; height:auto; display:block; }
+
+/* ── หัวเว็บ ───────────────────────────────── */
+.g-nav { position:sticky; top:0; z-index:20; background:rgba(251,252,251,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--g-border); }
+.g-nav-inner { max-width:1080px; margin:0 auto; padding:0 24px; height:68px; display:flex; align-items:center; gap:22px; }
+.g-brand { display:inline-flex; align-items:center; gap:10px; margin-right:auto; }
+.g-brand img { width:38px; height:38px; object-fit:contain; }
+.g-brand span { color:var(--g-muted); font-size:.74rem; font-weight:600; border-left:1px solid var(--g-border); padding-left:10px; }
+.g-nav-login { padding:8px 15px; color:var(--g-deep); border:1px solid var(--g-primary); border-radius:13px; font-size:.79rem; font-weight:700; white-space:nowrap; }
+
+/* ── ส่วนหัวคู่มือ ─────────────────────────── */
+.g-hero { max-width:800px; margin:0 auto; padding:60px 24px 34px; text-align:center; }
+.g-eyebrow { display:inline-flex; align-items:center; gap:7px; color:var(--g-deep); font-size:.7rem; font-weight:800; letter-spacing:.1em; }
+.g-hero h1 { margin:14px 0 12px; font-size:clamp(1.9rem,5vw,2.9rem); font-weight:800; line-height:1.28; text-wrap:balance; }
+.g-hero p { color:var(--g-muted); font-size:.97rem; text-wrap:balance; }
+
+/* ── โซนแนะนำสำหรับครูที่ยังไม่ได้ใช้ ─────────── */
+.g-intro { max-width:1080px; margin:0 auto 12px; padding:0 24px; }
+.g-intro-box { padding:26px 28px; border:1px solid var(--g-border); border-radius:20px; background:var(--g-card); box-shadow:var(--g-shadow); }
+.g-intro-box h2 { font-size:1.12rem; font-weight:800; }
+.g-intro-box > p { margin-top:5px; color:var(--g-muted); font-size:.88rem; }
+.g-can { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin-top:18px; }
+.g-can div { padding:13px 15px; border-radius:14px; background:var(--g-soft); font-size:.85rem; font-weight:600; line-height:1.65; }
+.g-can b { display:block; color:var(--g-deep); font-size:.9rem; font-weight:800; }
+.g-cta { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+.g-cta a { padding:11px 20px; border-radius:14px; font-size:.86rem; font-weight:700; }
+.g-cta a:first-child { background:var(--g-primary); color:#fff; }
+.g-cta a:last-child { border:1px solid var(--g-border); color:var(--g-deep); }
+
+/* ── สารบัญหมวด ───────────────────────────── */
+.g-toc { max-width:1080px; margin:34px auto 0; padding:0 24px; }
+.g-toc h2 { font-size:1.02rem; font-weight:800; margin-bottom:13px; }
+.g-toc-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(215px,1fr)); gap:12px; }
+.g-toc-card { display:block; padding:16px 18px; border:1px solid var(--g-border); border-radius:16px; background:var(--g-card); transition:border-color .18s ease,transform .18s ease; }
+.g-toc-card:hover { border-color:var(--g-primary); transform:translateY(-2px); }
+.g-toc-card .n { color:var(--g-primary); font-size:.7rem; font-weight:800; letter-spacing:.08em; }
+.g-toc-card strong { display:block; margin-top:3px; font-size:.95rem; font-weight:800; }
+.g-toc-card small { display:block; color:var(--g-muted); font-size:.79rem; line-height:1.6; }
+.g-toc-card.is-soon { opacity:.62; }
+.g-toc-card.is-soon:hover { border-color:var(--g-border); transform:none; }
+.g-badge-soon { display:inline-block; margin-top:7px; padding:2px 8px; border-radius:999px; background:#f5f0e2; color:#8a6316; font-size:.68rem; font-weight:800; }
+
+/* ── หน้าหมวด: breadcrumb + หัวเรื่อง ──────── */
+.g-crumb { max-width:800px; margin:0 auto; padding:26px 24px 0; color:var(--g-muted); font-size:.81rem; font-weight:600; }
+.g-crumb a { color:var(--g-primary); font-weight:700; }
+.g-crumb a:hover { text-decoration:underline; }
+.g-article-head { max-width:800px; margin:0 auto; padding:14px 24px 0; }
+.g-article-head .n { color:var(--g-primary); font-size:.72rem; font-weight:800; letter-spacing:.08em; }
+.g-article-head h1 { margin:5px 0 8px; font-size:clamp(1.65rem,4.6vw,2.35rem); font-weight:800; line-height:1.3; text-wrap:balance; }
+.g-article-head p { color:var(--g-muted); font-size:.93rem; text-wrap:balance; }
+.g-article-head .g-meta { display:inline-block; margin-top:12px; padding:5px 12px; border-radius:999px; background:var(--g-soft); color:var(--g-deep); font-size:.78rem; font-weight:700; }
+
+/* ── ไปหมวดก่อนหน้า/ถัดไป ──────────────────── */
+.g-pager { max-width:800px; margin:44px auto 0; padding:0 24px; display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.g-pager a { padding:15px 18px; border:1px solid var(--g-border); border-radius:16px; background:var(--g-card); transition:border-color .18s ease; }
+.g-pager a:hover { border-color:var(--g-primary); }
+.g-pager span { display:block; color:var(--g-muted); font-size:.74rem; font-weight:700; }
+.g-pager strong { display:block; margin-top:2px; font-size:.92rem; font-weight:800; }
+.g-pager .is-next { text-align:right; }
+.g-pager .g-pager-blank { border:1px dashed var(--g-border); border-radius:16px; }
+
+/* ── เนื้อหาแต่ละหมวด ──────────────────────── */
+.g-section { max-width:800px; margin:0 auto; padding:52px 24px 0; scroll-margin-top:84px; }
+.g-section-head { padding-bottom:16px; border-bottom:2px solid var(--g-border); }
+.g-section-head .n { color:var(--g-primary); font-size:.72rem; font-weight:800; letter-spacing:.08em; }
+.g-section-head h2 { margin-top:4px; font-size:1.55rem; font-weight:800; text-wrap:balance; }
+.g-section-head p { margin-top:6px; color:var(--g-muted); font-size:.9rem; text-wrap:balance; }
+
+.g-step { padding:30px 0; border-bottom:1px solid var(--g-border); }
+.g-step:last-child { border-bottom:none; }
+.g-step-title { display:flex; align-items:flex-start; gap:12px; }
+.g-step-num { flex:0 0 auto; width:29px; height:29px; border-radius:50%; background:var(--g-primary); color:#fff; font-size:.85rem; font-weight:800; display:grid; place-items:center; }
+.g-step-title h3 { font-size:1.08rem; font-weight:800; line-height:1.5; text-wrap:balance; }
+.g-step-body { margin-left:41px; }
+.g-step-body p { margin-top:8px; color:var(--g-muted); font-size:.91rem; }
+.g-step-body p strong, .g-step-body li strong { color:var(--g-text); font-weight:700; }
+.g-step-body ul { margin:10px 0 0 19px; color:var(--g-muted); font-size:.91rem; }
+.g-step-body li { margin-top:5px; }
+
+figure { margin-top:16px; }
+figure img { border:1px solid var(--g-border); border-radius:14px; box-shadow:var(--g-shadow); }
+figure.is-phone img { max-width:275px; margin:0 auto; }
+figcaption { margin-top:8px; color:var(--g-muted); font-size:.79rem; text-align:center; }
+
+.g-tip { display:flex; gap:10px; margin-top:16px; padding:13px 15px; border-radius:13px; background:var(--g-soft); border:1px solid #d6ece1; color:var(--g-deep); font-size:.86rem; line-height:1.7; }
+.g-tip.is-warn { background:#fdf7e9; border-color:#f0dcae; color:#7d5a12; }
+.g-tip b { font-weight:800; }
+
+/* ── หมวดที่ยังไม่ได้ทำ ────────────────────── */
+.g-soon { margin-top:18px; padding:24px 26px; border:1px dashed var(--g-border); border-radius:18px; background:var(--g-card); }
+.g-soon p { color:var(--g-muted); font-size:.89rem; }
+.g-soon ul { margin:11px 0 0 19px; color:var(--g-muted); font-size:.88rem; }
+.g-soon li { margin-top:4px; }
+
+/* ── ท้ายเว็บ ──────────────────────────────── */
+.g-foot { max-width:800px; margin:60px auto 0; padding:26px 24px 44px; border-top:1px solid var(--g-border); color:var(--g-muted); font-size:.82rem; }
+.g-foot a { color:var(--g-primary); font-weight:700; }
+.g-foot-links { display:flex; flex-wrap:wrap; gap:16px; margin-top:9px; }
+
+@media (max-width:560px) {
+  .g-nav-inner { height:60px; padding:0 18px; gap:12px; }
+  .g-brand span { display:none; }
+  .g-hero { padding:40px 20px 26px; }
+  .g-intro, .g-toc, .g-section, .g-crumb, .g-article-head, .g-pager { padding-left:18px; padding-right:18px; }
+  .g-intro-box { padding:20px; }
+  .g-step-body { margin-left:0; }
+  .g-section { padding-top:40px; }
+  .g-pager { grid-template-columns:1fr; }
+  .g-pager .is-next { text-align:left; }
+  .g-pager .g-pager-blank { display:none; }
+}
