@@ -245,11 +245,13 @@ function renderScoreMatrix(c) {
       + `<td class="sc-c-no">${s.no || (index + 1)}</td>`
       + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
       + `<td class="sc-c-name">${escapeScore(s.name)}</td>`;
-    cols.forEach(({ g, it, placeholder, groupStart }) => {
+    // data-r/data-c = พิกัดแถว-คอลัมน์ ใช้หาช่องถัดไปตอนกด Enter/ลูกศร (ดู bindScoreCellKeys)
+    cols.forEach(({ g, it, placeholder, groupStart }, colIdx) => {
       const cs = groupStart ? ` sc-cat-start sc-group-${g.key}` : '';
       if (placeholder) { body += `<td class="sc-cell-empty${cs}"></td>`; return; }
       const v = clampMark((sc.marks[it.id] || {})[s.id], it.max);
       body += `<td class="sc-score-cell${cs}"><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
+        data-r="${index}" data-c="${colIdx}"
         onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;
     });
     body += scoreSummaryCells(c, s);
@@ -262,6 +264,35 @@ function renderScoreMatrix(c) {
   body += '</tbody>';
 
   wrap.innerHTML = `<table class="score-matrix-table"><thead>${thead}</thead>${body}</table>`;
+  bindScoreCellKeys();
+}
+
+// ==================== คีย์บอร์ด: กรอกไล่ "ลงคอลัมน์" ====================
+// ครูตรวจงานทีละชิ้น — ปึกใบงานที่ 1 ของทั้งห้องเรียงตามเลขที่ แล้วนั่งกรอกไล่ลง
+// คอลัมน์เดียวตั้งแต่คนที่ 1 ถึงคนสุดท้าย แต่ตารางเรียงเป็นแถวต่อคน Tab เลยพาไป
+// "ขวา" (คนเดิม รายการถัดไป) ซึ่งตรงข้ามกับที่ครูต้องการ ของเดิมไม่มีทางลงคอลัมน์
+// ด้วยคีย์บอร์ดเลย = ต้องคลิกเมาส์ทีละช่อง 40 ครั้ง ต่อ 1 รายการคะแนน
+//   Enter / ↓ = คนถัดไป ช่องเดิม · ↑ = คนก่อนหน้า · Tab = ไปขวาเหมือนเดิม
+let scKeysBound = false;
+
+function bindScoreCellKeys() {
+  if (scKeysBound) return;
+  scKeysBound = true;
+  document.addEventListener('keydown', event => {
+    const el = event.target;
+    if (!el.classList || !el.classList.contains('score-cell-input')) return;
+    let step = 0;
+    if (event.key === 'Enter' || event.key === 'ArrowDown') step = 1;
+    else if (event.key === 'ArrowUp') step = -1;
+    else return;
+    // ↑↓ บน input type=number ปกติคือบวก/ลบค่าในช่อง — ต้องกันไว้ก่อนย้ายโฟกัส
+    event.preventDefault();
+    const next = document.querySelector(
+      `.score-cell-input[data-c="${el.dataset.c}"][data-r="${Number(el.dataset.r) + step}"]`);
+    // คลุมเลขเดิมไว้ให้ด้วย พิมพ์ทับได้เลยไม่ต้องลบก่อน (ช่องส่วนใหญ่มีเลขอยู่แล้ว)
+    if (next) { next.focus(); next.select(); }
+    else el.blur();   // สุดคอลัมน์ = จบ (blur ยิง onchange ให้ช่องสุดท้ายด้วย)
+  });
 }
 
 // เซลล์สรุปท้ายแถว (รวม / เกรด) — id ต่อคน เพื่ออัปเดตแบบไม่ re-render ทั้งตาราง
@@ -657,6 +688,22 @@ function renderMobileStudentPanel(c, sid) {
     </div>
     <div class="msc-summary" id="msc-summary">${mobileScoreSummaryHtml(c, sid)}</div>
     ${buckets}
+    ${mobileStudentNavHtml(c, idx)}
+  </div>`;
+}
+
+// แถบข้ามคนท้ายหน้ากรอกรายคน — ของเดิมต้องย้อนกลับไปหน้ารายชื่อแล้วแตะคนถัดไป
+// (2 แตะต่อ 1 คน = 80 แตะต่อห้อง) ปุ่มนี้ทำให้ไล่กรอกทั้งห้องรวดเดียวได้
+function mobileStudentNavHtml(c, idx) {
+  const prev = c.students[idx - 1];
+  const next = c.students[idx + 1];
+  const btn = (stu, label, dir) => stu
+    ? `<button class="msc-nav-btn" onclick="openMobileStudentScores('${c.id}','${stu.id}')">${dir === 'prev' ? '<i class="hgi-stroke hgi-arrow-left-01"></i> ' : ''}${label}${dir === 'next' ? ' <i class="hgi-stroke hgi-arrow-right-01"></i>' : ''}</button>`
+    : `<button class="msc-nav-btn" disabled>${dir === 'prev' ? '<i class="hgi-stroke hgi-arrow-left-01"></i> ' : ''}${label}${dir === 'next' ? ' <i class="hgi-stroke hgi-arrow-right-01"></i>' : ''}</button>`;
+  return `<div class="msc-nav">
+    ${btn(prev, 'คนก่อน', 'prev')}
+    <span class="msc-nav-pos">${idx + 1} / ${c.students.length}</span>
+    ${btn(next, 'คนถัดไป', 'next')}
   </div>`;
 }
 

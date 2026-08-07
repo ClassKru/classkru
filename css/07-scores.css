@@ -113,6 +113,13 @@
 .score-matrix-table tbody tr:last-child td { border-bottom: none; }
 .score-matrix-table tbody tr { transition: var(--transition-normal); }
 .score-matrix-table tbody tr:hover td { background: #f7faf9; }
+/* แถวที่กำลังกรอกอยู่ ค้างไฮไลต์ไว้จนกว่าจะย้ายช่อง — hover อย่างเดียวไม่พอ เพราะพอ
+   ไล่กรอกด้วยคีย์บอร์ดแล้วมือออกจากเมาส์ ไฮไลต์หาย ครูไล่สายตาผิดแถวได้ง่ายเวลา
+   คะแนนซ้ำๆ กันหลายแถว. ต้องเป็นสีทึบ (ไม่ใช่ rgba) เพราะคอลัมน์ชื่อตรึงซ้ายทับกันอยู่ */
+.score-matrix-table tbody tr:focus-within td,
+.score-matrix-table tbody tr:focus-within .sc-c-no,
+.score-matrix-table tbody tr:focus-within .sc-c-code,
+.score-matrix-table tbody tr:focus-within .sc-c-name { background: #eff7f3; }
 .score-matrix-table .sc-score-cell { text-align: center; }
 
 /* คอลัมน์ระบุตัวตน (เลขที่/รหัส/ชื่อ) ตรึงซ้าย — โทนเดียวกับหน้าเช็คชื่อ */
@@ -394,3 +401,18 @@
 }
 .msc-add:active { transform: scale(0.98); }
 .msc-add i { font-size: 1rem; }
+
+/* แถบข้ามคน ท้ายหน้ากรอกรายคน — ไล่กรอกทั้งห้องได้โดยไม่ต้องเด้งกลับหน้ารายชื่อ */
+.msc-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border-color);
+}
+.msc-nav-btn {
+  display: inline-flex; align-items: center; gap: 5px; padding: 10px 14px;
+  background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-btn);
+  color: var(--text-main); font-size: 0.86rem; font-weight: 700; cursor: pointer;
+  transition: var(--transition-normal);
+}
+.msc-nav-btn:active { transform: scale(0.98); }
+.msc-nav-btn:disabled { opacity: 0.38; cursor: default; transform: none; }
+.msc-nav-pos { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
