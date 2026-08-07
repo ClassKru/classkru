@@ -30,4 +30,22 @@ async function selectRows(table, options = {}) {
   return response.json();
 }
 
-module.exports = { selectRows };
+async function mutateRows(table, method, options = {}) {
+  const { url, key } = configuration();
+  const query = new URLSearchParams(options.query || {});
+  const headers = { apikey: key, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+  if (!key.startsWith('sb_secret_')) headers.Authorization = `Bearer ${key}`;
+  const response = await fetch(`${url}/rest/v1/${table}?${query.toString()}`, {
+    method,
+    headers,
+    body: JSON.stringify(options.body || {})
+  });
+  if (!response.ok) {
+    const error = new Error(`Database request failed (${response.status})`);
+    error.code = 'DATABASE_REQUEST_FAILED';
+    throw error;
+  }
+  return response.json();
+}
+
+module.exports = { selectRows, mutateRows };

@@ -1,6 +1,6 @@
 # ClassKru Developer Console
 
-Developer Console อยู่ที่ `/developer/` และออกแบบให้แสดงข้อมูลแบบอ่านอย่างเดียวเท่านั้น
+Developer Console อยู่ที่ `/developer/` โดยข้อมูลความคิดเห็นจากผู้ใช้และ Database Viewer เป็นแบบอ่านอย่างเดียว ส่วนแท็บ Biggy และ PetchPetch สามารถบันทึกไอเดีย อัปเดตสถานะ และคอมเมนต์ร่วมกันได้
 
 ## Environment Variables บน Vercel
 
@@ -16,12 +16,17 @@ Developer Console อยู่ที่ `/developer/` และออกแบ�
 
 ## Database Migration
 
-รันไฟล์ `supabase/migrations/202608030001_developer_issue_console.sql` ใน Supabase SQL Editor หรือผ่าน Supabase CLI
+รันไฟล์ migration ต่อไปนี้ตามลำดับใน Supabase SQL Editor หรือผ่าน Supabase CLI:
+
+1. `supabase/migrations/202608030001_developer_issue_console.sql`
+2. `supabase/migrations/202608070001_developer_ideas.sql`
 
 Migration สร้างตารางเดียว:
 
 - `issue_reports` — ข้อความจากผู้ใช้ที่เข้าสู่ระบบ พร้อมวันและเวลาที่ฐานข้อมูลบันทึกให้อัตโนมัติ
 - RLS policy ให้ผู้ใช้ส่งและอ่านได้เฉพาะรายการของตัวเอง
+- `developer_ideas` — ไอเดียของ Biggy และ PetchPetch พร้อมวันเวลาและสถานะทำเสร็จ
+- `developer_idea_comments` — คอมเมนต์ของผู้พัฒนาบนไอเดียแต่ละรายการ
 
 Developer Console อ่านข้อมูลผ่าน Serverless Function ที่ใช้ service-role key ฝั่งเซิร์ฟเวอร์เท่านั้น
 
@@ -29,7 +34,8 @@ Developer Console อ่านข้อมูลผ่าน Serverless Function
 
 - รหัสผ่านไม่อยู่ใน HTML หรือ JavaScript ฝั่งเบราว์เซอร์
 - Session cookie เป็น HttpOnly, SameSite=Strict และ Secure บน HTTPS
-- API อนุญาตให้อ่านเฉพาะ `issue_reports` และเรียงข้อมูลจากใหม่ไปเก่า
-- ไม่มี API สำหรับแก้ไข ลบ หรือรัน SQL
+- API ความคิดเห็นอนุญาตให้อ่านเฉพาะ `issue_reports` และเรียงข้อมูลจากใหม่ไปเก่า
+- API ไอเดียเขียนได้เฉพาะสองตารางสำหรับผู้พัฒนาและตรวจ Developer Session พร้อม same-origin ทุกครั้ง
+- ไม่มี API สำหรับลบข้อมูลหรือรัน SQL
 - หน้าและ API ส่ง `Cache-Control: no-store` และถูกตั้ง `noindex`
 - การจำกัดจำนวนครั้งที่ลองรหัสผ่านใน Serverless Function เป็น best effort ควรเพิ่ม rate limiting ระดับ Vercel Firewall เมื่อเปิดให้ใช้งานระยะยาว

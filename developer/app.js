@@ -1,6 +1,6 @@
 'use strict';
 
-const state = { view: 'overview', overview: null, reports: [] };
+const state = { view: 'overview', overview: null, reports: [], ideas: { biggy: [], petchpetch: [] } };
 const byId = id => document.getElementById(id);
 const ui = {
   loginView: byId('login-view'), consoleView: byId('console-view'), loginForm: byId('login-form'),
@@ -16,6 +16,7 @@ const ui = {
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
 const CATEGORY_LABELS = Object.freeze({ issue: 'แจ้งปัญหา', feature: 'เสนอฟีเจอร์ใหม่' });
+const DEVELOPER_LABELS = Object.freeze({ biggy: 'Biggy', petchpetch: 'PetchPetch' });
 
 async function request(path, options = {}) {
   const response = await fetch(path, {
@@ -190,6 +191,130 @@ async function loadReports() {
   }
 }
 
+function renderIdeas(owner, data) {
+  state.ideas[owner] = data.rows || [];
+  const list = byId(`ideas-list-${owner}`);
+  list.replaceChildren();
+  state.ideas[owner].forEach(idea => {
+    const card = element('article', `idea-card${idea.is_completed ? ' is-completed' : ''}`);
+    const header = element('header', 'idea-card-header');
+    const time = element('time', 'idea-card-time', formatDate(idea.created_at, true));
+    time.dateTime = idea.created_at;
+    const completed = element('label', 'idea-complete-control');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = Boolean(idea.is_completed);
+    checkbox.dataset.ideaComplete = idea.id;
+    checkbox.dataset.owner = owner;
+    completed.append(checkbox, document.createTextNode(' ทำเสร็จแล้ว'));
+    header.append(time, completed);
+    card.append(header, element('p', 'idea-card-text', idea.idea_text));
+
+    const comments = element('section', 'idea-comments');
+    comments.append(element('h3', '', `คอมเมนต์ (${(idea.comments || []).length})`));
+    const commentList = element('div', 'idea-comment-list');
+    (idea.comments || []).forEach(comment => {
+      const item = element('article', 'idea-comment');
+      const meta = element('div', 'idea-comment-meta');
+      meta.append(element('strong', '', DEVELOPER_LABELS[comment.author] || comment.author), element('time', '', formatDate(comment.created_at, true)));
+      item.append(meta, element('p', '', comment.comment_text));
+      commentList.append(item);
+    });
+    if (!(idea.comments || []).length) commentList.append(element('p', 'idea-comment-empty', 'ยังไม่มีคอมเมนต์'));
+    comments.append(commentList);
+
+    const form = element('form', 'idea-comment-form');
+    form.dataset.commentForm = idea.id;
+    form.dataset.owner = owner;
+    const authorLabel = element('label', '', 'ผู้คอมเมนต์');
+    const author = document.createElement('select');
+    author.name = 'author';
+    Object.entries(DEVELOPER_LABELS).forEach(([value, label]) => {
+      const option = element('option', '', label);
+      option.value = value;
+      author.append(option);
+    });
+    author.value = owner === 'biggy' ? 'petchpetch' : 'biggy';
+    authorLabel.append(author);
+    const commentLabel = element('label', '', 'ข้อความ');
+    const input = document.createElement('textarea');
+    input.name = 'commentText';
+    input.rows = 2;
+    input.maxLength = 2000;
+    input.required = true;
+    input.placeholder = 'แสดงความคิดเห็นหรือช่วยต่อยอดไอเดีย…';
+    commentLabel.append(input);
+    const submit = element('button', 'secondary-button', 'ส่งคอมเมนต์');
+    submit.type = 'submit';
+    form.append(authorLabel, commentLabel, submit);
+    comments.append(form);
+    card.append(comments);
+    list.append(card);
+  });
+  if (!state.ideas[owner].length) list.append(element('div', 'empty-state', 'ยังไม่มีไอเดีย เริ่มจดบันทึกใบแรกได้เลย'));
+}
+
+async function loadIdeas(owner) {
+  ui.globalStatus.textContent = `กำลังโหลดไอเดียของ ${DEVELOPER_LABELS[owner]}…`;
+  try {
+    renderIdeas(owner, await request(`/api/dev/ideas?owner=${encodeURIComponent(owner)}`));
+    ui.globalStatus.textContent = '';
+  } catch (error) {
+    handleDataError(error);
+  }
+}
+
+async function saveIdea(form) {
+  const owner = form.dataset.ideaForm;
+  const textarea = form.querySelector('textarea');
+  const ideaText = textarea.value.trim();
+  if (!ideaText) return;
+  const button = form.querySelector('button');
+  button.disabled = true;
+  try {
+    await request('/api/dev/ideas', { method: 'POST', body: JSON.stringify({ action: 'idea', owner, ideaText }) });
+    textarea.value = '';
+    await loadIdeas(owner);
+  } catch (error) {
+    handleDataError(error);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function saveComment(form) {
+  const owner = form.dataset.owner;
+  const button = form.querySelector('button');
+  button.disabled = true;
+  try {
+    await request('/api/dev/ideas', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'comment', ideaId: form.dataset.commentForm, author: form.elements.author.value, commentText: form.elements.commentText.value.trim() })
+    });
+    await loadIdeas(owner);
+  } catch (error) {
+    handleDataError(error);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function toggleIdea(checkbox) {
+  checkbox.disabled = true;
+  try {
+    await request('/api/dev/ideas', {
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'complete', ideaId: checkbox.dataset.ideaComplete, completed: checkbox.checked })
+    });
+    await loadIdeas(checkbox.dataset.owner);
+  } catch (error) {
+    checkbox.checked = !checkbox.checked;
+    handleDataError(error);
+  } finally {
+    checkbox.disabled = false;
+  }
+}
+
 function renderDatabase(data) {
   ui.databaseTable.replaceChildren();
   if (!data.rows?.length) {
@@ -253,6 +378,8 @@ function switchView(view) {
   });
   if (view === 'overview') loadOverview();
   if (view === 'reports') loadReports();
+  if (view === 'ideas-biggy') loadIdeas('biggy');
+  if (view === 'ideas-petchpetch') loadIdeas('petchpetch');
   if (view === 'database') loadDatabase();
 }
 
@@ -296,6 +423,16 @@ ui.modal.addEventListener('click', event => { if (event.target === ui.modal) ui.
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !ui.modal.hidden) ui.modal.hidden = true; });
 document.querySelectorAll('.nav-button').forEach(button => button.addEventListener('click', () => switchView(button.dataset.view)));
 document.querySelectorAll('[data-open-view]').forEach(button => button.addEventListener('click', () => switchView(button.dataset.openView)));
+document.querySelectorAll('[data-idea-form]').forEach(form => form.addEventListener('submit', event => { event.preventDefault(); saveIdea(form); }));
+document.addEventListener('submit', event => {
+  const form = event.target.closest('[data-comment-form]');
+  if (!form) return;
+  event.preventDefault();
+  saveComment(form);
+});
+document.addEventListener('change', event => {
+  if (event.target.matches('[data-idea-complete]')) toggleIdea(event.target);
+});
 
 (async function initialize() {
   try {

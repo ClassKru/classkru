@@ -37,12 +37,14 @@
     <section id="console-view" class="console-view" hidden aria-labelledby="console-title">
       <header class="console-header">
         <div class="console-brand"><div class="brand-mark small" aria-hidden="true">CK</div><div><p class="eyebrow">DEVELOPER CONSOLE</p><h1 id="console-title">ศูนย์ข้อมูล ClassKru</h1></div></div>
-        <div class="header-actions"><span class="read-only-badge">อ่านอย่างเดียว</span><button id="refresh-button" type="button">รีเฟรช</button><button id="logout-button" type="button">ออกจากระบบ</button></div>
+        <div class="header-actions"><span class="read-only-badge">Feedback อ่านอย่างเดียว</span><button id="refresh-button" type="button">รีเฟรช</button><button id="logout-button" type="button">ออกจากระบบ</button></div>
       </header>
 
       <nav class="console-nav" aria-label="เมนู Developer Console">
         <button class="nav-button active" type="button" data-view="overview" aria-current="page">ภาพรวม</button>
         <button class="nav-button" type="button" data-view="reports">ความคิดเห็น</button>
+        <button class="nav-button" type="button" data-view="ideas-biggy">Biggy</button>
+        <button class="nav-button" type="button" data-view="ideas-petchpetch">PetchPetch</button>
         <button class="nav-button" type="button" data-view="database">ข้อมูลในฐานข้อมูล</button>
       </nav>
 
@@ -66,6 +68,24 @@
         </form>
         <div id="reports-cards" class="feedback-card-grid" aria-live="polite"></div>
         <div id="reports-empty" class="empty-state" hidden>ไม่พบรายงานที่ตรงกับตัวกรอง</div>
+      </section>
+
+      <section id="view-ideas-biggy" class="workspace-view idea-workspace" data-owner="biggy" aria-labelledby="ideas-biggy-title">
+        <div class="section-heading"><div><p class="eyebrow">IDEA NOTEBOOK</p><h2 id="ideas-biggy-title">ไอเดียของ Biggy</h2></div><p>รายการล่าสุดอยู่ด้านบน</p></div>
+        <form class="idea-form" data-idea-form="biggy">
+          <label for="idea-input-biggy">จดบันทึกไอเดีย<textarea id="idea-input-biggy" maxlength="4000" rows="4" required placeholder="เขียนไอเดีย รายละเอียด หรือสิ่งที่อยากทดลอง…"></textarea></label>
+          <button class="primary-button" type="submit">บันทึกไอเดีย</button>
+        </form>
+        <div id="ideas-list-biggy" class="idea-card-list" aria-live="polite"></div>
+      </section>
+
+      <section id="view-ideas-petchpetch" class="workspace-view idea-workspace" data-owner="petchpetch" aria-labelledby="ideas-petchpetch-title">
+        <div class="section-heading"><div><p class="eyebrow">IDEA NOTEBOOK</p><h2 id="ideas-petchpetch-title">ไอเดียของ PetchPetch</h2></div><p>รายการล่าสุดอยู่ด้านบน</p></div>
+        <form class="idea-form" data-idea-form="petchpetch">
+          <label for="idea-input-petchpetch">จดบันทึกไอเดีย<textarea id="idea-input-petchpetch" maxlength="4000" rows="4" required placeholder="เขียนไอเดีย รายละเอียด หรือสิ่งที่อยากทดลอง…"></textarea></label>
+          <button class="primary-button" type="submit">บันทึกไอเดีย</button>
+        </form>
+        <div id="ideas-list-petchpetch" class="idea-card-list" aria-live="polite"></div>
       </section>
 
       <section id="view-database" class="workspace-view" aria-labelledby="database-title">
