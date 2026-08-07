@@ -241,8 +241,9 @@ function renderIdeas(owner, data) {
     input.name = 'commentText';
     input.rows = 2;
     input.maxLength = 2000;
+    input.minLength = 5;
     input.required = true;
-    input.placeholder = 'แสดงความคิดเห็นหรือช่วยต่อยอดไอเดีย…';
+    input.placeholder = 'แสดงความคิดเห็นหรือช่วยต่อยอดไอเดีย… (อย่างน้อย 5 ตัวอักษร)';
     commentLabel.append(input);
     const submit = element('button', 'secondary-button', 'ส่งคอมเมนต์');
     submit.type = 'submit';

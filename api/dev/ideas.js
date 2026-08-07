@@ -6,6 +6,8 @@ const { selectRows, mutateRows } = require('../_lib/supabase-admin');
 
 const DEVELOPERS = Object.freeze({ biggy: 'Biggy', petchpetch: 'PetchPetch' });
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const IDEA_PAGE_PREFIX = 'developer-idea:';
+const COMMENT_PAGE_PREFIX = 'developer-comment:';
 
 function developer(value) {
   const key = String(value || '').trim().toLowerCase();
@@ -17,17 +19,30 @@ function text(value, maxLength) {
 }
 
 async function listIdeas(owner) {
-  const allIdeas = await selectRows('developer_ideas', {
-    select: 'id,owner,idea_text,is_completed,created_at,updated_at',
+  const rows = await selectRows('issue_reports', {
+    select: 'id,message,page_url,browser_info,status,created_at,updated_at',
     order: 'created_at.desc',
-    limit: 500
-  });
-  const ideas = allIdeas.filter(item => item.owner === owner);
-  const comments = await selectRows('developer_idea_comments', {
-    select: 'id,idea_id,author,comment_text,created_at',
-    order: 'created_at.asc',
     limit: 2000
   });
+  const ideas = rows
+    .filter(item => item.page_url === `${IDEA_PAGE_PREFIX}${owner}`)
+    .map(item => ({
+      id: item.id,
+      owner,
+      idea_text: item.message,
+      is_completed: item.status === 'resolved',
+      created_at: item.created_at,
+      updated_at: item.updated_at
+    }));
+  const comments = rows
+    .filter(item => String(item.page_url || '').startsWith(COMMENT_PAGE_PREFIX))
+    .map(item => ({
+      id: item.id,
+      idea_id: item.page_url.slice(COMMENT_PAGE_PREFIX.length),
+      author: String(item.browser_info || '').replace(/^developer-author:/, ''),
+      comment_text: item.message,
+      created_at: item.created_at
+    }));
   const visibleIds = new Set(ideas.map(item => item.id));
   const grouped = Object.create(null);
   comments.forEach(comment => {
@@ -52,8 +67,15 @@ async function handler(req, res) {
     if (req.method === 'POST' && body.action === 'idea') {
       const owner = developer(body.owner);
       const ideaText = text(body.ideaText, 4000);
-      if (!owner || ideaText.length < 3) return sendJson(res, 400, { error: 'invalid_idea' });
-      const rows = await mutateRows('developer_ideas', 'POST', { body: { owner, idea_text: ideaText } });
+      if (!owner || ideaText.length < 5) return sendJson(res, 400, { error: 'invalid_idea' });
+      const rows = await mutateRows('issue_reports', 'POST', {
+        body: {
+          message: ideaText,
+          page_url: `${IDEA_PAGE_PREFIX}${owner}`,
+          browser_info: 'developer-idea:v1',
+          status: 'new'
+        }
+      });
       return sendJson(res, 201, { row: rows[0] });
     }
 
@@ -61,9 +83,14 @@ async function handler(req, res) {
       const author = developer(body.author);
       const ideaId = text(body.ideaId, 36);
       const commentText = text(body.commentText, 2000);
-      if (!author || !UUID_PATTERN.test(ideaId) || commentText.length < 1) return sendJson(res, 400, { error: 'invalid_comment' });
-      const rows = await mutateRows('developer_idea_comments', 'POST', {
-        body: { idea_id: ideaId, author, comment_text: commentText }
+      if (!author || !UUID_PATTERN.test(ideaId) || commentText.length < 5) return sendJson(res, 400, { error: 'invalid_comment' });
+      const rows = await mutateRows('issue_reports', 'POST', {
+        body: {
+          message: commentText,
+          page_url: `${COMMENT_PAGE_PREFIX}${ideaId}`,
+          browser_info: `developer-author:${author}`,
+          status: 'closed'
+        }
       });
       return sendJson(res, 201, { row: rows[0] });
     }
@@ -71,9 +98,9 @@ async function handler(req, res) {
     if (req.method === 'PATCH' && body.action === 'complete') {
       const ideaId = text(body.ideaId, 36);
       if (!UUID_PATTERN.test(ideaId) || typeof body.completed !== 'boolean') return sendJson(res, 400, { error: 'invalid_status' });
-      const rows = await mutateRows('developer_ideas', 'PATCH', {
+      const rows = await mutateRows('issue_reports', 'PATCH', {
         query: { id: `eq.${ideaId}` },
-        body: { is_completed: body.completed, updated_at: new Date().toISOString() }
+        body: { status: body.completed ? 'resolved' : 'new', updated_at: new Date().toISOString() }
       });
       return sendJson(res, 200, { row: rows[0] });
     }

@@ -21,11 +21,15 @@ async function loadReportRows() {
   const options = { order: 'created_at.desc', limit: 500 };
   try {
     const rows = await selectRows('issue_reports', { ...options, select: ISSUE_REPORT_FIELDS });
-    return rows.map(report => ({ ...report, category: reportCategory(report) }));
+    return rows
+      .filter(report => !String(report.page_url || '').startsWith('developer-'))
+      .map(report => ({ ...report, category: reportCategory(report) }));
   } catch (error) {
     if (error.code !== 'DATABASE_REQUEST_FAILED') throw error;
     const rows = await selectRows('issue_reports', { ...options, select: LEGACY_ISSUE_REPORT_FIELDS });
-    return rows.map(report => ({ ...report, category: reportCategory(report) }));
+    return rows
+      .filter(report => !String(report.page_url || '').startsWith('developer-'))
+      .map(report => ({ ...report, category: reportCategory(report) }));
   }
 }
 
