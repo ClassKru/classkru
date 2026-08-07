@@ -87,6 +87,7 @@ function openRandomNameTool() {
     document.body.appendChild(ov);
   }
   ov.innerHTML = `<div class="rn-fullscreen">
+      ${_tlStageBtn()}
       <button class="rn-close" onclick="closeRandomName()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
       <div class="rn-seg-wrap">
         <button class="rn-seg on" data-mode="all" onclick="_rnSetMode('all')">ทั้งห้อง <b id="rn-count-all">0</b></button>
@@ -105,16 +106,20 @@ function openRandomNameTool() {
     </div>`;
   ov.classList.add('show');
   _rnRenderCounts();
+  _tlScreenEl = ov.querySelector('.rn-fullscreen');
+  _tlStageBtnState(); _tlSync();
 }
 function closeRandomName() {
   const ov = document.getElementById('random-name-overlay');
   if (ov) ov.classList.remove('show');
+  _tlScreenEl = null; _tlSync();
 }
 function _rnSetMode(m) {
   _rnMode = m; _rnUsed = [];
   document.querySelectorAll('#random-name-overlay .rn-seg').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
   _rnRenderCounts();
   const h = document.getElementById('rn-hint'); if (h) h.textContent = 'พร้อมสุ่มใหม่';
+  _tlSync();
 }
 function _rnRenderCounts() {
   const c = _rnClass(); if (!c || !c.students) return;
@@ -156,14 +161,19 @@ function _rnSpin() {
     if (scr) { scr.style.setProperty('--rn-fg', col.fg); scr.style.setProperty('--rn-bg', col.bg); }
     noEl.textContent = (r.no !== null && r.no !== undefined && r.no !== '') ? r.no : '–';
     nameEl.textContent = display;
+    // ชื่อเล่นไทยยาวๆ ไม่มีช่องว่างให้ตัดบรรทัด ถ้าปล่อยขนาดคงที่จะล้นจอและพุ่งไปทับวงเลขที่
+    // ~145/จำนวนตัวอักษร = ความกว้างราว 90% ของจอ แล้วเพดานเดิม 12vw ยังคุมชื่อสั้นไว้
+    nameEl.style.fontSize = `clamp(1.7rem, ${Math.min(12, 145 / Math.max(1, display.length)).toFixed(2)}vw, 9rem)`;
     if (fullEl) fullEl.textContent = (r.name && r.name !== display) ? r.name : '';
     i++;
     if (i >= ticks || Date.now() >= deadline) {
       spin.disabled = false; spin.style.opacity = '1';
       if (noDup) { _rnUsed.push(r.id); if (hint) hint.textContent = `สุ่มแล้ว ${_rnUsed.length}/${total} คน`; }
       else if (hint) { hint.textContent = 'สุ่มอีกได้เลย'; }
+      _tlSync();
       return;
     }
+    _tlSync();
     setTimeout(step, 45 + i * 7); // ค่อยๆ ช้าลง (ease-out) ให้ลุ้น
   };
   step();
@@ -174,6 +184,49 @@ function _rnSpin() {
 // กติกา: หนึ่งจอมีของสำคัญชิ้นเดียวที่ใหญ่ที่สุด · ปุ่มตั้งค่าอยู่ล่างสุดตัวเล็ก
 // ==================================================================
 const _tlCleanup = {};   // id ของ overlay → ฟังก์ชันหยุด interval ตอนปิด
+
+// ---------- จอฉาย: หน้าแยกสำหรับต่อโปรเจกเตอร์ (stage.html) ----------
+// ครูคุมบนหน้าต่างตัวเอง (ปุ่ม/ตัวเลือกครบ) · นักเรียนเห็นเฉพาะ stage.html (เหลือแต่ผลลัพธ์)
+// ใช้ลิงก์ target="_blank" ไม่ใช่ window.open เพราะ popup โดนบล็อกได้แม้กดเอง
+// ส่งภาพข้ามหน้าต่างด้วย BroadcastChannel (same-origin เท่านั้น)
+let _tlChan = null;       // ช่องสื่อสารกับจอฉาย
+let _tlStageUp = false;   // จอฉายเปิดอยู่ไหม (รู้จาก hello/bye ที่ stage.html ส่งมา)
+let _tlScreenEl = null;   // element ของเครื่องมือที่เปิดอยู่ = ต้นทางที่ส่งไปวาด
+
+function _tlChanGet() {
+  if (_tlChan) return _tlChan;
+  try {
+    _tlChan = new BroadcastChannel('classkru-stage');
+    _tlChan.onmessage = (e) => {
+      const d = e.data || {};
+      if (d.hello) { _tlStageUp = true; _tlStageBtnState(); _tlSync(); }
+      if (d.bye) { _tlStageUp = false; _tlStageBtnState(); }
+    };
+  } catch (e) { _tlChan = null; }
+  return _tlChan;
+}
+function _tlStageBtn() {
+  return `<a class="tl-stage-btn" id="tl-stage-btn" href="stage.html" target="_blank" rel="noopener">เปิดจอฉาย</a>`;
+}
+function _tlStageBtnState() {
+  const b = document.getElementById('tl-stage-btn');
+  if (!b) return;
+  b.classList.toggle('is-live', _tlStageUp);
+  b.textContent = _tlStageUp ? 'ฉายอยู่' : 'เปิดจอฉาย';
+}
+// เรียกทุกครั้งที่ภาพบนจอเปลี่ยน
+function _tlSync() {
+  const ch = _tlChanGet();
+  if (!ch) return;
+  try {
+    if (!_tlScreenEl || !document.body.contains(_tlScreenEl)) { ch.postMessage({ idle: 1 }); return; }
+    ch.postMessage({
+      cls: _tlScreenEl.className,
+      style: _tlScreenEl.getAttribute('style') || '',
+      html: _tlScreenEl.innerHTML
+    });
+  } catch (e) { /* จอฉายไม่ทำงานก็ไม่ควรทำให้จอครูพัง */ }
+}
 
 function _tlEsc(v) {
   return String(v === undefined || v === null ? '' : v)
@@ -190,16 +243,20 @@ function _tlOpen(id, inner) {
     document.body.appendChild(ov);
   }
   ov.innerHTML = `<div class="tl-screen">
+      ${_tlStageBtn()}
       <button class="tl-close" onclick="_tlClose('${id}')" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
       ${inner}
     </div>`;
   ov.classList.add('show');
+  _tlScreenEl = ov.querySelector('.tl-screen');
+  _tlStageBtnState(); _tlSync();
   return ov;
 }
 function _tlClose(id) {
   const ov = document.getElementById(id);
   if (ov) ov.classList.remove('show');
   if (typeof _tlCleanup[id] === 'function') _tlCleanup[id]();   // กัน interval ค้างวิ่งหลังปิดจอ
+  _tlScreenEl = null; _tlSync();                                // จอฉายกลับไปหน้าว่าง ไม่ค้างภาพเก่า
 }
 // วินาที → mm:ss (เกิน 60 นาทีค่อยโชว์ h:mm:ss)
 function _tlFmt(sec) {
@@ -243,7 +300,7 @@ function openTimerTool() {
 }
 function _tmStop() { if (_tmInt) { clearInterval(_tmInt); _tmInt = null; } }
 function _tmElapsed() { return _tmAcc + (_tmFrom ? (Date.now() - _tmFrom) / 1000 : 0); }
-function _tmPaint() { const d = document.getElementById('tm-digits'); if (d) d.textContent = _tlFmt(_tmElapsed()); }
+function _tmPaint() { const d = document.getElementById('tm-digits'); if (d) d.textContent = _tlFmt(_tmElapsed()); _tlSync(); }
 function _tmToggle() {
   const b = document.getElementById('tm-toggle');
   if (_tmInt) {                      // กำลังเดิน → หยุด
@@ -295,6 +352,7 @@ function _cdPaint() {
     p.classList.toggle('is-final', _cdLeft > 0 && _cdLeft <= 10);   // 10 วิสุดท้าย = เปลี่ยนสี
     p.classList.toggle('is-done', _cdLeft <= 0);
   }
+  _tlSync();
 }
 function _cdToggle() {
   const b = document.getElementById('cd-toggle');
@@ -342,6 +400,7 @@ function _nmSpin() {
   go.disabled = true; go.style.opacity = '.6';
   const step = () => {
     out.textContent = pick();
+    _tlSync();
     if (++i >= ticks || Date.now() >= deadline) { go.disabled = false; go.style.opacity = '1'; return; }
     setTimeout(step, 45 + i * 7);                                // ชะลอแบบเดียวกับสุ่มรายชื่อ
   };
@@ -380,6 +439,7 @@ function _grSetMode(m) {
   _grMode = m;
   document.querySelectorAll('#tool-group-overlay .tl-seg').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
   _grRenderCounts();
+  _tlSync();
 }
 function _grSetCount(n) {
   _grCount = n;
@@ -407,6 +467,7 @@ function _grPaint(groups, animate) {
         <ul>${names}</ul>
       </div>`;
   }).join('');
+  _tlSync();
 }
 function _grShuffle() {
   if (_grBusy) return;

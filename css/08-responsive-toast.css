@@ -372,7 +372,8 @@
 .tl-screen, .rn-fullscreen {
   position: relative; width: 100%; height: 100%; min-height: 100dvh; background: var(--loud-surface);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: clamp(16px, 3vh, 30px); padding: 26px 20px;
+  gap: clamp(16px, 3vh, 30px); padding: 26px 20px 30px;
+  overflow-y: auto;   /* ห้องใหญ่หลายกลุ่ม = ทั้งจอเลื่อน ไม่ใช่กล่องข้างในเลื่อน */
 }
 .tl-close, .rn-close {
   position: absolute; top: 18px; right: 18px; width: 48px; height: 48px; border-radius: 50%;
@@ -381,6 +382,17 @@
   box-shadow: 0 4px 0 var(--loud-ink);
 }
 .tl-close:active, .rn-close:active { transform: translateY(4px); box-shadow: none; }
+
+/* ลิงก์เปิดจอฉาย (stage.html) — ซ่อนตัวเองเมื่อไปโผล่บนจอฉาย */
+.tl-stage-btn {
+  position: absolute; top: 18px; left: 18px; font-family: inherit; text-decoration: none;
+  display: inline-flex; align-items: center; line-height: 1;
+  font-size: 0.95rem; font-weight: 800; color: var(--loud-ink); background: #fff;
+  border: 3px solid var(--loud-ink); border-radius: 99px; padding: 11px 20px; cursor: pointer;
+  box-shadow: 0 4px 0 var(--loud-ink);
+}
+.tl-stage-btn:active { transform: translateY(4px); box-shadow: none; }
+.tl-stage-btn.is-live { background: var(--loud-accent); color: #fff; }
 
 .tl-kicker {
   display: inline-flex; align-items: center; background: var(--loud-surface-2);
@@ -434,7 +446,13 @@
 }
 
 /* ผลการจับกลุ่ม */
-.tl-groups { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: 96vw; overflow-y: auto; }
+/* ไม่ใส่ overflow ที่นี่ — เคยใส่ overflow-y:auto แล้วเงาขอบล่างการ์ด (6px)
+   กับระยะที่การ์ดขยับตอนเด้ง (16px) ดัน scrollHeight เกินไป ~10px
+   จนมีสกรอลบาร์โผล่ทั้งที่ของพอดีจอ · ให้ .tl-screen เป็นตัวสกรอลแทน จะได้ไม่มีกล่องซ้อน */
+.tl-groups {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  max-width: 96vw; padding-bottom: 8px;
+}
 .tl-empty { font-size: 1.1rem; font-weight: 700; color: var(--loud-ink); opacity: .55; padding: 22px; }
 .tl-group { border: 4px solid var(--loud-ink); border-radius: 18px; box-shadow: 0 6px 0 var(--loud-ink); background: #fff; min-width: 152px; overflow: hidden; }
 .tl-group-h {
@@ -468,7 +486,11 @@
   display: flex; align-items: center; justify-content: center;
   font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 800;
 }
-.rn-reveal-name { font-size: clamp(3rem, 12vw, 9rem); font-weight: 800; color: var(--rn-fg, var(--loud-ink)); line-height: .95; letter-spacing: -.02em; }
+.rn-reveal-name {
+  font-size: clamp(3rem, 12vw, 9rem); font-weight: 800; color: var(--rn-fg, var(--loud-ink));
+  line-height: 1; letter-spacing: -.02em;
+  max-width: 94vw; margin: 0 auto; overflow-wrap: anywhere;   /* กันชื่อยาวล้นจอ (ขนาดตัวจริงคำนวณใน _rnSpin) */
+}
 .rn-reveal-full { font-size: clamp(1rem, 2.6vw, 1.7rem); font-weight: 700; color: var(--rn-fg, var(--loud-accent-sh)); margin-top: 12px; min-height: 26px; opacity: .85; }
 .rn-hint { font-size: clamp(0.9rem, 1.6vw, 1.1rem); font-weight: 700; color: var(--rn-fg, var(--loud-accent-sh)); margin-top: 14px; min-height: 20px; opacity: .75; }
 @media (prefers-reduced-motion: reduce) { .rn-fullscreen { transition: none; } }
