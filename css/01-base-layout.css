@@ -33,9 +33,21 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
   --bg-app: #f7f7f5;
   --bg-card: #ffffff;
   --bg-light: #f0f0ee;
-  --text-main: #2f2f2e;
+  /* ตัวอักษรหลัก = เขียวเข้มที่เอียงเข้าหาแบรนด์ ไม่ใช่เทากลางๆ (คอนทราสต์บนขาว ~12.3:1) */
+  --text-main: #123b31;
   --text-muted: #7a7a76;
   --border-color: #e6e6e2;
+
+  /* --- "เสียงดัง": เฉพาะจอที่ฉายให้นักเรียนดู (เครื่องมือหน้าชั้น/เกม) ---
+     hue เดียวกับ --primary ทุกตัว แค่เร่ง saturation + ใช้เป็นบล็อกใหญ่
+     ห้ามใช้ในหน้าทำงาน (คะแนน/เช็คชื่อ/รายงาน) — ตารางตัวเลขเยอะจะจ้องแล้วปวดตา */
+  --loud-ink: #123b31;
+  --loud-surface: #e9f6ef;
+  --loud-surface-2: #bfebd8;
+  --loud-accent: #12b886;
+  --loud-accent-sh: #0b7a5c;
+  --loud-warm: #ff8a3d;
+  --loud-warm-sh: #c2571a;
 
   --color-present: #22a565;
   --color-present-bg: #e8f4ec;

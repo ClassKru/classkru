@@ -361,29 +361,147 @@
 .tint-pink   { background: #FBEAF0; color: #993556; }
 .tint-gray   { background: #F1EFE8; color: #5F5E5A; }
 
-/* สุ่มรายชื่อ — เต็มจอ (โชว์นักเรียนหน้าชั้น/โปรเจกเตอร์) */
-.rn-fullscreen {
-  position: relative; width: 100%; height: 100%; min-height: 100dvh; background: var(--bg-card);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 28px;
+/* ==========================================================
+   จอฉาย — เครื่องมือหน้าชั้นทุกตัวใช้ภาษาเดียวกัน
+   กติกา (ห้องเรียนไทยเปิดไฟทั้งคาบ โปรเจกเตอร์ทำสีดำไม่ได้):
+     · พื้นสว่าง + ตัวอักษรเข้ม — ไม่ใช่พื้นดำแบบเกมฝรั่งที่หรี่ไฟเล่น
+     · ของสำคัญชิ้นเดียวใหญ่สุด · ปุ่มตั้งค่าเล็กและอยู่ล่าง
+     · การ์ดมีขอบล่างทึบ ทำให้ดูกดได้จริง ไม่ใช่ฟอร์ม
+   ใช้เฉพาะ token --loud-* ห้ามเอาไปใช้ในหน้าทำงาน
+   ========================================================== */
+.tl-screen, .rn-fullscreen {
+  position: relative; width: 100%; height: 100%; min-height: 100dvh; background: var(--loud-surface);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(16px, 3vh, 30px); padding: 26px 20px 30px;
+  overflow-y: auto;   /* ห้องใหญ่หลายกลุ่ม = ทั้งจอเลื่อน ไม่ใช่กล่องข้างในเลื่อน */
 }
-.rn-close {
-  position: absolute; top: 18px; right: 18px; width: 46px; height: 46px; border-radius: 50%;
-  border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-muted);
+.tl-close, .rn-close {
+  position: absolute; top: 18px; right: 18px; width: 48px; height: 48px; border-radius: 50%;
+  border: 3px solid var(--loud-ink); background: #fff; color: var(--loud-ink);
   font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 0 var(--loud-ink);
 }
-.rn-seg-wrap { display: flex; gap: 6px; background: var(--bg-app, #f5f7fa); padding: 4px; border-radius: 12px; width: min(440px, 92%); }
-.rn-seg { flex: 1; border: none; background: transparent; border-radius: 9px; padding: 10px 0; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit; }
-.rn-seg.on { background: var(--primary); color: #fff; }
-.rn-seg b { opacity: .8; font-weight: 700; margin-left: 2px; }
+.tl-close:active, .rn-close:active { transform: translateY(4px); box-shadow: none; }
+
+/* ลิงก์เปิดจอฉาย (stage.html) — ซ่อนตัวเองเมื่อไปโผล่บนจอฉาย */
+.tl-stage-btn {
+  position: absolute; top: 18px; left: 18px; font-family: inherit; text-decoration: none;
+  display: inline-flex; align-items: center; line-height: 1;
+  font-size: 0.95rem; font-weight: 800; color: var(--loud-ink); background: #fff;
+  border: 3px solid var(--loud-ink); border-radius: 99px; padding: 11px 20px; cursor: pointer;
+  box-shadow: 0 4px 0 var(--loud-ink);
+}
+.tl-stage-btn:active { transform: translateY(4px); box-shadow: none; }
+.tl-stage-btn.is-live { background: var(--loud-accent); color: #fff; }
+
+.tl-kicker {
+  display: inline-flex; align-items: center; background: var(--loud-surface-2);
+  border: 3px solid var(--loud-ink); border-radius: 99px; padding: 7px 22px;
+  font-size: clamp(0.95rem, 2.2vw, 1.35rem); font-weight: 800; color: var(--loud-ink);
+}
+
+/* การ์ดกลางจอ — ของชิ้นที่ใหญ่ที่สุด */
+.tl-plate {
+  background: #fff; border: 5px solid var(--loud-ink); border-radius: clamp(20px, 3vw, 34px);
+  box-shadow: 0 10px 0 var(--loud-ink); padding: clamp(18px, 4vh, 46px) clamp(26px, 6vw, 72px);
+  text-align: center; max-width: 94vw;
+}
+.tl-digits {
+  font-size: clamp(3.6rem, 17vw, 13rem); font-weight: 800; color: var(--loud-ink);
+  line-height: .95; font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+}
+.tl-plate.is-final { border-color: var(--loud-warm); box-shadow: 0 10px 0 var(--loud-warm-sh); }
+.tl-plate.is-final .tl-digits { color: var(--loud-warm-sh); }
+.tl-plate.is-done { border-color: var(--loud-warm); box-shadow: 0 10px 0 var(--loud-warm-sh); animation: tl-flash .5s steps(2) 6; }
+@keyframes tl-flash { 50% { background: var(--loud-warm); } }
+@media (prefers-reduced-motion: reduce) { .tl-plate.is-done { animation: none; background: #fff5ec; } }
+
+/* ปุ่มใหญ่ — ขอบล่างทึบ กดแล้วยุบ */
+.tl-btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.tl-btn {
+  font-family: inherit; font-size: clamp(1rem, 2.4vw, 1.5rem); font-weight: 800; color: #fff;
+  background: var(--loud-accent); border: none; border-radius: 99px;
+  padding: clamp(11px, 1.6vh, 17px) clamp(30px, 5vw, 54px); cursor: pointer;
+  box-shadow: 0 7px 0 var(--loud-accent-sh); transition: transform .07s, box-shadow .07s;
+}
+.tl-btn:active { transform: translateY(7px); box-shadow: none; }
+.tl-btn.is-warm { background: var(--loud-warm); box-shadow: 0 7px 0 var(--loud-warm-sh); }
+.tl-btn:disabled { cursor: default; }
+
+/* ชิป/สลับโหมด — ตัวเล็ก อยู่รอบนอก ไม่แย่งของกลางจอ */
+.tl-chips, .tl-seg-wrap, .rn-seg-wrap { display: flex; gap: 9px; flex-wrap: wrap; justify-content: center; }
+.tl-chip, .tl-seg, .rn-seg {
+  font-family: inherit; font-size: clamp(0.82rem, 1.5vw, 1rem); font-weight: 700; color: var(--loud-ink);
+  background: #fff; border: 3px solid var(--loud-ink); border-radius: 99px;
+  padding: 8px 20px; cursor: pointer;
+}
+.tl-chip.on, .tl-seg.on, .rn-seg.on { background: var(--loud-accent); color: #fff; }
+.tl-seg b, .rn-seg b { font-weight: 800; margin-left: 4px; opacity: .85; }
+
+.tl-range { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+.tl-range label { display: flex; align-items: center; gap: 8px; font-size: 1rem; font-weight: 700; color: var(--loud-ink); }
+.tl-range input {
+  width: 92px; font-family: inherit; font-size: 1.1rem; font-weight: 800; text-align: center;
+  color: var(--loud-ink); background: #fff; border: 3px solid var(--loud-ink); border-radius: 14px; padding: 7px 6px;
+}
+
+/* ผลการจับกลุ่ม */
+/* ไม่ใส่ overflow ที่นี่ — เคยใส่ overflow-y:auto แล้วเงาขอบล่างการ์ด (6px)
+   กับระยะที่การ์ดขยับตอนเด้ง (16px) ดัน scrollHeight เกินไป ~10px
+   จนมีสกรอลบาร์โผล่ทั้งที่ของพอดีจอ · ให้ .tl-screen เป็นตัวสกรอลแทน จะได้ไม่มีกล่องซ้อน */
+.tl-groups {
+  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  max-width: 96vw; padding-bottom: 8px;
+}
+.tl-empty { font-size: 1.1rem; font-weight: 700; color: var(--loud-ink); opacity: .55; padding: 22px; }
+.tl-group { border: 4px solid var(--loud-ink); border-radius: 18px; box-shadow: 0 6px 0 var(--loud-ink); background: #fff; min-width: 152px; overflow: hidden; }
+.tl-group-h {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
+  padding: 8px 16px; font-size: clamp(1rem, 1.6vw, 1.3rem); font-weight: 800;
+  background: var(--g-bg, #eee); color: var(--g-fg, #333); border-bottom: 3px solid var(--loud-ink);
+}
+.tl-group-h b { font-weight: 800; opacity: .72; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* การ์ดเด้งขึ้นทีละใบตอนลงตัว (หน่วงเวลาต่อใบส่งมาทาง inline style) */
+@keyframes tl-pop { from { transform: translateY(16px) scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+.tl-group.is-in { animation: tl-pop .34s cubic-bezier(.2,.9,.3,1.25) both; }
+@media (prefers-reduced-motion: reduce) { .tl-group.is-in { animation: none; } }
+.tl-group ul { list-style: none; margin: 0; padding: 10px 16px 13px; }
+.tl-group li { font-size: clamp(1.05rem, 2vw, 1.6rem); font-weight: 700; color: var(--loud-ink); line-height: 1.45; }
+/* สีกลุ่ม = พาเลตต์ avatar เดิมของแอป (คนเดียวกันสีตรงกันทุกหน้า) */
+.tl-group.g0 { --g-bg: #eaf3de; --g-fg: #3b6d11; }
+.tl-group.g1 { --g-bg: #e1f5ee; --g-fg: #0f6e56; }
+.tl-group.g2 { --g-bg: #e6f1fb; --g-fg: #185fa5; }
+.tl-group.g3 { --g-bg: #fbeaf0; --g-fg: #993556; }
+.tl-group.g4 { --g-bg: #faeeda; --g-fg: #854f0b; }
+.tl-group.g5 { --g-bg: #eeedfe; --g-fg: #534ab7; }
+
+/* สุ่มรายชื่อ — ใช้โครงเดียวกับด้านบน
+   สีทั้งจอมาจาก --rn-bg/--rn-fg ที่ _rnSpin ยิงเข้ามา = สีประจำตัวของคนที่สุ่มได้
+   (พาเลตต์เดียวกับ avatar ทั้งแอป) ยังไม่เคยสุ่ม = ใช้สีเขียวกลางเหมือนเครื่องมืออื่น */
+.rn-fullscreen { background: var(--rn-bg, var(--loud-surface)); transition: background .3s ease; }
 .rn-stage { text-align: center; }
 .rn-reveal-no {
-  width: 96px; height: 96px; margin: 0 auto 22px; border-radius: 50%; background: var(--primary);
-  color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; font-weight: 800;
+  width: clamp(74px, 9vw, 104px); height: clamp(74px, 9vw, 104px); margin: 0 auto 20px; border-radius: 50%;
+  background: var(--rn-fg, var(--loud-accent)); color: #fff; border: 4px solid var(--loud-ink); box-shadow: 0 6px 0 var(--loud-ink);
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 800;
 }
-.rn-reveal-name { font-size: clamp(2.6rem, 9vw, 5.5rem); font-weight: 800; color: var(--primary-hover); line-height: 1.05; }
-.rn-reveal-full { font-size: clamp(1rem, 3vw, 1.6rem); color: var(--text-muted); margin-top: 10px; min-height: 26px; }
-.rn-hint { font-size: 0.9rem; color: var(--primary); margin-top: 16px; min-height: 20px; }
-.rn-controls { display: flex; flex-direction: column; align-items: center; gap: 14px; width: min(440px, 92%); }
-.rn-spin { width: 100%; font-size: 1.3rem; padding: 18px 0; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
-.rn-nodup-row { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text-muted); cursor: pointer; }
-.rn-nodup-row input { width: 18px; height: 18px; accent-color: var(--primary); }
+.rn-reveal-name {
+  font-size: clamp(3rem, 12vw, 9rem); font-weight: 800; color: var(--rn-fg, var(--loud-ink));
+  line-height: 1; letter-spacing: -.02em;
+  max-width: 94vw; margin: 0 auto; overflow-wrap: anywhere;   /* กันชื่อยาวล้นจอ (ขนาดตัวจริงคำนวณใน _rnSpin) */
+}
+.rn-reveal-full { font-size: clamp(1rem, 2.6vw, 1.7rem); font-weight: 700; color: var(--rn-fg, var(--loud-accent-sh)); margin-top: 12px; min-height: 26px; opacity: .85; }
+.rn-hint { font-size: clamp(0.9rem, 1.6vw, 1.1rem); font-weight: 700; color: var(--rn-fg, var(--loud-accent-sh)); margin-top: 14px; min-height: 20px; opacity: .75; }
+@media (prefers-reduced-motion: reduce) { .rn-fullscreen { transition: none; } }
+.rn-controls { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.rn-spin {
+  font-family: inherit; font-size: clamp(1.1rem, 2.6vw, 1.6rem); font-weight: 800; color: #fff;
+  background: var(--loud-accent); border: none; border-radius: 99px;
+  padding: clamp(13px, 1.8vh, 19px) clamp(44px, 8vw, 84px); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 11px;
+  box-shadow: 0 7px 0 var(--loud-accent-sh); transition: transform .07s, box-shadow .07s;
+}
+.rn-spin:active { transform: translateY(7px); box-shadow: none; }
+.rn-nodup-row { display: flex; align-items: center; gap: 9px; font-size: 0.95rem; font-weight: 700; color: var(--loud-ink); cursor: pointer; }
+.rn-nodup-row input { width: 20px; height: 20px; accent-color: var(--loud-accent); }

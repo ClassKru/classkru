@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>ClassKru — จอฉาย</title>
+
+  <!-- โหลดเฉพาะที่จอฉายใช้: token สี + สไตล์เครื่องมือ -->
+  <link rel="stylesheet" href="css/01-base-layout.css?v=300">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=300">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lazywasabi/thai-web-fonts@7/fonts/LINESeedSansTH/LINESeedSansTH.css">
+
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: var(--loud-surface); }
+    #ck-stage { width: 100%; height: 100%; }
+
+    /* จอฉายโชว์เฉพาะผลลัพธ์ — ปุ่มและตัวเลือกทั้งหมดอยู่บนหน้าต่างของครู */
+    #ck-stage .tl-close,
+    #ck-stage .rn-close,
+    #ck-stage .tl-stage-btn,
+    #ck-stage .tl-btns,
+    #ck-stage .tl-chips,
+    #ck-stage .tl-range,
+    #ck-stage .tl-seg-wrap,
+    #ck-stage .rn-seg-wrap,
+    #ck-stage .rn-controls { display: none !important; }
+
+    #ck-stage .tl-screen,
+    #ck-stage .rn-fullscreen { min-height: 100vh; height: 100vh; overflow: hidden; }
+    #ck-stage .tl-groups { max-width: 96vw; }
+
+    /* การ์ดกลุ่มเด้งขึ้นได้ แต่ต้องไม่หายไปถ้าแอนิเมชันไม่เดิน
+       (แท็บที่เบราว์เซอร์ไม่ได้วาดจะค้างที่เฟรมแรก opacity:0 → จอฉายว่างเปล่า)
+       fill-mode forwards + ไม่หน่วง = สถานะพักคือ "มองเห็น" เสมอ */
+    #ck-stage .tl-group.is-in { animation-delay: 0s !important; animation-fill-mode: forwards !important; }
+
+    .ck-stage-idle {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      height: 100vh; background: var(--loud-surface); text-align: center; padding: 24px;
+      font-family: 'LINE Seed Sans TH', 'Sarabun', system-ui, sans-serif; color: var(--loud-ink);
+    }
+    .ck-stage-idle b { font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; }
+    .ck-stage-idle span { font-size: clamp(0.95rem, 1.8vw, 1.2rem); font-weight: 600; opacity: .6; max-width: 34ch; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div id="ck-stage"></div>
+
+  <script>
+    // จอฉาย = หน้าที่ครูลากไปไว้บนโปรเจกเตอร์แล้วกดเต็มจอ
+    // หน้านี้ไม่มีตรรกะของตัวเอง แค่รับภาพจากหน้าต่างครูผ่าน BroadcastChannel แล้ววาด
+    (function () {
+      var stage = document.getElementById('ck-stage');
+
+      function idle() {
+        stage.innerHTML = '<div class="ck-stage-idle">' +
+          '<b>ClassKru · พร้อมฉาย</b>' +
+          '<span>เปิดเครื่องมือช่วยสอนบนหน้าต่างของครู แล้วภาพจะขึ้นที่นี่ทันที</span>' +
+          '</div>';
+      }
+      idle();
+
+      var ch;
+      try { ch = new BroadcastChannel('classkru-stage'); } catch (e) { ch = null; }
+      if (!ch) {
+        stage.innerHTML = '<div class="ck-stage-idle"><b>เบราว์เซอร์นี้ยังไม่รองรับจอฉาย</b>' +
+          '<span>ลองใช้ Chrome, Edge หรือ Safari รุ่นใหม่</span></div>';
+        return;
+      }
+
+      ch.onmessage = function (e) {
+        var d = e.data || {};
+        if (d.idle) { idle(); return; }
+        if (typeof d.html !== 'string') return;
+        // ข้อมูลมาจากหน้าเดียวกันของแอปเองเท่านั้น (BroadcastChannel จำกัด same-origin)
+        stage.innerHTML = '<div class="' + (d.cls || '') + '" style="' + (d.style || '') + '">' + d.html + '</div>';
+      };
+
+      ch.postMessage({ hello: 1 });   // บอกหน้าต่างครูว่าจอฉายเปิดแล้ว + ขอภาพปัจจุบัน
+      window.addEventListener('beforeunload', function () {
+        try { ch.postMessage({ bye: 1 }); } catch (e) {}
+      });
+    })();
+  </script>
+</body>
+</html>

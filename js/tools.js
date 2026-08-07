@@ -4,12 +4,10 @@
 
 const TEACHING_TOOLS = [
   { id:'random-name',   name:'สุ่มรายชื่อ',  desc:'สุ่มผู้ตอบคำถาม',   icon:'hgi-shuffle',        tint:'green',  status:'ready', open: openRandomNameTool },
-  { id:'random-group',  name:'สุ่มจับกลุ่ม',  desc:'แบ่งกลุ่มอัตโนมัติ', icon:'hgi-user-group',     tint:'blue',   status:'soon' },
-  { id:'timer',         name:'จับเวลา',      desc:'จับเวลากิจกรรม',    icon:'hgi-timer-02',       tint:'amber',  status:'soon' },
-  { id:'countdown',     name:'นับถอยหลัง',   desc:'ตั้งเวลากิจกรรม',    icon:'hgi-alarm-clock',    tint:'coral',  status:'soon' },
-  { id:'random-number', name:'สุ่มตัวเลข',    desc:'สุ่มเลข / หัวข้อ',   icon:'hgi-dice-faces-05',  tint:'purple', status:'soon' },
-  { id:'noise',         name:'วัดเสียงห้อง',  desc:'คุมระดับเสียง',      icon:'hgi-volume-high',    tint:'pink',   status:'soon' },
-  { id:'scoreboard',    name:'กระดานคะแนน',  desc:'สะสมแต้มพฤติกรรม',   icon:'hgi-award-01',       tint:'gray',   status:'soon' },
+  { id:'random-group',  name:'สุ่มจับกลุ่ม',  desc:'แบ่งกลุ่มอัตโนมัติ', icon:'hgi-user-group',     tint:'blue',   status:'ready', open: openRandomGroupTool },
+  { id:'countdown',     name:'นับถอยหลัง',   desc:'ตั้งเวลากิจกรรม',    icon:'hgi-alarm-clock',    tint:'coral',  status:'ready', open: openCountdownTool },
+  { id:'timer',         name:'จับเวลา',      desc:'จับเวลาเดินหน้า',    icon:'hgi-timer-02',       tint:'amber',  status:'ready', open: openTimerTool },
+  { id:'random-number', name:'สุ่มตัวเลข',    desc:'สุ่มเลข / หัวข้อ',   icon:'hgi-dice-faces-05',  tint:'purple', status:'ready', open: openRandomNumberTool },
 ];
 
 // ---------- Hub ----------
@@ -59,6 +57,15 @@ let _rnMode = 'all';   // 'all' | 'present'
 let _rnUsed = [];      // id ที่สุ่มไปแล้ว (โหมดสุ่มไม่ซ้ำ)
 
 function _rnClass() { return appState.classes.find(x => x.id === swipeClassId) || null; }
+// สีประจำตัวนักเรียน = พาเลตต์ avatar เดิม (MSC_AV ใน scores.js) ไล่ตามลำดับคนในห้อง
+// → คนเดียวกันได้สีเดิมทุกหน้าทั้งแอป ไม่ใช่สุ่มใหม่ทุกครั้ง
+function _rnColor(s) {
+  const pal = (typeof MSC_AV !== 'undefined' && MSC_AV.length) ? MSC_AV : [['#e1f5ee', '#0f6e56']];
+  const c = _rnClass();
+  const idx = (c && c.students) ? c.students.findIndex(x => x.id === s.id) : 0;
+  const p = pal[(idx < 0 ? 0 : idx) % pal.length];
+  return { bg: p[0], fg: p[1] };
+}
 function _rnIsPresent(s) { const st = swipeResults[s.id]; return st === 'present' || st === 'late'; }
 function _rnPool() {
   const c = _rnClass();
@@ -80,6 +87,7 @@ function openRandomNameTool() {
     document.body.appendChild(ov);
   }
   ov.innerHTML = `<div class="rn-fullscreen">
+      ${_tlStageBtn()}
       <button class="rn-close" onclick="closeRandomName()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
       <div class="rn-seg-wrap">
         <button class="rn-seg on" data-mode="all" onclick="_rnSetMode('all')">ทั้งห้อง <b id="rn-count-all">0</b></button>
@@ -92,22 +100,26 @@ function openRandomNameTool() {
         <div class="rn-hint" id="rn-hint">เลขที่ · ชื่อ จะเด้งขึ้นตรงนี้</div>
       </div>
       <div class="rn-controls">
-        <button class="btn btn-primary rn-spin" id="rn-spin" onclick="_rnSpin()"><i class="hgi-stroke hgi-shuffle"></i> สุ่ม</button>
+        <button class="rn-spin" id="rn-spin" onclick="_rnSpin()"><i class="hgi-stroke hgi-shuffle"></i> สุ่ม</button>
         <label class="rn-nodup-row"><input type="checkbox" id="rn-nodup" checked> สุ่มไม่ซ้ำ (จนครบห้องแล้วเริ่มใหม่)</label>
       </div>
     </div>`;
   ov.classList.add('show');
   _rnRenderCounts();
+  _tlScreenEl = ov.querySelector('.rn-fullscreen');
+  _tlStageBtnState(); _tlSync();
 }
 function closeRandomName() {
   const ov = document.getElementById('random-name-overlay');
   if (ov) ov.classList.remove('show');
+  _tlScreenEl = null; _tlSync();
 }
 function _rnSetMode(m) {
   _rnMode = m; _rnUsed = [];
   document.querySelectorAll('#random-name-overlay .rn-seg').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
   _rnRenderCounts();
   const h = document.getElementById('rn-hint'); if (h) h.textContent = 'พร้อมสุ่มใหม่';
+  _tlSync();
 }
 function _rnRenderCounts() {
   const c = _rnClass(); if (!c || !c.students) return;
@@ -134,24 +146,365 @@ function _rnSpin() {
   const fullEl = document.getElementById('rn-reveal-full');
   const ticks = 16;
   let i = 0;
+  // เส้นตาย: ถ้าแท็บถูกซ่อน เบราว์เซอร์จะหน่วง setTimeout จนลูปไม่จบและปุ่มค้าง disabled
+  // → พอกลับมาแล้ว tick แรกที่เลยเวลาให้จบทันที
+  const deadline = Date.now() + 2000;
   spin.disabled = true; spin.style.opacity = '.6';
+  const scr = document.querySelector('#random-name-overlay .rn-fullscreen');
   const step = () => {
     const r = pool[Math.floor(Math.random() * pool.length)];
     // โชว์ชื่อเล่น ถ้าไม่มีใช้ชื่อจริงคำแรก (เหมือนการ์ดเช็คชื่อ) + ชื่อเต็มตัวรอง
     const nick = (r.nickname || '').trim();
     const firstName = (r.name || '').trim().split(/\s+/)[0] || '';
     const display = nick || firstName || '(ไม่มีชื่อ)';
+    const col = _rnColor(r);
+    if (scr) { scr.style.setProperty('--rn-fg', col.fg); scr.style.setProperty('--rn-bg', col.bg); }
     noEl.textContent = (r.no !== null && r.no !== undefined && r.no !== '') ? r.no : '–';
     nameEl.textContent = display;
+    // ชื่อเล่นไทยยาวๆ ไม่มีช่องว่างให้ตัดบรรทัด ถ้าปล่อยขนาดคงที่จะล้นจอและพุ่งไปทับวงเลขที่
+    // ~145/จำนวนตัวอักษร = ความกว้างราว 90% ของจอ แล้วเพดานเดิม 12vw ยังคุมชื่อสั้นไว้
+    nameEl.style.fontSize = `clamp(1.7rem, ${Math.min(12, 145 / Math.max(1, display.length)).toFixed(2)}vw, 9rem)`;
     if (fullEl) fullEl.textContent = (r.name && r.name !== display) ? r.name : '';
     i++;
-    if (i >= ticks) {
+    if (i >= ticks || Date.now() >= deadline) {
       spin.disabled = false; spin.style.opacity = '1';
       if (noDup) { _rnUsed.push(r.id); if (hint) hint.textContent = `สุ่มแล้ว ${_rnUsed.length}/${total} คน`; }
       else if (hint) { hint.textContent = 'สุ่มอีกได้เลย'; }
+      _tlSync();
       return;
     }
+    _tlSync();
     setTimeout(step, 45 + i * 7); // ค่อยๆ ช้าลง (ease-out) ให้ลุ้น
+  };
+  step();
+}
+
+// ==================================================================
+// โครงร่วมของเครื่องมือเต็มจอ (ฉายให้นักเรียนดู)
+// กติกา: หนึ่งจอมีของสำคัญชิ้นเดียวที่ใหญ่ที่สุด · ปุ่มตั้งค่าอยู่ล่างสุดตัวเล็ก
+// ==================================================================
+const _tlCleanup = {};   // id ของ overlay → ฟังก์ชันหยุด interval ตอนปิด
+
+// ---------- จอฉาย: หน้าแยกสำหรับต่อโปรเจกเตอร์ (stage.html) ----------
+// ครูคุมบนหน้าต่างตัวเอง (ปุ่ม/ตัวเลือกครบ) · นักเรียนเห็นเฉพาะ stage.html (เหลือแต่ผลลัพธ์)
+// ใช้ลิงก์ target="_blank" ไม่ใช่ window.open เพราะ popup โดนบล็อกได้แม้กดเอง
+// ส่งภาพข้ามหน้าต่างด้วย BroadcastChannel (same-origin เท่านั้น)
+let _tlChan = null;       // ช่องสื่อสารกับจอฉาย
+let _tlStageUp = false;   // จอฉายเปิดอยู่ไหม (รู้จาก hello/bye ที่ stage.html ส่งมา)
+let _tlScreenEl = null;   // element ของเครื่องมือที่เปิดอยู่ = ต้นทางที่ส่งไปวาด
+
+function _tlChanGet() {
+  if (_tlChan) return _tlChan;
+  try {
+    _tlChan = new BroadcastChannel('classkru-stage');
+    _tlChan.onmessage = (e) => {
+      const d = e.data || {};
+      if (d.hello) { _tlStageUp = true; _tlStageBtnState(); _tlSync(); }
+      if (d.bye) { _tlStageUp = false; _tlStageBtnState(); }
+    };
+  } catch (e) { _tlChan = null; }
+  return _tlChan;
+}
+function _tlStageBtn() {
+  return `<a class="tl-stage-btn" id="tl-stage-btn" href="stage.html" target="_blank" rel="noopener">เปิดจอฉาย</a>`;
+}
+function _tlStageBtnState() {
+  const b = document.getElementById('tl-stage-btn');
+  if (!b) return;
+  b.classList.toggle('is-live', _tlStageUp);
+  b.textContent = _tlStageUp ? 'ฉายอยู่' : 'เปิดจอฉาย';
+}
+// เรียกทุกครั้งที่ภาพบนจอเปลี่ยน
+function _tlSync() {
+  const ch = _tlChanGet();
+  if (!ch) return;
+  try {
+    if (!_tlScreenEl || !document.body.contains(_tlScreenEl)) { ch.postMessage({ idle: 1 }); return; }
+    ch.postMessage({
+      cls: _tlScreenEl.className,
+      style: _tlScreenEl.getAttribute('style') || '',
+      html: _tlScreenEl.innerHTML
+    });
+  } catch (e) { /* จอฉายไม่ทำงานก็ไม่ควรทำให้จอครูพัง */ }
+}
+
+function _tlEsc(v) {
+  return String(v === undefined || v === null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function _tlOpen(id, inner) {
+  let ov = document.getElementById(id);
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = id;
+    ov.className = 'modal-overlay';
+    ov.style.zIndex = '9600';
+    ov.onclick = (e) => { if (e.target === ov) _tlClose(id); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<div class="tl-screen">
+      ${_tlStageBtn()}
+      <button class="tl-close" onclick="_tlClose('${id}')" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      ${inner}
+    </div>`;
+  ov.classList.add('show');
+  _tlScreenEl = ov.querySelector('.tl-screen');
+  _tlStageBtnState(); _tlSync();
+  return ov;
+}
+function _tlClose(id) {
+  const ov = document.getElementById(id);
+  if (ov) ov.classList.remove('show');
+  if (typeof _tlCleanup[id] === 'function') _tlCleanup[id]();   // กัน interval ค้างวิ่งหลังปิดจอ
+  _tlScreenEl = null; _tlSync();                                // จอฉายกลับไปหน้าว่าง ไม่ค้างภาพเก่า
+}
+// วินาที → mm:ss (เกิน 60 นาทีค่อยโชว์ h:mm:ss)
+function _tlFmt(sec) {
+  const t = Math.max(0, Math.round(sec));
+  const h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
+  const mm = String(m).padStart(2, '0'), ss = String(s).padStart(2, '0');
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+// เสียงเตือน — สร้างตอนกดปุ่มเท่านั้น (เบราว์เซอร์บล็อกเสียงที่ไม่ได้มาจากการกด)
+function _tlBeep(times) {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    for (let i = 0; i < times; i++) {
+      const o = ctx.createOscillator(), g = ctx.createGain(), t0 = ctx.currentTime + i * 0.3;
+      o.type = 'sine'; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.24);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t0); o.stop(t0 + 0.26);
+    }
+    setTimeout(() => { try { ctx.close(); } catch (e) {} }, times * 320 + 500);
+  } catch (e) { /* ไม่มีเสียงก็ยังใช้งานได้ ไม่ต้องแจ้ง */ }
+}
+
+// ---------- เครื่องมือ: จับเวลา (เดินหน้า) ----------
+let _tmAcc = 0, _tmFrom = 0, _tmInt = null;
+
+function openTimerTool() {
+  _tmAcc = 0; _tmFrom = 0; _tmStop();
+  _tlOpen('tool-timer-overlay', `
+      <div class="tl-kicker">จับเวลา</div>
+      <div class="tl-plate"><div class="tl-digits" id="tm-digits">00:00</div></div>
+      <div class="tl-btns">
+        <button class="tl-btn" id="tm-toggle" onclick="_tmToggle()">เริ่ม</button>
+        <button class="tl-btn is-warm" onclick="_tmReset()">ตั้งใหม่</button>
+      </div>`);
+  _tlCleanup['tool-timer-overlay'] = _tmStop;
+}
+function _tmStop() { if (_tmInt) { clearInterval(_tmInt); _tmInt = null; } }
+function _tmElapsed() { return _tmAcc + (_tmFrom ? (Date.now() - _tmFrom) / 1000 : 0); }
+function _tmPaint() { const d = document.getElementById('tm-digits'); if (d) d.textContent = _tlFmt(_tmElapsed()); _tlSync(); }
+function _tmToggle() {
+  const b = document.getElementById('tm-toggle');
+  if (_tmInt) {                      // กำลังเดิน → หยุด
+    _tmAcc = _tmElapsed(); _tmFrom = 0; _tmStop();
+    if (b) b.textContent = 'เดินต่อ';
+  } else {                           // หยุดอยู่ → เดิน
+    _tmFrom = Date.now();
+    _tmInt = setInterval(_tmPaint, 200);   // setInterval ไม่ใช่ rAF — แท็บที่ถูกซ่อนยังเดิน
+    if (b) b.textContent = 'หยุด';
+  }
+  _tmPaint();
+}
+function _tmReset() {
+  _tmAcc = 0; _tmFrom = 0; _tmStop();
+  const b = document.getElementById('tm-toggle'); if (b) b.textContent = 'เริ่ม';
+  _tmPaint();
+}
+
+// ---------- เครื่องมือ: นับถอยหลัง ----------
+const CD_PRESETS = [1, 3, 5, 10, 15];
+let _cdTotal = 300, _cdLeft = 300, _cdEnd = 0, _cdInt = null;
+
+function openCountdownTool() {
+  _cdStop(); _cdTotal = 300; _cdLeft = 300; _cdEnd = 0;
+  const chips = CD_PRESETS.map(m =>
+    `<button class="tl-chip${m === 5 ? ' on' : ''}" data-min="${m}" onclick="_cdPreset(${m})">${m} นาที</button>`).join('');
+  _tlOpen('tool-countdown-overlay', `
+      <div class="tl-kicker">นับถอยหลัง</div>
+      <div class="tl-plate" id="cd-plate"><div class="tl-digits" id="cd-digits">05:00</div></div>
+      <div class="tl-chips" id="cd-chips">${chips}</div>
+      <div class="tl-btns">
+        <button class="tl-btn" id="cd-toggle" onclick="_cdToggle()">เริ่ม</button>
+        <button class="tl-btn is-warm" onclick="_cdReset()">ตั้งใหม่</button>
+      </div>`);
+  _tlCleanup['tool-countdown-overlay'] = _cdStop;
+}
+function _cdStop() { if (_cdInt) { clearInterval(_cdInt); _cdInt = null; } }
+function _cdPreset(min) {
+  _cdStop(); _cdEnd = 0;
+  _cdTotal = min * 60; _cdLeft = _cdTotal;
+  document.querySelectorAll('#cd-chips .tl-chip').forEach(b => b.classList.toggle('on', Number(b.dataset.min) === min));
+  const b = document.getElementById('cd-toggle'); if (b) b.textContent = 'เริ่ม';
+  _cdPaint();
+}
+function _cdPaint() {
+  const d = document.getElementById('cd-digits'), p = document.getElementById('cd-plate');
+  if (d) d.textContent = _tlFmt(_cdLeft);
+  if (p) {
+    p.classList.toggle('is-final', _cdLeft > 0 && _cdLeft <= 10);   // 10 วิสุดท้าย = เปลี่ยนสี
+    p.classList.toggle('is-done', _cdLeft <= 0);
+  }
+  _tlSync();
+}
+function _cdToggle() {
+  const b = document.getElementById('cd-toggle');
+  if (_cdInt) { _cdLeft = Math.max(0, (_cdEnd - Date.now()) / 1000); _cdStop(); _cdEnd = 0; if (b) b.textContent = 'เดินต่อ'; _cdPaint(); return; }
+  if (_cdLeft <= 0) { _cdLeft = _cdTotal; }
+  _cdEnd = Date.now() + _cdLeft * 1000;
+  if (b) b.textContent = 'หยุด';
+  _cdInt = setInterval(() => {
+    _cdLeft = Math.max(0, (_cdEnd - Date.now()) / 1000);
+    _cdPaint();
+    if (_cdLeft <= 0) {
+      _cdStop(); _cdEnd = 0;
+      const bt = document.getElementById('cd-toggle'); if (bt) bt.textContent = 'เริ่มใหม่';
+      _tlBeep(3);
+    }
+  }, 200);
+  _cdPaint();
+}
+function _cdReset() {
+  _cdStop(); _cdEnd = 0; _cdLeft = _cdTotal;
+  const b = document.getElementById('cd-toggle'); if (b) b.textContent = 'เริ่ม';
+  _cdPaint();
+}
+
+// ---------- เครื่องมือ: สุ่มตัวเลข ----------
+function openRandomNumberTool() {
+  _tlOpen('tool-number-overlay', `
+      <div class="tl-kicker">สุ่มตัวเลข</div>
+      <div class="tl-plate"><div class="tl-digits" id="nm-out">?</div></div>
+      <div class="tl-range">
+        <label>ตั้งแต่ <input type="number" id="nm-min" value="1" inputmode="numeric"></label>
+        <label>ถึง <input type="number" id="nm-max" value="40" inputmode="numeric"></label>
+      </div>
+      <div class="tl-btns"><button class="tl-btn" id="nm-go" onclick="_nmSpin()">สุ่ม</button></div>`);
+  _tlCleanup['tool-number-overlay'] = null;
+}
+function _nmSpin() {
+  const out = document.getElementById('nm-out'), go = document.getElementById('nm-go');
+  let lo = Math.round(Number(document.getElementById('nm-min').value) || 0);
+  let hi = Math.round(Number(document.getElementById('nm-max').value) || 0);
+  if (lo > hi) { const t = lo; lo = hi; hi = t; }               // ใส่กลับหัวก็ใช้ได้
+  const pick = () => lo + Math.floor(Math.random() * (hi - lo + 1));
+  let i = 0; const ticks = 16;
+  const deadline = Date.now() + 2000;                            // กันปุ่มค้างตอนแท็บถูกซ่อน (ดู _rnSpin)
+  go.disabled = true; go.style.opacity = '.6';
+  const step = () => {
+    out.textContent = pick();
+    _tlSync();
+    if (++i >= ticks || Date.now() >= deadline) { go.disabled = false; go.style.opacity = '1'; return; }
+    setTimeout(step, 45 + i * 7);                                // ชะลอแบบเดียวกับสุ่มรายชื่อ
+  };
+  step();
+}
+
+// ---------- เครื่องมือ: สุ่มจับกลุ่ม ----------
+// ใช้ตัวกรอง "เฉพาะคนที่มาวันนี้" ร่วมกับสุ่มรายชื่อ — ของฟรีทั่วไปทำไม่ได้เพราะไม่รู้ผลเช็คชื่อ
+let _grMode = 'all', _grCount = 4;
+
+function openRandomGroupTool() {
+  const c = _rnClass();
+  if (!c || !c.students || c.students.length === 0) { showToast('ยังไม่มีรายชื่อนักเรียนในห้องนี้'); return; }
+  _grMode = 'all'; _grCount = 4;
+  const chips = [2, 3, 4, 5, 6].map(n =>
+    `<button class="tl-chip${n === 4 ? ' on' : ''}" data-n="${n}" onclick="_grSetCount(${n})">${n} กลุ่ม</button>`).join('');
+  _tlOpen('tool-group-overlay', `
+      <div class="tl-kicker">สุ่มจับกลุ่ม</div>
+      <div class="tl-seg-wrap">
+        <button class="tl-seg on" data-mode="all" onclick="_grSetMode('all')">ทั้งห้อง <b id="gr-count-all">0</b></button>
+        <button class="tl-seg" data-mode="present" onclick="_grSetMode('present')">เฉพาะคนมา <b id="gr-count-present">0</b></button>
+      </div>
+      <div class="tl-groups" id="gr-out"><div class="tl-empty">กดจับกลุ่มเพื่อเริ่ม</div></div>
+      <div class="tl-chips" id="gr-chips">${chips}</div>
+      <div class="tl-btns"><button class="tl-btn" id="gr-go" onclick="_grShuffle()">จับกลุ่ม</button></div>`);
+  _grRenderCounts();
+  _tlCleanup['tool-group-overlay'] = null;
+}
+function _grRenderCounts() {
+  const c = _rnClass(); if (!c || !c.students) return;
+  const a = document.getElementById('gr-count-all'), p = document.getElementById('gr-count-present');
+  if (a) a.textContent = c.students.length;
+  if (p) p.textContent = c.students.filter(_rnIsPresent).length;
+}
+function _grSetMode(m) {
+  _grMode = m;
+  document.querySelectorAll('#tool-group-overlay .tl-seg').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  _grRenderCounts();
+  _tlSync();
+}
+function _grSetCount(n) {
+  _grCount = n;
+  document.querySelectorAll('#gr-chips .tl-chip').forEach(b => b.classList.toggle('on', Number(b.dataset.n) === n));
+}
+let _grBusy = false;
+
+function _grName(s) {
+  const nick = (s.nickname || '').trim();
+  const first = (s.name || '').trim().split(/\s+/)[0] || '';
+  return nick || first || '(ไม่มีชื่อ)';
+}
+function _grDeal(pool, n) {                                      // แจกวน = ขนาดกลุ่มต่างกันไม่เกิน 1
+  const groups = Array.from({ length: n }, () => []);
+  pool.forEach((s, i) => groups[i % n].push(s));
+  return groups;
+}
+function _grPaint(groups, animate) {
+  const out = document.getElementById('gr-out'); if (!out) return;
+  out.innerHTML = groups.map((g, gi) => {
+    const names = g.map(s => `<li>${_tlEsc(_grName(s))}</li>`).join('');
+    const delay = animate ? ` style="animation-delay:${gi * 70}ms"` : '';
+    return `<div class="tl-group g${gi % 6}${animate ? ' is-in' : ''}"${delay}>
+        <div class="tl-group-h"><span>กลุ่ม ${gi + 1}</span><b>${g.length} คน</b></div>
+        <ul>${names}</ul>
+      </div>`;
+  }).join('');
+  _tlSync();
+}
+function _grShuffle() {
+  if (_grBusy) return;
+  const c = _rnClass(); if (!c || !c.students) return;
+  const out = document.getElementById('gr-out'), go = document.getElementById('gr-go');
+  let pool = _grMode === 'present' ? c.students.filter(_rnIsPresent) : c.students.slice();
+  if (pool.length === 0) {
+    out.innerHTML = `<div class="tl-empty">${_grMode === 'present' ? 'ยังไม่มีคนเช็คว่ามา' : 'ไม่มีรายชื่อในห้อง'}</div>`;
+    return;
+  }
+  const mix = arr => {                                           // Fisher–Yates
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  };
+  const n = Math.min(_grCount, pool.length);                     // คนน้อยกว่ากลุ่ม = ลดจำนวนกลุ่มลง
+  const final = _grDeal(mix(pool.slice()), n);
+
+  const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (still) { _grPaint(final, false); return; }
+
+  // เฟสสับไพ่ — ชื่อสลับไปมาก่อนลงตัว (ให้ลุ้นแบบเดียวกับสุ่มรายชื่อ)
+  // จำนวนคนต่อกลุ่มคงที่ทุกจังหวะ การ์ดเลยไม่กระตุกเปลี่ยนขนาด
+  _grBusy = true; go.disabled = true; go.style.opacity = '.6';
+  const ticks = 8, deadline = Date.now() + 1600;                 // เส้นตาย: กันค้างตอนแท็บถูกซ่อน (ดู _rnSpin)
+  let i = 0;
+  const step = () => {
+    _grPaint(_grDeal(mix(pool.slice()), n), false);
+    i++;
+    if (i >= ticks || Date.now() >= deadline) {
+      _grPaint(final, true);                                     // ลงตัว + การ์ดเด้งขึ้นทีละใบ
+      _grBusy = false; go.disabled = false; go.style.opacity = '1';
+      return;
+    }
+    setTimeout(step, 60 + i * 14);                               // ค่อยๆ ช้าลง
   };
   step();
 }
