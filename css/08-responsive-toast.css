@@ -449,17 +449,21 @@
 .tl-group.g4 { --g-bg: #faeeda; --g-fg: #854f0b; }
 .tl-group.g5 { --g-bg: #eeedfe; --g-fg: #534ab7; }
 
-/* สุ่มรายชื่อ — ใช้โครงเดียวกับด้านบน */
+/* สุ่มรายชื่อ — ใช้โครงเดียวกับด้านบน
+   สีทั้งจอมาจาก --rn-bg/--rn-fg ที่ _rnSpin ยิงเข้ามา = สีประจำตัวของคนที่สุ่มได้
+   (พาเลตต์เดียวกับ avatar ทั้งแอป) ยังไม่เคยสุ่ม = ใช้สีเขียวกลางเหมือนเครื่องมืออื่น */
+.rn-fullscreen { background: var(--rn-bg, var(--loud-surface)); transition: background .3s ease; }
 .rn-stage { text-align: center; }
 .rn-reveal-no {
   width: clamp(74px, 9vw, 104px); height: clamp(74px, 9vw, 104px); margin: 0 auto 20px; border-radius: 50%;
-  background: var(--loud-accent); color: #fff; border: 4px solid var(--loud-ink); box-shadow: 0 6px 0 var(--loud-ink);
+  background: var(--rn-fg, var(--loud-accent)); color: #fff; border: 4px solid var(--loud-ink); box-shadow: 0 6px 0 var(--loud-ink);
   display: flex; align-items: center; justify-content: center;
   font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 800;
 }
-.rn-reveal-name { font-size: clamp(3rem, 12vw, 9rem); font-weight: 800; color: var(--loud-ink); line-height: .95; letter-spacing: -.02em; }
-.rn-reveal-full { font-size: clamp(1rem, 2.6vw, 1.7rem); font-weight: 700; color: var(--loud-accent-sh); margin-top: 12px; min-height: 26px; }
-.rn-hint { font-size: clamp(0.9rem, 1.6vw, 1.1rem); font-weight: 700; color: var(--loud-accent-sh); margin-top: 14px; min-height: 20px; }
+.rn-reveal-name { font-size: clamp(3rem, 12vw, 9rem); font-weight: 800; color: var(--rn-fg, var(--loud-ink)); line-height: .95; letter-spacing: -.02em; }
+.rn-reveal-full { font-size: clamp(1rem, 2.6vw, 1.7rem); font-weight: 700; color: var(--rn-fg, var(--loud-accent-sh)); margin-top: 12px; min-height: 26px; opacity: .85; }
+.rn-hint { font-size: clamp(0.9rem, 1.6vw, 1.1rem); font-weight: 700; color: var(--rn-fg, var(--loud-accent-sh)); margin-top: 14px; min-height: 20px; opacity: .75; }
+@media (prefers-reduced-motion: reduce) { .rn-fullscreen { transition: none; } }
 .rn-controls { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .rn-spin {
   font-family: inherit; font-size: clamp(1.1rem, 2.6vw, 1.6rem); font-weight: 800; color: #fff;

@@ -57,6 +57,15 @@ let _rnMode = 'all';   // 'all' | 'present'
 let _rnUsed = [];      // id ที่สุ่มไปแล้ว (โหมดสุ่มไม่ซ้ำ)
 
 function _rnClass() { return appState.classes.find(x => x.id === swipeClassId) || null; }
+// สีประจำตัวนักเรียน = พาเลตต์ avatar เดิม (MSC_AV ใน scores.js) ไล่ตามลำดับคนในห้อง
+// → คนเดียวกันได้สีเดิมทุกหน้าทั้งแอป ไม่ใช่สุ่มใหม่ทุกครั้ง
+function _rnColor(s) {
+  const pal = (typeof MSC_AV !== 'undefined' && MSC_AV.length) ? MSC_AV : [['#e1f5ee', '#0f6e56']];
+  const c = _rnClass();
+  const idx = (c && c.students) ? c.students.findIndex(x => x.id === s.id) : 0;
+  const p = pal[(idx < 0 ? 0 : idx) % pal.length];
+  return { bg: p[0], fg: p[1] };
+}
 function _rnIsPresent(s) { const st = swipeResults[s.id]; return st === 'present' || st === 'late'; }
 function _rnPool() {
   const c = _rnClass();
@@ -136,12 +145,15 @@ function _rnSpin() {
   // → พอกลับมาแล้ว tick แรกที่เลยเวลาให้จบทันที
   const deadline = Date.now() + 2000;
   spin.disabled = true; spin.style.opacity = '.6';
+  const scr = document.querySelector('#random-name-overlay .rn-fullscreen');
   const step = () => {
     const r = pool[Math.floor(Math.random() * pool.length)];
     // โชว์ชื่อเล่น ถ้าไม่มีใช้ชื่อจริงคำแรก (เหมือนการ์ดเช็คชื่อ) + ชื่อเต็มตัวรอง
     const nick = (r.nickname || '').trim();
     const firstName = (r.name || '').trim().split(/\s+/)[0] || '';
     const display = nick || firstName || '(ไม่มีชื่อ)';
+    const col = _rnColor(r);
+    if (scr) { scr.style.setProperty('--rn-fg', col.fg); scr.style.setProperty('--rn-bg', col.bg); }
     noEl.textContent = (r.no !== null && r.no !== undefined && r.no !== '') ? r.no : '–';
     nameEl.textContent = display;
     if (fullEl) fullEl.textContent = (r.name && r.name !== display) ? r.name : '';
