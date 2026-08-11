@@ -1,4 +1,7 @@
 // ==================== SCHEDULE GUARD (กันเช็คชื่อผิดวัน) ====================
+let activeQrAttendance = null;
+let qrAttendancePollTimer = null;
+
 // วันในสัปดาห์ที่ห้องนี้มีคาบตามตาราง
 function classScheduledDoWs(classId) {
   const set = new Set();
@@ -230,6 +233,7 @@ function openSwipeAttendance(classId, forDate) {
 }
 
 function closeSwipeAttendance() {
+  stopQrAttendancePolling();
   document.getElementById('swipe-overlay').classList.remove('show');
   // ออกจากหน้าเช็คชื่อ → กลับไปหน้าที่มา (URL ต้องเปลี่ยนตามด้วย ไม่งั้นค้างที่ #checkin)
   // ถ้ามาถึงตรงนี้เพราะ hash เปลี่ยนไปหน้าอื่นอยู่แล้ว (กดปุ่ม back) ก็ไม่ต้องสั่งซ้ำ
@@ -259,6 +263,235 @@ function importStudentsFromSwipe() {
   currentClassId = swipeClassId;
   triggerDirectClassExcelImport(swipeClassId);
 }
+
+function makeQrAttendanceCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'QA';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+function getQrAttendanceLink(code) {
+  const base = window.location.href.split('#')[0].replace(/index\.html(?:\?.*)?$/, '');
+  return `${base.replace(/\/?$/, '/') }attendance-qr.html?code=${encodeURIComponent(code)}`;
+}
+
+function qrEscapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[ch]);
+}
+
+function buildQrAttendanceRoster(c) {
+  return (c.students || []).map(s => ({
+    id: String(s.id || ''),
+    name: String(s.name || '').trim(),
+    nickname: String(s.nickname || '').trim(),
+    studentNo: String(s.no || s.number || s.studentNo || '').trim(),
+    studentCode: String(s.code || s.studentCode || '').trim()
+  })).filter(s => s.id && s.name);
+}
+
+async function qrAttendanceRpc(name, args) {
+  if (!supabaseClient) throw new Error('ยังเชื่อมต่อ Supabase ไม่ได้');
+  const { data, error } = await supabaseClient.rpc(name, args);
+  if (error) throw error;
+  return data;
+}
+
+function getQrAttendanceErrorMessage(err, fallback) {
+  const msg = String(err?.message || '');
+  const code = String(err?.code || '');
+  if (code === '42883' || /function .* does not exist|could not find the function/i.test(msg)) {
+    return 'ยังไม่ได้รัน migration attendance QR ใน Supabase';
+  }
+  if (code === '42501' || /permission denied|not authorized|execute/i.test(msg)) {
+    return 'Supabase ยังไม่ได้ grant สิทธิ์ให้ฟังก์ชัน QR attendance';
+  }
+  if (code === '23505' || /duplicate key|unique constraint/i.test(msg)) {
+    return 'รหัส QR ซ้ำ กำลังลองสร้างใหม่';
+  }
+  if (/teacher authentication required|jwt|not authenticated|session not found/i.test(msg)) {
+    return 'สิทธิ์ครูไม่พร้อม กรุณาเข้าสู่ระบบใหม่แล้วเปิด QR อีกครั้ง';
+  }
+  if (/failed to fetch|networkerror|load failed|timeout/i.test(msg)) {
+    return 'เชื่อมต่อ Supabase ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
+  }
+  return msg || fallback;
+}
+
+function setQrAttendanceStatus(text, type = 'info') {
+  const el = document.getElementById('qr-attendance-status');
+  if (!el) return;
+  el.textContent = text;
+  el.className = `qr-attendance-status ${type}`;
+}
+
+function renderQrAttendanceList(marks) {
+  const list = document.getElementById('qr-attendance-list');
+  const presentEl = document.getElementById('qr-attendance-present');
+  const rosterEl = document.getElementById('qr-attendance-roster');
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  const rosterCount = c ? (c.students || []).length : 0;
+  if (presentEl) presentEl.textContent = marks.length;
+  if (rosterEl) rosterEl.textContent = rosterCount;
+  if (!list) return;
+  if (marks.length === 0) {
+    list.innerHTML = '<div class="qr-attendance-empty">ยังไม่มีนักเรียนเช็คชื่อผ่าน QR</div>';
+    return;
+  }
+  list.innerHTML = marks.map(mark => {
+    const name = qrEscapeHtml(mark.student_name || mark.studentName || 'นักเรียน');
+    const timeText = mark.updated_at ? new Date(mark.updated_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : '';
+    return `<div class="qr-attendance-row"><strong>${name}</strong><span>${timeText || 'เช็คชื่อแล้ว'}</span></div>`;
+  }).join('');
+}
+
+function applyQrAttendanceMarks(marks) {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c) return 0;
+  let changed = 0;
+  marks.forEach(mark => {
+    const sid = mark.student_id || mark.studentId;
+    if (!sid || !c.students.some(s => s.id === sid)) return;
+    if (!swipeResults[sid]) {
+      swipeResults[sid] = 'present';
+      swipeHistory.push({ studentId: sid, status: 'present' });
+      changed++;
+    }
+  });
+  if (changed) {
+    autoSaveAttendance();
+    updateSwipeSummary();
+    renderDesktopSwipeTable();
+    renderSwipeCard();
+  }
+  return changed;
+}
+
+async function pollQrAttendance() {
+  if (!activeQrAttendance || !activeQrAttendance.code) return;
+  try {
+    const snapshot = await qrAttendanceRpc('attendance_qr_teacher_snapshot', { p_code: activeQrAttendance.code });
+    const marks = Array.isArray(snapshot?.marks) ? snapshot.marks : [];
+    const changed = applyQrAttendanceMarks(marks);
+    renderQrAttendanceList(marks);
+    const suffix = changed ? ` · รับใหม่ ${changed} คน` : '';
+    setQrAttendanceStatus(`เปิดรับเช็คชื่ออยู่${suffix}`, 'success');
+  } catch (err) {
+    console.warn('QR attendance poll error:', err);
+    setQrAttendanceStatus('ดึงผลเช็คชื่อไม่ได้ กรุณาตรวจว่า migration ถูกติดตั้งแล้ว', 'warning');
+  }
+}
+
+function startQrAttendancePolling() {
+  stopQrAttendancePolling();
+  pollQrAttendance();
+  qrAttendancePollTimer = setInterval(pollQrAttendance, 2500);
+}
+
+function stopQrAttendancePolling() {
+  if (qrAttendancePollTimer) clearInterval(qrAttendancePollTimer);
+  qrAttendancePollTimer = null;
+}
+
+async function openQrAttendanceModal() {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c) return;
+  if (!isSwipeDateAllowed()) { ensureSwipeDateAllowed(openQrAttendanceModal); return; }
+  if (!supabaseClient) { showToast('ต้องออนไลน์ก่อนจึงจะใช้ QR เช็คชื่อได้', 'warning'); return; }
+  if (!localStorage.getItem('classmanager_email')) { showToast('กรุณาเข้าสู่ระบบก่อนใช้ QR เช็คชื่อ', 'warning'); return; }
+  if (!c.students || c.students.length === 0) { showToast('ต้องมีรายชื่อนักเรียนก่อนเปิด QR', 'warning'); return; }
+
+  const modal = document.getElementById('modal-qr-attendance');
+  if (modal) modal.classList.add('show');
+  renderQrAttendanceList([]);
+  setQrAttendanceStatus('กำลังสร้าง QR...', 'info');
+
+  const dateKey = getTodayString(swipeSelectedDate || getNowDate());
+  const existingIsSame = activeQrAttendance &&
+    activeQrAttendance.classId === swipeClassId &&
+    activeQrAttendance.dateKey === dateKey;
+
+  try {
+    if (!existingIsSame) {
+      const email = localStorage.getItem('classmanager_email');
+      let createdCode = '';
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const code = makeQrAttendanceCode();
+        try {
+          await qrAttendanceRpc('attendance_qr_create_session', {
+            p_code: code,
+            p_classroom_id: c.id,
+            p_teacher_email: email,
+            p_room_label: `${c.subject || 'วิชา'} (${c.className || 'ห้องเรียน'})`,
+            p_date_key: dateKey,
+            p_roster: buildQrAttendanceRoster(c)
+          });
+          createdCode = code;
+          break;
+        } catch (err) {
+          const isDuplicate = String(err?.code || '') === '23505' || /duplicate key|unique constraint/i.test(String(err?.message || ''));
+          if (!isDuplicate || attempt === 4) throw err;
+        }
+      }
+      activeQrAttendance = { code: createdCode, classId: c.id, dateKey };
+    }
+
+    const link = getQrAttendanceLink(activeQrAttendance.code);
+    const qrImg = document.getElementById('qr-attendance-img');
+    const codeEl = document.getElementById('qr-attendance-code');
+    const linkEl = document.getElementById('qr-attendance-link');
+    if (qrImg) qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(link)}`;
+    if (codeEl) codeEl.textContent = activeQrAttendance.code;
+    if (linkEl) {
+      linkEl.href = link;
+      linkEl.textContent = link;
+    }
+    startQrAttendancePolling();
+  } catch (err) {
+    console.warn('QR attendance create error:', err);
+    setQrAttendanceStatus(getQrAttendanceErrorMessage(err, 'สร้าง QR ไม่สำเร็จ'), 'warning');
+  }
+}
+
+function closeQrAttendanceModal() {
+  document.getElementById('modal-qr-attendance')?.classList.remove('show');
+}
+
+async function closeActiveQrAttendanceSession() {
+  if (!activeQrAttendance || !activeQrAttendance.code) {
+    closeQrAttendanceModal();
+    return;
+  }
+  try {
+    await qrAttendanceRpc('attendance_qr_close_session', { p_code: activeQrAttendance.code });
+    setQrAttendanceStatus('ปิด QR แล้ว', 'info');
+    activeQrAttendance = null;
+    stopQrAttendancePolling();
+    closeQrAttendanceModal();
+    showToast('ปิด QR เช็คชื่อแล้ว', 'success');
+  } catch (err) {
+    console.warn('QR attendance close error:', err);
+    showToast('ปิด QR ไม่สำเร็จ', 'error');
+  }
+}
+
+async function copyQrAttendanceLink() {
+  if (!activeQrAttendance || !activeQrAttendance.code) return;
+  const link = getQrAttendanceLink(activeQrAttendance.code);
+  try {
+    await navigator.clipboard.writeText(link);
+    showToast('คัดลอกลิงก์ QR แล้ว', 'success');
+  } catch (err) {
+    showToast(link, 'info', 5000);
+  }
+}
+
 // แก้ไขข้อมูลนักเรียนของการ์ดที่กำลังแสดงอยู่ (หน้าเช็คชื่อมือถือ)
 // event.stopPropagation() กันไม่ให้การแตะปุ่มไปโดน onSwipeCardTap (เช็ค "มา")
 function editCurrentSwipeStudent(event) {

@@ -643,6 +643,173 @@
 .d-status-btn.leave { border-color: var(--color-leave); background: var(--color-leave-bg); color: var(--color-leave); box-shadow: 0 2px 6px rgba(60,110,220,0.2), inset 0 1px 0 rgba(255,255,255,0.5); }
 .d-status-btn.late { border-color: var(--color-late); background: var(--color-late-bg); color: var(--color-late-text); box-shadow: 0 2px 6px rgba(210,160,40,0.22), inset 0 1px 0 rgba(255,255,255,0.5); }
 
+.swipe-mini-btn.qr {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.qr-attendance-sheet {
+  width: 680px;
+  max-width: 96vw;
+}
+
+.qr-attendance-grid {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 16px;
+}
+
+.qr-attendance-share,
+.qr-attendance-live {
+  min-width: 0;
+}
+
+.qr-attendance-share {
+  text-align: center;
+}
+
+.qr-attendance-box {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 10px;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.qr-attendance-box img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.qr-attendance-code {
+  color: var(--primary);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.qr-attendance-link {
+  display: block;
+  max-width: 230px;
+  margin: 7px auto 0;
+  color: var(--text-muted);
+  font-size: .76rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.qr-attendance-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.qr-attendance-status {
+  padding: 11px 13px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--bg-light);
+  color: var(--text-muted);
+  font-size: .84rem;
+  font-weight: 800;
+}
+
+.qr-attendance-status.success {
+  border-color: var(--color-present);
+  background: var(--color-present-bg);
+  color: var(--color-present);
+}
+
+.qr-attendance-status.warning {
+  border-color: #F6C77A;
+  background: #FEF3E2;
+  color: #92610A;
+}
+
+.qr-attendance-mini {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.qr-attendance-mini span {
+  padding: 11px 12px;
+  border-radius: 14px;
+  background: var(--bg-light);
+  color: var(--text-muted);
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.qr-attendance-mini b {
+  display: block;
+  color: var(--text-main);
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.qr-attendance-list {
+  display: grid;
+  gap: 8px;
+  max-height: 270px;
+  overflow: auto;
+}
+
+.qr-attendance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--bg-card);
+}
+
+.qr-attendance-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .88rem;
+}
+
+.qr-attendance-row span {
+  flex: 0 0 auto;
+  color: var(--text-muted);
+  font-size: .76rem;
+  font-weight: 800;
+}
+
+.qr-attendance-empty {
+  min-height: 140px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--text-muted);
+  font-weight: 800;
+}
+
+@media (max-width: 680px) {
+  .qr-attendance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .qr-attendance-box {
+    width: 190px;
+    height: 190px;
+  }
+}
+
 
 /* ===== แถบเตือนเช็คชื่อผิดวัน / คาบเสริม ===== */
 .swipe-schedule-warning {

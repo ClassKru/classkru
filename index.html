@@ -660,6 +660,7 @@
         <div class="swipe-progress-bar"><div class="swipe-progress-fill" id="swipe-progress-fill"></div></div>
         <div class="swipe-progress-actions">
           <button class="swipe-mini-btn primary" onclick="setAllSwipePresent()"><i class="hgi-stroke hgi-tick-02"></i> มาทุกคน</button>
+          <button class="swipe-mini-btn qr" onclick="openQrAttendanceModal()"><i class="hgi-stroke hgi-qr-code"></i> QR เช็คชื่อ</button>
           <span class="swipe-progress-checked">เช็คแล้ว <span id="swipe-checked-count">0</span> / <span id="swipe-total-count">0</span></span>
           <button class="swipe-mini-btn danger" onclick="clearSwipeChecks()"><i class="hgi-stroke hgi-delete-02"></i> ล้างข้อมูล</button>
         </div>
@@ -1134,6 +1135,37 @@
       <div style="display:flex;gap:10px;margin-top:20px;">
         <button class="btn" style="flex:1;" onclick="closePeriodSettings()">ยกเลิก</button>
         <button class="btn btn-primary" style="flex:2;" onclick="savePeriodSettings()">บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR ATTENDANCE MODAL -->
+  <div class="modal-overlay" id="modal-qr-attendance" onclick="if(event.target===this) closeQrAttendanceModal()" style="z-index:9200;">
+    <div class="bottom-sheet qr-attendance-sheet">
+      <div class="modal-header">
+        <h3><i class="hgi-stroke hgi-qr-code" style="color:var(--primary);"></i> เช็คชื่อด้วย QR</h3>
+        <button class="btn btn-text" onclick="closeQrAttendanceModal()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+      <div class="qr-attendance-grid">
+        <section class="qr-attendance-share">
+          <div class="qr-attendance-box">
+            <img id="qr-attendance-img" alt="QR Code สำหรับเช็คชื่อ">
+          </div>
+          <div class="qr-attendance-code" id="qr-attendance-code">------</div>
+          <a class="qr-attendance-link" id="qr-attendance-link" href="#" target="_blank" rel="noopener">กำลังสร้างลิงก์...</a>
+          <div class="qr-attendance-actions">
+            <button class="btn" onclick="copyQrAttendanceLink()"><i class="hgi-stroke hgi-copy-01"></i> คัดลอกลิงก์</button>
+            <button class="btn btn-danger" onclick="closeActiveQrAttendanceSession()"><i class="hgi-stroke hgi-stop"></i> ปิด QR</button>
+          </div>
+        </section>
+        <section class="qr-attendance-live">
+          <div class="qr-attendance-status" id="qr-attendance-status">กำลังเตรียม QR...</div>
+          <div class="qr-attendance-mini">
+            <span><b id="qr-attendance-present">0</b> มาแล้วจาก QR</span>
+            <span><b id="qr-attendance-roster">0</b> คนในห้อง</span>
+          </div>
+          <div class="qr-attendance-list" id="qr-attendance-list"></div>
+        </section>
       </div>
     </div>
   </div>

@@ -1271,6 +1271,217 @@
         margin-top: 8px;
       }
     }
+
+    /* Classroom Live Mode: warm cream surfaces with restrained playful accents. */
+    :root {
+      --live-cream:#fff8ea;
+      --live-cream-2:#fffdf6;
+      --live-surface:#ffffff;
+      --live-border:#eadfcb;
+      --live-border-cool:#d8e9ef;
+      --live-blue:#2ba8d9;
+      --live-blue-deep:#157aa3;
+      --live-blue-dark:#105d7d;
+      --live-blue-soft:#eaf8fc;
+      --live-yellow:#f4c84a;
+      --live-yellow-soft:#fff4cc;
+      --live-pink:#ef7c93;
+      --live-pink-soft:#ffe9ee;
+      --live-green:#61b888;
+      --live-green-soft:#e9f8ef;
+      --live-purple:#a98bd6;
+      --live-purple-soft:#f2ebfb;
+      --live-ink:#26313d;
+      --live-muted:#687585;
+    }
+    body {
+      background: var(--live-cream);
+    }
+    .shell { max-width: 1180px; }
+    .topbar { padding: 14px 0 4px; }
+    .brand-mark {
+      width: 50px;
+      height: 50px;
+      border: 2px solid var(--live-border-cool);
+      border-radius: 16px;
+      background: var(--live-blue-soft);
+      box-shadow: 0 5px 0 #d6eef4;
+    }
+    .brand-mark i { color: var(--live-blue-dark); }
+    .brand h1 { color: var(--live-ink); font-size: 1.5rem; }
+    .brand p { color: var(--live-muted); }
+    .grid {
+      grid-template-columns: minmax(390px, .92fr) minmax(460px, 1.08fr);
+      gap: 18px;
+    }
+    .card {
+      border: 2px solid var(--live-border);
+      border-radius: 18px;
+      background: var(--live-surface);
+      box-shadow: 0 8px 0 #efe6d6, 0 16px 34px rgba(65,51,32,.08);
+    }
+    .settings-card { border-top: 6px solid var(--live-green); }
+    .setup-summary {
+      border: 2px solid #eadbaf;
+      border-left-width: 6px;
+      border-left-color: var(--live-yellow);
+      background: var(--live-yellow-soft);
+    }
+    .input {
+      border-width: 2px;
+      border-color: var(--live-border);
+      background: var(--live-cream-2);
+    }
+    .input:focus {
+      border-color: var(--live-blue);
+      box-shadow: 0 0 0 4px var(--live-blue-soft);
+    }
+    .btn {
+      border-width: 2px;
+      font-weight: 900;
+    }
+    .btn-primary,
+    .btn-primary:hover {
+      background: var(--live-blue);
+      border-color: var(--live-blue-deep);
+      color: #fff;
+      box-shadow: 0 5px 0 var(--live-blue-deep), 0 12px 26px rgba(43,168,217,.16);
+    }
+    .btn-primary:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 var(--live-blue-deep);
+    }
+    #start-question-btn.is-start,
+    .presentation-start-btn.is-start {
+      background: var(--live-pink);
+      border-color: #d93670;
+      color: #fff;
+      box-shadow: 0 5px 0 #d93670, 0 12px 26px rgba(255,75,139,.20);
+    }
+    .qr-card {
+      min-height: 410px;
+      background: var(--live-surface);
+      border-color: var(--live-border-cool);
+      border-top: 6px solid var(--live-blue);
+      color: var(--live-ink);
+      box-shadow: 0 8px 0 #d6eef4, 0 18px 36px rgba(43,168,217,.11);
+    }
+    .qr-card h2 {
+      color: var(--live-ink);
+      font-size: 1.08rem;
+    }
+    .qr-card .qr-box {
+      width: 210px;
+      height: 210px;
+      border: 10px solid var(--live-blue-soft);
+      border-radius: 20px;
+      box-shadow: 0 6px 0 #cce7ef, 0 18px 36px rgba(43,168,217,.14);
+    }
+    .qr-card .code { color: var(--live-blue-deep); }
+    .qr-card .stat {
+      background: var(--live-blue-soft);
+      border: 2px solid var(--live-border-cool);
+      color: var(--live-blue-deep);
+    }
+    .qr-card .stat b {
+      color: var(--live-blue-dark);
+    }
+    .qr-card .link {
+      color: var(--live-muted);
+    }
+    .join-status.is-ok {
+      text-align: center;
+      border: 2px solid #b8dec7;
+      background: var(--live-green-soft);
+      color: #387453;
+    }
+    .stage-card {
+      min-height: 330px;
+      background: #fff;
+      border-color: var(--live-border);
+      border-top: 6px solid var(--live-purple);
+    }
+    .stage-kicker,
+    .presentation-kicker {
+      color: var(--live-blue-deep);
+      letter-spacing: 0;
+    }
+    .stage-question {
+      font-size: 1.18rem;
+      color: var(--text);
+    }
+    .stage-meta {
+      background: var(--live-cream-2);
+      border: 2px solid var(--live-border);
+    }
+    .live-badge {
+      background: var(--live-pink-soft);
+      border-color: #f4b9c5;
+      color: #a84259;
+    }
+    .lobby-heading {
+      color: var(--live-blue-deep);
+      font-size: 1.12rem;
+    }
+    .lobby-chip {
+      background: #fff;
+      border: 2px solid var(--live-border);
+      border-radius: 16px;
+      font-size: .98rem;
+      box-shadow: 0 4px 0 #f1e8d9;
+    }
+    .lobby-chip:nth-child(4n+1) { background: var(--live-blue-soft); border-color: var(--live-border-cool); }
+    .lobby-chip:nth-child(4n+2) { background: var(--live-yellow-soft); border-color: var(--live-yellow); }
+    .lobby-chip:nth-child(4n+3) { background: var(--live-pink-soft); border-color: #f4b9c5; }
+    .lobby-chip:nth-child(4n) { background: var(--live-green-soft); border-color: #b8dec7; }
+    .backstage-card { border-top: 6px solid var(--live-yellow); }
+    .student-row {
+      background: #fff;
+      border: 2px solid #eee3d2;
+      box-shadow: 0 4px 0 #f5ecdc;
+    }
+    .presentation-stage {
+      background: var(--live-cream-2);
+      border-color: var(--live-border);
+    }
+    .presentation-code {
+      background: var(--live-blue-deep);
+      color: #fff;
+    }
+    .presentation-page,
+    .student-page {
+      background: var(--live-cream);
+    }
+    .student-head {
+      background: var(--live-blue);
+      border: 2px solid var(--live-blue-deep);
+      border-bottom: 0;
+    }
+    .choice:has(input:checked),
+    .scale label:has(input:checked) {
+      border-color: var(--live-blue);
+      background: var(--live-blue-soft);
+    }
+    .review-stat {
+      border: 2px solid var(--live-border);
+      box-shadow: 0 4px 0 #f5ecdc;
+    }
+    .review-stat:nth-child(2) {
+      background: var(--live-green-soft);
+      border-color: #b8dec7;
+    }
+    .review-stat:nth-child(3) {
+      background: var(--live-yellow-soft);
+      border-color: var(--live-yellow);
+    }
+    .review-stat:nth-child(4) {
+      background: var(--live-blue-soft);
+      border-color: var(--live-border-cool);
+    }
+    @media (max-width: 940px) {
+      .grid { grid-template-columns: 1fr; }
+      .qr-card { min-height: 0; }
+    }
   </style>
 </head>
 <body>
@@ -1318,7 +1529,7 @@
           </div>
           <div class="actions">
             <button class="btn btn-primary" onclick="startSession()"><i class="hgi-stroke hgi-qr-code-01"></i> สร้างห้อง QR</button>
-            <button id="start-question-btn" class="btn is-start" onclick="toggleQuestionPhase()" style="visibility:hidden;pointer-events:none;"><i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม</button>
+            <button id="start-question-btn" class="btn is-start" onclick="toggleQuestionPhase()" style="visibility:hidden;pointer-events:none;"><i class="hgi-stroke hgi-play"></i> เปิดคำถาม</button>
             <button id="presentation-toggle-btn" class="btn" onclick="togglePresentation()"><i class="hgi-stroke hgi-presentation-01"></i> เปิดจอนำเสนอ</button>
           </div>
         </section>
@@ -1343,7 +1554,7 @@
         <section class="card stage-card">
           <div class="stage-head">
             <div>
-              <p class="stage-kicker">LIVE ACTIVITY · ภาพรวมกิจกรรม</p>
+              <p class="stage-kicker">ห้องเรียนสด · ภาพรวมกิจกรรม</p>
               <h2 id="stage-question" class="stage-question">เปิดกิจกรรมเพื่อรับนักเรียนเข้าห้อง</h2>
             </div>
             <div class="stage-meta"><span class="live-badge">LIVE</span></div>
@@ -1428,7 +1639,7 @@
 
   <main id="presentation-view" class="presentation-page" style="display:none;">
     <div class="presentation-shell">
-      <div class="presentation-topbar"><div><span class="presentation-kicker">CLASSKRU · LIVE ACTIVITY</span><h1 id="presentation-room">เพิ่มนักเรียนเข้าห้อง</h1></div><span class="presentation-code" id="presentation-code">-</span></div>
+      <div class="presentation-topbar"><div><span class="presentation-kicker">CLASSKRU · ห้องเรียนสด</span><h1 id="presentation-room">เพิ่มนักเรียนเข้าห้อง</h1></div><span class="presentation-code" id="presentation-code">-</span></div>
       <section class="presentation-stage">
         <div class="presentation-joinbar">
           <img id="presentation-qr" class="presentation-qr" alt="QR Code สำหรับเข้าร่วมกิจกรรม">
@@ -1438,7 +1649,7 @@
           </div>
         </div>
         <h2 id="presentation-question">รอนักเรียนเข้าร่วม</h2>
-        <button id="presentation-start-btn" class="btn presentation-start-btn" onclick="togglePresentationQuestionPhase()"><i class="hgi-stroke hgi-play"></i> START · เริ่มตอบคำถาม</button>
+        <button id="presentation-start-btn" class="btn presentation-start-btn" onclick="togglePresentationQuestionPhase()"><i class="hgi-stroke hgi-play"></i> เปิดคำถาม</button>
         <div id="presentation-output" class="presentation-output"></div>
         <div class="presentation-footer"><span id="presentation-total-label">เข้าร่วมแล้ว <b id="presentation-total">0</b> คน</span><span>ข้อมูลจะแสดงแบบไม่เปิดเผยชื่อบนจอนี้</span></div>
       </section>
@@ -1979,7 +2190,7 @@
       questionButton.className = `btn ${session.phase === 'question' ? 'is-back' : 'is-start'}`;
       questionButton.innerHTML = session.phase === 'question'
         ? '<i class="hgi-stroke hgi-arrow-left-02"></i> ย้อนกลับ · ห้องรอ'
-        : '<i class="hgi-stroke hgi-play"></i> START · เปิดคำถาม';
+        : '<i class="hgi-stroke hgi-play"></i> เปิดคำถาม';
       renderLiveWall(session, participants);
       renderBackstage(participants, answers);
     }
@@ -2088,7 +2299,7 @@
       }).join('');
       wall.innerHTML = `
         <div class="join-lobby">
-          <div class="lobby-heading">Member</div>
+          <div class="lobby-heading">รายชื่อที่เข้าห้องรอ</div>
           <div class="lobby-chips">${chips}</div>
           <div class="lobby-count"><span>${lobbyMessage}</span></div>
         </div>`;
@@ -2128,7 +2339,7 @@
       presentationStartButton.className = `btn presentation-start-btn ${isQuestion ? 'is-back' : 'is-start'}`;
       presentationStartButton.innerHTML = isQuestion
         ? '<i class="hgi-stroke hgi-arrow-left-02"></i> ย้อนกลับ · ห้องรอ'
-        : '<i class="hgi-stroke hgi-play"></i> START · เริ่มตอบคำถาม';
+        : '<i class="hgi-stroke hgi-play"></i> เปิดคำถาม';
       document.getElementById('presentation-room').textContent = session.roomLabel || 'เพิ่มนักเรียนเข้าห้อง';
       document.getElementById('presentation-code').textContent = session.code;
       const joinUrl = getJoinUrl(session.code);
