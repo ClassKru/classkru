@@ -114,13 +114,11 @@ function renderWebStudents() {
   }
 
   filteredStudents.forEach((s, visibleIndex) => {
-    const codeEsc = escapeStudentCardHtml(s.studentCode || '');
     const displayName = splitStudentDisplayName(s.name || 'นักเรียน');
     const firstNameEsc = escapeStudentCardHtml(displayName.first);
     const lastNameEsc = escapeStudentCardHtml(displayName.last);
     const fullNameEsc = escapeStudentCardHtml(s.name || 'นักเรียน');
     const nickEsc = escapeStudentCardHtml((s.nickname || '').trim());
-    const commentEsc = escapeStudentCardHtml((s.comment || '').trim());
     const card = document.createElement('article');
     card.className = 'student-roster-card';
     card.tabIndex = 0;
@@ -132,7 +130,7 @@ function renderWebStudents() {
     const avatar = s.photoBase64
       ? `<img src="${s.photoBase64}" alt="">`
       : `<span class="student-card-avatar-text${avatarClass}" title="${avatarText}">${avatarText}</span>`;
-    const nicknameBlock = nickEsc ? `ชื่อเล่น ${nickEsc}` : 'ยังไม่มีชื่อเล่น';
+    const nicknameBlock = nickEsc || '';
     card.setAttribute('onclick', `if(!event.target.closest('input,button'))openStudentSummaryModal('${s.id}','${targetClass.id}')`);
     card.setAttribute('onkeydown', `if((event.key==='Enter'||event.key===' ')&&!event.target.closest('input,button')){event.preventDefault();openStudentSummaryModal('${s.id}','${targetClass.id}')}`);
     card.innerHTML = `
@@ -152,19 +150,6 @@ function renderWebStudents() {
           </strong>
           <span>${nicknameBlock}</span>
         </div>
-      </div>
-      <div class="student-card-meta">
-        <label>
-          <span>รหัส</span>
-          <input class="student-card-code-input" type="text" value="${codeEsc}" maxlength="10" placeholder="-" onclick="event.stopPropagation()" onchange="setStudentCodeInline('${targetClass.id}','${s.id}',this.value)">
-        </label>
-        <div>
-          <span>หมายเหตุ</span>
-          <strong>${commentEsc || '-'}</strong>
-        </div>
-      </div>
-      <div class="student-card-foot">
-        <b>เปิดข้อมูล</b>
       </div>`;
     container.appendChild(card);
   });

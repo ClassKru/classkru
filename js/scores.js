@@ -863,7 +863,9 @@ function mscAvatar(s, i) {
   // การ์ดรายชื่อ (วงกลมใหญ่) = ชื่อเล่นถ้ามี ไม่มีก็เลขที่
   const nick = (s.nickname || '').trim();
   const c = MSC_AV[i % MSC_AV.length];
-  return { txt: escapeScore(nick || String(s.no || (i + 1))), bg: c[0], fg: c[1] };
+  const txt = nick || String(s.no || (i + 1));
+  const cls = txt.length > 5 ? ' is-tiny' : (txt.length > 3 ? ' is-small' : '');
+  return { txt: escapeScore(txt), cls, bg: c[0], fg: c[1] };
 }
 function mscGradeClass(g) {
   const n = parseFloat(g);
@@ -897,7 +899,7 @@ function renderMobileScoreGrid(c) {
   const cards = c.students.map((s, i) => {
     const av = mscAvatar(s, i);
     return `<button class="msc-card" onclick="openMobileStudentScores('${c.id}','${s.id}')">
-      <span class="msc-av" style="background:${av.bg};color:${av.fg};">${av.txt}</span>
+      <span class="msc-av${av.cls}" style="background:${av.bg};color:${av.fg};">${av.txt}</span>
       <span class="msc-no">เลขที่ ${s.no || (i + 1)}</span>
       <span class="msc-name">${escapeScore(s.name)}</span>
     </button>`;

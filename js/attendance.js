@@ -252,6 +252,27 @@ function closeSwipeAttendance() {
   else if (screen === 'dashboard') renderWebDashboard();
 }
 
+function finishSwipeAttendance() {
+  const classId = swipeClassId;
+  stopQrAttendancePolling();
+  document.getElementById('swipe-overlay').classList.remove('show');
+  if (classId) switchClassTab('reports', classId);
+  else navigateToWebScreen('classrooms');
+}
+
+function isSwipeAttendanceComplete() {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  return !!(c && c.students.length > 0 && c.students.every(s => swipeResults[s.id]));
+}
+
+function finishMobileSwipeAttendanceSoon() {
+  const isMobile = window.matchMedia('(max-width: 768px)').matches;
+  if (!isMobile || !isSwipeAttendanceComplete()) return;
+  setTimeout(() => {
+    if (isSwipeAttendanceComplete()) finishSwipeAttendance();
+  }, 650);
+}
+
 // เพิ่ม/นำเข้านักเรียนจากหน้าเช็คชื่อ (ใช้ห้องปัจจุบันของหน้าเช็คชื่อ)
 function addStudentFromSwipe() {
   if (!swipeClassId) return;
@@ -747,7 +768,7 @@ function renderSwipeCard() {
         <span class="summary-pill" style="background:var(--color-absent-bg);color:var(--color-absent);">ขาด ${absent}</span>
         <span class="summary-pill" style="background:var(--color-leave-bg);color:var(--color-leave);">ลา ${leave}</span>
       </div>
-      <button class="btn btn-primary" style="margin-top:20px;padding:12px 32px;font-size:0.95rem;font-weight:700;" onclick="closeSwipeAttendance()">
+      <button class="btn btn-primary" style="margin-top:20px;padding:12px 32px;font-size:0.95rem;font-weight:700;" onclick="finishSwipeAttendance()">
         <i class="hgi-stroke hgi-tick-02" style="margin-right:6px;"></i>เสร็จสิ้น
       </button>`;
     return;
@@ -969,6 +990,7 @@ function markSwipeStatus(status) {
     swipeStudentIndex = (swipeStudentIndex + 1) % c.students.length;
     renderSwipeCard();
     autoSaveAttendance();
+    finishMobileSwipeAttendanceSoon();
   }, 350);
 }
 
@@ -1003,6 +1025,7 @@ function setAllSwipePresent() {
     renderDesktopSwipeTable();  // รีเฟรชตาราง desktop
     renderSwipeCard();
     showToast(`ตั้งสถานะ "มา" ให้นักเรียนทั้ง ${c.students.length} คนแล้ว`, 'success');
+    finishMobileSwipeAttendanceSoon();
   }, { title: 'มาทุกคน', icon: '<i class="hgi-stroke hgi-checkmark-circle-02" style="color:var(--color-present);"></i>', okText: 'ยืนยัน', okSafe: true });
 }
 

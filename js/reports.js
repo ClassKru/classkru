@@ -337,14 +337,18 @@ function renderTermReport() {
     leave:   'var(--color-leave)',
   };
   const STATUS_LABEL = { present: 'มา', late: 'สาย', absent: 'ขาด', leave: 'ลา' };
-  const STATUS_TEXT  = { present: 'var(--color-present)', late: 'var(--color-late-text)', absent: 'var(--color-absent)', leave: 'var(--color-leave)' };
+  const dateTitle = d => {
+    const o = new Date(d + 'T00:00:00');
+    const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    return `${o.getDate()} ${months[o.getMonth()]} ${o.getFullYear() + 543}`;
+  };
 
   // grid columns: ชื่อ 140px + คาบ 28px ต่อคาบ + รวม (พื้นที่ที่เหลือชิดขวา)
   const gridCols = `140px repeat(${dates.length}, 28px) minmax(90px, 1fr)`;
 
   // ===== เดสก์ท็อป: ตาราง dot รายคาบเต็ม =====
   let desktop = `<div class="term-grid-row term-grid-header" style="--term-cols:${gridCols};"><div class="term-grid-name"></div>`;
-  dates.forEach((d, i) => { desktop += `<div class="term-grid-cell term-grid-date" style="font-size:0.7rem;">${i+1}</div>`; });
+  dates.forEach((d, i) => { desktop += `<div class="term-grid-cell term-grid-date" style="font-size:0.7rem;" title="คาบ ${i+1} · ${dateTitle(d)}">${i+1}</div>`; });
   desktop += `<div class="term-grid-summary is-header">รวม</div></div>`;
 
   // ===== มือถือ: การ์ดสรุปต่อคน มา/สาย/ขาด/ลา + % (dot รายคาบไปดูบนคอม) =====
@@ -352,7 +356,7 @@ function renderTermReport() {
 
   c.students.forEach(s => {
     let absent=0, late=0, leave=0, present=0;
-    let cells = '', timeline = '';
+    let cells = '';
     dates.forEach((d, i) => {
       const st = (c.attendance[d]||{})[s.id] || '';
       if (st==='present') present++;
@@ -360,33 +364,26 @@ function renderTermReport() {
       else if (st==='absent') absent++;
       else if (st==='leave') leave++;
       const bg = STATUS_COLOR[st] || '#d1d5db';
-      cells += `<div class="term-grid-cell" title="${s.name}: ${STATUS_LABEL[st]||'-'}"><span style="display:inline-block;width:16px;height:16px;border-radius:50%;background:${bg};"></span></div>`;
-      timeline += `<span class="tm-tl-item"><b>คาบ ${i+1}</b><span class="tm-tl-end"><span class="tm-tl-st" style="color:${STATUS_TEXT[st]||'var(--text-muted)'};">${STATUS_LABEL[st]||'–'}</span><span class="tm-dot" style="background:${bg};"></span></span></span>`;
+      cells += `<div class="term-grid-cell"><button class="term-dot-btn" type="button" title="คาบ ${i+1} · ${dateTitle(d)}" onclick="openAttendanceDateFromReport(event,'${c.id}','${d}')"><span style="background:${bg};"></span></button></div>`;
     });
-    const total = present+late+absent+leave;
-    const pctS = total > 0 ? Math.round((present+late)/total*100) : 0;
+    const attended = present + late + leave;
+    const pctS = dates.length > 0 ? Math.round(attended / dates.length * 100) : 0;
     const pctColor = pctS >= 80 ? 'var(--color-present)' : pctS >= 60 ? 'var(--color-late-text)' : 'var(--color-absent)';
     const nameLabel = `${s.no ? s.no+'. ' : ''}${s.name}`;
 
-    // panel กาง (dot รายคาบ + ลิงก์ไปหน้าแก้ไข) ใช้ร่วมทั้งมือถือ/คอม
-    const panel = timeline
-      ? `<div class="term-tl">${timeline}</div><button class="term-tl-edit" onclick="event.stopPropagation();currentClassId='${c.id}';openStudentDetailModal('${s.id}','${c.id}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button>`
-      : `<div class="tm-tl-empty">ยังไม่มีข้อมูลการเช็คชื่อ</div>`;
-
-    desktop += `<div class="term-grid-row term-clickable" style="--term-cols:${gridCols};" onclick="toggleTermExpand('tmx-d-${s.id}',this)">
+    desktop += `<div class="term-grid-row term-clickable" style="--term-cols:${gridCols};" onclick="openStudentSummaryModal('${s.id}','${c.id}')">
       <div class="term-grid-name">${nameLabel}</div>
       ${cells}
       <div class="term-grid-summary">
         <span style="font-weight:800;font-size:0.82rem;color:${pctColor};white-space:nowrap;">${pctS}%</span>
       </div>
-    </div>
-    <div class="term-expand term-expand-desk" id="tmx-d-${s.id}">${panel}</div>`;
+    </div>`;
 
     const stat = (color, label, n) => `<span class="tm-stat${n>0?' on':''}"><span class="tm-dot" style="background:${color};"></span>${label} <b>${n}</b></span>`;
-    mobile += `<div class="term-mcard term-clickable" onclick="toggleTermExpand('tmx-m-${s.id}',this)">
+    mobile += `<div class="term-mcard term-clickable" onclick="openStudentSummaryModal('${s.id}','${c.id}')">
       <div class="term-mcard-top">
         <span class="term-mcard-name">${nameLabel}</span>
-        <span class="term-mcard-pct" style="color:${pctColor};">${total>0 ? pctS+'%' : '—'} <i class="hgi-stroke hgi-arrow-down-01 tm-chev"></i></span>
+        <span class="term-mcard-pct" style="color:${pctColor};">${dates.length>0 ? pctS+'%' : '—'} <i class="hgi-stroke hgi-view tm-chev"></i></span>
       </div>
       <div class="term-mcard-stats">
         ${stat('var(--color-present)','มา',present)}
@@ -394,24 +391,15 @@ function renderTermReport() {
         ${stat('var(--color-absent)','ขาด',absent)}
         ${stat('var(--color-leave)','ลา',leave)}
       </div>
-      <div class="term-expand" id="tmx-m-${s.id}">${panel}</div>
     </div>`;
   });
 
   heatmap.innerHTML = `<div class="term-desktop-view">${desktop}</div><div class="term-mobile-view">${mobile}</div>`;
 }
 
-// แตะการ์ด/แถวรายภาค → กาง/พับ panel dot รายคาบ (ปิดอันอื่นก่อนเพื่อเปิดทีละคน)
-function toggleTermExpand(panelId, rowEl) {
-  const el = document.getElementById(panelId);
-  if (!el) return;
-  const willOpen = !el.classList.contains('open');
-  document.querySelectorAll('.term-expand.open').forEach(p => p.classList.remove('open'));
-  document.querySelectorAll('.term-clickable.expanded').forEach(r => r.classList.remove('expanded'));
-  if (willOpen) {
-    el.classList.add('open');
-    if (rowEl) rowEl.classList.add('expanded');
-  }
+function openAttendanceDateFromReport(event, classId, dateKey) {
+  if (event) event.stopPropagation();
+  openSwipeAttendance(classId, dateKey);
 }
 
 function renderOverallReport() {
