@@ -37,6 +37,15 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
   --text-muted: #7a7a76;
   --border-color: #e6e6e2;
 
+  /* เฉพาะจอที่ฉายให้นักเรียนดู (เครื่องมือหน้าชั้น/เกม) */
+  --loud-ink: #123b31;
+  --loud-surface: #e9f6ef;
+  --loud-surface-2: #bfebd8;
+  --loud-accent: #12b886;
+  --loud-accent-sh: #0b7a5c;
+  --loud-warm: #ff8a3d;
+  --loud-warm-sh: #c2571a;
+
   --color-present: #22a565;
   --color-present-bg: #e8f4ec;
   --color-late: #e0a81a;
