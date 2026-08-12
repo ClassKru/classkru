@@ -22,10 +22,10 @@
   <link rel="stylesheet" href="css/01-base-layout.css?v=292">
   <link rel="stylesheet" href="css/02-dashboard-tables.css?v=292">
   <link rel="stylesheet" href="css/03-reports.css?v=292">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=292">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=298">
   <link rel="stylesheet" href="css/05-home.css?v=292">
-  <link rel="stylesheet" href="css/06-attendance.css?v=292">
-  <link rel="stylesheet" href="css/07-scores.css?v=292">
+  <link rel="stylesheet" href="css/06-attendance.css?v=299">
+  <link rel="stylesheet" href="css/07-scores.css?v=301">
     <link rel="stylesheet" href="css/08-responsive-toast.css?v=292">
     <link rel="stylesheet" href="css/09-games.css?v=292">
   <link rel="stylesheet" href="css/10-help.css?v=292">
@@ -354,20 +354,7 @@
                 <button class="ck-class-menu-btn mobile-only-flex" aria-label="ตัวเลือกเพิ่มเติม" style="align-items:center;" onclick="toggleStudentsActionMenu(event)"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
               </div>
             </div>
-            <div class="card" style="padding:12px 0 4px;overflow:hidden;">
-              <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-                <div id="students-mw" style="min-width:560px;">
-                  <div class="d-student-header-row">
-                    <div style="width:50px;text-align:center;">เลขที่</div>
-                    <div style="width:90px;text-align:center;">รหัส</div>
-                    <div style="flex:2;">ชื่อ-นามสกุล</div>
-                    <div style="flex:1;">หมายเหตุ</div>
-                    <div style="width:84px;text-align:center;">จัดการ</div>
-                  </div>
-                  <div id="web-students-list" class="desktop-student-grid" style="padding:0 16px 16px 16px;"></div>
-                </div>
-              </div>
-            </div>
+            <div id="web-students-list" class="student-card-grid"></div>
           </div>
           <div id="web-students-empty-state" style="text-align:center;padding:40px;color:var(--text-muted);">
             <i class="hgi-stroke hgi-teaching" style="font-size:3rem;margin-bottom:16px;color:var(--border-color);"></i>
@@ -480,6 +467,7 @@
           <div id="web-scores-detail-view" style="display:none;">
             <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action" onclick="openScoreExportMenu()"><i class="hgi-stroke hgi-file-download"></i> <span class="hide-mobile">ส่งออก</span></button><button class="btn ck-hdr-action ck-ic-purple" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn ck-hdr-action ck-ic-gray" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
             <div id="scores-classtab-holder"></div>
+            <div id="score-worktab-holder"></div>
             <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
           </div>
         </div>
@@ -660,7 +648,6 @@
         <div class="swipe-progress-bar"><div class="swipe-progress-fill" id="swipe-progress-fill"></div></div>
         <div class="swipe-progress-actions">
           <button class="swipe-mini-btn primary" onclick="setAllSwipePresent()"><i class="hgi-stroke hgi-tick-02"></i> มาทุกคน</button>
-          <button class="swipe-mini-btn qr" onclick="openQrAttendanceModal()"><i class="hgi-stroke hgi-qr-code"></i> QR เช็คชื่อ</button>
           <span class="swipe-progress-checked">เช็คแล้ว <span id="swipe-checked-count">0</span> / <span id="swipe-total-count">0</span></span>
           <button class="swipe-mini-btn danger" onclick="clearSwipeChecks()"><i class="hgi-stroke hgi-delete-02"></i> ล้างข้อมูล</button>
         </div>
@@ -1047,9 +1034,14 @@
   <!-- STUDENT SUMMARY MODAL (ดูข้อมูล: เข้าเรียน + คะแนน/เกรด — คนละอันกับหน้าแก้ไข) -->
   <div class="modal-overlay" id="modal-student-summary" onclick="if(event.target===this) closeStudentSummaryModal()" style="z-index:9000;">
     <div class="bottom-sheet" style="width:480px;">
-      <div class="modal-header"><h3 id="student-summary-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentSummaryModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
-      <div id="student-summary-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:6px;"></div>
-      <div id="student-summary-idline" style="font-size:0.8rem;color:var(--text-muted);margin-bottom:18px;display:flex;gap:16px;flex-wrap:wrap;"></div>
+      <div class="student-summary-hero">
+        <div id="student-summary-avatar" class="student-summary-avatar"></div>
+        <div class="student-summary-identity">
+          <div class="modal-header"><h3 id="student-summary-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentSummaryModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
+          <div id="student-summary-class" class="student-summary-class"></div>
+          <div id="student-summary-idline" class="student-summary-idline"></div>
+        </div>
+      </div>
 
       <div style="font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:8px;">การเข้าเรียน</div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:6px;">
@@ -1176,16 +1168,16 @@
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
   <script defer src="js/core.js?v=292"></script>
   <script defer src="js/auth.js?v=292"></script>
-  <script defer src="js/shell.js?v=292"></script>
+  <script defer src="js/shell.js?v=300"></script>
   <script defer src="js/dashboard.js?v=292"></script>
-  <script defer src="js/classrooms.js?v=292"></script>
-  <script defer src="js/students.js?v=292"></script>
+  <script defer src="js/classrooms.js?v=300"></script>
+  <script defer src="js/students.js?v=299"></script>
   <script defer src="js/timetable.js?v=292"></script>
   <script defer src="js/reports.js?v=292"></script>
   <script defer src="js/attendance.js?v=292"></script>
-  <script defer src="js/scores.js?v=292"></script>
+  <script defer src="js/scores.js?v=301"></script>
   <script defer src="js/tools.js?v=292"></script>
-  <script defer src="js/shared-utils.js?v=292"></script>
+  <script defer src="js/shared-utils.js?v=298"></script>
   <script defer src="js/extras.js?v=292"></script>
   <script defer src="js/help.js?v=292"></script>
 </body>

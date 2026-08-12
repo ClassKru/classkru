@@ -209,12 +209,35 @@ function openStudentDetailModal(studentId, classId) {
 
 function closeStudentDetailModal() { document.getElementById('modal-student-detail').classList.remove('show'); }
 
+function escapeStudentSummaryHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[ch]);
+}
+
 // modal สรุปนักเรียน (ดูข้อมูล view-only): เข้าเรียน + คะแนน/เกรด — คนละอันกับหน้าแก้ไข
 function openStudentSummaryModal(studentId, classId) {
   const c = appState.classes.find(x => x.id === (classId || currentClassId));
   if (!c) return;
   const s = c.students.find(x => x.id === studentId);
   if (!s) return;
+
+  const realIdx = c.students.indexOf(s);
+  const av = (typeof mscAvatar === 'function') ? mscAvatar(s, realIdx < 0 ? 0 : realIdx) : { bg: 'var(--primary-light)', fg: 'var(--primary)' };
+  const avatarText = escapeStudentSummaryHtml((s.nickname || '').trim() || String(s.no || ''));
+  const avatarClass = avatarText.length > 5 ? ' is-tiny' : (avatarText.length > 3 ? ' is-small' : '');
+  const avatarEl = document.getElementById('student-summary-avatar');
+  if (avatarEl) {
+    avatarEl.style.setProperty('--av-bg', av.bg);
+    avatarEl.style.setProperty('--av-fg', av.fg);
+    avatarEl.innerHTML = s.photoBase64
+      ? `<img src="${s.photoBase64}" alt="">`
+      : `<span class="student-summary-avatar-text${avatarClass}" title="${avatarText}">${avatarText || '—'}</span>`;
+  }
 
   document.getElementById('student-summary-name').innerText = s.nickname ? `${s.name} (${s.nickname})` : s.name;
   document.getElementById('student-summary-class').innerText = `${c.subject} (${c.className})`;

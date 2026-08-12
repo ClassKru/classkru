@@ -31,6 +31,8 @@ const SCORE_TYPES = [
 ];
 
 const SCORE_GRADES = ['4', '3.5', '3', '2.5', '2', '1.5', '1', '0'];
+let scoreWorkspaceMode = 'quick';
+let quickScoreItemId = null;
 
 function defaultScoreConfig() {
   return {
@@ -159,13 +161,161 @@ function viewClassScores(classId) {
     `<span style="width:12px;height:12px;border-radius:50%;background:${col.text};flex-shrink:0;"></span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;">${c.subject} (${c.className})</span>`;
   const scTab = document.getElementById('scores-classtab-holder');
   if (scTab) scTab.innerHTML = renderClassTabBar(classId, 'scores');
-  renderScoreMatrix(c);
+  renderScoreWorkspace(c);
+}
+
+function scoreWorkTabsHtml(c) {
+  const tabs = [
+    { key: 'quick', label: 'กรอกเร็ว', icon: 'hgi-pencil-edit-02' },
+    { key: 'items', label: 'งานทั้งหมด', icon: 'hgi-task-01' },
+    { key: 'overview', label: 'ภาพรวม ปพ.5', icon: 'hgi-table' }
+  ];
+  return `<div class="score-worktabs">${tabs.map(t => `
+    <button class="score-worktab${scoreWorkspaceMode === t.key ? ' active' : ''}" onclick="setScoreWorkspaceMode('${t.key}','${c.id}')">
+      <i class="hgi-stroke ${t.icon}"></i><span>${t.label}</span>
+    </button>`).join('')}</div>`;
+}
+
+function setScoreWorkspaceMode(mode, classId) {
+  scoreWorkspaceMode = mode;
+  const c = appState.classes.find(x => x.id === classId);
+  if (c) renderScoreWorkspace(c);
+}
+
+function renderScoreWorkspace(c) {
+  const holder = document.getElementById('score-worktab-holder');
+  if (holder) holder.innerHTML = scoreWorkTabsHtml(c);
+  const wrap = document.getElementById('web-scores-matrix-wrap');
+  if (wrap) wrap.classList.remove('msc-wrap');
+  if (scoreWorkspaceMode === 'items') return renderScoreItemsDashboard(c);
+  if (scoreWorkspaceMode === 'overview') return renderScoreMatrix(c);
+  return renderQuickScoreEntry(c);
+}
+
+function quickScoreCompletion(sc, item, students) {
+  const marks = sc.marks[item.id] || {};
+  const filled = students.filter(s => marks[s.id] !== undefined && marks[s.id] !== null && marks[s.id] !== '').length;
+  const values = students.map(s => clampMark(marks[s.id], item.max)).filter(v => v !== '');
+  const avg = values.length ? Math.round((values.reduce((a, v) => a + Number(v), 0) / values.length) * 10) / 10 : '—';
+  return { filled, total: students.length, avg };
+}
+
+function renderQuickScoreStats(c, itemId) {
+  const c2 = appState.classes.find(x => x.id === c.id);
+  if (!c2) return;
+  const sc = ensureScores(c2);
+  const item = sc.items.find(i => i.id === itemId);
+  if (!item) return;
+  const stat = quickScoreCompletion(sc, item, c2.students);
+  const pct = stat.total ? Math.round((stat.filled / stat.total) * 100) : 0;
+  const fillEl = document.getElementById('score-quick-progress-fill');
+  const countEl = document.getElementById('score-quick-count');
+  const avgEl = document.getElementById('score-quick-avg');
+  if (fillEl) fillEl.style.width = pct + '%';
+  if (countEl) countEl.innerText = `${stat.filled}/${stat.total}`;
+  if (avgEl) avgEl.innerText = String(stat.avg);
+}
+
+function setQuickScoreMark(classId, itemId, sid, el) {
+  setScoreMark(classId, itemId, sid, el);
+  const c = appState.classes.find(x => x.id === classId);
+  if (c) renderQuickScoreStats(c, itemId);
+}
+
+function renderQuickScoreEntry(c) {
+  const sc = ensureScores(c);
+  const wrap = document.getElementById('web-scores-matrix-wrap');
+  if (!wrap) return;
+  if (c.students.length === 0) {
+    wrap.innerHTML = '<div class="empty-state">ห้องนี้ยังไม่มีนักเรียน — เพิ่มรายชื่อในเมนูนักเรียนก่อน</div>';
+    return;
+  }
+  const items = scoreOrderedItems(c);
+  if (items.length === 0) {
+    wrap.innerHTML = `<div class="score-empty-panel">
+      <i class="hgi-stroke hgi-task-add-01"></i>
+      <strong>ยังไม่มีงานให้กรอกคะแนน</strong>
+      <span>เริ่มจากเพิ่มงานหรือชิ้นงาน 1 รายการ แล้วครูจะกรอกคะแนนทั้งห้องได้จากหน้านี้</span>
+      <button class="btn btn-primary" onclick="openScoreItemModal('${c.id}',null,'before')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มงานแรก</button>
+    </div>`;
+    return;
+  }
+  if (!quickScoreItemId || !items.some(i => i.id === quickScoreItemId)) quickScoreItemId = items[0].id;
+  const item = items.find(i => i.id === quickScoreItemId) || items[0];
+  const stat = quickScoreCompletion(sc, item, c.students);
+  const pct = stat.total ? Math.round((stat.filled / stat.total) * 100) : 0;
+  const options = items.map(i => `<option value="${i.id}" ${i.id === item.id ? 'selected' : ''}>${escapeScore(i.name)} / ${i.max}</option>`).join('');
+  const rows = c.students.map((s, idx) => {
+    const v = clampMark((sc.marks[item.id] || {})[s.id], item.max);
+    const av = mscAvatar(s, idx);
+    return `<div class="score-quick-row">
+      <div class="score-quick-student">
+        <span class="score-quick-avatar" style="background:${av.bg};color:${av.fg};">${av.txt}</span>
+        <div><strong>${escapeScore(s.name)}</strong><span>เลขที่ ${s.no || (idx + 1)}${s.studentCode ? ` · รหัส ${escapeScore(s.studentCode)}` : ''}</span></div>
+      </div>
+      <label class="score-quick-input">
+        <input type="number" value="${v}" min="0" max="${item.max}" step="0.5" inputmode="decimal" placeholder="–"
+          onchange="setQuickScoreMark('${c.id}','${item.id}','${s.id}',this)">
+        <span>/ ${item.max}</span>
+      </label>
+    </div>`;
+  }).join('');
+  wrap.innerHTML = `<section class="score-quick-shell">
+    <div class="score-quick-head">
+      <div>
+        <span class="score-mode-label">กรอกคะแนนทีละงาน</span>
+        <h3>${escapeScore(item.name)}</h3>
+        <p>${scoreBucketLabel(item.bucket)} · เต็ม ${item.max} คะแนน</p>
+      </div>
+      <div class="score-quick-controls">
+        <select class="form-control" onchange="quickScoreItemId=this.value;renderQuickScoreEntry(appState.classes.find(c=>c.id==='${c.id}'))">${options}</select>
+        <button class="btn" onclick="openScoreItemModal('${c.id}','${item.id}')"><i class="hgi-stroke hgi-settings-01"></i> ตั้งค่า</button>
+        <button class="btn btn-primary" onclick="openScoreItemModal('${c.id}',null,'${item.bucket}')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มงาน</button>
+      </div>
+    </div>
+    <div class="score-quick-summary">
+      <div><span>กรอกแล้ว</span><strong id="score-quick-count">${stat.filled}/${stat.total}</strong></div>
+      <div><span>เฉลี่ย</span><strong id="score-quick-avg">${stat.avg}</strong></div>
+      <div class="score-quick-progress"><div id="score-quick-progress-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="score-quick-list">${rows}</div>
+  </section>`;
+}
+
+function renderScoreItemsDashboard(c) {
+  const sc = ensureScores(c);
+  const wrap = document.getElementById('web-scores-matrix-wrap');
+  if (!wrap) return;
+  const items = scoreOrderedItems(c);
+  if (items.length === 0) {
+    wrap.innerHTML = `<div class="score-empty-panel">
+      <i class="hgi-stroke hgi-task-add-01"></i>
+      <strong>ยังไม่มีงาน/ชิ้นงาน</strong>
+      <span>เพิ่มงานเพื่อเริ่มเก็บคะแนน และข้อมูลจะไปขึ้นทั้งกรอกเร็วกับภาพรวม ปพ.5</span>
+      <button class="btn btn-primary" onclick="openScoreItemModal('${c.id}',null,'before')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มงาน</button>
+    </div>`;
+    return;
+  }
+  const cards = items.map(it => {
+    const stat = quickScoreCompletion(sc, it, c.students);
+    const pct = stat.total ? Math.round((stat.filled / stat.total) * 100) : 0;
+    return `<article class="score-item-card">
+      <div><span>${scoreBucketLabel(it.bucket)}</span><strong>${escapeScore(it.name)}</strong><p>เต็ม ${it.max} คะแนน${it.date ? ` · ${escapeScore(it.date)}` : ''}</p></div>
+      <div class="score-item-meter"><div style="width:${pct}%"></div></div>
+      <footer><span>กรอกแล้ว ${stat.filled}/${stat.total}</span><button onclick="quickScoreItemId='${it.id}';setScoreWorkspaceMode('quick','${c.id}')">กรอกคะแนน</button><button onclick="openScoreItemModal('${c.id}','${it.id}')">ตั้งค่า</button></footer>
+    </article>`;
+  }).join('');
+  wrap.innerHTML = `<section class="score-items-shell">
+    <div class="score-items-head"><div><span class="score-mode-label">งานทั้งหมด</span><h3>${items.length} รายการคะแนน</h3></div><button class="btn btn-primary" onclick="openScoreItemModal('${c.id}',null,'before')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มงาน</button></div>
+    <div class="score-item-grid">${cards}</div>
+  </section>`;
 }
 
 function renderScoreMatrix(c) {
   const sc = ensureScores(c);
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (!wrap) return;
+  wrap.classList.remove('msc-wrap');
 
   // มือถือ = โหมด "ลงมือ": การ์ดรายชื่อ → แตะเข้ากรอกทีละคน (desktop คงตารางเดิม)
   if (typeof isMobileView === 'function' && isMobileView()) return renderMobileScores(c);
@@ -349,7 +499,7 @@ function setCatWeight(classId, catKey, el) {
   el.value = v;
   cfg.ratio[catKey] = v;
   saveState();
-  renderScoreMatrix(c);
+  renderScoreWorkspace(c);
   const sum = SCORE_WK.reduce((a, b) => a + (Number(cfg.ratio[b.key]) || 0), 0);
   if (sum !== 100) showToast(`สัดส่วนรวม ${sum}% (ควรเป็น 100%)`, 'warning');
 }
@@ -379,7 +529,7 @@ function deleteStudentFromScores(classId, sid) {
     delete sc.gradeOverride[sid];
     saveState();
     showToast('ลบนักเรียนแล้ว', 'success');
-    renderScoreMatrix(c);
+    renderScoreWorkspace(c);
   }, { title: `ลบ "${s.name}"?`, icon: '🗑️', okText: 'ลบ' });
 }
 
@@ -405,7 +555,7 @@ function setItemMax(classId, itemId, el) {
   if (isNaN(v) || v <= 0) { el.value = it.max; showToast('คะแนนเต็มต้องมากกว่า 0', 'warning'); return; }
   it.max = v;
   saveState();
-  renderScoreMatrix(c);
+  renderScoreWorkspace(c);
 }
 
 // ==================== รายการคะแนน (item CRUD) ====================
@@ -469,7 +619,8 @@ function saveScoreItem() {
   }
   saveState();
   closeScoreItemModal();
-  renderScoreMatrix(c);
+  if (!quickScoreItemId && sc.items.length) quickScoreItemId = sc.items[sc.items.length - 1].id;
+  renderScoreWorkspace(c);
 }
 
 function deleteScoreItem() {
@@ -481,9 +632,10 @@ function deleteScoreItem() {
   showConfirm(`ลบรายการ "${it ? it.name : ''}" และคะแนนทั้งหมดในรายการนี้?`, () => {
     sc.items = sc.items.filter(i => i.id !== editingScoreItemId);
     delete sc.marks[editingScoreItemId];
+    if (quickScoreItemId === editingScoreItemId) quickScoreItemId = null;
     saveState();
     closeScoreItemModal();
-    renderScoreMatrix(c);
+    renderScoreWorkspace(c);
   }, { title: 'ลบรายการคะแนน', icon: '🗑️', okText: 'ลบ' });
 }
 
@@ -543,7 +695,7 @@ function saveScoreSettings() {
   cfg.gradeCut = cuts;
   saveState();
   document.getElementById('modal-score-settings').classList.remove('show');
-  renderScoreMatrix(c);
+  renderScoreWorkspace(c);
   showToast('บันทึกการตั้งค่าคะแนนแล้ว', 'success');
 }
 

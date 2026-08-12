@@ -27,6 +27,26 @@ function toggleStudentsSearch() {
   }
 }
 
+function escapeStudentCardHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[ch]);
+}
+
+function splitStudentDisplayName(value) {
+  const cleanName = String(value || 'นักเรียน').trim().replace(/\s+/g, ' ');
+  const lastSpace = cleanName.lastIndexOf(' ');
+  if (lastSpace <= 0) return { first: cleanName, last: '' };
+  return {
+    first: cleanName.slice(0, lastSpace),
+    last: cleanName.slice(lastSpace + 1)
+  };
+}
+
 function renderWebStudents() {
   const container = document.getElementById('web-students-list');
   const filter = document.getElementById('web-student-class-filter');
@@ -83,25 +103,70 @@ function renderWebStudents() {
 
   document.getElementById('web-students-count-label').innerText = `พบ ${filteredStudents.length} คน`;
 
-  filteredStudents.forEach(s => {
-    const codeEsc = String(s.studentCode || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-    const row = document.createElement('div');
-    row.className = 'd-student-row';
+  if (filteredStudents.length === 0) {
+    container.innerHTML = `
+      <div class="student-card-empty">
+        <i class="hgi-stroke hgi-user-search-01"></i>
+        <strong>ไม่พบนักเรียนที่ตรงกับคำค้น</strong>
+        <span>ลองค้นด้วยชื่อ หรือรหัสนักเรียนอีกครั้ง</span>
+      </div>`;
+    return;
+  }
+
+  filteredStudents.forEach((s, visibleIndex) => {
+    const codeEsc = escapeStudentCardHtml(s.studentCode || '');
+    const displayName = splitStudentDisplayName(s.name || 'นักเรียน');
+    const firstNameEsc = escapeStudentCardHtml(displayName.first);
+    const lastNameEsc = escapeStudentCardHtml(displayName.last);
+    const fullNameEsc = escapeStudentCardHtml(s.name || 'นักเรียน');
+    const nickEsc = escapeStudentCardHtml((s.nickname || '').trim());
+    const commentEsc = escapeStudentCardHtml((s.comment || '').trim());
+    const card = document.createElement('article');
+    card.className = 'student-roster-card';
+    card.tabIndex = 0;
     // สี avatar ชุดเดียวกับหน้าคะแนน (ไล่ตามลำดับคนในห้อง → คนเดียวกันได้สีตรงกันทั้ง 2 หน้า) — โชว์เป็นวงกลมบนมือถือ
     const realIdx = targetClass.students.indexOf(s);
     const av = (typeof mscAvatar === 'function') ? mscAvatar(s, realIdx < 0 ? 0 : realIdx) : { bg: '', fg: '' };
-    // แตะทั้งแถว = เปิด modal ข้อมูล (ยกเว้นคลิก input/ปุ่มในตาราง เดสก์ท็อป)
-    row.setAttribute('onclick', `if(!event.target.closest('input,button'))openStudentSummaryModal('${s.id}','${targetClass.id}')`);
-    row.innerHTML = `
-      <div class="d-col-no"><span class="d-no-badge" style="--av-bg:${av.bg};--av-fg:${av.fg};">${s.no || '-'}</span></div>
-      <div class="d-col-code"><input class="d-code-input" type="text" value="${codeEsc}" placeholder="-" onchange="setStudentCodeInline('${targetClass.id}','${s.id}',this.value)"></div>
-      <div class="d-col-name ck-student-name-link" title="ดูข้อมูล เข้าเรียน/คะแนน">${s.name}</div>
-      <div class="d-col-note" style="color:var(--text-muted);font-size:0.8rem;">${s.comment || '-'}</div>
-      <div class="d-col-manage">
-        <button class="d-manage-btn" title="แก้ไขข้อมูล" onclick="currentClassId='${targetClass.id}';openStudentDetailModal('${s.id}','${targetClass.id}')"><i class="hgi-stroke hgi-edit-02"></i></button>
-        <button class="d-manage-btn danger" title="ลบนักเรียน" onclick="currentClassId='${targetClass.id}';deleteStudent('${s.id}')"><i class="hgi-stroke hgi-delete-02"></i></button>
+    const avatarText = nickEsc || String(s.no || visibleIndex + 1);
+    const avatarClass = avatarText.length > 5 ? ' is-tiny' : (avatarText.length > 3 ? ' is-small' : '');
+    const avatar = s.photoBase64
+      ? `<img src="${s.photoBase64}" alt="">`
+      : `<span class="student-card-avatar-text${avatarClass}" title="${avatarText}">${avatarText}</span>`;
+    const nicknameBlock = nickEsc ? `ชื่อเล่น ${nickEsc}` : 'ยังไม่มีชื่อเล่น';
+    card.setAttribute('onclick', `if(!event.target.closest('input,button'))openStudentSummaryModal('${s.id}','${targetClass.id}')`);
+    card.setAttribute('onkeydown', `if((event.key==='Enter'||event.key===' ')&&!event.target.closest('input,button')){event.preventDefault();openStudentSummaryModal('${s.id}','${targetClass.id}')}`);
+    card.innerHTML = `
+      <div class="student-card-top">
+        <span class="student-card-no" style="--av-bg:${av.bg};--av-fg:${av.fg};">เลขที่ ${s.no || '-'}</span>
+        <div class="student-card-actions">
+          <button class="student-card-icon-btn" title="แก้ไขข้อมูล" onclick="event.stopPropagation();currentClassId='${targetClass.id}';openStudentDetailModal('${s.id}','${targetClass.id}')"><i class="hgi-stroke hgi-edit-02"></i></button>
+          <button class="student-card-icon-btn danger" title="ลบนักเรียน" onclick="event.stopPropagation();currentClassId='${targetClass.id}';deleteStudent('${s.id}')"><i class="hgi-stroke hgi-delete-02"></i></button>
+        </div>
+      </div>
+      <div class="student-card-main">
+        <div class="student-card-avatar" style="--av-bg:${av.bg};--av-fg:${av.fg};">${avatar}</div>
+        <div class="student-card-name" title="${fullNameEsc}">
+          <strong>
+            <span class="student-card-name-line">${firstNameEsc}</span>
+            ${lastNameEsc ? `<span class="student-card-surname-line">${lastNameEsc}</span>` : ''}
+          </strong>
+          <span>${nicknameBlock}</span>
+        </div>
+      </div>
+      <div class="student-card-meta">
+        <label>
+          <span>รหัส</span>
+          <input class="student-card-code-input" type="text" value="${codeEsc}" maxlength="10" placeholder="-" onclick="event.stopPropagation()" onchange="setStudentCodeInline('${targetClass.id}','${s.id}',this.value)">
+        </label>
+        <div>
+          <span>หมายเหตุ</span>
+          <strong>${commentEsc || '-'}</strong>
+        </div>
+      </div>
+      <div class="student-card-foot">
+        <b>เปิดข้อมูล</b>
       </div>`;
-    container.appendChild(row);
+    container.appendChild(card);
   });
 }
 

@@ -54,6 +54,13 @@ window.addEventListener('hashchange', () => {
     if (!(showing && swipeClassId === param)) navigateToWebScreen('checkin', param);
     return;
   }
+  if (['students', 'scores', 'reports'].includes(screen) && param) {
+    const activeClassId = screen === 'scores'
+      ? (typeof scoreCurrentClassId !== 'undefined' ? scoreCurrentClassId : null)
+      : currentClassId;
+    if (screen !== appState.activeWebScreen || activeClassId !== param) navigateToWebScreen(screen, param);
+    return;
+  }
   if (screen !== appState.activeWebScreen) navigateToWebScreen(screen);
 });
 
@@ -62,12 +69,14 @@ function navigateToWebScreen(screenId, param) {
   // เมนู 'excel' ถูกตัดออกแล้ว (นำเข้าตารางสอนย้ายไปหน้าตารางสอน) — กัน state เก่าที่ค้าง
   if (screenId === 'excel') screenId = 'timetable';
 
-  // คะแนน/รายงาน = เข้าเฉพาะ "รายวิชา" ผ่านการ์ดหน้าห้องเรียนวิชาสอน (เลิกหน้าเลือกวิชาแล้ว)
+  // นักเรียน/คะแนน/รายงาน = เข้าเฉพาะ "รายวิชา" ผ่านการ์ดหน้าห้องเรียนวิชาสอน
   // ไม่มีห้องแนบมา (ลิงก์ตรง #scores/#reports · refresh · กด back) → เด้งกลับหน้าห้องเรียนวิชาสอน
   let detailClassId = null;
-  if (screenId === 'scores' || screenId === 'reports') {
+  if (screenId === 'students' || screenId === 'scores' || screenId === 'reports') {
     detailClassId = (param && appState.classes.some(c => c.id === param)) ? param : null;
-    if (!detailClassId) { navigateToWebScreen('classrooms'); return; }
+    if (!detailClassId && (screenId === 'scores' || screenId === 'reports')) { navigateToWebScreen('classrooms'); return; }
+    if (param && !detailClassId) { navigateToWebScreen('classrooms'); return; }
+    if (screenId === 'students' && detailClassId) window.__forceStudentClassId = detailClassId;
   }
 
   // ผู้ใช้เปลี่ยนไปหน้าอื่นที่ไม่ใช่ deep-link แล้ว → ยกเลิก deep-link (กัน sync ดึงกลับ)
@@ -95,7 +104,7 @@ function navigateToWebScreen(screenId, param) {
 
   // อัปเดต URL hash ให้ตรงหน้า (แชร์ลิงก์ได้ / กด back ได้ / LINE OA ลิงก์ตรง)
   // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
-  setRouteHash('#' + screenId);
+  setRouteHash(detailClassId ? `#${screenId}:${detailClassId}` : '#' + screenId);
 
   const screens = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','games','settings'];
   screens.forEach(s => {

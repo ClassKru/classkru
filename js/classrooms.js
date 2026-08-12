@@ -12,7 +12,7 @@ function renderWebClassrooms() {
     const col = getClassColor(c.id);
     const card = document.createElement('div');
     card.className = 'card ck-class-card';
-    // แตะตัวการ์ด = เช็คชื่อ (งานประจำวัน) · ปลายทางอื่นเป็นปุ่มแถวล่างที่มองเห็นชัด
+    // แตะตัวการ์ด = เปิดแฟ้มนักเรียนของห้องนั้น · เช็คชื่อยังเป็นปุ่ม action ชัดเจนด้านล่าง
     // เคยตัดปุ่มพวกนี้ออกไปให้การ์ดสะอาด แล้วพบว่าทำให้ต้องมีสถานะซ่อนคอยเดาปลายทางแทน
     // ซึ่งสับสนกว่ามาก รอบนี้เอากลับมาเป็นไอคอนล้วน เตี้ยกว่าปุ่มชุดเดิม
     card.style.cssText = `padding:0;overflow:hidden;gap:0;cursor:pointer;--cc:${col.text};border-top:4px solid ${col.text};`;
@@ -31,7 +31,7 @@ function renderWebClassrooms() {
       </div>
       <div class="ck-class-actions">
         <button onclick="event.stopPropagation();switchClassTab('scores','${c.id}')"><i class="hgi-stroke hgi-award-01"></i><span>คะแนน</span></button>
-        <button onclick="event.stopPropagation();switchClassTab('students','${c.id}')"><i class="hgi-stroke hgi-user-multiple"></i><span>นักเรียน</span></button>
+        <button onclick="event.stopPropagation();switchClassTab('checkin','${c.id}')"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
         <button onclick="event.stopPropagation();switchClassTab('reports','${c.id}')"><i class="hgi-stroke hgi-pie-chart"></i><span>การเข้าเรียน</span></button>
       </div>`;
     container.appendChild(card);
@@ -78,21 +78,20 @@ function startWebClassroomsCheckin(classId) {
 }
 
 function manageStudentsFromCard(classId) {
-  window.__forceStudentClassId = classId;
-  navigateToWebScreen('students');
+  navigateToWebScreen('students', classId);
 }
 
 // ==================== แถบแท็บภายในห้อง (detail tabs) — template กลางอันเดียว ใช้ทุกหน้า ====================
 // เสียบใต้หัวจอของแต่ละหน้า (คะแนน/นักเรียน/รายงาน) — ปุ่ม action เดิมของแต่ละหน้าอยู่ที่เดิม
-// แตะตัวการ์ดห้อง → เช็คชื่อ "เสมอ" ไม่มีเงื่อนไข ไม่มีสถานะซ่อน
-// ปลายทางอื่น (คะแนน/นักเรียน/การเข้าเรียน) เป็นปุ่มที่มองเห็นบนการ์ด ดู renderWebClassrooms
+// แตะตัวการ์ดห้อง → แฟ้มนักเรียนของห้องนั้น เป็น default ตามบริบทใหม่ของ ClassKru
+// งาน action เร็ว (เช็คชื่อ/คะแนน/การเข้าเรียน) เป็นปุ่มที่มองเห็นบนการ์ด ดู renderWebClassrooms
 //
 // เคยลองให้ระบบเดาปลายทางมาแล้ว 2 แบบ ถอยออกทั้งคู่:
 //   1. จำแท็บล่าสุดข้ามเซสชัน — ครูลืมไปแล้วว่าครั้งก่อนออกจากแท็บไหน
 //   2. ธงทางเข้าจาก bottom nav — การ์ดใบเดียวกันแตะแล้วได้คนละหน้าแล้วแต่ว่าเดินมาทางไหน
 // บทเรียน: การ์ด 1 ใบพาไป 4 หน้าไม่ได้ ถ้าปลายทางมีหลายอันก็ต้องมีปุ่มหลายอันให้เห็น
 function enterClassRoom(classId) {
-  switchClassTab('checkin', classId);
+  switchClassTab('students', classId);
 }
 
 function renderClassTabBar(classId, active) {
