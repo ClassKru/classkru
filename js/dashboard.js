@@ -29,6 +29,84 @@ function findNextDashboardScheduleDate(fromDate) {
   return null;
 }
 
+const HOME_DAY_ACCENTS = [
+  { accent: '#e2464a', soft: '#fdecea' }, // อาทิตย์
+  { accent: '#e0a81a', soft: '#fdf5e3' }, // จันทร์
+  { accent: '#d4547e', soft: '#fdeaf2' }, // อังคาร
+  { accent: '#1d9e75', soft: '#ecf9f6' }, // พุธ
+  { accent: '#f97316', soft: '#fff7ed' }, // พฤหัสบดี
+  { accent: '#3b7fd4', soft: '#eaf1fb' }, // ศุกร์
+  { accent: '#8b5cf6', soft: '#f5f3ff' }  // เสาร์
+];
+
+function escapeHomeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[ch]);
+}
+
+function renderHomeInsights(options) {
+  const holder = document.getElementById('home-insight-list');
+  if (!holder) return;
+  const dateKey = options.dateKey;
+  const viewSlots = options.viewSlots || [];
+  const unchecked = options.unchecked || [];
+  const nowMin = options.nowMin;
+  const scheduleIsToday = options.scheduleIsToday;
+
+  const absencesByClass = appState.classes.map(c => {
+    const att = (c.attendance || {})[dateKey] || {};
+    const absent = (c.students || []).filter(s => att[s.id] === 'absent').length;
+    return { classId: c.id, subject: c.subject, className: c.className, absent };
+  }).filter(item => item.absent > 0).sort((a, b) => b.absent - a.absent);
+
+  const ongoing = scheduleIsToday ? viewSlots.find(t => nowMin >= t.startMin && nowMin < t.endMin) : null;
+  const upcoming = scheduleIsToday ? viewSlots.find(t => nowMin < t.startMin) : null;
+  const items = [];
+
+  if (unchecked.length > 0) {
+    const target = unchecked[0];
+    items.push({
+      tone: 'warning',
+      icon: 'hgi-alert-02',
+      title: `ยังไม่ได้เช็กชื่อ ${unchecked.length} คาบ`,
+      detail: target ? `${target.subject} ${target.className} · แตะเพื่อเปิดเช็กชื่อ` : 'แตะเพื่อไปหน้าห้องเรียน',
+      action: target ? `openSwipeAttendance('${target.classId}', new Date('${dateKey}'))` : `navigateToWebScreen('classrooms')`
+    });
+  }
+
+  if (absencesByClass.length > 0) {
+    const totalAbsent = absencesByClass.reduce((sum, item) => sum + item.absent, 0);
+    absencesByClass.slice(0, 3).forEach((item) => {
+      items.push({
+        tone: 'danger',
+        icon: 'hgi-user-remove-01',
+        title: `${item.subject} ${item.className} ขาด ${item.absent} คน`,
+        detail: `รวมวันนี้ขาด ${totalAbsent} คน`,
+        action: `navigateToWebScreen('reports','${item.classId}')`
+      });
+    });
+  } else {
+    items.push({
+      tone: 'done',
+      icon: 'hgi-checkmark-circle-02',
+      title: 'ยังไม่มีนักเรียนขาดในข้อมูลวันนี้',
+      detail: 'หลังเช็กชื่อเสร็จ ระบบจะสรุปห้องที่ต้องติดตามให้ตรงนี้',
+      action: `navigateToWebScreen('reports')`
+    });
+  }
+
+  holder.innerHTML = items.slice(0, 4).map(item => `<button type="button" class="home-insight-item ${item.tone}" onclick="${item.action}">
+    <span class="home-insight-icon"><i class="hgi-stroke ${item.icon}"></i></span>
+    <span class="home-insight-copy"><strong>${escapeHomeHtml(item.title)}</strong><small>${escapeHomeHtml(item.detail)}</small></span>
+    <i class="hgi-stroke hgi-arrow-right-01 home-insight-arrow"></i>
+  </button>`).join('');
+}
+
 function renderWebDashboard() {
   const now = getNowDate();
   const viewDate = homeSelectedDate || now;
@@ -48,9 +126,9 @@ function renderWebDashboard() {
   // สีการ์ดวันที่ตามสีประจำวัน
   const dateCard = document.getElementById('home-date-card');
   if (dateCard) {
-    const dc = DAY_CARD_COLORS[viewDow] || DAY_CARD_COLORS[3];
-    dateCard.style.background = dc.grad;
-    dateCard.style.boxShadow = `0 6px 18px ${dc.shadow}`;
+    const dc = HOME_DAY_ACCENTS[viewDow] || HOME_DAY_ACCENTS[3];
+    dateCard.style.setProperty('--home-day-accent', dc.accent);
+    dateCard.style.setProperty('--home-day-soft', dc.soft);
   }
 
   // ---- Build slots for view day ----
@@ -102,14 +180,34 @@ function renderWebDashboard() {
   if (nextArea) {
     const currentSlots = buildDashboardScheduleSlots(now);
     const ongoing = currentSlots.find(t => nowMin >= t.startMin && nowMin < t.endMin);
+    const upcoming = currentSlots.find(t => nowMin < t.startMin);
     if (ongoing) {
-      nextArea.innerHTML = `<div class="home-next-card is-current-status is-ongoing" style="padding:13px 18px;gap:5px;"><div class="next-tag">● กำลังสอนขณะนี้ · ${ongoing.slotStart}–${ongoing.slotEnd} น.</div><div class="next-subject" style="font-size:1rem;">${ongoing.subject} <span style="font-weight:600;font-size:0.8rem;opacity:0.85;">· ${ongoing.className}</span></div></div>`;
+      const roomColor = getClassColor(ongoing.classId).text;
+      nextArea.innerHTML = `<div class="home-next-card is-ongoing" onclick="openSwipeAttendance('${ongoing.classId}', getNowDate());">
+        <div class="next-tag">วันนี้ · กำลังสอนขณะนี้ · ${ongoing.slotStart}–${ongoing.slotEnd} น.</div>
+        <div class="next-subject">${ongoing.subject} <span><i class="home-room-dot" style="background:${roomColor};"></i>${ongoing.className}</span></div>
+        <div class="next-meta">คาบ ${ongoing.period} · เปิดเช็กชื่อได้ทันทีจากตรงนี้</div>
+        <button class="next-action-btn" onclick="openSwipeAttendance('${ongoing.classId}', getNowDate());event.stopPropagation();"><i class="hgi-stroke hgi-user-check-01"></i> เช็กชื่อคาบนี้</button>
+      </div>`;
+    } else if (upcoming) {
+      const roomColor = getClassColor(upcoming.classId).text;
+      nextArea.innerHTML = `<div class="home-next-card is-upcoming" onclick="openSwipeAttendance('${upcoming.classId}', getNowDate());">
+        <div class="next-tag">วันนี้ · คาบถัดไป · ${upcoming.slotStart}–${upcoming.slotEnd} น.</div>
+        <div class="next-subject">${upcoming.subject} <span><i class="home-room-dot" style="background:${roomColor};"></i>${upcoming.className}</span></div>
+        <div class="next-meta">คาบ ${upcoming.period} · เริ่มในอีก ${upcoming.startMin - nowMin} นาที</div>
+        <button class="next-action-btn" onclick="openSwipeAttendance('${upcoming.classId}', getNowDate());event.stopPropagation();"><i class="hgi-stroke hgi-user-check-01"></i> เตรียมเช็กชื่อ</button>
+      </div>`;
     } else {
-      nextArea.innerHTML = `<div class="home-next-card is-current-status is-idle" style="padding:13px 18px;gap:4px;"><div class="next-tag">สถานะการสอนขณะนี้</div><div class="next-subject" style="font-size:0.95rem;">ไม่มีการเรียนการสอน</div></div>`;
+      nextArea.innerHTML = `<div class="home-next-card is-idle">
+        <div class="next-tag">วันนี้</div>
+        <div class="next-subject">ไม่มีคาบสอนตอนนี้</div>
+        <div class="next-meta">เลือกวันที่หรือตารางสอนด้านล่างเพื่อดูคาบอื่น</div>
+      </div>`;
     }
   }
 
   // ---- Unchecked warning (today only) ----
+  let todayUnchecked = [];
   const uncheckedEl = document.getElementById('home-unchecked-card');
   if (uncheckedEl) {
     if (isToday && !showingUpcoming) {
@@ -121,8 +219,9 @@ function renderWebDashboard() {
         const att = (cls.attendance || {})[today];
         return !att || Object.keys(att).length < cls.students.length;
       });
+      todayUnchecked = unchecked;
       if (unchecked.length > 0) {
-        uncheckedEl.style.display = 'flex';
+        uncheckedEl.style.display = 'none';
         uncheckedEl.className = 'home-unchecked-card';
         uncheckedEl.onclick = () => navigateToWebScreen('classrooms');
         uncheckedEl.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><i class="hgi-stroke hgi-alert-circle" style="font-size:1.1rem;color:#f97316;"></i><div style="font-size:0.82rem;color:#c2410c;"><span style="font-weight:800;">ยังไม่ได้เช็คชื่อ</span><span style="font-weight:600;color:#ea580c;"> · ${unchecked.length} คาบรอการเช็คชื่อ</span></div></div><i class="hgi-stroke hgi-arrow-right-01" style="color:#f97316;"></i>`;
@@ -133,6 +232,14 @@ function renderWebDashboard() {
       uncheckedEl.style.display = 'none';
     }
   }
+
+  renderHomeInsights({
+    dateKey: getTodayString(scheduleDate),
+    viewSlots,
+    unchecked: todayUnchecked,
+    nowMin,
+    scheduleIsToday
+  });
 
   // ---- Schedule list ----
   const listEl = document.getElementById('home-schedule-list');

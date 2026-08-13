@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="css/02-dashboard-tables.css?v=319">
   <link rel="stylesheet" href="css/03-reports.css?v=319">
   <link rel="stylesheet" href="css/04-modal-misc.css?v=319">
-  <link rel="stylesheet" href="css/05-home.css?v=319">
+  <link rel="stylesheet" href="css/05-home.css?v=327">
   <link rel="stylesheet" href="css/06-attendance.css?v=319">
   <link rel="stylesheet" href="css/07-scores.css?v=319">
     <link rel="stylesheet" href="css/08-responsive-toast.css?v=319">
@@ -245,39 +245,50 @@
 
         <!-- DASHBOARD -->
         <div id="web-screen-dashboard" class="fade-in">
-          <!-- DATE & STATUS ROW (compact) -->
+          <!-- TODAY HERO + STATUS -->
           <div class="home-date-status-row">
-            <div class="home-date-card" id="home-date-card" style="position:relative;cursor:pointer;" onclick="toggleHomeCalendar()">
-              <div class="home-day-name" id="home-day-name">วันจันทร์</div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <div class="home-date-big" id="home-date-big">15 มิ.ย.</div>
+            <section class="home-hero-card">
+              <div class="home-date-card" id="home-date-card" style="position:relative;cursor:pointer;" onclick="toggleHomeCalendar()">
+                <div class="home-day-name" id="home-day-name">วันจันทร์</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div class="home-date-big" id="home-date-big">15 มิ.ย.</div>
+                </div>
+                <div class="home-year" id="home-year">พ.ศ. 2569</div>
+                <!-- Calendar Popup -->
+                <div id="home-calendar-popup" class="home-calendar-popup" style="display:none;"></div>
               </div>
-              <div class="home-year" id="home-year">พ.ศ. 2569</div>
-              <!-- Calendar Popup -->
-              <div id="home-calendar-popup" class="home-calendar-popup" style="display:none;"></div>
-            </div>
+              <div id="home-next-card-area" class="home-next-card-area"></div>
+            </section>
+
             <div class="home-status-badge" id="home-status-badge">
               <div class="home-status-label" id="home-status-label">คาบนี้</div>
               <div class="home-status-value" id="home-status-value">ว่าง</div>
             </div>
           </div>
 
-          <!-- NEXT CLASS CARD -->
-          <div id="home-next-card-area" style="margin-bottom:12px;"></div>
-
-          <!-- UNCHECKED WARNING -->
-          <div id="home-unchecked-card" style="display:none;margin-bottom:12px;"></div>
-
-          <!-- TODAY SCHEDULE -->
-          <div class="card" style="padding:0;overflow:hidden;">
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border-color);">
-              <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:0.9rem;">
-                <i class="hgi-stroke hgi-calendar-03"></i> <span id="home-schedule-title">ตารางสอนวันนี้</span>
+          <div class="home-dashboard-grid">
+            <!-- TODAY SCHEDULE -->
+            <div class="card home-schedule-card" style="padding:0;overflow:hidden;">
+              <div class="home-schedule-head">
+                <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:0.9rem;">
+                  <i class="hgi-stroke hgi-calendar-03"></i> <span id="home-schedule-title">ตารางสอนวันนี้</span>
+                </div>
+                <div id="home-today-count" class="status-badge" style="background:var(--primary-light);color:var(--primary);border:none;font-size:0.7rem;padding:3px 8px;">0 คาบ</div>
               </div>
-              <div id="home-today-count" class="status-badge" style="background:var(--primary-light);color:var(--primary);border:none;font-size:0.7rem;padding:3px 8px;">0 คาบ</div>
+              <div id="home-schedule-list" style="display:flex;flex-direction:column;"></div>
             </div>
-            <div id="home-schedule-list" style="display:flex;flex-direction:column;"></div>
+
+            <aside class="card home-insight-card">
+              <div class="home-insight-head">
+                <span>Today</span>
+                <small>report</small>
+              </div>
+              <div id="home-insight-list" class="home-insight-list"></div>
+            </aside>
           </div>
+
+          <!-- legacy warning target kept for existing scripts; desktop summary now lives in the right panel -->
+          <div id="home-unchecked-card" style="display:none;"></div>
         </div>
 
         <!-- HELP CENTER -->
@@ -1169,7 +1180,7 @@
   <script defer src="js/core.js?v=319"></script>
   <script defer src="js/auth.js?v=319"></script>
   <script defer src="js/shell.js?v=319"></script>
-  <script defer src="js/dashboard.js?v=319"></script>
+  <script defer src="js/dashboard.js?v=327"></script>
   <script defer src="js/classrooms.js?v=319"></script>
   <script defer src="js/students.js?v=319"></script>
   <script defer src="js/timetable.js?v=319"></script>
