@@ -283,11 +283,9 @@ function isSwipeAttendanceComplete() {
 }
 
 function finishMobileSwipeAttendanceSoon() {
-  const isMobile = window.matchMedia('(max-width: 768px)').matches;
-  if (!isMobile || !isSwipeAttendanceComplete()) return;
-  setTimeout(() => {
-    if (isSwipeAttendanceComplete()) finishSwipeAttendance();
-  }, 650);
+  // Mobile should stay on the completion summary so teachers can review or edit
+  // the last marks. Leaving the screen now requires tapping "เสร็จสิ้น".
+  return;
 }
 
 // เพิ่ม/นำเข้านักเรียนจากหน้าเช็คชื่อ (ใช้ห้องปัจจุบันของหน้าเช็คชื่อ)
