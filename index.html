@@ -19,13 +19,13 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=319">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=319">
-  <link rel="stylesheet" href="css/03-reports.css?v=319">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=321">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=321">
+  <link rel="stylesheet" href="css/03-reports.css?v=320">
   <link rel="stylesheet" href="css/04-modal-misc.css?v=319">
-  <link rel="stylesheet" href="css/05-home.css?v=328">
-  <link rel="stylesheet" href="css/06-attendance.css?v=320">
-  <link rel="stylesheet" href="css/07-scores.css?v=319">
+  <link rel="stylesheet" href="css/05-home.css?v=330">
+  <link rel="stylesheet" href="css/06-attendance.css?v=321">
+  <link rel="stylesheet" href="css/07-scores.css?v=321">
     <link rel="stylesheet" href="css/08-responsive-toast.css?v=319">
     <link rel="stylesheet" href="css/09-games.css?v=319">
   <link rel="stylesheet" href="css/10-help.css?v=319">
@@ -378,7 +378,7 @@
         <div id="web-screen-timetable" class="fade-in" style="display:none;">
           <!-- Desktop header + grid -->
           <div class="desktop-only">
-            <div class="card" style="margin-bottom:20px;">
+            <div class="card timetable-page-head">
               <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
                 <div>
                   <div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary)"></i> ตารางสอนประจำสัปดาห์</div>
@@ -386,16 +386,16 @@
                 </div>
                 <div id="tt-desktop-controls" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                   <span id="timetable-period-count" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);"></span>
-                  <button class="btn" style="padding:8px 16px;font-size:0.8rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="openTimetableImport()">
+                  <button class="btn timetable-import-btn" onclick="openTimetableImport()">
                     <i class="hgi-stroke hgi-google-sheet"></i> นำเข้าตารางสอน
                   </button>
-                  <button class="btn btn-primary" style="padding:8px 16px;font-size:0.8rem;" onclick="openPeriodSettings()">
+                  <button class="btn btn-primary timetable-manage-btn" onclick="openPeriodSettings()">
                     <i class="hgi-stroke hgi-clock-01"></i> จัดการคาบ
                   </button>
                 </div>
               </div>
             </div>
-            <div class="card" style="padding:24px;overflow-x:auto;"><div id="web-timetable-matrix-container" class="timetable-matrix-table"></div></div>
+            <div class="card timetable-grid-card"><div id="web-timetable-matrix-container" class="timetable-matrix-table"></div></div>
           </div>
 
           <!-- Mobile view: all 5 days vertical -->
@@ -1198,7 +1198,7 @@
   <script defer src="js/dashboard.js?v=327"></script>
   <script defer src="js/classrooms.js?v=319"></script>
   <script defer src="js/students.js?v=319"></script>
-  <script defer src="js/timetable.js?v=319"></script>
+  <script defer src="js/timetable.js?v=320"></script>
   <script defer src="js/reports.js?v=319"></script>
   <script defer src="js/attendance.js?v=320"></script>
   <script defer src="js/curriculum-science-2560.js?v=319"></script>

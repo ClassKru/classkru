@@ -7,7 +7,7 @@
   position: fixed;
   top: 0; left: 250px; right: 0; bottom: 0;
   z-index: 8000;
-  background: linear-gradient(170deg, #f0faf3 0%, #f5f5f7 40%, #ffffff 100%);
+  background: linear-gradient(170deg, #fbfcfb 0%, #f7f8f7 48%, #ffffff 100%);
   display: none;
   flex-direction: column;
   overflow: hidden;
@@ -49,7 +49,7 @@
   margin: 24px 24px 0;
   padding: 16px 20px;
   background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
 }
@@ -159,7 +159,7 @@
     margin: 0 24px;
     padding: 12px 20px;
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    border: 1px solid transparent;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
     gap: 8px;
@@ -185,7 +185,7 @@
   gap: 2px;
   padding: 8px 12px;
   border-radius: 14px;
-  font-weight: 700;
+  font-weight: 600;
   border: none;
   flex: 1;
   min-width: 64px;
@@ -193,8 +193,8 @@
 
 .s-pill-top { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .s-pill-top i { font-size: 0.95rem; opacity: 0.9; }
-.s-pill-num { font-size: 1.4rem; font-weight: 800; line-height: 1; }
-.s-pill-label { font-size: 0.78rem; font-weight: 700; opacity: 0.95; text-align: center; }
+.s-pill-num { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+.s-pill-label { font-size: 0.78rem; font-weight: 600; opacity: 0.95; text-align: center; }
 
 .s-pill.present { background: var(--color-present-bg); color: var(--color-present); }
 .s-pill.late { background: var(--color-late-bg); color: var(--color-late-text); }
@@ -254,7 +254,7 @@
 .swipe-card {
   background: var(--bg-card);
   border-radius: 20px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-md);
   padding: 28px 24px 24px;
   width: 320px;
   max-width: 90%;
@@ -403,7 +403,7 @@
   font-weight: 800;
   color: #3d92d8;
   margin-bottom: 8px;
-  border: 3px solid #bfe0f5;
+  border: 2px solid #d6eaf8;
   padding: 4px;
   text-align: center;
   line-height: 1.1;
@@ -414,7 +414,7 @@
 
 .swipe-card-name {
   font-size: 1.25rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-main);
   margin-bottom: 12px;
 }
@@ -480,7 +480,7 @@
   align-items: flex-end;
   gap: 12px;
   padding: 16px 20px 24px;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-top: 1px solid var(--border-color);
@@ -535,7 +535,7 @@
     color: var(--primary);
     font-family: inherit;
     font-size: 0.9rem;
-    font-weight: 800;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -590,7 +590,7 @@
     display: block;
     color: var(--text-main);
     font-size: 1.02rem;
-    font-weight: 800;
+    font-weight: 700;
   }
   .swipe-mobile-edit-head span {
     display: block;
@@ -798,9 +798,9 @@
 
 .student-roster-card:hover,
 .student-roster-card:focus-visible {
-  border-color: var(--primary-light-border);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  border-color: var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
   outline: none;
 }
 
@@ -822,7 +822,7 @@
   background: var(--av-bg, var(--primary-light));
   color: var(--av-fg, var(--primary));
   font-size: 0.76rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .student-card-actions {
@@ -873,7 +873,7 @@
   background: var(--av-bg, var(--primary-light));
   color: var(--av-fg, var(--primary));
   font-size: 1.08rem;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.08;
   text-align: center;
 }

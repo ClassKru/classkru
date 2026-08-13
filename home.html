@@ -18,7 +18,7 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/home.css?v=318">
+  <link rel="stylesheet" href="css/home.css?v=320">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -238,6 +238,18 @@
       document.getElementById('showcase-date-value').textContent = date;
       document.getElementById('showcase-date-year').textContent = year;
       document.getElementById('showcase-phone-date').textContent = date;
+      const dayPalettes = [
+        { accent: '#e5544b', soft: '#fff4f4' },
+        { accent: '#d39524', soft: '#fff9e8' },
+        { accent: '#d4547e', soft: '#fff3f8' },
+        { accent: '#1d9e75', soft: '#f3fbf8' },
+        { accent: '#f97316', soft: '#fff7ed' },
+        { accent: '#3b7fd4', soft: '#eaf1fb' },
+        { accent: '#8b5cf6', soft: '#f5f3ff' }
+      ];
+      const palette = dayPalettes[now.getDay()];
+      document.documentElement.style.setProperty('--showcase-day-accent', palette.accent);
+      document.documentElement.style.setProperty('--showcase-day-soft', palette.soft);
 
       const rotator = document.querySelector('.hero-feature-rotator');
       const words = [...document.querySelectorAll('.feature-word')];

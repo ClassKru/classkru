@@ -27,10 +27,10 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
   /* เขียวเข้มสำหรับ "ตัวอักษรบนพื้นขาว" — คอนทราสต์พอสำหรับตัวเลขเล็ก (เช่น % บนหัวตารางคะแนน)
      ใช้แทนการใส่พื้นเขียวอ่อน ซึ่งเด่นจนแย่งสายตาจากตัวหนังสือ */
   --primary-deep: #0f6e56;
-  --primary-light: #ecf9f6;
-  --primary-light-border: #b3e5d8;
+  --primary-light: #f3fbf8;
+  --primary-light-border: #d5eee8;
   
-  --bg-app: #f7f7f5;
+  --bg-app: #f7f8f7;
   --bg-card: #ffffff;
   --bg-light: #f0f0ee;
   --text-main: #2f2f2e;
@@ -65,9 +65,9 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
   --tab-overall-accent: #f97316;
   --tab-overall-bg: #fff7ed;
 
-  --shadow-sm: 0 1px 3px rgba(15,23,42,0.07), 0 2px 8px rgba(15,23,42,0.05);
-  --shadow-md: 0 4px 12px rgba(15,23,42,0.10), 0 1px 3px rgba(15,23,42,0.06);
-  --shadow-lg: 0 10px 28px rgba(15,23,42,0.13), 0 4px 10px rgba(15,23,42,0.07);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.055), 0 2px 8px rgba(15,23,42,0.035);
+  --shadow-md: 0 6px 18px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.04);
+  --shadow-lg: 0 14px 36px rgba(15,23,42,0.12), 0 4px 10px rgba(15,23,42,0.06);
   --radius-sm: 12px;
   --radius-md: 20px;
   --radius-lg: 28px;
@@ -231,14 +231,14 @@ body {
   box-shadow: var(--shadow-sm);
 }
 .card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: rgba(29,158,117,0.18);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--border-color);
 }
 /* การ์ดห้องเรียน: hover ขึ้นกรอบสีประจำห้อง + เงาเด้ง + ยกตัว */
 .ck-class-card:hover {
-  border-color: var(--cc, var(--primary));
-  box-shadow: 0 12px 30px rgba(0,0,0,0.14);
-  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--cc, var(--primary)) 38%, var(--border-color));
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 /* จุดสีหน้าชื่อวิชา: มือถือแสดง (บรรทัดชั้นเยื้อง 20px), คอมซ่อนจุดและรีเซ็ตการเยื้อง */
 .ck-class-card .ck-class-sub { margin-left: 20px; }
@@ -272,10 +272,10 @@ body {
   background: none;
   border: none;
   border-left: 1px solid var(--border-color);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-family: inherit;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -286,7 +286,7 @@ body {
 
 .card-title {
   font-size: 1rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-main);
   display: flex;
   align-items: center;
@@ -296,14 +296,14 @@ body {
 .subtitle {
   font-size: 0.82rem;
   color: var(--text-muted);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .btn {
   padding: 8px 16px;
   border-radius: var(--radius-btn);
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   border: 1px solid var(--border-color);
   background-color: var(--bg-card);
@@ -321,11 +321,11 @@ body {
   background-color: var(--primary);
   color: #ffffff;
   border-color: var(--primary);
-  box-shadow: 0 2px 8px rgba(29,158,117,0.25);
+  box-shadow: 0 2px 8px rgba(29,158,117,0.16);
 }
 .btn-primary:hover {
   background-color: var(--primary-hover);
-  box-shadow: 0 4px 14px rgba(29,158,117,0.35);
+  box-shadow: 0 5px 14px rgba(29,158,117,0.22);
 }
 
 .btn-danger {
@@ -533,7 +533,7 @@ body.ck-one-class .ck-class-switch::after { display: none; }
   transition: var(--transition-normal);
   background-color: var(--bg-card);
 }
-.form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(52,199,89,0.15); }
+.form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(29,158,117,0.10); }
 
 /* ปุ่ม/ช่องกรอกมุมขวาบนของหัวจอ — สเปกเดียวทุกหน้า (เช็คชื่อ/คะแนน/นักเรียน/การเข้าเรียน)
    ต้องสูงเท่ากันเป๊ะ ไม่งั้นหัวจอสูงไม่เท่ากัน แล้วแถบแท็บใต้มันเด้งตอนสลับหน้า
@@ -597,11 +597,16 @@ body.ck-one-class .ck-class-switch::after { display: none; }
   border-radius: var(--radius-md);
   background: var(--bg-card);
   color: inherit;
+  text-decoration: none;
   text-align: left;
   font: inherit;
   cursor: pointer;
   box-shadow: var(--shadow-sm);
   transition: var(--transition-normal);
+}
+.ck-help-card strong,
+.ck-help-card small {
+  text-decoration: none;
 }
 .ck-help-card:hover { border-color: var(--primary-light-border); box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .ck-help-card:active { transform: scale(0.98); }

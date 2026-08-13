@@ -19,12 +19,12 @@ function renderWebTimetable() {
   const container = document.getElementById('web-timetable-matrix-container');
   if (container) {
     // สีประจำวันไทย (พื้นอ่อน + ตัวอักษรเข้ม)
-    let html = '<table><thead><tr><th style="width:84px;"><div style="font-size:0.8rem;font-weight:800;color:#334155;">วัน</div><div style="font-size:0.8rem;font-weight:800;color:#94a3b8;">เวลา</div></th>';
-    slots.forEach(slot => { html += `<th style="min-width:104px;padding:9px 6px;"><div style="font-size:0.8rem;font-weight:800;color:#334155;">คาบ ${slot.period}</div><div style="margin-top:4px;font-size:0.8rem;font-weight:400;color:#64748b;">${slot.s}–${slot.e}</div></th>`; });
+    let html = '<table><thead><tr><th style="width:84px;"><div style="font-size:0.8rem;font-weight:700;color:#334155;">วัน</div><div style="font-size:0.78rem;font-weight:600;color:#94a3b8;">เวลา</div></th>';
+    slots.forEach(slot => { html += `<th style="min-width:104px;padding:9px 6px;"><div style="font-size:0.8rem;font-weight:700;color:#334155;">คาบ ${slot.period}</div><div style="margin-top:4px;font-size:0.78rem;font-weight:400;color:#64748b;">${slot.s}–${slot.e}</div></th>`; });
     html += '</tr></thead><tbody>';
     dows.forEach(d => {
       const dt = DAY_TINT[d] || { bg:'#eef2ff', text:'#3730a3' };
-      html += `<tr><td style="font-weight:800;font-size:0.85rem;text-align:center;background-color:${dt.bg};color:${dt.text};">${DAY_NAMES[d].slice(3)}</td>`;
+      html += `<tr><td style="font-weight:700;font-size:0.84rem;text-align:center;background-color:${dt.bg};color:${dt.text};">${DAY_NAMES[d].slice(3)}</td>`;
       slots.forEach(slot => {
         const entry = resolveEntry((appState.timetable || []).find(t => timetableEntryMatches(t, d, slot.period)));
         const [sH,sM] = slot.s.split(':').map(Number);
@@ -36,9 +36,9 @@ function renderWebTimetable() {
           const col = getClassColor(entry.classId);
           cellStyle = isNow
             ? `background-color:${col.text};border-color:${col.text};color:#fff;`
-            : `background-color:${col.bg};border-color:${col.border};color:${col.text};`;
+            : `background-color:${col.bg};border-color:transparent;color:${col.text};`;
         }
-        const label = entry ? `<strong style="font-size:0.78rem;">${entry.subject}</strong><br><span style="font-size:0.65rem;opacity:0.85;">${entry.className}</span>` : '<span style="font-size:0.75rem;color:var(--text-muted);">+</span>';
+        const label = entry ? `<strong style="font-size:0.76rem;font-weight:700;">${entry.subject}</strong><br><span style="font-size:0.64rem;opacity:0.78;">${entry.className}</span>` : '<span style="font-size:0.72rem;color:#b8bec8;font-weight:600;">+</span>';
         html += `<td class="${cls}" style="${cellStyle}" onclick="openPeriodModal(${d},${slot.period})">${label}</td>`;
       });
       html += '</tr>';

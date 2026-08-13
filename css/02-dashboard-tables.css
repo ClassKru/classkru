@@ -9,7 +9,7 @@
 }
 
 .stat-card { text-align: center; padding: 20px; border-radius: var(--radius-md); }
-.stat-num { font-size: 1.6rem; font-weight: 800; margin-top: 8px; }
+.stat-num { font-size: 1.6rem; font-weight: 700; margin-top: 8px; }
 
 .dashboard-grid {
   display: grid;
@@ -38,7 +38,7 @@
   font-size: 0.75rem;
   padding: 4px 12px;
   border-radius: 20px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .warning-badge { display: inline-block; }
@@ -46,25 +46,50 @@
 /* ========================================== */
 /* TIMETABLE MATRIX TABLE                      */
 /* ========================================== */
+.timetable-page-head {
+  margin-bottom: 18px;
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+
+.timetable-import-btn,
+.timetable-manage-btn {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+}
+
+.timetable-import-btn {
+  background: #f7fcfa;
+  color: var(--primary);
+  border: 1px solid var(--primary-light-border);
+}
+
+.timetable-grid-card {
+  padding: 22px;
+  overflow-x: auto;
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
+}
+
 .timetable-matrix-table table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 6px;
+  border-spacing: 7px;
 }
 
 .timetable-matrix-table th,
 .timetable-matrix-table td {
   text-align: center;
-  padding: 12px 6px;
+  padding: 10px 6px;
   border-radius: var(--radius-sm);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .timetable-matrix-table th {
-  background-color: #eef1f5;
+  background-color: #f3f6fa;
   color: #475569;
-  border: 1px solid #dfe3e9;
+  border: 1px solid transparent;
 }
 
 .ck-cardaction-btn { transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s; }
@@ -72,20 +97,23 @@
 .ck-cardaction-btn:active { transform: scale(1.0); }
 
 .timetable-matrix-table td {
-  background-color: #f9f9fb;
-  border: 1px solid var(--border-color);
+  background-color: #fafafa;
+  border: 1px solid transparent;
   cursor: pointer;
   transition: var(--transition-normal);
-  height: 64px;
+  height: 58px;
   vertical-align: middle;
 }
 
-.timetable-matrix-table td:hover { background-color: #f0f0ee; }
+.timetable-matrix-table td:hover {
+  background-color: #fff;
+  border-color: var(--border-color);
+}
 
 .timetable-matrix-table td.has-class {
   background-color: var(--primary-light);
   color: var(--text-main);
-  border-color: var(--primary-light-border);
+  border-color: transparent;
 }
 
 .timetable-matrix-table td.is-now {
@@ -105,22 +133,22 @@
 
 .web-table th, .web-table td {
   text-align: left;
-  padding: 12px 14px;
+  padding: 11px 14px;
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 500;
   border-bottom: 1px solid var(--border-color);
 }
 
 .web-table th {
-  background-color: #f9f9fb;
+  background-color: #f7f8f8;
   font-size: 0.75rem;
   color: var(--text-muted);
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .web-table tbody tr:nth-child(even) { background-color: #fafafa; }
-.web-table tbody tr:hover { background-color: var(--primary-light); }
+.web-table tbody tr:hover { background-color: #f8fbfa; }
 
 .matrix-table td {
   text-align: center;
@@ -128,4 +156,3 @@
   height: 40px;
   padding: 4px;
 }
-
