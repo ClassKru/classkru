@@ -2,6 +2,8 @@
 
 Developer Console อยู่ที่ `/developer/` โดยข้อมูลความคิดเห็นจากผู้ใช้และ Database Viewer เป็นแบบอ่านอย่างเดียว ส่วนแท็บ Biggy และ PetchPetch สามารถบันทึกไอเดีย อัปเดตสถานะ และคอมเมนต์ร่วมกันได้
 
+แท็บ `Roadmap` เป็น visual roadmap ภายในสำหรับวาง milestone และการ์ด Idea/Note/Problem/Decision/Feedback ข้อมูล MVP บันทึกใน `localStorage` ของเบราว์เซอร์ (`classkru-developer-roadmap-v1`) จึงไม่ส่งเข้า Supabase และไม่ซิงก์ข้ามเครื่อง
+
 ## Environment Variables บน Vercel
 
 ตั้งค่าทั้ง Production, Preview และ Development ตามความเหมาะสม:
