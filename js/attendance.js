@@ -1,6 +1,7 @@
 // ==================== SCHEDULE GUARD (กันเช็คชื่อผิดวัน) ====================
 let activeQrAttendance = null;
 let qrAttendancePollTimer = null;
+let swipeDoneFinishReadyAt = 0;
 
 const SWIPE_EDIT_STATUS = {
   present: { label: 'มา', icon: 'hgi-tick-02' },
@@ -211,6 +212,7 @@ function openSwipeAttendance(classId, forDate) {
   swipeStudentIndex = 0;
   swipeResults = {};
   swipeHistory = [];
+  swipeDoneFinishReadyAt = 0;
 
   const c = appState.classes.find(x => x.id === classId);
   if (!c) return;
@@ -270,11 +272,17 @@ function closeSwipeAttendance() {
 }
 
 function finishSwipeAttendance() {
+  if (Date.now() < swipeDoneFinishReadyAt) return;
   const classId = swipeClassId;
   stopQrAttendancePolling();
   document.getElementById('swipe-overlay').classList.remove('show');
   if (classId) switchClassTab('reports', classId);
   else navigateToWebScreen('classrooms');
+}
+
+function finishSwipeAttendanceFromDone(event) {
+  if (event) event.stopPropagation();
+  finishSwipeAttendance();
 }
 
 function isSwipeAttendanceComplete() {
@@ -767,7 +775,10 @@ function renderSwipeCard() {
 
   if (!found) {
     card.style.display = 'none';
+    const shouldDelayFinish = doneState.style.display !== 'flex';
     doneState.style.display = 'flex';
+    if (shouldDelayFinish) swipeDoneFinishReadyAt = Date.now() + 900;
+    const isFinishWaiting = Date.now() < swipeDoneFinishReadyAt;
     const checked = Object.keys(swipeResults).length;
     const present = Object.values(swipeResults).filter(s => s === 'present').length;
     const late = Object.values(swipeResults).filter(s => s === 'late').length;
@@ -786,9 +797,16 @@ function renderSwipeCard() {
       <button class="swipe-edit-done-btn" onclick="openSwipeMobileEdit()">
         <i class="hgi-stroke hgi-edit-02"></i> แก้ไขรายคน
       </button>
-      <button class="btn btn-primary" style="margin-top:20px;padding:12px 32px;font-size:0.95rem;font-weight:700;" onclick="finishSwipeAttendance()">
+      <button id="swipe-done-finish-btn" class="btn btn-primary" style="margin-top:20px;padding:12px 32px;font-size:0.95rem;font-weight:700;" onclick="finishSwipeAttendanceFromDone(event)" ${isFinishWaiting ? 'disabled' : ''}>
         <i class="hgi-stroke hgi-tick-02" style="margin-right:6px;"></i>เสร็จสิ้น
       </button>`;
+    if (isFinishWaiting) {
+      const delay = Math.max(0, swipeDoneFinishReadyAt - Date.now());
+      setTimeout(() => {
+        const finishBtn = document.getElementById('swipe-done-finish-btn');
+        if (finishBtn && Date.now() >= swipeDoneFinishReadyAt) finishBtn.disabled = false;
+      }, delay);
+    }
     return;
   }
 
