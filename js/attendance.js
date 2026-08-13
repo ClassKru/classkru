@@ -2,6 +2,23 @@
 let activeQrAttendance = null;
 let qrAttendancePollTimer = null;
 
+const SWIPE_EDIT_STATUS = {
+  present: { label: 'มา', icon: 'hgi-tick-02' },
+  late: { label: 'สาย', icon: 'hgi-clock-01' },
+  absent: { label: 'ขาด', icon: 'hgi-cancel-01' },
+  leave: { label: 'ลา', icon: 'hgi-file-02' }
+};
+
+function escapeAttendanceHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[ch]);
+}
+
 // วันในสัปดาห์ที่ห้องนี้มีคาบตามตาราง
 function classScheduledDoWs(classId) {
   const set = new Set();
@@ -768,6 +785,9 @@ function renderSwipeCard() {
         <span class="summary-pill" style="background:var(--color-absent-bg);color:var(--color-absent);">ขาด ${absent}</span>
         <span class="summary-pill" style="background:var(--color-leave-bg);color:var(--color-leave);">ลา ${leave}</span>
       </div>
+      <button class="swipe-edit-done-btn" onclick="openSwipeMobileEdit()">
+        <i class="hgi-stroke hgi-edit-02"></i> แก้ไขรายคน
+      </button>
       <button class="btn btn-primary" style="margin-top:20px;padding:12px 32px;font-size:0.95rem;font-weight:700;" onclick="finishSwipeAttendance()">
         <i class="hgi-stroke hgi-tick-02" style="margin-right:6px;"></i>เสร็จสิ้น
       </button>`;
@@ -879,6 +899,77 @@ function renderDesktopSwipeTable() {
     `;
   });
   tbody.innerHTML = html;
+}
+
+function openSwipeMobileEdit() {
+  const sheet = document.getElementById('swipe-mobile-edit-sheet');
+  if (!sheet) return;
+  renderSwipeMobileEditList();
+  sheet.classList.add('show');
+  sheet.setAttribute('aria-hidden', 'false');
+}
+
+function closeSwipeMobileEdit() {
+  const sheet = document.getElementById('swipe-mobile-edit-sheet');
+  if (!sheet) return;
+  sheet.classList.remove('show');
+  sheet.setAttribute('aria-hidden', 'true');
+}
+
+function renderSwipeMobileEditList() {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  const list = document.getElementById('swipe-mobile-edit-list');
+  const subtitle = document.getElementById('swipe-mobile-edit-subtitle');
+  if (!c || !list) return;
+
+  const checked = c.students.filter(s => swipeResults[s.id]).length;
+  if (subtitle) subtitle.innerText = `${checked} / ${c.students.length} คน · แตะสถานะเพื่อแก้ไข`;
+
+  list.innerHTML = c.students.map((s, index) => {
+    const currentStatus = swipeResults[s.id] || '';
+    const currentLabel = SWIPE_EDIT_STATUS[currentStatus]?.label || 'ยังไม่ได้เช็ก';
+    const name = escapeAttendanceHtml(s.name || `นักเรียน ${index + 1}`);
+    const code = s.studentCode ? ` · รหัส ${escapeAttendanceHtml(s.studentCode)}` : '';
+    const no = escapeAttendanceHtml(s.no || (index + 1));
+    const buttons = Object.entries(SWIPE_EDIT_STATUS).map(([status, meta]) => `
+      <button type="button" class="swipe-edit-status-btn ${status} ${currentStatus === status ? 'active' : ''}"
+        onclick="setSwipeMobileEditStatus('${s.id}', '${status}')">
+        <i class="hgi-stroke ${meta.icon}"></i><span>${meta.label}</span>
+      </button>`).join('');
+
+    return `<div class="swipe-edit-student-row ${currentStatus ? '' : 'unchecked'}">
+      <div class="swipe-edit-student-main">
+        <span class="swipe-edit-no">${no}</span>
+        <div>
+          <strong>${name}</strong>
+          <small>${currentLabel}${code}</small>
+        </div>
+      </div>
+      <div class="swipe-edit-status-grid">${buttons}</div>
+    </div>`;
+  }).join('');
+}
+
+function setSwipeMobileEditStatus(studentId, status) {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c || !SWIPE_EDIT_STATUS[status]) return;
+  if (!isSwipeDateAllowed()) { ensureSwipeDateAllowed(() => setSwipeMobileEditStatus(studentId, status)); return; }
+  const student = c.students.find(s => s.id === studentId);
+  if (!student) return;
+
+  const previousStatus = swipeResults[studentId] || '';
+  swipeResults[studentId] = status;
+  swipeHistory.push({ studentId, status, previousStatus });
+  Tour.action('attendance-marked');
+
+  const nextUnchecked = c.students.findIndex(s => !swipeResults[s.id]);
+  swipeStudentIndex = nextUnchecked >= 0 ? nextUnchecked : c.students.findIndex(s => s.id === studentId);
+
+  autoSaveAttendance();
+  updateSwipeSummary();
+  renderDesktopSwipeTable();
+  renderSwipeCard();
+  renderSwipeMobileEditList();
 }
 
 // ลบนักเรียนจากหน้าเช็คชื่อ — confirm + re-render ตาราง desktop หลังลบเสร็จ
@@ -997,7 +1088,8 @@ function markSwipeStatus(status) {
 function undoSwipe() {
   if (swipeHistory.length === 0) return;
   const last = swipeHistory.pop();
-  delete swipeResults[last.studentId];
+  if (last.previousStatus) swipeResults[last.studentId] = last.previousStatus;
+  else delete swipeResults[last.studentId];
 
   const c = appState.classes.find(x => x.id === swipeClassId);
   if (c) {

@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="css/03-reports.css?v=319">
   <link rel="stylesheet" href="css/04-modal-misc.css?v=319">
   <link rel="stylesheet" href="css/05-home.css?v=328">
-  <link rel="stylesheet" href="css/06-attendance.css?v=319">
+  <link rel="stylesheet" href="css/06-attendance.css?v=320">
   <link rel="stylesheet" href="css/07-scores.css?v=319">
     <link rel="stylesheet" href="css/08-responsive-toast.css?v=319">
     <link rel="stylesheet" href="css/09-games.css?v=319">
@@ -701,6 +701,21 @@
         </div>
       </div>
 
+      <div id="swipe-mobile-edit-sheet" class="swipe-mobile-edit-sheet" aria-hidden="true">
+        <div class="swipe-mobile-edit-backdrop" onclick="closeSwipeMobileEdit()"></div>
+        <section class="swipe-mobile-edit-panel" role="dialog" aria-modal="true" aria-labelledby="swipe-mobile-edit-title">
+          <div class="swipe-mobile-edit-handle"></div>
+          <header class="swipe-mobile-edit-head">
+            <div>
+              <strong id="swipe-mobile-edit-title">แก้ไขรายคน</strong>
+              <span id="swipe-mobile-edit-subtitle">เปลี่ยนสถานะที่เช็กไปแล้ว</span>
+            </div>
+            <button type="button" class="swipe-mobile-edit-close" onclick="closeSwipeMobileEdit()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
+          </header>
+          <div id="swipe-mobile-edit-list" class="swipe-mobile-edit-list"></div>
+        </section>
+      </div>
+
       <!-- ACTION BUTTONS -->
       <div class="swipe-action-buttons">
         <button class="swipe-btn late" onclick="markSwipeStatus('late')"><i class="hgi-stroke hgi-clock-01"></i><span>สาย</span></button>
@@ -1185,7 +1200,7 @@
   <script defer src="js/students.js?v=319"></script>
   <script defer src="js/timetable.js?v=319"></script>
   <script defer src="js/reports.js?v=319"></script>
-  <script defer src="js/attendance.js?v=319"></script>
+  <script defer src="js/attendance.js?v=320"></script>
   <script defer src="js/curriculum-science-2560.js?v=319"></script>
   <script defer src="js/curriculum-catalog.js?v=319"></script>
   <script defer src="js/scores.js?v=319"></script>
