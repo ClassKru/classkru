@@ -741,8 +741,8 @@ function bindScoreCellKeys() {
     const now = Date.now();
     if (now - (scWheelLastStep.get(el) || 0) < 70) return;
     scWheelLastStep.set(el, now);
-    // ตามความเคยชินของครู: หมุนลง = เพิ่มคะแนน, หมุนขึ้น = ลดคะแนน
-    adjustScoreInput(el, event.deltaY > 0 ? 1 : -1);
+    // ใช้ทิศทางเดียวกับค่าคะแนน: หมุนขึ้น = เพิ่มคะแนน, หมุนลง = ลดคะแนน
+    adjustScoreInput(el, event.deltaY < 0 ? 1 : -1);
     queueScoreInputSave(el);
   }, { passive: false });
   document.addEventListener('keydown', event => {
@@ -1117,7 +1117,8 @@ function bindMobileScoreSlide() {
       return;
     }
     event.preventDefault();
-    const steps = Math.trunc(distance / MSC_SLIDE_PX_PER_STEP);
+    // ใช้ทิศทางเดียวกับลูกกลิ้งเมาส์: ลากขึ้น = เพิ่มคะแนน, ลากลง = ลดคะแนน
+    const steps = -Math.trunc(distance / MSC_SLIDE_PX_PER_STEP);
     const next = normalizedScoreInputValue(state.input, state.startValue + (steps * state.bounds.step));
     if (next === state.lastValue) return;
     state.lastValue = next;
@@ -1234,7 +1235,7 @@ function renderMobileStudentPanel(c, sid) {
       const v = clampMark((sc.marks[it.id] || {})[sid], it.max);
       return `<div class="msc-row">
         <span class="msc-row-name" title="ตั้งค่ารายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">${escapeScore(it.name)}</span>
-        <span class="msc-box" aria-label="กดค้างแล้วลากลงเพื่อเพิ่มคะแนน ลากขึ้นเพื่อลดคะแนน">
+        <span class="msc-box" aria-label="กดค้างแล้วลากขึ้นเพื่อเพิ่มคะแนน ลากลงเพื่อลดคะแนน">
           <input type="number" class="msc-in" value="${v}" min="0" max="${it.max}" step="0.5" inputmode="decimal" placeholder="–"
             data-class-id="${escapeScoreAttr(c.id)}" data-item-id="${escapeScoreAttr(it.id)}" data-student-id="${escapeScoreAttr(sid)}"
             onchange="setScoreMark('${c.id}','${it.id}','${sid}',this);refreshMobileScoreSummary('${c.id}','${sid}')">
@@ -1256,7 +1257,7 @@ function renderMobileStudentPanel(c, sid) {
       <div class="msc-shead-txt"><div class="msc-sname">${escapeScore(s.name)}</div></div>
     </div>
     <div class="msc-summary" id="msc-summary">${mobileScoreSummaryHtml(c, sid)}</div>
-    <div class="msc-gesture-hint"><i class="hgi-stroke hgi-tap-02"></i><span><b>ปรับคะแนนแบบเร็ว</b> กดค้างที่คะแนน แล้วลากลงเพื่อเพิ่ม · ลากขึ้นเพื่อลด · ปล่อยเพื่อบันทึก</span></div>
+    <div class="msc-gesture-hint"><i class="hgi-stroke hgi-tap-02"></i><span><b>ปรับคะแนนแบบเร็ว</b> กดค้างที่คะแนน แล้วลากขึ้นเพื่อเพิ่ม · ลากลงเพื่อลด · ปล่อยเพื่อบันทึก</span></div>
     ${buckets}
     ${mobileStudentNavHtml(c, idx)}
   </div>`;
