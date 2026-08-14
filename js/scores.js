@@ -661,7 +661,6 @@ function focusScoreCell(el) {
 }
 
 const scWheelSaveTimers = new WeakMap();
-const scWheelLastStep = new WeakMap();
 
 function scoreInputBounds(el) {
   const min = Number(el.min);
@@ -738,10 +737,8 @@ function bindScoreCellKeys() {
     const el = event.target;
     if (!el.classList || !el.classList.contains('score-cell-input') || document.activeElement !== el || event.deltaY === 0) return;
     event.preventDefault();
-    const now = Date.now();
-    if (now - (scWheelLastStep.get(el) || 0) < 70) return;
-    scWheelLastStep.set(el, now);
-    // ใช้ทิศทางเดียวกับค่าคะแนน: หมุนขึ้น = เพิ่มคะแนน, หมุนลง = ลดคะแนน
+    // ทุก wheel event = 1 step เพื่อให้ผู้ใช้ที่หมุนเร็วปรับคะแนนต่อเนื่องได้โดยไม่ตกหล่น
+    // การบันทึกยัง debounce แยกด้านล่าง จึงไม่เขียนข้อมูลถี่ตามความเร็วของลูกกลิ้ง
     adjustScoreInput(el, event.deltaY < 0 ? 1 : -1);
     queueScoreInputSave(el);
   }, { passive: false });
