@@ -31,11 +31,11 @@
 .sc-focus-divider { width: 1px; height: 18px; flex: 0 0 1px; background: var(--border-color); }
 .score-focus-context.has-focus { background: #f7fcfa; border-bottom-color: var(--primary-light-border); }
 
-/* สีประจำกลุ่มช่วยกวาดสายตาจากหัวตารางลงมาถึงช่องกรอก โดยใช้โทนอ่อนเพื่อไม่แย่งข้อมูล */
-.sc-group-collect, .sc-group-before { --sc-group-accent: #2f9e72; --sc-group-tint: #eef9f3; }
-.sc-group-after { --sc-group-accent: #4f86d9; --sc-group-tint: #f0f5fd; }
-.sc-group-mid { --sc-group-accent: #d39524; --sc-group-tint: #fff8e8; }
-.sc-group-final { --sc-group-accent: #8b6bc7; --sc-group-tint: #f6f2fc; }
+/* ทุกหมวดใช้ Neutral เดียวกัน — สี Primary สงวนไว้สำหรับช่อง/หัวงานที่กำลังกรอกเท่านั้น */
+.sc-group-collect, .sc-group-before, .sc-group-after, .sc-group-mid, .sc-group-final {
+  --sc-group-accent: #d8dee6;
+  --sc-group-tint: #f8fafc;
+}
 .score-matrix-table .sc-cat-start[class*="sc-group-"] { border-left-color: var(--sc-group-accent); }
 /* หัวตาราง = ไม่ตีเส้น ไม่มีเงา (เอาเงาลอยออก) — คั่นหัว/เนื้อด้วยเส้นล่างเส้นเดียว (ดูที่ tbody tr แรก) */
 .score-matrix-table thead th {
@@ -53,8 +53,8 @@
   vertical-align: top; padding: 10px 10px 8px;
   /* เส้นใต้คลุม "ช่วงกว้างของกลุ่ม" — บอกขอบเขต คะแนนเก็บ / สอบกลางภาค / สอบปลายภาค
      เลือกแบบนี้แทนการตีกรอบเต็ม เพราะกรอบทำให้ภาพรวมหนักและกลับไปเป็นทรงกล่องที่เอาออกไปแล้ว */
-  border-top: 3px solid var(--sc-group-accent, #cbd5e1);
-  border-bottom: 2px solid var(--sc-group-accent, #cbd5e1);
+  border-top: 1px solid var(--sc-group-accent, #d8dee6);
+  border-bottom: 1px solid var(--sc-group-accent, #d8dee6);
 }
 /* หัวหมวด/ระยะ = ชื่ออยู่บรรทัดเดียวไม่ตัดคำ, %+ตัวเลขอยู่ด้วยกัน — ช่องแคบก็ตกลงบรรทัดใหม่ทั้งก้อน
    หัวกลุ่มคร่อมหลายคอลัมน์ จึงขยายฟอนต์ได้โดยไม่ดันความกว้างตาราง (ต่างจากชื่อรายการ) */
