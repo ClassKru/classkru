@@ -399,7 +399,13 @@ function renderTermReport() {
 
 function openAttendanceDateFromReport(event, classId, dateKey) {
   if (event) event.stopPropagation();
-  openSwipeAttendance(classId, dateKey);
+  openSwipeAttendance(classId, dateKey, {
+    returnTo: {
+      screen: 'reports',
+      classId,
+      reportTab: currentWebReportTab || 'term'
+    }
+  });
 }
 
 function renderOverallReport() {

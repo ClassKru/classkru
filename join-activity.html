@@ -2872,6 +2872,18 @@
 
     function renderJoinLobby(session, responses, wall) {
       const cls = getClass() || (state.classes || []).find(item => item.id === session.classroomId);
+      const lobbySignature = JSON.stringify({
+        classroomId: session.classroomId || '',
+        phase: session.phase || '',
+        responses: (responses || []).map(item => [
+          item.id || item.participantId || item.participantKey || item.studentKey || '',
+          item.nickname || item.firstName || '',
+          item.no || item.code || '',
+          item.status || ''
+        ])
+      });
+      if (wall.dataset.joinLobbySignature === lobbySignature && wall.querySelector('.join-lobby')) return;
+      wall.dataset.joinLobbySignature = lobbySignature;
       const lobbyMessage = responses.length
         ? 'สมาชิกกำลังรอเริ่มกิจกรรม'
         : 'เมื่อมีนักเรียนเข้ามา รายชื่อจะแสดงที่นี่';

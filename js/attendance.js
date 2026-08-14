@@ -207,7 +207,7 @@ function updateSwipeDateDisplay() {
 }
 
 
-function openSwipeAttendance(classId, forDate) {
+function openSwipeAttendance(classId, forDate, options = {}) {
   swipeClassId = classId;
   swipeStudentIndex = 0;
   swipeResults = {};
@@ -216,6 +216,12 @@ function openSwipeAttendance(classId, forDate) {
 
   const c = appState.classes.find(x => x.id === classId);
   if (!c) return;
+
+  if (options.returnTo) {
+    setCheckinReturnTarget(options.returnTo);
+  } else if (appState.activeWebScreen !== 'checkin') {
+    clearCheckinReturnTarget();
+  }
 
   // ใช้วันที่ที่ส่งเข้ามา (เช่น วันที่เลือกจากปฏิทินหน้าหลัก) ไม่งั้น default เป็นวันนี้
   swipeSelectedDate = forDate ? new Date(forDate) : getNowDate();
@@ -258,6 +264,8 @@ function closeSwipeAttendance() {
   // ถ้ามาถึงตรงนี้เพราะ hash เปลี่ยนไปหน้าอื่นอยู่แล้ว (กดปุ่ม back) ก็ไม่ต้องสั่งซ้ำ
   const stillOnCheckin = parseHash().screen === 'checkin';
   if (stillOnCheckin) {
+    const returnTarget = consumeCheckinReturnTarget();
+    if (navigateToCheckinReturnTarget(returnTarget)) return;
     // มือถือ: กลับหน้าห้องเรียนเสมอ ให้ทางออกของทุกแท็บในห้องเป็นทางเดียวกัน
     // (บนมือถือหน้าเช็คชื่อไม่มีแถบแท็บแล้ว การ์ดห้องคือทางแยกไปแท็บอื่น)
     const isMobile = window.matchMedia('(max-width: 768px)').matches;

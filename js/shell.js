@@ -25,6 +25,36 @@ let pendingDeepLinkParam = parseHash().param;
 
 // หน้าที่อยู่ก่อนเข้าเช็คชื่อ — ใช้ตอนกด "กลับ" ให้ย้อนไปหน้าที่มาจริงๆ
 let screenBeforeCheckin = null;
+// ต้นทางแบบละเอียดของหน้าเช็คชื่อ เช่น เข้าจากจุดในรายงานรายภาค
+// ใช้เฉพาะเคสที่ต้องกลับไปหน้าจอเดิมจริงๆ ไม่ใช่ fallback ทั่วไป
+let checkinReturnTarget = null;
+
+function setCheckinReturnTarget(target) {
+  checkinReturnTarget = target || null;
+}
+
+function clearCheckinReturnTarget() {
+  checkinReturnTarget = null;
+}
+
+function consumeCheckinReturnTarget() {
+  const target = checkinReturnTarget;
+  checkinReturnTarget = null;
+  return target;
+}
+
+function navigateToCheckinReturnTarget(target) {
+  if (!target || !target.screen) return false;
+  if (target.screen === 'reports' && target.classId) {
+    navigateToWebScreen('reports', target.classId);
+    if (target.reportTab && typeof switchWebReportTab === 'function') {
+      switchWebReportTab(target.reportTab);
+    }
+    return true;
+  }
+  navigateToWebScreen(target.screen, target.classId);
+  return true;
+}
 
 // ==================== เขียน URL: push หรือ replace ====================
 // สลับแท็บ/เปลี่ยนห้อง "ภายในห้องเดียวกัน" = การเคลื่อนที่แนวราบ ไม่ควรสร้างประวัติใหม่
