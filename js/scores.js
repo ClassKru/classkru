@@ -610,13 +610,15 @@ function updateScoreFocus(el) {
   const row = el.closest('tr');
   const cell = el.closest('.sc-score-cell');
   const column = refs.columns.get(el.dataset.c) || [];
-  column.forEach(node => node.classList.add(node.matches('th') ? 'is-active-header' : 'is-active-column'));
+  const columnHeaders = column.filter(node => node.matches('th'));
+  columnHeaders.forEach(node => node.classList.add('is-active-header'));
   if (row) {
     row.classList.add('is-active-row');
     row.querySelectorAll('.sc-c-no, .sc-c-code, .sc-c-name').forEach(node => node.classList.add('is-active-student'));
   }
   if (cell) cell.classList.add('is-active-cell');
-  refs.activeColumn = column;
+  table.classList.add('has-active-score');
+  refs.activeColumn = columnHeaders;
   refs.activeRow = row;
   refs.activeCell = cell;
 
@@ -629,6 +631,27 @@ function updateScoreFocus(el) {
   context.querySelector('.sc-focus-item').textContent = `${el.dataset.itemName} • เต็ม ${el.dataset.maxScore}`;
 }
 
+function clearScoreFocus(table) {
+  const refs = table && table._scoreFocusRefs;
+  if (!refs) return;
+  refs.activeColumn.forEach(node => node.classList.remove('is-active-header'));
+  if (refs.activeRow) {
+    refs.activeRow.classList.remove('is-active-row');
+    refs.activeRow.querySelectorAll('.is-active-student').forEach(node => node.classList.remove('is-active-student'));
+  }
+  if (refs.activeCell) refs.activeCell.classList.remove('is-active-cell');
+  refs.activeColumn = [];
+  refs.activeRow = null;
+  refs.activeCell = null;
+  table.classList.remove('has-active-score');
+  const context = table.parentElement.querySelector('.score-focus-context');
+  if (context) {
+    context.classList.remove('has-focus');
+    context.querySelector('.sc-focus-empty').hidden = false;
+    context.querySelector('.sc-focus-detail').hidden = true;
+  }
+}
+
 function focusScoreCell(el) {
   if (!el) return false;
   el.focus({ preventScroll: true });
@@ -637,9 +660,62 @@ function focusScoreCell(el) {
   return true;
 }
 
+const scWheelSaveTimers = new WeakMap();
+const scWheelLastStep = new WeakMap();
+
+function scoreInputBounds(el) {
+  const min = Number(el.min);
+  const max = Number(el.max);
+  const step = Number(el.step);
+  return {
+    min: Number.isFinite(min) ? min : 0,
+    max: Number.isFinite(max) ? max : Infinity,
+    step: Number.isFinite(step) && step > 0 ? step : 1
+  };
+}
+
+function normalizedScoreInputValue(el, value) {
+  const bounds = scoreInputBounds(el);
+  const clamped = Math.max(bounds.min, Math.min(bounds.max, Number(value) || 0));
+  return Math.round(clamped * 1000) / 1000;
+}
+
+function adjustScoreInput(el, direction) {
+  const bounds = scoreInputBounds(el);
+  const current = el.value === '' ? bounds.min : Number(el.value);
+  const next = normalizedScoreInputValue(el, current + (direction * bounds.step));
+  el.value = String(next);
+  return next;
+}
+
+function queueScoreInputSave(el) {
+  clearTimeout(scWheelSaveTimers.get(el));
+  scWheelSaveTimers.set(el, setTimeout(() => {
+    if (el.isConnected) el.dispatchEvent(new Event('change', { bubbles: true }));
+    scWheelSaveTimers.delete(el);
+  }, 180));
+}
+
 function bindScoreCellKeys() {
   if (scKeysBound) return;
   scKeysBound = true;
+  document.addEventListener('pointerdown', event => {
+    const scoreCell = event.target.closest && event.target.closest('.sc-score-cell');
+    if (scoreCell) {
+      const input = scoreCell.querySelector('.score-cell-input');
+      if (input && event.target !== input) {
+        event.preventDefault();
+        focusScoreCell(input);
+      }
+      return;
+    }
+    const active = document.activeElement;
+    if (active && active.classList && active.classList.contains('score-cell-input')) {
+      const table = active.closest('.score-matrix-table');
+      active.blur();
+      clearScoreFocus(table);
+    }
+  });
   document.addEventListener('focusin', event => {
     const el = event.target;
     if (!el.classList || !el.classList.contains('score-cell-input')) return;
@@ -647,6 +723,28 @@ function bindScoreCellKeys() {
     // รอ click จบก่อนค่อย select เพื่อให้แตะ/คลิกคะแนนเดิมแล้วพิมพ์ทับได้ทันที
     setTimeout(() => { if (document.activeElement === el) el.select(); }, 0);
   });
+  document.addEventListener('focusout', event => {
+    const el = event.target;
+    if (!el.classList || !el.classList.contains('score-cell-input')) return;
+    const table = el.closest('.score-matrix-table');
+    setTimeout(() => {
+      const active = document.activeElement;
+      if (!active || !active.classList || !active.classList.contains('score-cell-input') || active.closest('.score-matrix-table') !== table) {
+        clearScoreFocus(table);
+      }
+    }, 0);
+  });
+  document.addEventListener('wheel', event => {
+    const el = event.target;
+    if (!el.classList || !el.classList.contains('score-cell-input') || document.activeElement !== el || event.deltaY === 0) return;
+    event.preventDefault();
+    const now = Date.now();
+    if (now - (scWheelLastStep.get(el) || 0) < 70) return;
+    scWheelLastStep.set(el, now);
+    // ตามความเคยชินของครู: หมุนลง = เพิ่มคะแนน, หมุนขึ้น = ลดคะแนน
+    adjustScoreInput(el, event.deltaY > 0 ? 1 : -1);
+    queueScoreInputSave(el);
+  }, { passive: false });
   document.addEventListener('keydown', event => {
     const el = event.target;
     if (!el.classList || !el.classList.contains('score-cell-input')) return;
@@ -962,6 +1060,94 @@ function mscGradeClass(g) {
   return 'zero';
 }
 
+const MSC_SLIDE_HOLD_MS = 380;
+const MSC_SLIDE_PX_PER_STEP = 16;
+let mscSlideBound = false;
+let mscSlideGesture = null;
+
+function finishMobileScoreSlide(state, shouldSave) {
+  if (!state) return;
+  clearTimeout(state.holdTimer);
+  state.box.classList.remove('is-slide-active');
+  if (state.active) {
+    state.box.dataset.slideSuppressUntil = String(Date.now() + 500);
+    if (shouldSave && state.changed) {
+      state.input.dispatchEvent(new Event('change', { bubbles: true }));
+      state.box.classList.add('is-slide-saved');
+      setTimeout(() => state.box.classList.remove('is-slide-saved'), 420);
+    }
+    try { state.box.releasePointerCapture(state.pointerId); } catch (_) {}
+  }
+  delete state.box.dataset.slideValue;
+  if (mscSlideGesture === state) mscSlideGesture = null;
+}
+
+function bindMobileScoreSlide() {
+  if (mscSlideBound) return;
+  mscSlideBound = true;
+  document.addEventListener('pointerdown', event => {
+    const box = event.target.closest && event.target.closest('.msc-box');
+    if (!box || event.button !== 0) return;
+    const input = box.querySelector('.msc-in');
+    if (!input) return;
+    if (mscSlideGesture) finishMobileScoreSlide(mscSlideGesture, false);
+    const bounds = scoreInputBounds(input);
+    const startValue = input.value === '' ? bounds.min : Number(input.value);
+    const state = {
+      box, input, bounds, pointerId: event.pointerId, startY: event.clientY,
+      startValue, active: false, changed: false, lastValue: startValue, holdTimer: null
+    };
+    state.holdTimer = setTimeout(() => {
+      if (mscSlideGesture !== state) return;
+      state.active = true;
+      state.box.classList.add('is-slide-active');
+      state.box.dataset.slideValue = input.value === '' ? '–' : input.value;
+      input.blur();
+      try { state.box.setPointerCapture(state.pointerId); } catch (_) {}
+      if (navigator.vibrate) navigator.vibrate(12);
+    }, MSC_SLIDE_HOLD_MS);
+    mscSlideGesture = state;
+  });
+  document.addEventListener('pointermove', event => {
+    const state = mscSlideGesture;
+    if (!state || event.pointerId !== state.pointerId) return;
+    const distance = event.clientY - state.startY;
+    if (!state.active) {
+      if (Math.abs(distance) > 10) finishMobileScoreSlide(state, false);
+      return;
+    }
+    event.preventDefault();
+    const steps = Math.trunc(distance / MSC_SLIDE_PX_PER_STEP);
+    const next = normalizedScoreInputValue(state.input, state.startValue + (steps * state.bounds.step));
+    if (next === state.lastValue) return;
+    state.lastValue = next;
+    state.changed = true;
+    state.input.value = String(next);
+    state.box.dataset.slideValue = String(next);
+    if (navigator.vibrate) navigator.vibrate(5);
+  }, { passive: false });
+  document.addEventListener('pointerup', event => {
+    const state = mscSlideGesture;
+    if (!state || event.pointerId !== state.pointerId) return;
+    if (state.active) event.preventDefault();
+    finishMobileScoreSlide(state, true);
+  });
+  document.addEventListener('pointercancel', event => {
+    const state = mscSlideGesture;
+    if (state && event.pointerId === state.pointerId) finishMobileScoreSlide(state, state.active);
+  });
+  document.addEventListener('contextmenu', event => {
+    if (event.target.closest && event.target.closest('.msc-box')) event.preventDefault();
+  });
+  document.addEventListener('click', event => {
+    const box = event.target.closest && event.target.closest('.msc-box');
+    if (box && Number(box.dataset.slideSuppressUntil || 0) > Date.now()) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+}
+
 function renderMobileScores(c) {
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (!wrap) return;
@@ -1048,8 +1234,9 @@ function renderMobileStudentPanel(c, sid) {
       const v = clampMark((sc.marks[it.id] || {})[sid], it.max);
       return `<div class="msc-row">
         <span class="msc-row-name" title="ตั้งค่ารายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">${escapeScore(it.name)}</span>
-        <span class="msc-box">
+        <span class="msc-box" aria-label="กดค้างแล้วลากลงเพื่อเพิ่มคะแนน ลากขึ้นเพื่อลดคะแนน">
           <input type="number" class="msc-in" value="${v}" min="0" max="${it.max}" step="0.5" inputmode="decimal" placeholder="–"
+            data-class-id="${escapeScoreAttr(c.id)}" data-item-id="${escapeScoreAttr(it.id)}" data-student-id="${escapeScoreAttr(sid)}"
             onchange="setScoreMark('${c.id}','${it.id}','${sid}',this);refreshMobileScoreSummary('${c.id}','${sid}')">
           <span class="msc-slash">/ ${it.max}</span>
         </span>
@@ -1069,9 +1256,11 @@ function renderMobileStudentPanel(c, sid) {
       <div class="msc-shead-txt"><div class="msc-sname">${escapeScore(s.name)}</div></div>
     </div>
     <div class="msc-summary" id="msc-summary">${mobileScoreSummaryHtml(c, sid)}</div>
+    <div class="msc-gesture-hint"><i class="hgi-stroke hgi-tap-02"></i><span><b>ปรับคะแนนแบบเร็ว</b> กดค้างที่คะแนน แล้วลากลงเพื่อเพิ่ม · ลากขึ้นเพื่อลด · ปล่อยเพื่อบันทึก</span></div>
     ${buckets}
     ${mobileStudentNavHtml(c, idx)}
   </div>`;
+  bindMobileScoreSlide();
 }
 
 // แถบข้ามคนท้ายหน้ากรอกรายคน — ของเดิมต้องย้อนกลับไปหน้ารายชื่อแล้วแตะคนถัดไป

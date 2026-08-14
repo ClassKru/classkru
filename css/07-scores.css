@@ -129,10 +129,11 @@
 .score-matrix-table tbody td { border-bottom: 1px solid #eef1f4; background: #fff; }
 .score-matrix-table tbody tr:nth-child(even) td { background: #fbfcfd; }
 .score-matrix-table tbody tr:last-child td { border-bottom: none; }
-.score-matrix-table tbody tr { transition: background 0.12s ease; }
+.score-matrix-table tbody tr { transition: background 0.12s ease, opacity 0.16s ease, filter 0.16s ease; }
 .score-matrix-table tbody tr:hover td { background: #f6f9f8; }
-/* Crosshair: คอลัมน์เบาสุด → แถว → ชื่อ/หัวงาน → ช่องปัจจุบัน */
-.score-matrix-table tbody td.is-active-column { background: #f4faf7; }
+/* Focus Lane: เด่นเฉพาะแถวนักเรียนปัจจุบัน แถวอื่นคลุมเทาให้อ่านตำแหน่งผิดได้ยาก */
+.score-matrix-table.has-active-score tbody tr:not(.is-active-row) { opacity: 0.34; filter: grayscale(1); }
+.score-matrix-table.has-active-score tbody tr:not(.is-active-row):hover { opacity: 0.58; }
 .score-matrix-table tbody tr.is-active-row td { background: #edf7f2; }
 .score-matrix-table tbody tr.is-active-row .is-active-student { background: #e3f3ec; }
 .score-matrix-table .is-active-student { font-weight: 700; color: var(--text-main); }
@@ -1166,11 +1167,31 @@
 }
 .msc-row:last-of-type { border-bottom: none; }
 .msc-row-name { font-size: 0.9rem; color: var(--text-main); cursor: pointer; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msc-gesture-hint {
+  display: flex; align-items: flex-start; gap: 8px; margin: -4px 0 14px; padding: 10px 12px;
+  border: 1px solid var(--primary-light-border); border-radius: 10px; background: var(--primary-light);
+  color: var(--text-muted); font-size: 0.76rem; line-height: 1.45;
+}
+.msc-gesture-hint i { flex: 0 0 auto; color: var(--primary); font-size: 1rem; margin-top: 1px; }
+.msc-gesture-hint b { color: var(--primary-deep); }
 .msc-box {
   display: inline-flex; align-items: center; gap: 3px; background: var(--bg-light);
-  border-radius: 10px; padding: 6px 12px; flex-shrink: 0; transition: var(--transition-normal);
+  position: relative; border: 1px solid transparent; border-radius: 10px; padding: 6px 12px;
+  flex-shrink: 0; transition: var(--transition-normal); touch-action: none; user-select: none; -webkit-user-select: none;
 }
 .msc-box:focus-within { background: var(--primary-light); box-shadow: 0 0 0 2px var(--primary-light-border); }
+.msc-box.is-slide-active { z-index: 20; background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light-border); }
+.msc-box.is-slide-active::before {
+  content: "ลากลง +  ·  ลากขึ้น −"; position: absolute; left: 50%; bottom: calc(100% + 44px);
+  transform: translateX(-50%); width: max-content; padding: 5px 9px; border-radius: 999px;
+  background: #26312d; color: #fff; font-size: 0.68rem; font-weight: 700; pointer-events: none;
+}
+.msc-box.is-slide-active::after {
+  content: attr(data-slide-value); position: absolute; left: 50%; bottom: calc(100% + 8px);
+  transform: translateX(-50%); min-width: 42px; padding: 5px 10px; border-radius: 9px;
+  background: var(--primary); color: #fff; font-size: 1rem; font-weight: 800; text-align: center; pointer-events: none;
+}
+.msc-box.is-slide-saved { border-color: var(--primary); background: var(--primary-light); }
 .msc-in {
   -webkit-appearance: none; appearance: none; background: transparent; border: none; outline: none;
   color: var(--text-main); font-weight: 700; font-size: 1.05rem; line-height: 1; width: 42px;
