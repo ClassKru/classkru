@@ -1,16 +1,35 @@
 /* ========================================== */
 /* ===  ตารางคะแนน (เข้าชุดกับตารางรายชื่อ) === */
 /* ========================================== */
+/* ตารางเป็น scroll region ของตัวเอง เพื่อให้หัวตารางและแถบบอกบริบท sticky ได้จริง */
+.sc-matrix-wrap { overflow: visible !important; }
+.score-matrix-scroll {
+  position: relative; max-height: min(68vh, 720px); overflow: auto; overscroll-behavior: contain;
+  border: 1px solid var(--border-color); border-radius: 12px; background: #fff;
+  scrollbar-gutter: stable;
+}
 /* width:auto = คอลัมน์ขนาดพอดีเนื้อหา ไม่ยืดเต็มจอตอนรายการน้อย (เพิ่มรายการค่อยขยาย) */
-.score-matrix-table { width: auto; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; }
-.score-matrix-table th, .score-matrix-table td { padding: 6px 7px; }
-/* เส้นตารางแนวตั้ง "เบา ๆ" ทุกคอลัมน์ (หัว+ตัว) — ใช้แทนเงา ช่วยกวาดสายตาตามคอลัมน์
-   ใส่เฉพาะ border-right ด้านเดียว เส้นระหว่างช่องจึงไม่ซ้อนกันเป็น 2px */
-.score-matrix-table th, .score-matrix-table td { border-right: 1px solid #f0f2f5; }
-.score-matrix-table tr > *:last-child { border-right: none; }
-/* จุดเริ่มหมวด (ก่อน/หลังกลางภาค · กลางภาค · ปลายภาค) = เส้นหนาและเว้นช่องไฟก่อนข้อมูล */
-.score-matrix-table .sc-cat-start { border-left: 4px solid #cbd5e1; }
+.score-matrix-table { width: auto; min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; background: #fff; }
+.score-matrix-table th, .score-matrix-table td { padding: 7px 8px; border-right: none; }
+/* มีเส้นแนวตั้งเฉพาะจุดเริ่มกลุ่มข้อมูล ลดภาพแบบ Excel และยังแบ่งหมวดได้ชัด */
+.score-matrix-table .sc-cat-start { border-left: 2px solid #d8dee6; }
 .score-matrix-table tbody td.sc-cat-start { padding-left: 10px; }
+
+/* แถบบอกบริบทช่องที่กำลังกรอก — เล็ก กระชับ และอยู่เหนือหัวตารางตลอด */
+.score-focus-context {
+  position: sticky; top: 0; left: 0; z-index: 12; min-height: 42px; box-sizing: border-box;
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color); background: rgba(255,255,255,0.97); color: var(--text-muted);
+}
+.sc-focus-kicker { display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+.sc-focus-kicker i { color: var(--primary); font-size: 0.9rem; }
+.sc-focus-empty { font-size: 0.8rem; }
+.sc-focus-detail { display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--text-main); font-size: 0.82rem; }
+.sc-focus-detail[hidden], .sc-focus-empty[hidden] { display: none; }
+.sc-focus-student, .sc-focus-item { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sc-focus-student { font-weight: 700; }
+.sc-focus-divider { width: 1px; height: 18px; flex: 0 0 1px; background: var(--border-color); }
+.score-focus-context.has-focus { background: #f7fcfa; border-bottom-color: var(--primary-light-border); }
 
 /* สีประจำกลุ่มช่วยกวาดสายตาจากหัวตารางลงมาถึงช่องกรอก โดยใช้โทนอ่อนเพื่อไม่แย่งข้อมูล */
 .sc-group-collect, .sc-group-before { --sc-group-accent: #2f9e72; --sc-group-tint: #eef9f3; }
@@ -21,14 +40,12 @@
 /* หัวตาราง = ไม่ตีเส้น ไม่มีเงา (เอาเงาลอยออก) — คั่นหัว/เนื้อด้วยเส้นล่างเส้นเดียว (ดูที่ tbody tr แรก) */
 .score-matrix-table thead th {
   font-size: 0.86rem; font-weight: 600; color: var(--text-muted);
-  background: transparent; white-space: nowrap; vertical-align: middle;
-  /* ตั้งเส้นแนวตั้งซ้ำที่นี่ด้วย — กฎนี้ specificity สูงกว่า `.score-matrix-table th`
-     ถ้าใช้ `border:none` เฉย ๆ เส้นตารางจะหายเฉพาะส่วนหัว (หัวกับตัวไม่ตรงกัน) */
-  border: none; border-right: 1px solid #f0f2f5;
+  background: #f8fafc; white-space: nowrap; vertical-align: middle; border: none;
 }
+.score-matrix-table thead { position: sticky; top: 42px; z-index: 8; }
 /* คั่นหัวออกจากเนื้อตาราง = เส้นบางเส้นเดียวเต็มแนว (แทนเงา 3 ชั้นเดิม) วางที่ขอบบนของแถวข้อมูลแรก
    จึงลากยาวครบทุกคอลัมน์รวมช่องตรึงซ้าย/สรุปขวา ไม่ขาดเป็นช่วง */
-.score-matrix-table tbody tr:first-child td { border-top: 1.5px solid var(--border-color); }
+.score-matrix-table tbody tr:first-child td { border-top: 1px solid var(--border-color); }
 /* หัวหมวดใหญ่ = เรียบเข้าชุดกับเนื้อตาราง (ไม่มีพื้นสี/กรอบ/เงา) บอกลำดับชั้นด้วยตัวหนา + จัดบรรทัดบนให้เท่ากัน */
 .score-matrix-table thead .sc-bucket-head {
   color: var(--text-main); background: var(--sc-group-tint, transparent);
@@ -100,7 +117,7 @@
 /* เส้นแบ่งกลุ่มบนแถวหัวหมวด/หัวระยะ — ต้องประกาศซ้ำที่ specificity สูงกว่า
    เพราะ `.sc-bucket-head { border:none }` ชนะ `.sc-cat-start` ทำให้เส้นหายเฉพาะ 2 แถวบน */
 .score-matrix-table thead .sc-bucket-head.sc-cat-start,
-.score-matrix-table thead .sc-phase-head.sc-cat-start { border-left: 4px solid var(--sc-group-accent, #cbd5e1); }
+.score-matrix-table thead .sc-phase-head.sc-cat-start { border-left: 2px solid var(--sc-group-accent, #cbd5e1); }
 /* ช่องแก้สัดส่วน % inline บนหัวหมวด (แก้ได้เลยไม่ต้องเปิดตั้งค่า) */
 /* ช่อง % = ตัวเลขเปล่าบนพื้นขาว ไม่มีพื้นเขียว (พื้นเขียวเดิมเด่นจนแย่งสายตาจากชื่อรายการ)
    ยังคลิกพิมพ์แก้ได้ — บอกว่าแก้ได้ด้วยพื้นเทาตอน hover แทน */
@@ -109,45 +126,52 @@
 .sc-weight-input:focus { outline: none; background: var(--primary-light); box-shadow: 0 0 0 2px var(--primary-light-border); }
 .sc-weight-input::-webkit-outer-spin-button, .sc-weight-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .sc-weight-input { -moz-appearance: textfield; appearance: textfield; }
-.score-matrix-table tbody td { border-bottom: 1px solid #eef0ef; }
+.score-matrix-table tbody td { border-bottom: 1px solid #eef1f4; background: #fff; }
+.score-matrix-table tbody tr:nth-child(even) td { background: #fbfcfd; }
 .score-matrix-table tbody tr:last-child td { border-bottom: none; }
-.score-matrix-table tbody tr { transition: var(--transition-normal); }
-.score-matrix-table tbody tr:hover td { background: #f7faf9; }
-/* แถวที่กำลังกรอกอยู่ ค้างไฮไลต์ไว้จนกว่าจะย้ายช่อง — hover อย่างเดียวไม่พอ เพราะพอ
-   ไล่กรอกด้วยคีย์บอร์ดแล้วมือออกจากเมาส์ ไฮไลต์หาย ครูไล่สายตาผิดแถวได้ง่ายเวลา
-   คะแนนซ้ำๆ กันหลายแถว. ต้องเป็นสีทึบ (ไม่ใช่ rgba) เพราะคอลัมน์ชื่อตรึงซ้ายทับกันอยู่ */
-.score-matrix-table tbody tr:focus-within td,
-.score-matrix-table tbody tr:focus-within .sc-c-no,
-.score-matrix-table tbody tr:focus-within .sc-c-code,
-.score-matrix-table tbody tr:focus-within .sc-c-name { background: #eff7f3; }
+.score-matrix-table tbody tr { transition: background 0.12s ease; }
+.score-matrix-table tbody tr:hover td { background: #f6f9f8; }
+/* Crosshair: คอลัมน์เบาสุด → แถว → ชื่อ/หัวงาน → ช่องปัจจุบัน */
+.score-matrix-table tbody td.is-active-column { background: #f4faf7; }
+.score-matrix-table tbody tr.is-active-row td { background: #edf7f2; }
+.score-matrix-table tbody tr.is-active-row .is-active-student { background: #e3f3ec; }
+.score-matrix-table .is-active-student { font-weight: 700; color: var(--text-main); }
+.score-matrix-table thead .sc-item-head.is-active-header {
+  background: #e3f3ec; color: var(--text-main); box-shadow: inset 0 -2px 0 var(--primary);
+}
+.score-matrix-table tbody td.is-active-cell { background: var(--primary-light); }
 .score-matrix-table .sc-score-cell { text-align: center; }
 
 /* คอลัมน์ระบุตัวตน (เลขที่/รหัส/ชื่อ) ตรึงซ้าย — โทนเดียวกับหน้าเช็คชื่อ */
-.score-matrix-table .sc-c-no   { position: sticky; left: 0;     width: 48px;  min-width: 48px;  text-align: center; background: var(--bg-card); z-index: 2; color: var(--text-muted); font-weight: 700; }
-.score-matrix-table .sc-c-code { position: sticky; left: 48px;  width: 78px;  min-width: 78px;  text-align: center; background: var(--bg-card); z-index: 2; color: var(--text-muted); font-size: 0.84rem; font-variant-numeric: tabular-nums; }
+.score-matrix-table .sc-c-no   { position: sticky; left: 0;     width: 48px;  min-width: 48px;  text-align: center; z-index: 3; color: var(--text-muted); font-weight: 700; }
+.score-matrix-table .sc-c-code { position: sticky; left: 48px;  width: 78px;  min-width: 78px;  text-align: center; z-index: 3; color: var(--text-muted); font-size: 0.84rem; font-variant-numeric: tabular-nums; }
 /* ขอบขวาคอลัมน์ชื่อ = เส้นทึบ (เดิมเป็นเงาฟุ้ง) — เอาเงาออกตามที่ตกลง ยังแยกช่องตรึงซ้ายออกจากคะแนนได้ */
-.score-matrix-table .sc-c-name { position: sticky; left: 126px; min-width: 150px; background: var(--bg-card); z-index: 2; text-align: left; font-weight: 600; color: var(--text-main); font-size: 0.9rem; white-space: nowrap; border-right: 1px solid var(--border-color); }
-.score-matrix-table thead .sc-c-no, .score-matrix-table thead .sc-c-code, .score-matrix-table thead .sc-c-name { z-index: 3; }
+.score-matrix-table .sc-c-name { position: sticky; left: 126px; width: 184px; min-width: 184px; max-width: 184px; z-index: 3; text-align: left; font-weight: 600; color: var(--text-main); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-right: 1px solid var(--border-color); }
+.score-matrix-table thead .sc-c-no, .score-matrix-table thead .sc-c-code, .score-matrix-table thead .sc-c-name { z-index: 9; background: #f8fafc; }
 .score-matrix-table .sc-c-manage { text-align: center; white-space: nowrap; }
 .score-matrix-table .sc-manage-actions { display: flex; justify-content: center; align-items: center; gap: 6px; }
 
 /* อินพุตคะแนน — ลอกจาก .d-code-input (กระชับลงเพื่อลดพื้นที่ว่าง) */
 .score-cell-input {
   width: 44px; text-align: center; font-variant-numeric: tabular-nums;
-  border: 1px solid transparent; border-radius: 8px; padding: 5px 3px;
-  font-size: 0.82rem; font-weight: 600; color: var(--text-main); background: var(--bg-light);
-  transition: var(--transition-normal);
+  border: 1px solid transparent; border-radius: 7px; padding: 5px 3px;
+  font-size: 0.82rem; font-weight: 600; color: var(--text-main); background: transparent;
+  transition: background 0.12s ease, outline-color 0.12s ease;
+  scroll-margin: 190px 24px 24px 326px;
 }
 .score-cell-input::placeholder { color: #c7c7cc; font-weight: 400; }
-.score-cell-input:hover { background: #eaecef; border-color: #d9dde2; }
-.score-cell-input:focus { outline: none; background: var(--primary-light); box-shadow: 0 0 0 2px var(--primary-light-border); }
+.score-cell-input:hover { background: #eef3f1; border-color: transparent; }
+.score-cell-input:focus, .score-cell-input:focus-visible {
+  outline: 2px solid var(--primary); outline-offset: -2px; border-color: transparent;
+  background: #fff; box-shadow: none;
+}
 /* ซ่อนลูกศรขึ้นลงของ input number (กรอกด้วยแป้นพิมพ์ ไม่ต้องใช้ spinner) */
 .score-cell-input::-webkit-outer-spin-button,
 .score-cell-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .score-cell-input { -moz-appearance: textfield; appearance: textfield; }
 
 /* คอลัมน์สรุป */
-.score-matrix-table .sc-total { text-align: center; font-weight: 600; font-size: 0.82rem; color: var(--text-main); background: #f7fcfa; }
+.score-matrix-table .sc-total { text-align: center; font-weight: 700; font-size: 0.82rem; color: var(--text-main); background: #f8fafc; }
 .score-matrix-table .sc-att { text-align: center; font-weight: 600; font-size: 0.84rem; }
 .score-matrix-table .sc-grade { text-align: center; white-space: nowrap; }
 .sc-grade-val { font-weight: 600; font-size: 0.82rem; margin-right: 4px; }
@@ -166,6 +190,14 @@
 }
 .score-grade-sel:hover { border-color: #d1d1d6; }
 .score-grade-sel:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+@media (max-width: 900px) {
+  .score-matrix-table th, .score-matrix-table td { padding: 6px; }
+  .score-focus-context { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 2px 9px; }
+  .sc-focus-detail { display: grid; width: 100%; gap: 2px; }
+  .sc-focus-divider { display: none; }
+  .sc-focus-student, .sc-focus-item { width: 100%; }
+}
 
 /* ========================================== */
 /* ===  PERIOD SETTINGS MODAL  ============= */

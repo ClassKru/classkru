@@ -192,7 +192,7 @@ function renderScoreWorkspace(c) {
   const holder = document.getElementById('score-worktab-holder');
   if (holder) holder.innerHTML = scoreWorkTabsHtml(c);
   const wrap = document.getElementById('web-scores-matrix-wrap');
-  if (wrap) wrap.classList.remove('msc-wrap');
+  if (wrap) wrap.classList.remove('msc-wrap', 'sc-matrix-wrap');
   if (scoreWorkspaceMode === 'items') return renderScoreItemsDashboard(c);
   if (scoreWorkspaceMode === 'overview') return renderScoreMatrix(c);
   if (scoreWorkspaceMode === 'quick') return renderQuickScoreEntry(c);
@@ -461,6 +461,7 @@ function renderScoreMatrix(c) {
 
   // มือถือ = โหมด "ลงมือ": การ์ดรายชื่อ → แตะเข้ากรอกทีละคน (desktop คงตารางเดิม)
   if (typeof isMobileView === 'function' && isMobileView()) return renderMobileScores(c);
+  wrap.classList.add('sc-matrix-wrap');
 
   if (c.students.length === 0) {
     wrap.innerHTML = '<div class="empty-state">ห้องนี้ยังไม่มีนักเรียน — เพิ่มรายชื่อในเมนูจัดการรายชื่อเด็กก่อน</div>';
@@ -515,13 +516,13 @@ function renderScoreMatrix(c) {
 
   // ชั้น 3: รายการ (ชื่อ/เต็ม/ปุ่มตั้งค่า) — บล็อกว่างเป็นปุ่ม + / รายการท้ายบล็อกมีปุ่ม + ชิดขอบในขวา
   let r3 = '<tr>';
-  cols.forEach(({ g, it, placeholder, groupStart, groupEnd }) => {
+  cols.forEach(({ g, it, placeholder, groupStart, groupEnd }, colIdx) => {
     const cs = groupStart ? ` sc-cat-start sc-group-${g.key}` : '';
     if (placeholder) {
       r3 += `<th class="sc-item-head sc-item-empty${cs}"><button class="sc-add-item-btn" title="เพิ่มรายการใน ${g.label}" onclick="openScoreItemModal('${c.id}',null,'${g.key}')"><i class="hgi-stroke hgi-add-01"></i></button></th>`;
     } else {
       const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
-      r3 += `<th class="sc-item-head${groupEnd ? ' sc-item-last' : ''}${cs}">${groupEnd ? addBtn(g) : ''}
+      r3 += `<th class="sc-item-head${groupEnd ? ' sc-item-last' : ''}${cs}" data-score-col="${colIdx}">${groupEnd ? addBtn(g) : ''}
         <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
         <div class="sc-item-max-row" title="คะแนนเต็ม"><span class="sc-item-max-lbl">/</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
       </th>`;
@@ -533,17 +534,21 @@ function renderScoreMatrix(c) {
 
   let body = '<tbody>';
   c.students.forEach((s, index) => {
-    body += `<tr>`
-      + `<td class="sc-c-no">${s.no || (index + 1)}</td>`
+    const studentNo = s.no || (index + 1);
+    const studentName = escapeScore(s.name);
+    body += `<tr data-score-row="${index}">`
+      + `<td class="sc-c-no">${studentNo}</td>`
       + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
-      + `<td class="sc-c-name">${escapeScore(s.name)}</td>`;
+      + `<td class="sc-c-name" title="${escapeScoreAttr(s.name)}">${studentName}</td>`;
     // data-r/data-c = พิกัดแถว-คอลัมน์ ใช้หาช่องถัดไปตอนกด Enter/ลูกศร (ดู bindScoreCellKeys)
     cols.forEach(({ g, it, placeholder, groupStart }, colIdx) => {
       const cs = groupStart ? ` sc-cat-start sc-group-${g.key}` : '';
       if (placeholder) { body += `<td class="sc-cell-empty${cs}"></td>`; return; }
       const v = clampMark((sc.marks[it.id] || {})[s.id], it.max);
-      body += `<td class="sc-score-cell${cs}"><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
-        data-r="${index}" data-c="${colIdx}"
+      body += `<td class="sc-score-cell${cs}" data-score-col="${colIdx}"><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
+        data-r="${index}" data-c="${colIdx}" data-student-no="${escapeScoreAttr(studentNo)}" data-student-name="${escapeScoreAttr(s.name)}"
+        data-item-name="${escapeScoreAttr(it.name)}" data-max-score="${escapeScoreAttr(it.max)}"
+        aria-label="คะแนน ${escapeScoreAttr(it.name)} ของ ${escapeScoreAttr(s.name)} เต็ม ${escapeScoreAttr(it.max)}" aria-describedby="score-focus-context"
         onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;
     });
     body += scoreSummaryCells(c, s);
@@ -555,7 +560,15 @@ function renderScoreMatrix(c) {
   });
   body += '</tbody>';
 
-  wrap.innerHTML = `<table class="score-matrix-table"><thead>${thead}</thead>${body}</table>`;
+  wrap.innerHTML = `<div class="score-matrix-scroll">
+    <div class="score-focus-context" id="score-focus-context" role="status" aria-live="polite">
+      <span class="sc-focus-kicker"><i class="hgi-stroke hgi-edit-02"></i> กำลังกรอก</span>
+      <span class="sc-focus-empty">เลือกช่องคะแนนเพื่อเริ่มกรอก</span>
+      <span class="sc-focus-detail" hidden><strong class="sc-focus-student"></strong><span class="sc-focus-divider" aria-hidden="true"></span><span class="sc-focus-item"></span></span>
+    </div>
+    <table class="score-matrix-table"><thead>${thead}</thead>${body}</table>
+  </div>`;
+  prepareScoreFocusTable(wrap.querySelector('.score-matrix-table'));
   bindScoreCellKeys();
 }
 
@@ -567,22 +580,91 @@ function renderScoreMatrix(c) {
 //   Enter / ↓ = คนถัดไป ช่องเดิม · ↑ = คนก่อนหน้า · Tab = ไปขวาเหมือนเดิม
 let scKeysBound = false;
 
+// Cache จุดที่ต้องไฮไลต์ไว้ครั้งเดียวต่อการ render เพื่อไม่ query ทั้งตารางทุกครั้งที่ย้ายช่อง
+function prepareScoreFocusTable(table) {
+  if (!table) return;
+  const columns = new Map();
+  table.querySelectorAll('[data-score-col]').forEach(el => {
+    const key = el.dataset.scoreCol;
+    if (!columns.has(key)) columns.set(key, []);
+    columns.get(key).push(el);
+  });
+  const inputs = Array.from(table.querySelectorAll('.score-cell-input'));
+  const inputsByPosition = new Map(inputs.map(el => [`${el.dataset.r}:${el.dataset.c}`, el]));
+  table._scoreFocusRefs = { columns, inputs, inputsByPosition, activeColumn: [], activeRow: null, activeCell: null };
+}
+
+function updateScoreFocus(el) {
+  const table = el.closest('.score-matrix-table');
+  if (!table) return;
+  const refs = table._scoreFocusRefs;
+  if (!refs) return;
+
+  refs.activeColumn.forEach(node => node.classList.remove('is-active-column', 'is-active-header'));
+  if (refs.activeRow) {
+    refs.activeRow.classList.remove('is-active-row');
+    refs.activeRow.querySelectorAll('.is-active-student').forEach(node => node.classList.remove('is-active-student'));
+  }
+  if (refs.activeCell) refs.activeCell.classList.remove('is-active-cell');
+
+  const row = el.closest('tr');
+  const cell = el.closest('.sc-score-cell');
+  const column = refs.columns.get(el.dataset.c) || [];
+  column.forEach(node => node.classList.add(node.matches('th') ? 'is-active-header' : 'is-active-column'));
+  if (row) {
+    row.classList.add('is-active-row');
+    row.querySelectorAll('.sc-c-no, .sc-c-code, .sc-c-name').forEach(node => node.classList.add('is-active-student'));
+  }
+  if (cell) cell.classList.add('is-active-cell');
+  refs.activeColumn = column;
+  refs.activeRow = row;
+  refs.activeCell = cell;
+
+  const context = table.parentElement.querySelector('.score-focus-context');
+  if (!context) return;
+  context.classList.add('has-focus');
+  context.querySelector('.sc-focus-empty').hidden = true;
+  context.querySelector('.sc-focus-detail').hidden = false;
+  context.querySelector('.sc-focus-student').textContent = `เลขที่ ${el.dataset.studentNo} • ${el.dataset.studentName}`;
+  context.querySelector('.sc-focus-item').textContent = `${el.dataset.itemName} • เต็ม ${el.dataset.maxScore}`;
+}
+
+function focusScoreCell(el) {
+  if (!el) return false;
+  el.focus({ preventScroll: true });
+  el.select();
+  el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  return true;
+}
+
 function bindScoreCellKeys() {
   if (scKeysBound) return;
   scKeysBound = true;
+  document.addEventListener('focusin', event => {
+    const el = event.target;
+    if (!el.classList || !el.classList.contains('score-cell-input')) return;
+    updateScoreFocus(el);
+    // รอ click จบก่อนค่อย select เพื่อให้แตะ/คลิกคะแนนเดิมแล้วพิมพ์ทับได้ทันที
+    setTimeout(() => { if (document.activeElement === el) el.select(); }, 0);
+  });
   document.addEventListener('keydown', event => {
     const el = event.target;
     if (!el.classList || !el.classList.contains('score-cell-input')) return;
-    let step = 0;
-    if (event.key === 'Enter' || event.key === 'ArrowDown') step = 1;
-    else if (event.key === 'ArrowUp') step = -1;
-    else return;
+    let next = null;
+    const table = el.closest('.score-matrix-table');
+    const refs = table && table._scoreFocusRefs;
+    if (event.key === 'Tab') {
+      const cells = refs ? refs.inputs : [];
+      const index = cells.indexOf(el);
+      next = cells[index + (event.shiftKey ? -1 : 1)] || null;
+    } else if (event.key === 'Enter' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      const step = (event.key === 'ArrowUp' || (event.key === 'Enter' && event.shiftKey)) ? -1 : 1;
+      next = refs ? refs.inputsByPosition.get(`${Number(el.dataset.r) + step}:${el.dataset.c}`) : null;
+    } else return;
     // ↑↓ บน input type=number ปกติคือบวก/ลบค่าในช่อง — ต้องกันไว้ก่อนย้ายโฟกัส
     event.preventDefault();
-    const next = document.querySelector(
-      `.score-cell-input[data-c="${el.dataset.c}"][data-r="${Number(el.dataset.r) + step}"]`);
     // คลุมเลขเดิมไว้ให้ด้วย พิมพ์ทับได้เลยไม่ต้องลบก่อน (ช่องส่วนใหญ่มีเลขอยู่แล้ว)
-    if (next) { next.focus(); next.select(); }
+    if (next) focusScoreCell(next);
     else el.blur();   // สุดคอลัมน์ = จบ (blur ยิง onchange ให้ช่องสุดท้ายด้วย)
   });
 }
@@ -848,6 +930,10 @@ function closeScoreSettingsModal() {
 // escape เบา ๆ สำหรับข้อความในตาราง
 function escapeScore(v) {
   return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function escapeScoreAttr(v) {
+  return escapeScore(v).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 // ==================== มือถือ: การ์ดรายชื่อ → กรอกทีละคน ====================
