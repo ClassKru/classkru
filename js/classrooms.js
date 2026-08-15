@@ -83,18 +83,26 @@ function resetClassroomFilters() {
   renderWebClassrooms();
 }
 
-function populateClassAcademicFields(c) {
+function formatClassroomNumberInput(input) {
+  // รับเฉพาะตัวเลข: พิมพ์ 12 → 1/2, พิมพ์ 612 → 6/12
+  const digits = String(input.value || '').replace(/\D/g, '').slice(0, 3);
+  input.value = digits.length > 1 ? `${digits[0]}/${digits.slice(1)}` : digits;
+  input.setCustomValidity('');
+}
+
+function numericClassName(value) {
+  const match = String(value || '').replace(/\s+/g, '').match(/(?:[อปม]\.?|ปวช\.?|ปวส\.?)?([1-6])\/([0-9]{1,2})/i);
+  return match ? `${match[1]}/${match[2]}` : String(value || '');
+}
+
+function populateClassAcademicYearField(c) {
   const yearSelect = document.getElementById('input-class-year');
-  const gradeSelect = document.getElementById('input-class-grade');
-  if (!yearSelect || !gradeSelect) return;
+  if (!yearSelect) return;
   const current = getCurrentThaiAcademicYear();
   const selectedYear = c ? getClassAcademicYear(c) : current;
   const years = [...new Set([selectedYear, current + 1, current, current - 1, current - 2])].sort((a, b) => b - a);
   yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
   yearSelect.value = String(selectedYear);
-  gradeSelect.innerHTML = '<option value="auto">ตรวจจากชื่อห้องอัตโนมัติ</option>'
-    + CLASSROOM_GRADE_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
-  gradeSelect.value = c ? inferClassGrade(c) : 'auto';
 }
 
 function renderWebClassrooms() {

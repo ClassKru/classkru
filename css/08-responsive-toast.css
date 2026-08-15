@@ -118,7 +118,6 @@
   .ck-classroom-filter-controls { width: 100%; gap: 8px; }
   .ck-classroom-filter-field { flex: 1; align-items: stretch; flex-direction: column; gap: 4px; }
   .ck-classroom-filter-field select { width: 100%; min-width: 0; }
-  .ck-class-meta-fields { grid-template-columns: 1fr; gap: 0; }
 
   /* Modal กลางจอบนมือถือ (มีขอบจาก padding ของ overlay) */
   .bottom-sheet {

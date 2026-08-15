@@ -8,7 +8,7 @@ function openClassModal(classId) {
     selectedClass = c || null;
     if (c) {
       document.getElementById('input-subject-name').value = c.subject;
-      document.getElementById('input-class-name').value = c.className;
+      document.getElementById('input-class-name').value = numericClassName(c.className);
       const idx = appState.classes.findIndex(x => x.id === classId);
       selectedClassColorIndex = (typeof c.colorIndex === 'number') ? c.colorIndex : (idx % TT_CLASS_COLORS.length);
     }
@@ -22,7 +22,7 @@ function openClassModal(classId) {
     if (title) title.innerText = 'เพิ่มห้องเรียนวิชาสอน';
     if (btn) btn.innerText = 'เพิ่มห้องเรียน';
   }
-  populateClassAcademicFields(selectedClass);
+  populateClassAcademicYearField(selectedClass);
   renderClassColorPicker();
   document.getElementById('modal-class').classList.add('show');
 }
@@ -48,11 +48,16 @@ function closeClassModal() {
 
 function saveClass() {
   const subject = document.getElementById('input-subject-name').value.trim();
-  const className = document.getElementById('input-class-name').value.trim();
+  const classNameInput = document.getElementById('input-class-name');
+  const className = classNameInput.value.trim();
   const academicYear = Number(document.getElementById('input-class-year').value) || getCurrentThaiAcademicYear();
-  const selectedGrade = document.getElementById('input-class-grade').value;
-  const gradeLevel = selectedGrade === 'auto' ? inferClassGrade({ className }) : selectedGrade;
   if (!subject || !className) { showToast('กรุณากรอกข้อมูลให้ครบ', 'warning'); return; }
+  if (!/^[1-6]\/[1-9][0-9]?$/.test(className)) {
+    showToast('กรอกห้องเรียนเป็นตัวเลข เช่น 1/2, 5/4 หรือ 6/4', 'warning');
+    classNameInput.focus();
+    return;
+  }
+  const gradeLevel = inferClassGrade({ className });
 
   const isNew = !editingClassId;
   if (editingClassId) {
