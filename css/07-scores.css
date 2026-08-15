@@ -8,25 +8,6 @@
   border: 1px solid var(--border-color); border-radius: 12px; background: #fff;
   scrollbar-gutter: stable;
 }
-.score-matrix-toolbar {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  margin-bottom: 9px; padding: 2px 1px;
-}
-.sc-view-hint {
-  display: inline-flex; align-items: center; gap: 7px; min-width: 0;
-  color: var(--text-muted); font-size: 0.78rem; font-weight: 600;
-}
-.sc-view-hint i { color: #9aa3ad; font-size: 0.9rem; }
-.sc-detail-toggle {
-  display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto;
-  min-height: 34px; padding: 6px 11px; border: 1px solid var(--border-color); border-radius: 9px;
-  background: #fff; color: var(--text-main); font: inherit; font-size: 0.8rem; font-weight: 700;
-  cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-.sc-detail-toggle:hover { background: #f6f9f8; border-color: #c8d5cf; color: var(--primary-deep); }
-.sc-detail-toggle:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.sc-detail-toggle i { color: var(--primary); font-size: 0.82rem; transition: transform 0.18s ease; }
-.sc-detail-toggle.is-expanded i { transform: rotate(180deg); }
 /* width:auto = คอลัมน์ขนาดพอดีเนื้อหา ไม่ยืดเต็มจอตอนรายการน้อย (เพิ่มรายการค่อยขยาย) */
 .score-matrix-table { width: auto; min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; background: #fff; }
 .score-matrix-table th, .score-matrix-table td { padding: 7px 8px; border-right: none; }
@@ -62,7 +43,6 @@
   background: #f8fafc; white-space: nowrap; vertical-align: middle; border: none;
 }
 .score-matrix-table thead { position: sticky; top: 42px; z-index: 8; }
-.score-matrix-table.is-summary-view thead { top: 0; }
 /* คั่นหัวออกจากเนื้อตาราง = เส้นบางเส้นเดียวเต็มแนว (แทนเงา 3 ชั้นเดิม) วางที่ขอบบนของแถวข้อมูลแรก
    จึงลากยาวครบทุกคอลัมน์รวมช่องตรึงซ้าย/สรุปขวา ไม่ขาดเป็นช่วง */
 .score-matrix-table tbody tr:first-child td { border-top: 1px solid var(--border-color); }
@@ -162,17 +142,6 @@
 }
 .score-matrix-table tbody td.is-active-cell { background: var(--primary-light); }
 .score-matrix-table .sc-score-cell { text-align: center; }
-
-/* มุมมองย่อ: คะแนนหลัก 3 กลุ่มก่อนเปิดดูรายละเอียดคะแนนย่อย */
-.score-matrix-table.is-summary-view .sc-main-head {
-  min-width: 92px; text-align: center; color: var(--text-main); font-weight: 700;
-}
-.score-matrix-table.is-summary-view .sc-main-head span {
-  display: block; margin-top: 2px; color: var(--text-muted); font-size: 0.68rem; font-weight: 500;
-}
-.score-matrix-table .sc-main-score { min-width: 92px; text-align: center; font-variant-numeric: tabular-nums; }
-.score-matrix-table .sc-main-score strong { color: var(--text-main); font-size: 0.9rem; font-weight: 700; }
-.score-matrix-table .sc-main-score span { margin-left: 4px; color: var(--text-muted); font-size: 0.7rem; }
 
 /* คอลัมน์ระบุตัวตน (เลขที่/รหัส/ชื่อ) ตรึงซ้าย — โทนเดียวกับหน้าเช็คชื่อ */
 .score-matrix-table .sc-c-no   { position: sticky; left: 0;     width: 48px;  min-width: 48px;  text-align: center; z-index: 3; color: var(--text-muted); font-weight: 700; }

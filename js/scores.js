@@ -33,7 +33,6 @@ const SCORE_TYPES = [
 const SCORE_GRADES = ['4', '3.5', '3', '2.5', '2', '1.5', '1', '0'];
 let scoreWorkspaceMode = 'overview';
 let quickScoreItemId = null;
-const scoreExpandedClasses = new Set();
 let scoreCurriculumFilters = {
   subjectId: 'science',
   grade: 'M1',
@@ -187,13 +186,6 @@ function setScoreWorkspaceMode(mode, classId) {
   scoreWorkspaceMode = mode;
   const c = appState.classes.find(x => x.id === classId);
   if (c) renderScoreWorkspace(c);
-}
-
-function toggleScoreDetails(classId) {
-  if (scoreExpandedClasses.has(classId)) scoreExpandedClasses.delete(classId);
-  else scoreExpandedClasses.add(classId);
-  const c = appState.classes.find(x => x.id === classId);
-  if (c) renderScoreMatrix(c);
 }
 
 function renderScoreWorkspace(c) {
@@ -461,58 +453,6 @@ function renderScoreItemsDashboard(c) {
   </section>`;
 }
 
-function scoreDetailToggleHtml(c, expanded, itemCount) {
-  const label = expanded ? 'ย่อคะแนนย่อย' : 'ขยายคะแนนย่อย';
-  const hint = expanded ? `กำลังแสดง ${itemCount} รายการคะแนน` : 'แสดงเฉพาะคะแนนหลัก';
-  return `<div class="score-matrix-toolbar">
-    <span class="sc-view-hint"><i class="hgi-stroke hgi-view"></i>${hint}</span>
-    <button type="button" class="sc-detail-toggle${expanded ? ' is-expanded' : ''}" aria-expanded="${expanded}" onclick="toggleScoreDetails('${c.id}')">
-      <span>${label}</span><i class="hgi-stroke hgi-arrow-down-01" aria-hidden="true"></i>
-    </button>
-  </div>`;
-}
-
-function scoreMainValue(value, max, has) {
-  const rounded = Math.round(value * 100) / 100;
-  return `<strong>${has ? rounded : '–'}</strong><span>/ ${max}</span>`;
-}
-
-function renderScoreSummaryTable(c, collectW, sumW) {
-  const sc = ensureScores(c);
-  const midW = Number(sc.config.ratio.mid) || 0;
-  const finalW = Number(sc.config.ratio.final) || 0;
-  const head = `<thead><tr>
-    <th class="sc-c-no">เลขที่</th><th class="sc-c-code">รหัส</th><th class="sc-c-name">ชื่อ-นามสกุล</th>
-    <th class="sc-main-head sc-cat-start">คะแนนเก็บ<span>/ ${collectW}</span></th>
-    <th class="sc-main-head sc-cat-start">กลางภาค<span>/ ${midW}</span></th>
-    <th class="sc-main-head sc-cat-start">ปลายภาค<span>/ ${finalW}</span></th>
-    <th class="sc-main-head sc-cat-start">รวม<span>/ ${sumW}</span></th>
-    <th class="sc-cat-start">เกรด</th><th class="sc-c-manage sc-cat-start">จัดการ</th>
-  </tr></thead>`;
-  let body = '<tbody>';
-  c.students.forEach((s, index) => {
-    const r = computeStudentScore(c, s.id);
-    const collectValue = r.cats.before.scaled + r.cats.after.scaled;
-    const collectHas = r.cats.before.has || r.cats.after.has;
-    body += `<tr>
-      <td class="sc-c-no">${s.no || (index + 1)}</td>
-      <td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>
-      <td class="sc-c-name" title="${escapeScoreAttr(s.name)}">${escapeScore(s.name)}</td>
-      <td class="sc-main-score sc-cat-start">${scoreMainValue(collectValue, collectW, collectHas)}</td>
-      <td class="sc-main-score sc-cat-start">${scoreMainValue(r.cats.mid.scaled, midW, r.cats.mid.has)}</td>
-      <td class="sc-main-score sc-cat-start">${scoreMainValue(r.cats.final.scaled, finalW, r.cats.final.has)}</td>
-      <td class="sc-total sc-cat-start">${r.total}</td>
-      <td class="sc-grade sc-cat-start">${gradeCellHtml(c, s)}</td>
-      <td class="sc-c-manage sc-cat-start"><div class="sc-manage-actions">
-        <button class="d-manage-btn" title="แก้ไขข้อมูล" onclick="currentClassId='${c.id}';openStudentDetailModal('${s.id}','${c.id}')"><i class="hgi-stroke hgi-edit-02"></i></button>
-        <button class="d-manage-btn danger" title="ลบรายชื่อ" onclick="deleteStudentFromScores('${c.id}','${s.id}')"><i class="hgi-stroke hgi-delete-02"></i></button>
-      </div></td>
-    </tr>`;
-  });
-  body += '</tbody>';
-  return `<div class="score-matrix-scroll"><table class="score-matrix-table is-summary-view">${head}${body}</table></div>`;
-}
-
 function renderScoreMatrix(c) {
   const sc = ensureScores(c);
   const wrap = document.getElementById('web-scores-matrix-wrap');
@@ -536,13 +476,6 @@ function renderScoreMatrix(c) {
   const collectCount = collectGroups.reduce((a, g) => a + cspan(g), 0);
   const collectW = (Number(sc.config.ratio.before) || 0) + (Number(sc.config.ratio.after) || 0);
   const sumW = SCORE_WK.reduce((a, b) => a + (Number(sc.config.ratio[b.key]) || 0), 0);
-  const detailsExpanded = scoreExpandedClasses.has(c.id);
-  const toolbar = scoreDetailToggleHtml(c, detailsExpanded, sc.items.length);
-
-  if (!detailsExpanded) {
-    wrap.innerHTML = toolbar + renderScoreSummaryTable(c, collectW, sumW);
-    return;
-  }
 
   // ช่องแก้สัดส่วน % ราย bucket (ก่อน/หลัง/กลาง/ปลาย) — คลิกพิมพ์
   const wInput = (bk) => {
@@ -627,7 +560,7 @@ function renderScoreMatrix(c) {
   });
   body += '</tbody>';
 
-  wrap.innerHTML = `${toolbar}<div class="score-matrix-scroll">
+  wrap.innerHTML = `<div class="score-matrix-scroll">
     <div class="score-focus-context" id="score-focus-context" role="status" aria-live="polite">
       <span class="sc-focus-kicker"><i class="hgi-stroke hgi-edit-02"></i> กำลังกรอก</span>
       <span class="sc-focus-empty">เลือกช่องคะแนนเพื่อเริ่มกรอก</span>
