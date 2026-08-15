@@ -67,31 +67,92 @@ function renderWebTimetable() {
 
     const dt = DAY_TINT[d] || { bg:'#eef2ff', text:'#3730a3' };
     const todayRing = isToday ? `box-shadow:0 0 0 2px ${dt.text};` : '';
-    html += `<div class="m-tt-day" style="border-color:${dt.text}33;${todayRing}">`;
+    html += `<section class="m-tt-day${isToday ? ' is-today' : ''}" style="border-color:${dt.text}33;${todayRing}">`;
     html += `<div class="m-tt-day-header">
-      <span class="m-tt-day-name" style="color:${dt.text};">${DAY_FULL[d]}${isToday ? ` <span style="font-size:0.7rem;font-weight:700;background:${dt.text};color:#fff;padding:1px 7px;border-radius:20px;margin-left:4px;">วันนี้</span>` : ''}</span>
-      <span class="m-tt-day-count" style="color:${dt.text};opacity:0.72;">${classCount > 0 ? classCount + ' คาบ' : 'ไม่มีคาบ'}</span>
+      <div class="m-tt-day-title"><span class="m-tt-day-name" style="color:${dt.text};">${DAY_FULL[d]}${isToday ? ` <span class="m-tt-today-badge" style="background:${dt.text};">วันนี้</span>` : ''}</span><span class="m-tt-day-count" style="color:${dt.text};">${classCount > 0 ? classCount + ' คาบ' : 'ยังไม่มีคาบ'}</span></div>
+      <button type="button" class="m-tt-day-add" style="color:${dt.text};border-color:${dt.text}44;background:${dt.bg};" onclick="openMobileTimetableQuickAdd(${d})" aria-label="เพิ่มคาบ${DAY_FULL[d]}"><i class="hgi-stroke hgi-add-01"></i><span>เพิ่มคาบ</span></button>
     </div>`;
 
     if (classCount === 0) {
-      html += `<div class="m-tt-no-class">ไม่มีคาบเรียนวันนี้</div>`;
+      html += `<button type="button" class="m-tt-no-class" onclick="openMobileTimetableQuickAdd(${d})"><i class="hgi-stroke hgi-calendar-add-01"></i><span>แตะเพื่อเพิ่มคาบแรกของวันนี้</span></button>`;
     } else {
       html += `<div class="m-tt-slots">`;
       classEntries.forEach(({ slot, entry }) => {
         const col = getClassColor(entry.classId);
-        html += `<div class="m-tt-row">
+        html += `<button type="button" class="m-tt-row" onclick="openPeriodModal(${d},${slot.period})" aria-label="แก้ไข ${timetableEscape(entry.subject)} ${timetableEscape(entry.className || '')} คาบ ${slot.period}">
           <div class="m-tt-time"><span>${slot.s}<br>${slot.e}</span></div>
-          <div class="m-tt-body"><div class="m-tt-class" style="background:transparent;border-left:none;padding:0;"><div class="s" style="color:${col.text};">${entry.subject}</div><div class="r">${entry.className || ''}</div></div></div>
-        </div>`;
+          <div class="m-tt-body"><div class="m-tt-class" style="background:transparent;border-left:none;padding:0;"><div class="s" style="color:${col.text};">${timetableEscape(entry.subject)}</div><div class="r">${timetableEscape(entry.className || '')} · คาบ ${slot.period}</div></div></div>
+          <i class="hgi-stroke hgi-arrow-right-01 m-tt-row-arrow" aria-hidden="true"></i>
+        </button>`;
       });
       html += `</div>`;
     }
-    html += `</div>`;
+    html += `</section>`;
   });
   mContainer.innerHTML = html;
 
   const summaryEl = document.getElementById('m-tt-summary');
   if (summaryEl) summaryEl.innerText = `สัปดาห์นี้ · ${totalClasses} คาบ`;
+}
+
+function timetableEscape(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[char]);
+}
+
+function findFirstAvailablePeriod(dow) {
+  const slots = getPeriodSlots();
+  const free = slots.find(slot => !(appState.timetable || []).some(entry => timetableEntryMatches(entry, dow, slot.period)));
+  return free ? Number(free.period) : null;
+}
+
+function openMobileTimetableQuickAdd(preferredDow) {
+  const today = getNowDate().getDay();
+  const preferred = Number(preferredDow);
+  const startDow = preferred || (today >= 1 && today <= 5 ? today : 1);
+  const daysToCheck = preferred ? [startDow] : [startDow, 1, 2, 3, 4, 5].filter((d, index, list) => list.indexOf(d) === index);
+  const availableDay = daysToCheck.find(d => findFirstAvailablePeriod(d) !== null);
+  if (!availableDay) {
+    showToast(preferred ? 'วันนี้มีครบทุกคาบแล้ว แตะคาบเดิมเพื่อแก้ไข' : 'ตารางสอนครบทุกคาบแล้ว แตะคาบเดิมเพื่อแก้ไข', 'info');
+    return;
+  }
+  if (!appState.classes.length) {
+    showToast('กรุณาสร้างห้องเรียนก่อนเพิ่มตารางสอน', 'warning');
+    return;
+  }
+  openPeriodModal(availableDay, findFirstAvailablePeriod(availableDay));
+}
+
+function populateMobilePeriodEditor(selectedClassId) {
+  const daySelect = document.getElementById('input-period-mobile-day');
+  const periodSelect = document.getElementById('input-period-mobile-slot');
+  const classSelect = document.getElementById('input-period-mobile-class');
+  if (!daySelect || !periodSelect || !classSelect) return;
+
+  const dayLabels = ['', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
+  daySelect.innerHTML = [1, 2, 3, 4, 5].map(d => `<option value="${d}"${d === Number(currentEditDow) ? ' selected' : ''}>วัน${dayLabels[d]}</option>`).join('');
+
+  periodSelect.innerHTML = getPeriodSlots().map(slot => {
+    const entry = (appState.timetable || []).find(t => timetableEntryMatches(t, currentEditDow, slot.period));
+    const currentClass = entry && appState.classes.find(c => c.id === entry.classId);
+    const occupied = currentClass ? ` · ${currentClass.subject} ${currentClass.className}` : (entry ? ` · ${entry.subject || 'มีคาบแล้ว'}` : ' · ว่าง');
+    return `<option value="${slot.period}"${slot.period === Number(currentEditPeriod) ? ' selected' : ''}>คาบ ${slot.period} · ${slot.s}–${slot.e}${timetableEscape(occupied)}</option>`;
+  }).join('');
+
+  const classes = [...appState.classes].sort((a, b) => {
+    const bySubject = String(a.subject || '').localeCompare(String(b.subject || ''), 'th');
+    return bySubject || String(a.className || '').localeCompare(String(b.className || ''), 'th', { numeric: true });
+  });
+  classSelect.innerHTML = '<option value="">-- เลือกวิชาและห้อง --</option>' + classes.map(c =>
+    `<option value="${timetableEscape(c.id)}"${c.id === selectedClassId ? ' selected' : ''}>${timetableEscape(c.subject || 'ไม่ระบุวิชา')} · ${timetableEscape(c.className || 'ไม่ระบุห้อง')}</option>`
+  ).join('');
+}
+
+function switchMobilePeriodSlot() {
+  const dow = Number(document.getElementById('input-period-mobile-day')?.value);
+  const period = Number(document.getElementById('input-period-mobile-slot')?.value);
+  if (dow && period) openPeriodModal(dow, period);
 }
 
 // ==================== PERIOD SETTINGS MODAL ====================

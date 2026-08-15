@@ -128,8 +128,10 @@ function openPeriodModal(dow, period) {
   currentEditDow = Number(dow);
   currentEditPeriod = Number(period);
   const existing = (appState.timetable || []).find(t => timetableEntryMatches(t, currentEditDow, currentEditPeriod));
+  const existingClass = existing && appState.classes.find(c => c.id === existing.classId);
   
   document.getElementById('modal-period-info').innerText = `${DAY_NAMES[currentEditDow]} · คาบ ${currentEditPeriod}`;
+  document.getElementById('modal-period-title').innerText = existing ? 'แก้ไขคาบเรียน' : 'เพิ่มคาบเรียน';
   
   const subjectSelect = document.getElementById('input-period-subject');
   const classSelect = document.getElementById('input-period-class');
@@ -138,13 +140,14 @@ function openPeriodModal(dow, period) {
   uniqueSubjects.forEach(s => { subjectSelect.innerHTML += `<option value="${s}">${s}</option>`; });
 
   if (existing) {
-    subjectSelect.value = existing.subject || '';
+    subjectSelect.value = (existingClass && existingClass.subject) || existing.subject || '';
     filterPeriodClassBySubject(existing.classId);
     document.getElementById('btn-period-delete').style.display = 'block';
   } else {
     filterPeriodClassBySubject();
     document.getElementById('btn-period-delete').style.display = 'none';
   }
+  if (typeof populateMobilePeriodEditor === 'function') populateMobilePeriodEditor(existing ? existing.classId : '');
   document.getElementById('modal-period').classList.add('show');
 }
 
@@ -162,13 +165,15 @@ function filterPeriodClassBySubject(preselectClassId) {
 }
 
 function savePeriodSlot() {
+  const mobileEditor = typeof isMobileView === 'function' && isMobileView();
+  const mobileClassId = document.getElementById('input-period-mobile-class')?.value || '';
   const subject = document.getElementById('input-period-subject').value;
-  const classId = document.getElementById('input-period-class').value;
-  if (!subject) { showToast('กรุณาเลือกวิชา', 'warning'); return; }
-  if (!classId) { showToast('กรุณาเลือกห้องเรียน', 'warning'); return; }
+  const classId = mobileEditor ? mobileClassId : document.getElementById('input-period-class').value;
+  if (!classId) { showToast(mobileEditor ? 'กรุณาเลือกวิชาและห้องเรียน' : 'กรุณาเลือกห้องเรียน', 'warning'); return; }
   const activeWeek = 'A';
   const c = appState.classes.find(x => x.id === classId);
   if (!c) { showToast('ไม่พบข้อมูลห้องเรียน กรุณาเลือกใหม่', 'warning'); return; }
+  if (!mobileEditor && !subject) { showToast('กรุณาเลือกวิชา', 'warning'); return; }
 
   // Remove existing
   appState.timetable = (appState.timetable || []).filter(t => !timetableEntryMatches(t, currentEditDow, currentEditPeriod));
@@ -188,6 +193,7 @@ function deletePeriodSlot() {
   closePeriodModal();
   renderWebTimetable();
   renderWebDashboard();
+  showToast('ลบคาบเรียนแล้ว', 'success');
 }
 
 function openStudentDetailModal(studentId, classId) {

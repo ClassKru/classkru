@@ -19,17 +19,17 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=340">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=340">
-  <link rel="stylesheet" href="css/03-reports.css?v=340">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=340">
-  <link rel="stylesheet" href="css/05-home.css?v=340">
-  <link rel="stylesheet" href="css/06-attendance.css?v=340">
-  <link rel="stylesheet" href="css/07-scores.css?v=340">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=340">
-    <link rel="stylesheet" href="css/09-games.css?v=340">
-  <link rel="stylesheet" href="css/10-help.css?v=340">
-  <link rel="stylesheet" href="css/11-public-help.css?v=340">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=341">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=341">
+  <link rel="stylesheet" href="css/03-reports.css?v=341">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=341">
+  <link rel="stylesheet" href="css/05-home.css?v=341">
+  <link rel="stylesheet" href="css/06-attendance.css?v=341">
+  <link rel="stylesheet" href="css/07-scores.css?v=341">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=341">
+    <link rel="stylesheet" href="css/09-games.css?v=341">
+  <link rel="stylesheet" href="css/10-help.css?v=341">
+  <link rel="stylesheet" href="css/11-public-help.css?v=341">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -416,15 +416,21 @@
 
           <!-- Mobile view: all 5 days vertical -->
           <div class="mobile-only" style="padding:0 2px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div class="m-tt-page-head">
               <div>
                 <div style="font-size:1.05rem;font-weight:800;color:var(--text-main);"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary);margin-right:6px;"></i>ตารางสอน</div>
                 <div id="m-tt-summary" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;"></div>
               </div>
+              <div class="m-tt-head-actions">
+                <button type="button" class="m-tt-settings-btn" onclick="openPeriodSettings()" aria-label="ตั้งค่าเวลาและจำนวนคาบ">
+                  <i class="hgi-stroke hgi-clock-01"></i>
+                </button>
+                <button type="button" class="m-tt-add-btn" onclick="openMobileTimetableQuickAdd()">
+                  <i class="hgi-stroke hgi-add-01"></i><span>เพิ่มคาบ</span>
+                </button>
+              </div>
             </div>
-            <button class="btn hide-mobile" style="width:100%;margin-bottom:14px;padding:10px;font-size:0.85rem;background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="openTimetableImport()">
-              <i class="hgi-stroke hgi-google-sheet"></i> นำเข้าตารางสอนจาก Excel
-            </button>
+            <div class="m-tt-manage-hint"><i class="hgi-stroke hgi-tap-02"></i><span>แตะคาบเพื่อแก้ไข หรือกด <b>+ เพิ่มคาบ</b> ในวันที่ต้องการ</span></div>
             <div id="m-timetable-days"></div>
           </div>
         </div>
@@ -999,7 +1005,7 @@
     <div style="display:flex;gap:10px;"><button class="btn" onclick="closeChangePasswordModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="cp-submit" onclick="submitChangePassword()" style="flex:2;"><i class="hgi-stroke hgi-tick-02"></i> บันทึกรหัสใหม่</button></div>
   </div></div>
 
-  <div class="modal-overlay" id="modal-period" onclick="if(event.target===this) closePeriodModal()"><div class="bottom-sheet"><div class="modal-header"><h3 id="modal-period-title">แก้ไขคาบเรียน</h3><button class="btn btn-text" onclick="closePeriodModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;" id="modal-period-info">วันจันทร์ · คาบ 5</div><div class="form-group"><label for="input-period-subject">วิชา</label><select id="input-period-subject" class="form-control" style="appearance:auto;" onchange="filterPeriodClassBySubject()"><option value="">-- เลือก --</option></select></div><div class="form-group"><label for="input-period-class">ห้อง</label><select id="input-period-class" class="form-control" style="appearance:auto;"><option value="">-- เลือก --</option></select></div><div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closePeriodModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-danger" id="btn-period-delete" onclick="deletePeriodSlot()" style="flex:1;display:none;">ลบ</button><button class="btn btn-primary" onclick="savePeriodSlot()" style="flex:2;">บันทึก</button></div></div></div>
+  <div class="modal-overlay" id="modal-period" onclick="if(event.target===this) closePeriodModal()"><div class="bottom-sheet period-editor-sheet"><div class="modal-header"><h3 id="modal-period-title">เพิ่มคาบเรียน</h3><button class="btn btn-text" onclick="closePeriodModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div class="desktop-only" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;" id="modal-period-info">วันจันทร์ · คาบ 5</div><div class="mobile-only period-mobile-fields"><div class="period-mobile-grid"><div class="form-group"><label for="input-period-mobile-day">วัน</label><select id="input-period-mobile-day" class="form-control" style="appearance:auto;" onchange="switchMobilePeriodSlot()"></select></div><div class="form-group"><label for="input-period-mobile-slot">คาบและเวลา</label><select id="input-period-mobile-slot" class="form-control" style="appearance:auto;" onchange="switchMobilePeriodSlot()"></select></div></div><div class="form-group"><label for="input-period-mobile-class">วิชาและห้องเรียน</label><select id="input-period-mobile-class" class="form-control period-mobile-class-select" style="appearance:auto;"></select><div class="period-mobile-help">เลือกครั้งเดียวได้ทั้งวิชาและห้อง</div></div></div><div class="desktop-only"><div class="form-group"><label for="input-period-subject">วิชา</label><select id="input-period-subject" class="form-control" style="appearance:auto;" onchange="filterPeriodClassBySubject()"><option value="">-- เลือก --</option></select></div><div class="form-group"><label for="input-period-class">ห้อง</label><select id="input-period-class" class="form-control" style="appearance:auto;"><option value="">-- เลือก --</option></select></div></div><div class="period-editor-actions"><button class="btn" onclick="closePeriodModal()">ยกเลิก</button><button class="btn btn-danger" id="btn-period-delete" onclick="deletePeriodSlot()" style="display:none;">ลบ</button><button class="btn btn-primary" onclick="savePeriodSlot()"><i class="hgi-stroke hgi-tick-02"></i> บันทึกคาบ</button></div></div></div>
 
   <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:14px;background:var(--bg-light);border:1px solid var(--border-color);border-radius:12px;"><img id="student-detail-photo-preview" alt="" style="display:none;width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-light-border);"><div style="flex:1;min-width:0;"><div style="font-size:0.78rem;font-weight:700;color:var(--text-main);">รูปนักเรียน <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ · รุ่นทดลอง)</span></div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">ใช้เฉพาะรูปที่ได้รับอนุญาต และลบได้ทุกเมื่อ</div></div><button type="button" class="btn" style="padding:7px 10px;font-size:0.78rem;white-space:nowrap;" onclick="openStudentDetailPhoto(event)"><i class="hgi-stroke hgi-camera-01"></i> เพิ่มรูป</button><button type="button" id="student-detail-photo-remove" class="btn btn-text" style="display:none;padding:7px 8px;font-size:0.78rem;white-space:nowrap;color:var(--color-absent);" onclick="removeStudentDetailPhoto(event)"><i class="hgi-stroke hgi-delete-02"></i> ลบรูป</button><input id="student-detail-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleStudentDetailPhoto(event)"></div><!-- สถิติ มา/สาย/ขาด/ลา ถูกตัดออก — modal นี้ทำหน้าที่ "แก้ไขข้อมูลนักเรียน" อย่างเดียว
      การรายงานผลเข้าเรียนมีหน้าเฉพาะอยู่แล้ว (รายงานวิเคราะห์ผล + modal สรุปนักเรียน) --><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
@@ -1221,21 +1227,21 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=340"></script>
-  <script defer src="js/auth.js?v=340"></script>
-  <script defer src="js/shell.js?v=340"></script>
-  <script defer src="js/dashboard.js?v=340"></script>
-  <script defer src="js/classrooms.js?v=340"></script>
-  <script defer src="js/students.js?v=340"></script>
-  <script defer src="js/timetable.js?v=340"></script>
-  <script defer src="js/reports.js?v=340"></script>
-  <script defer src="js/attendance.js?v=340"></script>
-  <script defer src="js/curriculum-science-2560.js?v=340"></script>
-  <script defer src="js/curriculum-catalog.js?v=340"></script>
-  <script defer src="js/scores.js?v=340"></script>
-  <script defer src="js/tools.js?v=340"></script>
-  <script defer src="js/shared-utils.js?v=340"></script>
-  <script defer src="js/extras.js?v=340"></script>
-  <script defer src="js/help.js?v=340"></script>
+  <script defer src="js/core.js?v=341"></script>
+  <script defer src="js/auth.js?v=341"></script>
+  <script defer src="js/shell.js?v=341"></script>
+  <script defer src="js/dashboard.js?v=341"></script>
+  <script defer src="js/classrooms.js?v=341"></script>
+  <script defer src="js/students.js?v=341"></script>
+  <script defer src="js/timetable.js?v=341"></script>
+  <script defer src="js/reports.js?v=341"></script>
+  <script defer src="js/attendance.js?v=341"></script>
+  <script defer src="js/curriculum-science-2560.js?v=341"></script>
+  <script defer src="js/curriculum-catalog.js?v=341"></script>
+  <script defer src="js/scores.js?v=341"></script>
+  <script defer src="js/tools.js?v=341"></script>
+  <script defer src="js/shared-utils.js?v=341"></script>
+  <script defer src="js/extras.js?v=341"></script>
+  <script defer src="js/help.js?v=341"></script>
 </body>
 </html>
