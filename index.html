@@ -19,17 +19,17 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=336">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=336">
-  <link rel="stylesheet" href="css/03-reports.css?v=336">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=336">
-  <link rel="stylesheet" href="css/05-home.css?v=336">
-  <link rel="stylesheet" href="css/06-attendance.css?v=336">
-  <link rel="stylesheet" href="css/07-scores.css?v=336">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=336">
-    <link rel="stylesheet" href="css/09-games.css?v=336">
-  <link rel="stylesheet" href="css/10-help.css?v=336">
-  <link rel="stylesheet" href="css/11-public-help.css?v=336">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=337">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=337">
+  <link rel="stylesheet" href="css/03-reports.css?v=337">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=337">
+  <link rel="stylesheet" href="css/05-home.css?v=337">
+  <link rel="stylesheet" href="css/06-attendance.css?v=337">
+  <link rel="stylesheet" href="css/07-scores.css?v=337">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=337">
+    <link rel="stylesheet" href="css/09-games.css?v=337">
+  <link rel="stylesheet" href="css/10-help.css?v=337">
+  <link rel="stylesheet" href="css/11-public-help.css?v=337">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -331,6 +331,22 @@
           <div class="card" style="margin-bottom:20px;flex-direction:row;justify-content:space-between;align-items:center;padding:20px 24px;flex-wrap:wrap;gap:12px;">
             <div><div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-school" style="color:var(--primary)"></i> ห้องเรียนวิชาสอน</div><p class="subtitle" style="margin-top:4px;">สร้างรายวิชาและจัดการห้องเรียน</p></div>
             <button class="btn btn-primary" id="btn-add-class-header" onclick="openClassModal()"><i class="hgi-stroke hgi-add-01"></i> เพิ่มห้องเรียน</button>
+          </div>
+          <div class="ck-classroom-filterbar" id="classroom-filterbar">
+            <div class="ck-classroom-filter-summary">
+              <span class="ck-classroom-filter-icon"><i class="hgi-stroke hgi-filter-horizontal"></i></span>
+              <div><strong>จัดหมวดหมู่ห้องเรียน</strong><span id="classroom-filter-summary">แสดงทุกวิชา</span></div>
+            </div>
+            <div class="ck-classroom-filter-controls">
+              <label class="ck-classroom-filter-field">
+                <span>ปีการศึกษา</span>
+                <select id="classroom-filter-year" onchange="setClassroomFilter('year',this.value)" aria-label="เลือกปีการศึกษา"></select>
+              </label>
+              <label class="ck-classroom-filter-field">
+                <span>ระดับชั้น</span>
+                <select id="classroom-filter-grade" onchange="setClassroomFilter('grade',this.value)" aria-label="เลือกระดับชั้น"></select>
+              </label>
+            </div>
           </div>
           <div id="web-classrooms-grid" class="class-cards-grid"></div>
         </div>
@@ -783,7 +799,19 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="modal-class" onclick="if(event.target===this) closeClassModal()"><div class="bottom-sheet"><div class="modal-header"><h3>เพิ่มวิชา/ห้องเรียน</h3><button class="btn btn-text" onclick="closeClassModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div class="form-group"><label for="input-subject-name">ชื่อวิชา</label><input type="text" id="input-subject-name" class="form-control" placeholder="เช่น วิทยาศาสตร์"></div><div class="form-group"><label for="input-class-name">ห้องเรียน</label><input type="text" id="input-class-name" class="form-control" placeholder="เช่น ม.1/2"></div><div class="form-group"><label>สีประจำห้อง</label><div id="class-color-picker" style="display:grid;grid-template-columns:repeat(15,1fr);gap:7px;width:100%;place-items:center;"></div></div><div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closeClassModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="btn-class-submit" onclick="saveClass()" style="flex:2;">เพิ่มห้องเรียน</button></div></div></div>
+  <div class="modal-overlay" id="modal-class" onclick="if(event.target===this) closeClassModal()">
+    <div class="bottom-sheet">
+      <div class="modal-header"><h3>เพิ่มวิชา/ห้องเรียน</h3><button class="btn btn-text" onclick="closeClassModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
+      <div class="form-group"><label for="input-subject-name">ชื่อวิชา</label><input type="text" id="input-subject-name" class="form-control" placeholder="เช่น วิทยาศาสตร์"></div>
+      <div class="form-group"><label for="input-class-name">ห้องเรียน</label><input type="text" id="input-class-name" class="form-control" placeholder="เช่น ม.1/2"></div>
+      <div class="ck-class-meta-fields">
+        <div class="form-group"><label for="input-class-year">ปีการศึกษา</label><select id="input-class-year" class="form-control" style="appearance:auto;"></select></div>
+        <div class="form-group"><label for="input-class-grade">ระดับชั้น</label><select id="input-class-grade" class="form-control" style="appearance:auto;"></select></div>
+      </div>
+      <div class="form-group"><label>สีประจำห้อง</label><div id="class-color-picker" style="display:grid;grid-template-columns:repeat(15,1fr);gap:7px;width:100%;place-items:center;"></div></div>
+      <div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closeClassModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="btn-class-submit" onclick="saveClass()" style="flex:2;">เพิ่มห้องเรียน</button></div>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="modal-student" onclick="if(event.target===this) closeStudentModal()" style="z-index:9000;">
     <div class="bottom-sheet" style="width:480px;max-width:95vw;">
@@ -1192,21 +1220,21 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=336"></script>
-  <script defer src="js/auth.js?v=336"></script>
-  <script defer src="js/shell.js?v=336"></script>
-  <script defer src="js/dashboard.js?v=336"></script>
-  <script defer src="js/classrooms.js?v=336"></script>
-  <script defer src="js/students.js?v=336"></script>
-  <script defer src="js/timetable.js?v=336"></script>
-  <script defer src="js/reports.js?v=336"></script>
-  <script defer src="js/attendance.js?v=336"></script>
-  <script defer src="js/curriculum-science-2560.js?v=336"></script>
-  <script defer src="js/curriculum-catalog.js?v=336"></script>
-  <script defer src="js/scores.js?v=336"></script>
-  <script defer src="js/tools.js?v=336"></script>
-  <script defer src="js/shared-utils.js?v=336"></script>
-  <script defer src="js/extras.js?v=336"></script>
-  <script defer src="js/help.js?v=336"></script>
+  <script defer src="js/core.js?v=337"></script>
+  <script defer src="js/auth.js?v=337"></script>
+  <script defer src="js/shell.js?v=337"></script>
+  <script defer src="js/dashboard.js?v=337"></script>
+  <script defer src="js/classrooms.js?v=337"></script>
+  <script defer src="js/students.js?v=337"></script>
+  <script defer src="js/timetable.js?v=337"></script>
+  <script defer src="js/reports.js?v=337"></script>
+  <script defer src="js/attendance.js?v=337"></script>
+  <script defer src="js/curriculum-science-2560.js?v=337"></script>
+  <script defer src="js/curriculum-catalog.js?v=337"></script>
+  <script defer src="js/scores.js?v=337"></script>
+  <script defer src="js/tools.js?v=337"></script>
+  <script defer src="js/shared-utils.js?v=337"></script>
+  <script defer src="js/extras.js?v=337"></script>
+  <script defer src="js/help.js?v=337"></script>
 </body>
 </html>

@@ -2,8 +2,10 @@ function openClassModal(classId) {
   editingClassId = classId || null;
   const title = document.querySelector('#modal-class h3');
   const btn = document.getElementById('btn-class-submit');
+  let selectedClass = null;
   if (classId) {
     const c = appState.classes.find(x => x.id === classId);
+    selectedClass = c || null;
     if (c) {
       document.getElementById('input-subject-name').value = c.subject;
       document.getElementById('input-class-name').value = c.className;
@@ -20,6 +22,7 @@ function openClassModal(classId) {
     if (title) title.innerText = 'เพิ่มห้องเรียนวิชาสอน';
     if (btn) btn.innerText = 'เพิ่มห้องเรียน';
   }
+  populateClassAcademicFields(selectedClass);
   renderClassColorPicker();
   document.getElementById('modal-class').classList.add('show');
 }
@@ -46,14 +49,17 @@ function closeClassModal() {
 function saveClass() {
   const subject = document.getElementById('input-subject-name').value.trim();
   const className = document.getElementById('input-class-name').value.trim();
+  const academicYear = Number(document.getElementById('input-class-year').value) || getCurrentThaiAcademicYear();
+  const selectedGrade = document.getElementById('input-class-grade').value;
+  const gradeLevel = selectedGrade === 'auto' ? inferClassGrade({ className }) : selectedGrade;
   if (!subject || !className) { showToast('กรุณากรอกข้อมูลให้ครบ', 'warning'); return; }
 
   const isNew = !editingClassId;
   if (editingClassId) {
     const c = appState.classes.find(x => x.id === editingClassId);
-    if (c) { c.subject = subject; c.className = className; c.colorIndex = selectedClassColorIndex; }
+    if (c) { c.subject = subject; c.className = className; c.academicYear = academicYear; c.gradeLevel = gradeLevel; c.colorIndex = selectedClassColorIndex; }
   } else {
-    appState.classes.push({ id: 'c_' + Date.now(), subject, className, colorIndex: selectedClassColorIndex, students: [], attendance: {}, notes: {} });
+    appState.classes.push({ id: 'c_' + Date.now(), subject, className, academicYear, gradeLevel, colorIndex: selectedClassColorIndex, students: [], attendance: {}, notes: {} });
   }
   saveState();
   closeClassModal();

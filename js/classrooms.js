@@ -1,12 +1,124 @@
+const CLASSROOM_GRADE_OPTIONS = [
+  { value: 'k1', label: 'อนุบาล 1' }, { value: 'k2', label: 'อนุบาล 2' }, { value: 'k3', label: 'อนุบาล 3' },
+  { value: 'p1', label: 'ป.1' }, { value: 'p2', label: 'ป.2' }, { value: 'p3', label: 'ป.3' },
+  { value: 'p4', label: 'ป.4' }, { value: 'p5', label: 'ป.5' }, { value: 'p6', label: 'ป.6' },
+  { value: 'm1', label: 'ม.1' }, { value: 'm2', label: 'ม.2' }, { value: 'm3', label: 'ม.3' },
+  { value: 'm4', label: 'ม.4' }, { value: 'm5', label: 'ม.5' }, { value: 'm6', label: 'ม.6' },
+  { value: 'voc1', label: 'ปวช.1' }, { value: 'voc2', label: 'ปวช.2' }, { value: 'voc3', label: 'ปวช.3' },
+  { value: 'highvoc1', label: 'ปวส.1' }, { value: 'highvoc2', label: 'ปวส.2' },
+  { value: 'other', label: 'อื่น ๆ' }
+];
+
+let classroomFilterYear = null;
+let classroomFilterGrade = 'all';
+
+function getCurrentThaiAcademicYear(date = new Date()) {
+  // ปีการศึกษาไทยเริ่มช่วงเดือนพฤษภาคม: ม.ค.–เม.ย. ยังเป็นปีการศึกษาก่อนหน้า
+  return date.getFullYear() + (date.getMonth() < 4 ? 542 : 543);
+}
+
+function getClassAcademicYear(c) {
+  const year = Number(c && c.academicYear);
+  return Number.isFinite(year) && year > 0 ? year : getCurrentThaiAcademicYear();
+}
+
+function inferClassGrade(c) {
+  if (c && CLASSROOM_GRADE_OPTIONS.some(o => o.value === c.gradeLevel)) return c.gradeLevel;
+  const name = String((c && c.className) || '').replace(/\s+/g, '').toLowerCase();
+  let match = name.match(/(?:อนุบาล|อ\.?)([1-3])/);
+  if (match) return `k${match[1]}`;
+  match = name.match(/ปวส\.?([1-2])/);
+  if (match) return `highvoc${match[1]}`;
+  match = name.match(/ปวช\.?([1-3])/);
+  if (match) return `voc${match[1]}`;
+  match = name.match(/ป\.?([1-6])/);
+  if (match) return `p${match[1]}`;
+  match = name.match(/ม\.?([1-6])/);
+  if (match) return `m${match[1]}`;
+  // ClassKru เน้นครูมัธยม: ชื่อย่อแบบ 5/1 จึงตีความเป็น ม.5
+  match = name.match(/^([1-6])(?:\/|-)/);
+  if (match) return `m${match[1]}`;
+  return 'other';
+}
+
+function renderClassroomFilters(classes) {
+  const bar = document.getElementById('classroom-filterbar');
+  const yearSelect = document.getElementById('classroom-filter-year');
+  const gradeSelect = document.getElementById('classroom-filter-grade');
+  if (!bar || !yearSelect || !gradeSelect) return;
+  bar.style.display = classes.length ? '' : 'none';
+  if (!classes.length) return;
+
+  const years = [...new Set(classes.map(getClassAcademicYear))].sort((a, b) => b - a);
+  if (classroomFilterYear === null) classroomFilterYear = String(years[0] || getCurrentThaiAcademicYear());
+  if (classroomFilterYear !== 'all' && !years.includes(Number(classroomFilterYear))) classroomFilterYear = String(years[0]);
+  yearSelect.innerHTML = '<option value="all">ทุกปีการศึกษา</option>'
+    + years.map(y => `<option value="${y}">ปีการศึกษา ${y}</option>`).join('');
+  yearSelect.value = classroomFilterYear;
+
+  const availableGrades = [...new Set(classes
+    .filter(c => classroomFilterYear === 'all' || getClassAcademicYear(c) === Number(classroomFilterYear))
+    .map(inferClassGrade))];
+  const gradeOptions = CLASSROOM_GRADE_OPTIONS.filter(o => availableGrades.includes(o.value));
+  if (classroomFilterGrade !== 'all' && !availableGrades.includes(classroomFilterGrade)) classroomFilterGrade = 'all';
+  gradeSelect.innerHTML = '<option value="all">ทุกระดับชั้น</option>'
+    + gradeOptions.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+  gradeSelect.value = classroomFilterGrade;
+}
+
+function setClassroomFilter(key, value) {
+  if (key === 'year') {
+    classroomFilterYear = value;
+    classroomFilterGrade = 'all';
+  } else if (key === 'grade') {
+    classroomFilterGrade = value;
+  }
+  closeClassMenu();
+  renderWebClassrooms();
+}
+
+function resetClassroomFilters() {
+  classroomFilterYear = 'all';
+  classroomFilterGrade = 'all';
+  renderWebClassrooms();
+}
+
+function populateClassAcademicFields(c) {
+  const yearSelect = document.getElementById('input-class-year');
+  const gradeSelect = document.getElementById('input-class-grade');
+  if (!yearSelect || !gradeSelect) return;
+  const current = getCurrentThaiAcademicYear();
+  const selectedYear = c ? getClassAcademicYear(c) : current;
+  const years = [...new Set([selectedYear, current + 1, current, current - 1, current - 2])].sort((a, b) => b - a);
+  yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+  yearSelect.value = String(selectedYear);
+  gradeSelect.innerHTML = '<option value="auto">ตรวจจากชื่อห้องอัตโนมัติ</option>'
+    + CLASSROOM_GRADE_OPTIONS.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+  gradeSelect.value = c ? inferClassGrade(c) : 'auto';
+}
+
 function renderWebClassrooms() {
   const container = document.getElementById('web-classrooms-grid');
   if (!container) return;
   container.innerHTML = '';
-  if (appState.classes.length === 0) {
+  const allClasses = appState.classes || [];
+  renderClassroomFilters(allClasses);
+  if (allClasses.length === 0) {
     container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><i class="hgi-stroke hgi-school" style="font-size:3rem;"></i><p>ยังไม่มีห้องเรียน เริ่มสร้างวิชาสอนแรกของคุณได้เลย</p><button class="btn btn-primary" onclick="openClassModal()" style="margin-top:16px;display:inline-flex;align-items:center;gap:8px;"><i class="hgi-stroke hgi-add-01"></i> เพิ่มห้องเรียน</button></div>';
     return;
   }
-  appState.classes.forEach(c => {
+  const filteredClasses = allClasses.filter(c => {
+    const yearMatches = classroomFilterYear === 'all' || getClassAcademicYear(c) === Number(classroomFilterYear);
+    const gradeMatches = classroomFilterGrade === 'all' || inferClassGrade(c) === classroomFilterGrade;
+    return yearMatches && gradeMatches;
+  });
+  const summary = document.getElementById('classroom-filter-summary');
+  if (summary) summary.textContent = `แสดง ${filteredClasses.length} จาก ${allClasses.length} วิชา`;
+  if (!filteredClasses.length) {
+    container.innerHTML = '<div class="empty-state ck-classroom-filter-empty" style="grid-column:1/-1;"><i class="hgi-stroke hgi-filter-horizontal" style="font-size:2.4rem;"></i><p>ไม่พบห้องเรียนในหมวดที่เลือก</p><button class="btn" onclick="resetClassroomFilters()"><i class="hgi-stroke hgi-cancel-circle"></i> ล้างตัวกรอง</button></div>';
+    return;
+  }
+  filteredClasses.forEach(c => {
     const pct = calculateAttendancePercentage(c);
     const pctColor = pct >= 80 ? 'var(--color-present)' : pct >= 60 ? 'var(--color-late-text)' : 'var(--color-absent)';
     const col = getClassColor(c.id);
