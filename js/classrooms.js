@@ -84,9 +84,14 @@ function resetClassroomFilters() {
 }
 
 function formatClassroomNumberInput(input) {
-  // รับเฉพาะตัวเลข: พิมพ์ 12 → 1/2, พิมพ์ 612 → 6/12
-  const digits = String(input.value || '').replace(/\D/g, '').slice(0, 3);
-  input.value = digits.length > 1 ? `${digits[0]}/${digits.slice(1)}` : digits;
+  // รองรับความเคยชินทั้งสองแบบ: 1/2 คงเครื่องหมาย / ไว้ และ 12 ช่วยจัดเป็น 1/2
+  const raw = String(input.value || '');
+  const digits = raw.replace(/\D/g, '').slice(0, 3);
+  if (raw.includes('/')) {
+    input.value = digits ? `${digits[0]}/${digits.slice(1)}` : '';
+  } else {
+    input.value = digits.length > 1 ? `${digits[0]}/${digits.slice(1)}` : digits;
+  }
   input.setCustomValidity('');
 }
 
