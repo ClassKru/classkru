@@ -224,9 +224,9 @@
       </div>
       <nav class="sidebar-menu">
         <button class="nav-item active" data-screen="dashboard" onclick="navigateToWebScreen('dashboard')"><i class="hgi-stroke hgi-home-01"></i><span>หน้าหลัก</span></button>
-        <button class="nav-item" data-screen="classrooms" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>ห้องเรียนวิชาสอน</span></button>
+        <button class="nav-item" data-screen="classrooms" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>จัดการห้องเรียน</span></button>
         <button class="nav-item" data-screen="students" onclick="navigateToWebScreen('students')" style="display:none;"><i class="hgi-stroke hgi-user-multiple"></i><span>จัดการรายชื่อเด็ก</span></button>
-        <button class="nav-item" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอนประจำสัปดาห์</span></button>
+        <button class="nav-item" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
         <button class="nav-item" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกมการศึกษา</span></button>
         <button class="nav-item" data-screen="help" onclick="navigateToWebScreen('help')"><i class="hgi-stroke hgi-customer-service-01"></i><span>ศูนย์ช่วยเหลือ</span></button>
         <button class="nav-item" data-screen="attendance" onclick="navigateToWebScreen('attendance')" style="display:none;"><i class="hgi-stroke hgi-table"></i><span>Attendance Matrix</span></button>
@@ -329,7 +329,7 @@
         <!-- CLASSROOMS -->
         <div id="web-screen-classrooms" class="fade-in" style="display:none;">
           <div class="card" style="margin-bottom:20px;flex-direction:row;justify-content:space-between;align-items:center;padding:20px 24px;flex-wrap:wrap;gap:12px;">
-            <div><div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-school" style="color:var(--primary)"></i> ห้องเรียนวิชาสอน</div><p class="subtitle" style="margin-top:4px;">สร้างรายวิชาและจัดการห้องเรียน</p></div>
+            <div><div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-school" style="color:var(--primary)"></i> จัดการห้องเรียน</div><p class="subtitle" style="margin-top:4px;">สร้างรายวิชาและจัดการห้องเรียน</p></div>
             <button class="btn btn-primary" id="btn-add-class-header" onclick="openClassModal()"><i class="hgi-stroke hgi-add-01"></i> เพิ่มห้องเรียน</button>
           </div>
           <div class="ck-classroom-filterbar" id="classroom-filterbar">
@@ -397,8 +397,8 @@
             <div class="card timetable-page-head">
               <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
                 <div>
-                  <div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary)"></i> ตารางสอนประจำสัปดาห์</div>
-                  <p class="subtitle" style="margin-top:4px;">กำหนดคาบเรียนสำหรับตารางสอนประจำสัปดาห์</p>
+                  <div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-calendar-03" style="color:var(--primary)"></i> ตารางสอน</div>
+                  <p class="subtitle" style="margin-top:4px;">กำหนดคาบเรียนในแต่ละสัปดาห์</p>
                 </div>
                 <div id="tt-desktop-controls" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                   <span id="timetable-period-count" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);"></span>
