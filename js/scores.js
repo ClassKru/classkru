@@ -577,7 +577,8 @@ function renderScoreMatrix(c) {
 // คอลัมน์เดียวตั้งแต่คนที่ 1 ถึงคนสุดท้าย แต่ตารางเรียงเป็นแถวต่อคน Tab เลยพาไป
 // "ขวา" (คนเดิม รายการถัดไป) ซึ่งตรงข้ามกับที่ครูต้องการ ของเดิมไม่มีทางลงคอลัมน์
 // ด้วยคีย์บอร์ดเลย = ต้องคลิกเมาส์ทีละช่อง 40 ครั้ง ต่อ 1 รายการคะแนน
-//   Enter / ↓ = คนถัดไป ช่องเดิม · ↑ = คนก่อนหน้า · Tab = ไปขวาเหมือนเดิม
+//   Enter / ↓ = คนถัดไป ช่องเดิม · ↑ = คนก่อนหน้า · ←/→ = รายการก่อนหน้า/ถัดไป
+//   Tab / Shift+Tab ยังทำงานตามลำดับช่องเหมือนเดิม
 let scKeysBound = false;
 
 // Cache จุดที่ต้องไฮไลต์ไว้ครั้งเดียวต่อการ render เพื่อไม่ query ทั้งตารางทุกครั้งที่ย้ายช่อง
@@ -755,8 +756,11 @@ function bindScoreCellKeys() {
     } else if (event.key === 'Enter' || event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       const step = (event.key === 'ArrowUp' || (event.key === 'Enter' && event.shiftKey)) ? -1 : 1;
       next = refs ? refs.inputsByPosition.get(`${Number(el.dataset.r) + step}:${el.dataset.c}`) : null;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      const step = event.key === 'ArrowLeft' ? -1 : 1;
+      next = refs ? refs.inputsByPosition.get(`${el.dataset.r}:${Number(el.dataset.c) + step}`) : null;
     } else return;
-    // ↑↓ บน input type=number ปกติคือบวก/ลบค่าในช่อง — ต้องกันไว้ก่อนย้ายโฟกัส
+    // ลูกศรบน input type=number ปกติอาจเปลี่ยนค่า/เลื่อน caret — กันไว้เพื่อใช้ย้ายช่องทั้ง 4 ทิศทาง
     event.preventDefault();
     // คลุมเลขเดิมไว้ให้ด้วย พิมพ์ทับได้เลยไม่ต้องลบก่อน (ช่องส่วนใหญ่มีเลขอยู่แล้ว)
     if (next) focusScoreCell(next);
