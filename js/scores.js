@@ -149,12 +149,6 @@ function openClassScores(classId) {
   navigateToWebScreen('scores', classId);
 }
 
-// เปิดฮับเครื่องมือช่วยสอนจากหน้าคะแนน — เซ็ต context ห้องให้เครื่องมือ (สุ่มชื่อ ฯลฯ) ชี้ห้องคะแนนนี้
-function openScoreClassTools() {
-  if (scoreCurrentClassId) swipeClassId = scoreCurrentClassId;
-  openToolsHub();
-}
-
 function viewClassScores(classId) {
   const c = appState.classes.find(x => x.id === classId);
   if (!c) return;

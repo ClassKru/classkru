@@ -136,7 +136,7 @@ function navigateToWebScreen(screenId, param) {
   // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
   setRouteHash(detailClassId ? `#${screenId}:${detailClassId}` : '#' + screenId);
 
-  const screens = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','games','settings'];
+  const screens = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','tools','games','settings'];
   screens.forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = s === screenId ? 'block' : 'none';
@@ -166,6 +166,7 @@ function navigateToWebScreen(screenId, param) {
     attendance: ['Attendance Matrix', 'ประวัติเข้าเรียนรายคาบ'],
     scores: ['เก็บคะแนน', 'กรอกคะแนน รวมผล ตัดเกรดอัตโนมัติ'],
     reports: ['รายงานวิเคราะห์ผล', 'สถิติเชิงลึกรายห้องเรียน'],
+    tools: ['เครื่องมือช่วยสอน', 'เลือกห้องเรียนและเปิดเครื่องมือหน้าชั้นเรียน'],
     games: ['เกมการศึกษา', 'เลือกกิจกรรมสนุก ๆ สำหรับนักเรียน'],
     settings: ['ตั้งค่าระบบ', 'จัดการผู้ใช้งาน & รีเซ็ต']
   };
@@ -182,6 +183,7 @@ function navigateToWebScreen(screenId, param) {
   else if (screenId === 'attendance') loadWebAttendanceMatrix();
   else if (screenId === 'scores') viewClassScores(detailClassId);
   else if (screenId === 'reports') showWebClassReport(detailClassId);
+  else if (screenId === 'tools') renderTeachingToolsPage();
   else if (screenId === 'help') renderHelpHub();
 }
 
@@ -211,7 +213,7 @@ function applyCheckinRoute(classId) {
   setRouteHash('#checkin:' + classId);   // เข้าจากการ์ดห้อง = push (ปุ่ม back ปิดหน้านี้ได้) · สลับแท็บ = replace
 
   // ซ่อนหน้าอื่นทั้งหมด (overlay ทับอยู่แล้ว แต่ต้องให้ state ตรงกัน)
-  ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','games','settings'].forEach(s => {
+  ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','tools','games','settings'].forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = 'none';
   });

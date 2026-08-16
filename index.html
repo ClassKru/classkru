@@ -19,17 +19,17 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=341">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=341">
-  <link rel="stylesheet" href="css/03-reports.css?v=341">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=341">
-  <link rel="stylesheet" href="css/05-home.css?v=341">
-  <link rel="stylesheet" href="css/06-attendance.css?v=341">
-  <link rel="stylesheet" href="css/07-scores.css?v=341">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=341">
-    <link rel="stylesheet" href="css/09-games.css?v=341">
-  <link rel="stylesheet" href="css/10-help.css?v=341">
-  <link rel="stylesheet" href="css/11-public-help.css?v=341">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=342">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=342">
+  <link rel="stylesheet" href="css/03-reports.css?v=342">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=342">
+  <link rel="stylesheet" href="css/05-home.css?v=342">
+  <link rel="stylesheet" href="css/06-attendance.css?v=342">
+  <link rel="stylesheet" href="css/07-scores.css?v=342">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=342">
+    <link rel="stylesheet" href="css/09-games.css?v=342">
+  <link rel="stylesheet" href="css/10-help.css?v=342">
+  <link rel="stylesheet" href="css/11-public-help.css?v=342">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -227,6 +227,7 @@
         <button class="nav-item" data-screen="classrooms" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>จัดการห้องเรียน</span></button>
         <button class="nav-item" data-screen="students" onclick="navigateToWebScreen('students')" style="display:none;"><i class="hgi-stroke hgi-user-multiple"></i><span>จัดการรายชื่อเด็ก</span></button>
         <button class="nav-item" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
+        <button class="nav-item" data-screen="tools" onclick="navigateToWebScreen('tools')"><i class="hgi-stroke hgi-magic-wand-01"></i><span>เครื่องมือช่วยสอน</span></button>
         <button class="nav-item" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกมการศึกษา</span></button>
         <button class="nav-item" data-screen="help" onclick="navigateToWebScreen('help')"><i class="hgi-stroke hgi-customer-service-01"></i><span>ศูนย์ช่วยเหลือ</span></button>
         <button class="nav-item" data-screen="attendance" onclick="navigateToWebScreen('attendance')" style="display:none;"><i class="hgi-stroke hgi-table"></i><span>Attendance Matrix</span></button>
@@ -498,11 +499,23 @@
             <div id="web-scores-class-list" class="class-cards-grid"></div>
           </div>
           <div id="web-scores-detail-view" style="display:none;">
-            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action" onclick="openScoreExportMenu()"><i class="hgi-stroke hgi-file-download"></i> <span class="hide-mobile">ส่งออก</span></button><button class="btn ck-hdr-action ck-ic-purple" onclick="openScoreClassTools()"><i class="hgi-stroke hgi-magic-wand-01"></i> <span class="hide-mobile">เครื่องมือ</span></button><button class="btn ck-hdr-action ck-ic-gray" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action" onclick="openScoreExportMenu()"><i class="hgi-stroke hgi-file-download"></i> <span class="hide-mobile">ส่งออก</span></button><button class="btn ck-hdr-action ck-ic-gray" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
             <div id="scores-classtab-holder"></div>
             <div id="score-worktab-holder"></div>
             <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
           </div>
+        </div>
+
+        <!-- TEACHING TOOLS -->
+        <div id="web-screen-tools" class="fade-in" style="display:none;">
+          <section class="card teaching-tools-head">
+            <div><span class="games-eyebrow"><i class="hgi-stroke hgi-magic-wand-01"></i> เครื่องมือหน้าชั้นเรียน</span><h2>เครื่องมือช่วยสอน</h2><p>เลือกปีการศึกษาและห้องเรียนก่อนใช้เครื่องมือที่อ้างอิงรายชื่อนักเรียน</p></div>
+          </section>
+          <section class="card teaching-tools-context" aria-label="เลือกห้องเรียนสำหรับเครื่องมือช่วยสอน">
+            <label><span>ปีการศึกษา</span><select id="teaching-tools-year" class="form-control" onchange="setTeachingToolsYear(this.value)"></select></label>
+            <label><span>ห้องเรียน</span><select id="teaching-tools-class" class="form-control" onchange="setTeachingToolsClass(this.value)"></select></label>
+          </section>
+          <section><div id="teaching-tools-grid" class="tools-grid"></div></section>
         </div>
 
         <!-- SETTINGS -->
@@ -631,6 +644,7 @@
       <button class="mob-nav-btn" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
       <button class="mob-nav-btn checkin-btn" data-screen="checkin" onclick="mobileCheckinTap()"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
       <button class="mob-nav-btn" data-screen="classrooms students scores reports" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>ห้องเรียน</span></button>
+      <button class="mob-nav-btn" data-screen="tools" onclick="navigateToWebScreen('tools')"><i class="hgi-stroke hgi-magic-wand-01"></i><span>เครื่องมือ</span></button>
       <button class="mob-nav-btn" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกม</span></button>
       <button class="mob-nav-btn" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่า</span></button>
     </nav>
@@ -654,10 +668,6 @@
         </div>
       </div>
       <div class="header-actions" style="gap:8px;justify-content:flex-end;">
-        <button class="btn ck-hdr-action ck-ic-purple" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="openToolsHub()">
-          <i class="hgi-stroke hgi-magic-wand-01"></i>
-          <span class="hide-mobile">เครื่องมือ</span>
-        </button>
         <div style="position:relative;">
           <button class="btn ck-hdr-action" id="swipe-date-btn" style="background:var(--bg-card);border:1px solid var(--border-color);" onclick="toggleSwipeCalendar()">
             <span id="swipe-date-display">...</span>
@@ -1227,21 +1237,21 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=341"></script>
-  <script defer src="js/auth.js?v=341"></script>
-  <script defer src="js/shell.js?v=341"></script>
-  <script defer src="js/dashboard.js?v=341"></script>
-  <script defer src="js/classrooms.js?v=341"></script>
-  <script defer src="js/students.js?v=341"></script>
-  <script defer src="js/timetable.js?v=341"></script>
-  <script defer src="js/reports.js?v=341"></script>
-  <script defer src="js/attendance.js?v=341"></script>
-  <script defer src="js/curriculum-science-2560.js?v=341"></script>
-  <script defer src="js/curriculum-catalog.js?v=341"></script>
-  <script defer src="js/scores.js?v=341"></script>
-  <script defer src="js/tools.js?v=341"></script>
-  <script defer src="js/shared-utils.js?v=341"></script>
-  <script defer src="js/extras.js?v=341"></script>
-  <script defer src="js/help.js?v=341"></script>
+  <script defer src="js/core.js?v=342"></script>
+  <script defer src="js/auth.js?v=342"></script>
+  <script defer src="js/shell.js?v=342"></script>
+  <script defer src="js/dashboard.js?v=342"></script>
+  <script defer src="js/classrooms.js?v=342"></script>
+  <script defer src="js/students.js?v=342"></script>
+  <script defer src="js/timetable.js?v=342"></script>
+  <script defer src="js/reports.js?v=342"></script>
+  <script defer src="js/attendance.js?v=342"></script>
+  <script defer src="js/curriculum-science-2560.js?v=342"></script>
+  <script defer src="js/curriculum-catalog.js?v=342"></script>
+  <script defer src="js/scores.js?v=342"></script>
+  <script defer src="js/tools.js?v=342"></script>
+  <script defer src="js/shared-utils.js?v=342"></script>
+  <script defer src="js/extras.js?v=342"></script>
+  <script defer src="js/help.js?v=342"></script>
 </body>
 </html>

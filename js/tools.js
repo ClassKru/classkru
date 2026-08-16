@@ -12,6 +12,64 @@ const TEACHING_TOOLS = [
   { id:'scoreboard',    name:'กระดานคะแนน',  desc:'สะสมแต้มพฤติกรรม',   icon:'hgi-award-01',       tint:'gray',   status:'soon' },
 ];
 
+let teachingToolsYear = null;
+
+function teachingToolCardsHtml() {
+  return TEACHING_TOOLS.map(t => {
+    const ready = t.status === 'ready';
+    const click = ready ? `onclick="runTool('${t.id}')"` : `onclick="showToast('เครื่องมือนี้กำลังพัฒนา เร็วๆ นี้')"`;
+    return `<div class="tool-card ${ready ? 'ready' : 'soon'} tint-${t.tint}" ${click}>
+        ${ready ? '' : '<span class="tool-soon-badge">เร็วๆ นี้</span>'}
+        <span class="tool-icon tint-${t.tint}"><i class="hgi-stroke ${t.icon}"></i></span>
+        <div class="tool-name">${t.name}</div>
+        <div class="tool-desc">${t.desc}</div>
+      </div>`;
+  }).join('');
+}
+
+function renderTeachingToolsPage() {
+  const yearSelect = document.getElementById('teaching-tools-year');
+  const classSelect = document.getElementById('teaching-tools-class');
+  const grid = document.getElementById('teaching-tools-grid');
+  if (!yearSelect || !classSelect || !grid) return;
+
+  const classes = Array.isArray(appState.classes) ? appState.classes : [];
+  const years = [...new Set(classes.map(getClassAcademicYear))].sort((a, b) => b - a);
+  if (teachingToolsYear === null || !years.includes(Number(teachingToolsYear))) {
+    teachingToolsYear = String(years[0] || getCurrentThaiAcademicYear());
+  }
+  yearSelect.innerHTML = years.length
+    ? years.map(y => `<option value="${y}">ปีการศึกษา ${y}</option>`).join('')
+    : `<option value="${teachingToolsYear}">ปีการศึกษา ${teachingToolsYear}</option>`;
+  yearSelect.value = teachingToolsYear;
+
+  const available = classes.filter(c => getClassAcademicYear(c) === Number(teachingToolsYear));
+  if (!available.some(c => c.id === swipeClassId)) swipeClassId = available[0]?.id || null;
+  classSelect.innerHTML = available.length
+    ? available.map(c => `<option value="${c.id}">${_tlEsc(c.subject)} · ${_tlEsc(c.className)}</option>`).join('')
+    : '<option value="">ยังไม่มีห้องเรียนในปีนี้</option>';
+  classSelect.value = swipeClassId || '';
+  classSelect.disabled = !available.length;
+  setTeachingToolsClass(swipeClassId || '', false);
+  grid.innerHTML = teachingToolCardsHtml();
+}
+
+function setTeachingToolsYear(year) {
+  teachingToolsYear = year;
+  swipeClassId = null;
+  renderTeachingToolsPage();
+}
+
+function setTeachingToolsClass(classId, updateSelect = true) {
+  const c = (appState.classes || []).find(x => x.id === classId) || null;
+  swipeClassId = c ? c.id : null;
+  swipeResults = c ? { ...((c.attendance || {})[getTodayString()] || {}) } : {};
+  if (updateSelect) {
+    const select = document.getElementById('teaching-tools-class');
+    if (select) select.value = swipeClassId || '';
+  }
+}
+
 // ---------- Hub ----------
 function openToolsHub() {
   let ov = document.getElementById('tools-hub-overlay');
@@ -23,16 +81,7 @@ function openToolsHub() {
     ov.onclick = (e) => { if (e.target === ov) closeToolsHub(); };
     document.body.appendChild(ov);
   }
-  const cards = TEACHING_TOOLS.map(t => {
-    const ready = t.status === 'ready';
-    const click = ready ? `onclick="runTool('${t.id}')"` : `onclick="showToast('เครื่องมือนี้กำลังพัฒนา เร็วๆ นี้')"`;
-    return `<div class="tool-card ${ready ? 'ready' : 'soon'} tint-${t.tint}" ${click}>
-        ${ready ? '' : '<span class="tool-soon-badge">เร็วๆ นี้</span>'}
-        <span class="tool-icon tint-${t.tint}"><i class="hgi-stroke ${t.icon}"></i></span>
-        <div class="tool-name">${t.name}</div>
-        <div class="tool-desc">${t.desc}</div>
-      </div>`;
-  }).join('');
+  const cards = teachingToolCardsHtml();
   ov.innerHTML = `<div class="bottom-sheet tools-hub-sheet">
       <div class="modal-header">
         <h3><i class="hgi-stroke hgi-magic-wand-01" style="color:var(--primary);margin-right:6px;"></i>เครื่องมือช่วยสอน</h3>

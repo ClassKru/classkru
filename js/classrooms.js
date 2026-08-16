@@ -157,6 +157,7 @@ function renderWebClassrooms() {
       <div class="ck-class-actions">
         <button onclick="event.stopPropagation();switchClassTab('scores','${c.id}')"><i class="hgi-stroke hgi-award-01"></i><span>คะแนน</span></button>
         <button onclick="event.stopPropagation();switchClassTab('checkin','${c.id}')"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
+        <button onclick="event.stopPropagation();manageStudentsFromCard('${c.id}')"><i class="hgi-stroke hgi-user-multiple"></i><span>รายชื่อนักเรียน</span></button>
         <button onclick="event.stopPropagation();switchClassTab('reports','${c.id}')"><i class="hgi-stroke hgi-pie-chart"></i><span>การเข้าเรียน</span></button>
       </div>`;
     container.appendChild(card);
@@ -226,7 +227,7 @@ function renderClassTabBar(classId, active) {
   const tabs = [
     { key: 'checkin',  label: 'เช็คชื่อ',     icon: 'hgi-task-done-01' },
     { key: 'scores',   label: 'คะแนน',       icon: 'hgi-award-01' },
-    { key: 'students', label: 'นักเรียน',     icon: 'hgi-user-multiple' },
+    { key: 'students', label: 'รายชื่อนักเรียน', icon: 'hgi-user-multiple' },
     { key: 'reports',  label: 'การเข้าเรียน', icon: 'hgi-pie-chart' }
   ];
   // สีของแท็บที่เลือกคุมด้วย CSS (.ck-classtab.active → var(--primary))
