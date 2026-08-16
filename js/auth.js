@@ -19,20 +19,6 @@ function onLoginSuccess(email) {
 
   // มาจากลิงก์ตั้งรหัสใหม่ในอีเมล → เด้ง modal ตั้งรหัสทันทีหลังแอปโผล่
   if (pendingPasswordRecovery) { pendingPasswordRecovery = false; startPasswordRecovery(); }
-
-  setInterval(() => {
-    const activeEmail = localStorage.getItem('classmanager_email');
-    if (activeEmail && supabaseClient && document.visibilityState === 'visible') {
-      syncBackgroundCloud(activeEmail);
-    }
-  }, 3000);
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      const activeEmail = localStorage.getItem('classmanager_email');
-      if (activeEmail && supabaseClient) syncBackgroundCloud(activeEmail);
-    }
-  });
 }
 
 function setLoginStatus(msg, ok) {
