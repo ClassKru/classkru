@@ -1055,25 +1055,23 @@ function mscGradeClass(g) {
   return 'zero';
 }
 
-const MSC_SLIDE_HOLD_MS = 380;
 const MSC_SLIDE_PX_PER_STEP = 16;
 let mscSlideBound = false;
 let mscSlideGesture = null;
 
 function finishMobileScoreSlide(state, shouldSave) {
   if (!state) return;
-  clearTimeout(state.holdTimer);
-  state.box.classList.remove('is-slide-active');
+  state.control.classList.remove('is-slide-active');
   if (state.active) {
-    state.box.dataset.slideSuppressUntil = String(Date.now() + 500);
+    state.handle.dataset.slideSuppressUntil = String(Date.now() + 500);
     if (shouldSave && state.changed) {
       state.input.dispatchEvent(new Event('change', { bubbles: true }));
-      state.box.classList.add('is-slide-saved');
-      setTimeout(() => state.box.classList.remove('is-slide-saved'), 420);
+      state.control.classList.add('is-slide-saved');
+      setTimeout(() => state.control.classList.remove('is-slide-saved'), 420);
     }
-    try { state.box.releasePointerCapture(state.pointerId); } catch (_) {}
+    try { state.handle.releasePointerCapture(state.pointerId); } catch (_) {}
   }
-  delete state.box.dataset.slideValue;
+  delete state.control.dataset.slideValue;
   if (mscSlideGesture === state) mscSlideGesture = null;
 }
 
@@ -1081,36 +1079,30 @@ function bindMobileScoreSlide() {
   if (mscSlideBound) return;
   mscSlideBound = true;
   document.addEventListener('pointerdown', event => {
-    const box = event.target.closest && event.target.closest('.msc-box');
-    if (!box || event.button !== 0) return;
-    const input = box.querySelector('.msc-in');
+    const handle = event.target.closest && event.target.closest('.msc-slide-handle');
+    if (!handle || event.button !== 0) return;
+    const control = handle.closest('.msc-score-control');
+    const input = control && control.querySelector('.msc-in');
     if (!input) return;
+    event.preventDefault();
     if (mscSlideGesture) finishMobileScoreSlide(mscSlideGesture, false);
     const bounds = scoreInputBounds(input);
     const startValue = input.value === '' ? bounds.min : Number(input.value);
     const state = {
-      box, input, bounds, pointerId: event.pointerId, startY: event.clientY,
-      startValue, active: false, changed: false, lastValue: startValue, holdTimer: null
+      control, handle, input, bounds, pointerId: event.pointerId, startY: event.clientY,
+      startValue, active: true, changed: false, lastValue: startValue
     };
-    state.holdTimer = setTimeout(() => {
-      if (mscSlideGesture !== state) return;
-      state.active = true;
-      state.box.classList.add('is-slide-active');
-      state.box.dataset.slideValue = input.value === '' ? '–' : input.value;
-      input.blur();
-      try { state.box.setPointerCapture(state.pointerId); } catch (_) {}
-      if (navigator.vibrate) navigator.vibrate(12);
-    }, MSC_SLIDE_HOLD_MS);
     mscSlideGesture = state;
+    state.control.classList.add('is-slide-active');
+    state.control.dataset.slideValue = input.value === '' ? '–' : input.value;
+    input.blur();
+    try { state.handle.setPointerCapture(state.pointerId); } catch (_) {}
+    if (navigator.vibrate) navigator.vibrate(8);
   });
   document.addEventListener('pointermove', event => {
     const state = mscSlideGesture;
     if (!state || event.pointerId !== state.pointerId) return;
     const distance = event.clientY - state.startY;
-    if (!state.active) {
-      if (Math.abs(distance) > 10) finishMobileScoreSlide(state, false);
-      return;
-    }
     event.preventDefault();
     // ใช้ทิศทางเดียวกับลูกกลิ้งเมาส์: ลากขึ้น = เพิ่มคะแนน, ลากลง = ลดคะแนน
     const steps = -Math.trunc(distance / MSC_SLIDE_PX_PER_STEP);
@@ -1119,7 +1111,7 @@ function bindMobileScoreSlide() {
     state.lastValue = next;
     state.changed = true;
     state.input.value = String(next);
-    state.box.dataset.slideValue = String(next);
+    state.control.dataset.slideValue = String(next);
     if (navigator.vibrate) navigator.vibrate(5);
   }, { passive: false });
   document.addEventListener('pointerup', event => {
@@ -1133,11 +1125,11 @@ function bindMobileScoreSlide() {
     if (state && event.pointerId === state.pointerId) finishMobileScoreSlide(state, state.active);
   });
   document.addEventListener('contextmenu', event => {
-    if (event.target.closest && event.target.closest('.msc-box')) event.preventDefault();
+    if (event.target.closest && event.target.closest('.msc-slide-handle')) event.preventDefault();
   });
   document.addEventListener('click', event => {
-    const box = event.target.closest && event.target.closest('.msc-box');
-    if (box && Number(box.dataset.slideSuppressUntil || 0) > Date.now()) {
+    const handle = event.target.closest && event.target.closest('.msc-slide-handle');
+    if (handle && Number(handle.dataset.slideSuppressUntil || 0) > Date.now()) {
       event.preventDefault();
       event.stopPropagation();
     }
@@ -1230,11 +1222,16 @@ function renderMobileStudentPanel(c, sid) {
       const v = clampMark((sc.marks[it.id] || {})[sid], it.max);
       return `<div class="msc-row">
         <span class="msc-row-name" title="ตั้งค่ารายการ" onclick="openScoreItemModal('${c.id}','${it.id}')">${escapeScore(it.name)}</span>
-        <span class="msc-box" aria-label="กดค้างแล้วลากขึ้นเพื่อเพิ่มคะแนน ลากลงเพื่อลดคะแนน">
-          <input type="number" class="msc-in" value="${v}" min="0" max="${it.max}" step="0.5" inputmode="decimal" placeholder="–"
-            data-class-id="${escapeScoreAttr(c.id)}" data-item-id="${escapeScoreAttr(it.id)}" data-student-id="${escapeScoreAttr(sid)}"
-            onchange="setScoreMark('${c.id}','${it.id}','${sid}',this);refreshMobileScoreSummary('${c.id}','${sid}')">
-          <span class="msc-slash">/ ${it.max}</span>
+        <span class="msc-score-control">
+          <span class="msc-box">
+            <input type="number" class="msc-in" value="${v}" min="0" max="${it.max}" step="0.5" inputmode="decimal" placeholder="–"
+              data-class-id="${escapeScoreAttr(c.id)}" data-item-id="${escapeScoreAttr(it.id)}" data-student-id="${escapeScoreAttr(sid)}"
+              onchange="setScoreMark('${c.id}','${it.id}','${sid}',this);refreshMobileScoreSummary('${c.id}','${sid}')">
+            <span class="msc-slash">/ ${it.max}</span>
+          </span>
+          <button type="button" class="msc-slide-handle" aria-label="ลากขึ้นเพื่อเพิ่มคะแนน ลากลงเพื่อลดคะแนน">
+            <span class="msc-slide-grip" aria-hidden="true"><i></i><i></i><i></i></span>
+          </button>
         </span>
       </div>`;
     }).join('');
@@ -1252,7 +1249,7 @@ function renderMobileStudentPanel(c, sid) {
       <div class="msc-shead-txt"><div class="msc-sname">${escapeScore(s.name)}</div></div>
     </div>
     <div class="msc-summary" id="msc-summary">${mobileScoreSummaryHtml(c, sid)}</div>
-    <div class="msc-gesture-hint"><i class="hgi-stroke hgi-tap-02"></i><span><b>ปรับคะแนนแบบเร็ว</b> กดค้างที่คะแนน แล้วลากขึ้นเพื่อเพิ่ม · ลากลงเพื่อลด · ปล่อยเพื่อบันทึก</span></div>
+    <div class="msc-gesture-hint"><i class="hgi-stroke hgi-tap-02"></i><span><b>ปรับคะแนนแบบเร็ว</b> ลากแถบด้านขวาขึ้นเพื่อเพิ่ม · ลากลงเพื่อลด · ปล่อยเพื่อบันทึก ไม่ต้องกดค้าง</span></div>
     ${buckets}
     ${mobileStudentNavHtml(c, idx)}
   </div>`;

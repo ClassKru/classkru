@@ -1212,11 +1212,11 @@
 .msc-bweight { font-size: 0.74rem; font-weight: 700; color: var(--msc-accent); }
 /* แถวรายการ — เส้นบางๆ คั่นแต่ละช่อง */
 .msc-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
   padding: 11px 2px; border-bottom: 1px solid var(--msc-divider);
 }
 .msc-row:last-of-type { border-bottom: none; }
-.msc-row-name { font-size: 0.9rem; color: var(--text-main); cursor: pointer; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msc-row-name { flex: 1; font-size: 0.9rem; color: var(--text-main); cursor: pointer; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .msc-gesture-hint {
   display: flex; align-items: flex-start; gap: 8px; margin: -4px 0 14px; padding: 10px 12px;
   border: 1px solid var(--primary-light-border); border-radius: 10px; background: var(--primary-light);
@@ -1224,24 +1224,40 @@
 }
 .msc-gesture-hint i { flex: 0 0 auto; color: var(--primary); font-size: 1rem; margin-top: 1px; }
 .msc-gesture-hint b { color: var(--primary-deep); }
+.msc-score-control {
+  display: inline-flex; align-items: stretch; gap: 7px; position: relative; flex: 0 0 auto;
+}
 .msc-box {
   display: inline-flex; align-items: center; gap: 3px; background: var(--bg-light);
   position: relative; border: 1px solid transparent; border-radius: 10px; padding: 6px 12px;
-  flex-shrink: 0; transition: var(--transition-normal); touch-action: none; user-select: none; -webkit-user-select: none;
+  flex-shrink: 0; transition: var(--transition-normal);
 }
 .msc-box:focus-within { background: var(--primary-light); box-shadow: 0 0 0 2px var(--primary-light-border); }
-.msc-box.is-slide-active { z-index: 20; background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light-border); }
-.msc-box.is-slide-active::before {
-  content: "ลากลง +  ·  ลากขึ้น −"; position: absolute; left: 50%; bottom: calc(100% + 44px);
+.msc-slide-handle {
+  width: 44px; min-width: 44px; min-height: 48px; padding: 0; border: 1px solid var(--msc-border);
+  border-radius: 11px; display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; color: var(--msc-accent); cursor: ns-resize; touch-action: none;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+.msc-slide-handle:active { transform: scale(0.97); }
+.msc-slide-grip { width: 18px; display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+.msc-slide-grip i { display: block; height: 2px; border-radius: 999px; background: currentColor; opacity: 0.82; }
+.msc-score-control.is-slide-active { z-index: 20; }
+.msc-score-control.is-slide-active .msc-box { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light-border); }
+.msc-score-control.is-slide-active .msc-slide-handle { background: var(--msc-accent); border-color: var(--msc-accent); color: #fff; box-shadow: 0 0 0 3px var(--msc-border); }
+.msc-score-control.is-slide-active::before {
+  content: "ลากขึ้น +  ·  ลากลง −"; position: absolute; left: 50%; bottom: calc(100% + 44px);
   transform: translateX(-50%); width: max-content; padding: 5px 9px; border-radius: 999px;
   background: #26312d; color: #fff; font-size: 0.68rem; font-weight: 700; pointer-events: none;
 }
-.msc-box.is-slide-active::after {
+.msc-score-control.is-slide-active::after {
   content: attr(data-slide-value); position: absolute; left: 50%; bottom: calc(100% + 8px);
   transform: translateX(-50%); min-width: 42px; padding: 5px 10px; border-radius: 9px;
   background: var(--primary); color: #fff; font-size: 1rem; font-weight: 800; text-align: center; pointer-events: none;
 }
-.msc-box.is-slide-saved { border-color: var(--primary); background: var(--primary-light); }
+.msc-score-control.is-slide-saved .msc-box { border-color: var(--primary); background: var(--primary-light); }
+.msc-score-control.is-slide-saved .msc-slide-handle { border-color: var(--primary); background: var(--primary-light); }
 .msc-in {
   -webkit-appearance: none; appearance: none; background: transparent; border: none; outline: none;
   color: var(--text-main); font-weight: 700; font-size: 1.05rem; line-height: 1; width: 42px;
