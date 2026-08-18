@@ -23,6 +23,7 @@ function openClassModal(classId) {
     if (btn) btn.innerText = 'เพิ่มห้องเรียน';
   }
   populateClassAcademicYearField(selectedClass);
+  selectClassStage(classStageFromClass(selectedClass));
   renderClassColorPicker();
   document.getElementById('modal-class').classList.add('show');
 }
@@ -49,15 +50,18 @@ function closeClassModal() {
 function saveClass() {
   const subject = document.getElementById('input-subject-name').value.trim();
   const classNameInput = document.getElementById('input-class-name');
-  const className = classNameInput.value.trim();
+  const numericName = classNameInput.value.trim();
+  const classStage = document.getElementById('input-class-stage')?.value === 'primary' ? 'primary' : 'secondary';
   const academicYear = Number(document.getElementById('input-class-year').value) || getCurrentThaiAcademicYear();
-  if (!subject || !className) { showToast('กรุณากรอกข้อมูลให้ครบ', 'warning'); return; }
-  if (!/^[1-6]\/[1-9][0-9]?$/.test(className)) {
+  if (!subject || !numericName) { showToast('กรุณากรอกข้อมูลให้ครบ', 'warning'); return; }
+  if (!/^[1-6]\/[1-9][0-9]?$/.test(numericName)) {
     showToast('กรอกห้องเรียนเป็นตัวเลข เช่น 1/2, 5/4 หรือ 6/4', 'warning');
     classNameInput.focus();
     return;
   }
-  const gradeLevel = inferClassGrade({ className });
+  const gradeNumber = numericName.split('/')[0];
+  const gradeLevel = `${classStage === 'primary' ? 'p' : 'm'}${gradeNumber}`;
+  const className = `${classStagePrefix(classStage)}${numericName}`;
 
   const isNew = !editingClassId;
   if (editingClassId) {

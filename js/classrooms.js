@@ -83,6 +83,40 @@ function resetClassroomFilters() {
   renderWebClassrooms();
 }
 
+function classStageFromClass(c) {
+  const gradeLevel = String((c && c.gradeLevel) || '').toLowerCase();
+  const className = String((c && c.className) || '').replace(/\s+/g, '').toLowerCase();
+  if (gradeLevel.startsWith('p') || /^ป\.?[1-6]/.test(className)) return 'primary';
+  return 'secondary';
+}
+
+function classStagePrefix(stage) {
+  return stage === 'primary' ? 'ป.' : 'ม.';
+}
+
+function selectClassStage(stage) {
+  const selected = stage === 'primary' ? 'primary' : 'secondary';
+  const input = document.getElementById('input-class-stage');
+  if (input) input.value = selected;
+  document.querySelectorAll('.ck-class-stage-tab').forEach(button => {
+    const active = button.dataset.stage === selected;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-checked', active ? 'true' : 'false');
+  });
+  const prefix = document.getElementById('class-name-prefix');
+  if (prefix) prefix.textContent = classStagePrefix(selected);
+  updateClassNamePreview();
+}
+
+function updateClassNamePreview() {
+  const stage = document.getElementById('input-class-stage')?.value || 'secondary';
+  const numericName = document.getElementById('input-class-name')?.value.trim() || '';
+  const preview = document.getElementById('class-name-preview');
+  if (!preview) return;
+  preview.textContent = numericName ? `จะบันทึกเป็น ${classStagePrefix(stage)}${numericName}` : 'กรอกตัวเลข เช่น 1/2';
+  preview.classList.toggle('has-value', Boolean(numericName));
+}
+
 function formatClassroomNumberInput(input) {
   // รองรับความเคยชินทั้งสองแบบ: 1/2 คงเครื่องหมาย / ไว้ และ 12 ช่วยจัดเป็น 1/2
   const raw = String(input.value || '');
@@ -93,6 +127,7 @@ function formatClassroomNumberInput(input) {
     input.value = digits.length > 1 ? `${digits[0]}/${digits.slice(1)}` : digits;
   }
   input.setCustomValidity('');
+  updateClassNamePreview();
 }
 
 function numericClassName(value) {
