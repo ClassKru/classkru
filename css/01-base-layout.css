@@ -337,11 +337,10 @@ body {
 }
 .ck-class-stage-tab {
   min-height: 50px; padding: 7px 12px; border: 1px solid transparent; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center; gap: 7px; background: transparent;
+  display: flex; align-items: center; justify-content: center; background: transparent;
   color: var(--text-muted); font: inherit; cursor: pointer; transition: var(--transition-normal);
 }
 .ck-class-stage-tab span { font-size: 0.9rem; font-weight: 800; }
-.ck-class-stage-tab small { font-size: 0.68rem; font-weight: 600; opacity: 0.78; }
 .ck-class-stage-tab:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.7); }
 .ck-class-stage-tab.active { border-color: var(--primary); background: #fff; color: var(--primary); box-shadow: 0 2px 8px rgba(34, 160, 90, 0.12); }
 .ck-class-stage-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
@@ -353,8 +352,6 @@ body {
 }
 .ck-class-name-field .form-control { border-radius: 0 10px 10px 0; }
 .ck-class-name-field:focus-within > span { border-color: var(--primary); }
-.ck-class-name-preview { margin-top: 6px; color: var(--text-muted); font-size: 0.72rem; }
-.ck-class-name-preview.has-value { color: var(--primary); font-weight: 700; }
 .ck-classroom-filter-empty { min-height: 240px; justify-content: center; align-items: center; text-align: center; gap: 10px; }
 
 .card-title {

@@ -105,16 +105,6 @@ function selectClassStage(stage) {
   });
   const prefix = document.getElementById('class-name-prefix');
   if (prefix) prefix.textContent = classStagePrefix(selected);
-  updateClassNamePreview();
-}
-
-function updateClassNamePreview() {
-  const stage = document.getElementById('input-class-stage')?.value || 'secondary';
-  const numericName = document.getElementById('input-class-name')?.value.trim() || '';
-  const preview = document.getElementById('class-name-preview');
-  if (!preview) return;
-  preview.textContent = numericName ? `จะบันทึกเป็น ${classStagePrefix(stage)}${numericName}` : 'กรอกตัวเลข เช่น 1/2';
-  preview.classList.toggle('has-value', Boolean(numericName));
 }
 
 function formatClassroomNumberInput(input) {
@@ -127,7 +117,6 @@ function formatClassroomNumberInput(input) {
     input.value = digits.length > 1 ? `${digits[0]}/${digits.slice(1)}` : digits;
   }
   input.setCustomValidity('');
-  updateClassNamePreview();
 }
 
 function numericClassName(value) {
