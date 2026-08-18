@@ -19,17 +19,17 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=345">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=345">
-  <link rel="stylesheet" href="css/03-reports.css?v=345">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=345">
-  <link rel="stylesheet" href="css/05-home.css?v=345">
-  <link rel="stylesheet" href="css/06-attendance.css?v=345">
-  <link rel="stylesheet" href="css/07-scores.css?v=345">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=345">
-    <link rel="stylesheet" href="css/09-games.css?v=345">
-  <link rel="stylesheet" href="css/10-help.css?v=345">
-  <link rel="stylesheet" href="css/11-public-help.css?v=345">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=346">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=346">
+  <link rel="stylesheet" href="css/03-reports.css?v=346">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=346">
+  <link rel="stylesheet" href="css/05-home.css?v=346">
+  <link rel="stylesheet" href="css/06-attendance.css?v=346">
+  <link rel="stylesheet" href="css/07-scores.css?v=346">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=346">
+    <link rel="stylesheet" href="css/09-games.css?v=346">
+  <link rel="stylesheet" href="css/10-help.css?v=346">
+  <link rel="stylesheet" href="css/11-public-help.css?v=346">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -361,7 +361,7 @@
                 <div class="card-title ck-class-switch" id="web-students-detail-title" onclick="openClassSwitcher('students')" style="margin-bottom:0;min-width:0;font-size:1.25rem;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary)"></i> <span class="hdr-title-text">จัดการรายชื่อนักเรียน</span></div>
                 <div class="students-hdr-actions mobile-only-flex" style="margin-left:auto;gap:6px;align-items:center;">
                   <button class="ck-hdr-btn ck-ic-blue" id="students-search-btn" onclick="toggleStudentsSearch()" aria-label="ค้นหานักเรียน"><i class="hgi-stroke hgi-search-01"></i></button>
-                  <button class="ck-hdr-btn ck-ic-gray" onclick="toggleStudentsActionMenu(event)" aria-label="ตัวเลือกเพิ่มเติม"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
+                  <button class="ck-hdr-btn ck-ic-gray" onclick="toggleStudentsActionMenu(event)" aria-label="จัดการรายชื่อนักเรียน" title="จัดการรายชื่อนักเรียน"><i class="hgi-stroke hgi-settings-01"></i></button>
                 </div>
               </div>
               <div class="students-head-controls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -379,7 +379,7 @@
                 <button class="btn ck-checkin-activity-btn desktop-only-flex" onclick="openClassJoinActivity()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียนผ่านกิจกรรม</button>
                 <button class="btn desktop-only-flex" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
                 <button class="btn btn-danger desktop-only-flex" onclick="deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i> ลบทั้งหมด</button>
-                <button class="ck-class-menu-btn mobile-only-flex" aria-label="ตัวเลือกเพิ่มเติม" style="align-items:center;" onclick="toggleStudentsActionMenu(event)"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
+                <button class="ck-class-menu-btn mobile-only-flex" aria-label="จัดการรายชื่อนักเรียน" title="จัดการรายชื่อนักเรียน" style="align-items:center;" onclick="toggleStudentsActionMenu(event)"><i class="hgi-stroke hgi-settings-01"></i></button>
               </div>
             </div>
             <div id="web-students-list" class="student-card-grid"></div>
@@ -1244,21 +1244,21 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=345"></script>
-  <script defer src="js/auth.js?v=345"></script>
-  <script defer src="js/shell.js?v=345"></script>
-  <script defer src="js/dashboard.js?v=345"></script>
-  <script defer src="js/classrooms.js?v=345"></script>
-  <script defer src="js/students.js?v=345"></script>
-  <script defer src="js/timetable.js?v=345"></script>
-  <script defer src="js/reports.js?v=345"></script>
-  <script defer src="js/attendance.js?v=345"></script>
-  <script defer src="js/curriculum-science-2560.js?v=345"></script>
-  <script defer src="js/curriculum-catalog.js?v=345"></script>
-  <script defer src="js/scores.js?v=345"></script>
-  <script defer src="js/tools.js?v=345"></script>
-  <script defer src="js/shared-utils.js?v=345"></script>
-  <script defer src="js/extras.js?v=345"></script>
-  <script defer src="js/help.js?v=345"></script>
+  <script defer src="js/core.js?v=346"></script>
+  <script defer src="js/auth.js?v=346"></script>
+  <script defer src="js/shell.js?v=346"></script>
+  <script defer src="js/dashboard.js?v=346"></script>
+  <script defer src="js/classrooms.js?v=346"></script>
+  <script defer src="js/students.js?v=346"></script>
+  <script defer src="js/timetable.js?v=346"></script>
+  <script defer src="js/reports.js?v=346"></script>
+  <script defer src="js/attendance.js?v=346"></script>
+  <script defer src="js/curriculum-science-2560.js?v=346"></script>
+  <script defer src="js/curriculum-catalog.js?v=346"></script>
+  <script defer src="js/scores.js?v=346"></script>
+  <script defer src="js/tools.js?v=346"></script>
+  <script defer src="js/shared-utils.js?v=346"></script>
+  <script defer src="js/extras.js?v=346"></script>
+  <script defer src="js/help.js?v=346"></script>
 </body>
 </html>

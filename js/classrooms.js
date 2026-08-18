@@ -176,7 +176,7 @@ function renderWebClassrooms() {
             <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${col.text};"></div></div>
           </div>
         </div>
-        <button class="ck-class-menu-btn" aria-label="ตัวเลือกเพิ่มเติม" onclick="event.stopPropagation();toggleClassMenu(event,'${c.id}')"><i class="hgi-stroke hgi-more-vertical-circle-01"></i></button>
+        <button class="ck-class-menu-btn" aria-label="จัดการห้องเรียน" title="จัดการห้องเรียน" onclick="event.stopPropagation();toggleClassMenu(event,'${c.id}')"><i class="hgi-stroke hgi-settings-01"></i></button>
       </div>
       <div class="ck-class-actions">
         <button onclick="event.stopPropagation();switchClassTab('scores','${c.id}')"><i class="hgi-stroke hgi-award-01"></i><span>คะแนน</span></button>
