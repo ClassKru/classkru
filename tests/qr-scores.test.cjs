@@ -124,6 +124,7 @@ mockElement('qr-score-item').value = 'work-1';
 run("qrScoreSetupChanged('item')");
 assert.equal(mockElement('qr-score-start-btn').disabled, false, 'scanner starts only after the full real-data context is selected');
 assert.equal(mockElement('qr-score-max').textContent, '/20', 'setup preview shows the real assignment maximum after the editable score position');
+assert.equal(mockElement('qr-score-default-score').disabled, false, 'default score becomes editable after selecting a real assignment');
 
 run("qrScoreState.classId = 'c-a'");
 assert.equal(run("findQrScoreStudent('s-a').classroom.id"), 'c-a');
@@ -139,16 +140,22 @@ assert.equal(run("validateQrScore(appState.classes[0], appState.classes[0].score
 assert.equal(run("validateQrScore(appState.classes[0], appState.classes[0].scores.items[0], appState.classes[0].students[0], -1)"), 'คะแนนต้องไม่ติดลบ');
 assert.equal(run("validateQrScore(appState.classes[0], appState.classes[0].scores.items[0], appState.classes[0].students[0], 8)"), '');
 
-run("qrScoreState.classId='c-a'; qrScoreState.itemId='work-1'; qrScoreState.phase='scanning'; qrScoreState.blockedCode=null; handleQrScoreDecoded('CKSTU:s-a')");
+run("qrScoreState.classId='c-a'; qrScoreState.itemId='work-1'; qrScoreState.defaultScore='8'; qrScoreState.phase='scanning'; qrScoreState.blockedCode=null; handleQrScoreDecoded('CKSTU:s-a')");
 assert.equal(run('qrScoreState.phase'), 'editing');
 assert.equal(run('qrScoreState.studentId'), 's-a');
 assert.equal(mockElement('qr-score-max-label').textContent, '/20', 'score entry always shows the assignment maximum');
+assert.equal(mockElement('qr-score-new-score').value, '8', 'editable setup score becomes the default for an unscored student');
 run("qrScoreState.phase='scanning'; qrScoreState.blockedCode=null; handleQrScoreDecoded('CKSTU:s-b')");
 assert.equal(run('qrScoreState.phase'), 'error');
 assert.equal(run('qrScoreState.studentId'), null, 'wrong-room QR must never select a student for saving');
 
 context.supabaseClient = { from: () => ({ upsert: async () => ({ error: null }) }) };
 (async () => {
+  mockElement('qr-score-default-score').value = '21';
+  await run("beginQrScoreScan('c-a','work-1')");
+  assert.equal(mockElement('qr-score-setup-error').textContent, 'คะแนนต้องอยู่ระหว่าง 0–20');
+  mockElement('qr-score-default-score').value = '';
+
   const result = await run("persistQrScore('c-a','work-1','s-a',8)");
   assert.equal(result.success, true);
   assert.equal(run("appState.classes[0].scores.marks['work-1']['s-a']"), 8);

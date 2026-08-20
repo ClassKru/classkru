@@ -15,6 +15,7 @@ function createQrScoreState() {
     classId: null,
     itemId: null,
     studentId: null,
+    defaultScore: '',
     originScores: false,
     setupTouched: false,
     phase: 'idle',
@@ -159,6 +160,8 @@ function qrScoreSetupChanged(level) {
     const item = items.find(i => i.id === id);
     return item ? `${item.name} / ${item.max}` : id;
   });
+  const defaultScore = document.getElementById('qr-score-default-score');
+  if (defaultScore) defaultScore.value = '';
   updateQrScoreMax();
   updateQrScoreSetupState();
   document.getElementById('qr-score-setup-error').textContent = '';
@@ -206,6 +209,11 @@ function updateQrScoreMax() {
   const item = c && ensureScores(c).items.find(x => x.id === itemId);
   const max = document.getElementById('qr-score-max');
   if (max) max.textContent = item ? `/${item.max}` : '/—';
+  const defaultScore = document.getElementById('qr-score-default-score');
+  if (defaultScore) {
+    defaultScore.disabled = !item;
+    defaultScore.max = item ? String(item.max) : '';
+  }
 }
 
 async function beginQrScoreScan(forcedClassId, forcedItemId) {
@@ -223,9 +231,21 @@ async function beginQrScoreScan(forcedClassId, forcedItemId) {
     if (errorEl) errorEl.textContent = 'ห้องนี้ยังไม่มีรายชื่อนักเรียน';
     return;
   }
+  const defaultScoreInput = document.getElementById('qr-score-default-score');
+  const defaultScore = defaultScoreInput?.value?.trim() || '';
+  if (defaultScore !== '') {
+    const numericDefault = Number(defaultScore);
+    if (!Number.isFinite(numericDefault) || numericDefault < 0 || numericDefault > Number(item.max)) {
+      if (errorEl) errorEl.textContent = `คะแนนต้องอยู่ระหว่าง 0–${item.max}`;
+      defaultScoreInput?.focus();
+      defaultScoreInput?.select();
+      return;
+    }
+  }
 
   qrScoreState.classId = c.id;
   qrScoreState.itemId = item.id;
+  qrScoreState.defaultScore = defaultScore;
   qrScoreState.phase = 'starting';
   document.getElementById('qr-score-setup').style.display = 'none';
   document.getElementById('qr-score-scan').style.display = 'block';
@@ -486,7 +506,7 @@ function showQrScoreStudent(student, c) {
   document.getElementById('qr-score-max-label').textContent = `/${item.max}`;
   const input = document.getElementById('qr-score-new-score');
   input.max = item.max;
-  input.value = current === undefined || current === null ? '' : current;
+  input.value = current === undefined || current === null ? qrScoreState.defaultScore : current;
   document.getElementById('qr-score-save-error').textContent = '';
   setQrScoreStatus('กรอกคะแนนแล้วกดบันทึก', 'found');
   setTimeout(() => { input.focus(); input.select(); }, 50);

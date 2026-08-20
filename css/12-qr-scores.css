@@ -20,7 +20,7 @@
 .qr-score-field-wide { grid-column: span 2; }
 .qr-score-fields input[readonly] { background: var(--bg-main); font-weight: 800; }
 .qr-score-setup-scorebox { display: flex; align-items: center; min-height: 44px; }
-.qr-score-setup-scorebox input { min-width: 0; height: 42px; text-align: center; }
+.qr-score-setup-scorebox input { min-width: 0; height: 42px; text-align: center; cursor: text; }
 .qr-score-setup-scorebox b { flex: 0 0 auto; padding: 0 14px 0 8px; color: #0369a1; font-size: 1rem; white-space: nowrap; }
 .qr-score-setup-actions { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 10px; margin-top: 18px; }
 .qr-score-setup-actions .btn { min-height: 48px; justify-content: center; }
