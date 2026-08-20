@@ -123,6 +123,7 @@ assert.equal(mockElement('qr-score-item').disabled, false);
 mockElement('qr-score-item').value = 'work-1';
 run("qrScoreSetupChanged('item')");
 assert.equal(mockElement('qr-score-start-btn').disabled, false, 'scanner starts only after the full real-data context is selected');
+assert.equal(mockElement('qr-score-max').textContent, '/20', 'setup preview shows the real assignment maximum after the editable score position');
 
 run("qrScoreState.classId = 'c-a'");
 assert.equal(run("findQrScoreStudent('s-a').classroom.id"), 'c-a');
@@ -141,7 +142,7 @@ assert.equal(run("validateQrScore(appState.classes[0], appState.classes[0].score
 run("qrScoreState.classId='c-a'; qrScoreState.itemId='work-1'; qrScoreState.phase='scanning'; qrScoreState.blockedCode=null; handleQrScoreDecoded('CKSTU:s-a')");
 assert.equal(run('qrScoreState.phase'), 'editing');
 assert.equal(run('qrScoreState.studentId'), 's-a');
-assert.equal(mockElement('qr-score-max-label').textContent, '/ 20', 'score entry always shows the assignment maximum');
+assert.equal(mockElement('qr-score-max-label').textContent, '/20', 'score entry always shows the assignment maximum');
 run("qrScoreState.phase='scanning'; qrScoreState.blockedCode=null; handleQrScoreDecoded('CKSTU:s-b')");
 assert.equal(run('qrScoreState.phase'), 'error');
 assert.equal(run('qrScoreState.studentId'), null, 'wrong-room QR must never select a student for saving');

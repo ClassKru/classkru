@@ -19,18 +19,18 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=354">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=354">
-  <link rel="stylesheet" href="css/03-reports.css?v=354">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=354">
-  <link rel="stylesheet" href="css/05-home.css?v=354">
-  <link rel="stylesheet" href="css/06-attendance.css?v=354">
-  <link rel="stylesheet" href="css/07-scores.css?v=354">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=354">
-    <link rel="stylesheet" href="css/09-games.css?v=354">
-  <link rel="stylesheet" href="css/10-help.css?v=354">
-  <link rel="stylesheet" href="css/11-public-help.css?v=354">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=354">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=355">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=355">
+  <link rel="stylesheet" href="css/03-reports.css?v=355">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=355">
+  <link rel="stylesheet" href="css/05-home.css?v=355">
+  <link rel="stylesheet" href="css/06-attendance.css?v=355">
+  <link rel="stylesheet" href="css/07-scores.css?v=355">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=355">
+    <link rel="stylesheet" href="css/09-games.css?v=355">
+  <link rel="stylesheet" href="css/10-help.css?v=355">
+  <link rel="stylesheet" href="css/11-public-help.css?v=355">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=355">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -1261,7 +1261,7 @@
           <label><span><b>3</b> ห้องเรียน</span><select id="qr-score-room" class="form-control" onchange="qrScoreSetupChanged('room')"></select></label>
           <label><span><b>4</b> วิชา</span><select id="qr-score-subject" class="form-control" onchange="qrScoreSetupChanged('subject')"></select></label>
           <label class="qr-score-field-wide"><span><b>5</b> งาน / กิจกรรม / การสอบ</span><select id="qr-score-item" class="form-control" onchange="qrScoreSetupChanged('item')"></select></label>
-          <label><span>คะแนนเต็ม</span><input id="qr-score-max" class="form-control" value="—" readonly></label>
+          <label><span>คะแนน</span><div class="qr-score-scorebox qr-score-setup-scorebox"><input class="form-control" placeholder="___" readonly aria-label="กรอกคะแนนหลังสแกนนักเรียน"><b id="qr-score-max">/—</b></div></label>
         </div>
         <div id="qr-score-setup-error" class="qr-score-inline-error" role="alert"></div>
         <div class="qr-score-setup-actions">
@@ -1290,7 +1290,7 @@
               <div><strong id="qr-score-student-name">นักเรียน</strong><span id="qr-score-student-meta">—</span></div>
             </div>
             <div class="qr-score-old"><span>คะแนนปัจจุบัน</span><strong id="qr-score-old-score">ยังไม่มี</strong></div>
-            <label id="qr-score-new-wrap" class="qr-score-new"><span>คะแนนใหม่</span><div class="qr-score-scorebox"><input id="qr-score-new-score" type="number" inputmode="decimal" step="0.5" min="0" class="form-control" placeholder="___" aria-label="คะแนนใหม่"><b id="qr-score-max-label">/ 0</b></div></label>
+            <label id="qr-score-new-wrap" class="qr-score-new"><span>คะแนน</span><div class="qr-score-scorebox"><input id="qr-score-new-score" type="number" inputmode="decimal" step="0.5" min="0" class="form-control" placeholder="___" aria-label="คะแนน"><b id="qr-score-max-label">/0</b></div></label>
             <div id="qr-score-save-error" class="qr-score-inline-error" role="alert"></div>
             <div class="qr-score-result-actions">
               <button type="button" class="btn" id="qr-score-retry-btn" onclick="resumeQrScoreScan()"><i class="hgi-stroke hgi-refresh"></i> สแกนใหม่</button>
@@ -1307,22 +1307,22 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=354"></script>
-  <script defer src="js/auth.js?v=354"></script>
-  <script defer src="js/shell.js?v=354"></script>
-  <script defer src="js/dashboard.js?v=354"></script>
-  <script defer src="js/classrooms.js?v=354"></script>
-  <script defer src="js/students.js?v=354"></script>
-  <script defer src="js/timetable.js?v=354"></script>
-  <script defer src="js/reports.js?v=354"></script>
-  <script defer src="js/attendance.js?v=354"></script>
-  <script defer src="js/curriculum-science-2560.js?v=354"></script>
-  <script defer src="js/curriculum-catalog.js?v=354"></script>
-  <script defer src="js/scores.js?v=354"></script>
-  <script defer src="js/qr-scores.js?v=354"></script>
-  <script defer src="js/tools.js?v=354"></script>
-  <script defer src="js/shared-utils.js?v=354"></script>
-  <script defer src="js/extras.js?v=354"></script>
-  <script defer src="js/help.js?v=354"></script>
+  <script defer src="js/core.js?v=355"></script>
+  <script defer src="js/auth.js?v=355"></script>
+  <script defer src="js/shell.js?v=355"></script>
+  <script defer src="js/dashboard.js?v=355"></script>
+  <script defer src="js/classrooms.js?v=355"></script>
+  <script defer src="js/students.js?v=355"></script>
+  <script defer src="js/timetable.js?v=355"></script>
+  <script defer src="js/reports.js?v=355"></script>
+  <script defer src="js/attendance.js?v=355"></script>
+  <script defer src="js/curriculum-science-2560.js?v=355"></script>
+  <script defer src="js/curriculum-catalog.js?v=355"></script>
+  <script defer src="js/scores.js?v=355"></script>
+  <script defer src="js/qr-scores.js?v=355"></script>
+  <script defer src="js/tools.js?v=355"></script>
+  <script defer src="js/shared-utils.js?v=355"></script>
+  <script defer src="js/extras.js?v=355"></script>
+  <script defer src="js/help.js?v=355"></script>
 </body>
 </html>

@@ -205,7 +205,7 @@ function updateQrScoreMax() {
   const c = qrScoreClasses().find(x => x.id === classId);
   const item = c && ensureScores(c).items.find(x => x.id === itemId);
   const max = document.getElementById('qr-score-max');
-  if (max) max.value = item ? String(item.max) : '—';
+  if (max) max.textContent = item ? `/${item.max}` : '/—';
 }
 
 async function beginQrScoreScan(forcedClassId, forcedItemId) {
@@ -483,7 +483,7 @@ function showQrScoreStudent(student, c) {
   document.getElementById('qr-score-student-meta').textContent = `${c.className} • รหัส ${student.studentCode || student.id}`;
   document.getElementById('qr-score-student-avatar').textContent = (student.name || 'น').trim().charAt(0);
   document.getElementById('qr-score-old-score').textContent = current === undefined || current === null || current === '' ? 'ยังไม่มี' : String(current);
-  document.getElementById('qr-score-max-label').textContent = `/ ${item.max}`;
+  document.getElementById('qr-score-max-label').textContent = `/${item.max}`;
   const input = document.getElementById('qr-score-new-score');
   input.max = item.max;
   input.value = current === undefined || current === null ? '' : current;
