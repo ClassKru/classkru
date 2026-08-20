@@ -19,18 +19,18 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=350">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=350">
-  <link rel="stylesheet" href="css/03-reports.css?v=350">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=350">
-  <link rel="stylesheet" href="css/05-home.css?v=350">
-  <link rel="stylesheet" href="css/06-attendance.css?v=350">
-  <link rel="stylesheet" href="css/07-scores.css?v=350">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=350">
-    <link rel="stylesheet" href="css/09-games.css?v=350">
-  <link rel="stylesheet" href="css/10-help.css?v=350">
-  <link rel="stylesheet" href="css/11-public-help.css?v=350">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=350">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=351">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=351">
+  <link rel="stylesheet" href="css/03-reports.css?v=351">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=351">
+  <link rel="stylesheet" href="css/05-home.css?v=351">
+  <link rel="stylesheet" href="css/06-attendance.css?v=351">
+  <link rel="stylesheet" href="css/07-scores.css?v=351">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=351">
+    <link rel="stylesheet" href="css/09-games.css?v=351">
+  <link rel="stylesheet" href="css/10-help.css?v=351">
+  <link rel="stylesheet" href="css/11-public-help.css?v=351">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=351">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -646,6 +646,7 @@
       <button class="mob-nav-btn active" data-screen="dashboard" onclick="navigateToWebScreen('dashboard')"><i class="hgi-stroke hgi-home-01"></i><span>หน้าหลัก</span></button>
       <button class="mob-nav-btn" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
       <button class="mob-nav-btn checkin-btn" data-screen="checkin" onclick="mobileCheckinTap()"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
+      <button class="mob-nav-btn qr-score-mobile-nav" onclick="openQrScoreScanner()"><i class="hgi-stroke hgi-qr-code"></i><span>ตรวจ QR</span></button>
       <button class="mob-nav-btn" data-screen="classrooms students scores reports" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>ห้องเรียน</span></button>
       <button class="mob-nav-btn" data-screen="tools" onclick="navigateToWebScreen('tools')"><i class="hgi-stroke hgi-magic-wand-01"></i><span>เครื่องมือ</span></button>
       <button class="mob-nav-btn" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกม</span></button>
@@ -1305,22 +1306,22 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=350"></script>
-  <script defer src="js/auth.js?v=350"></script>
-  <script defer src="js/shell.js?v=350"></script>
-  <script defer src="js/dashboard.js?v=350"></script>
-  <script defer src="js/classrooms.js?v=350"></script>
-  <script defer src="js/students.js?v=350"></script>
-  <script defer src="js/timetable.js?v=350"></script>
-  <script defer src="js/reports.js?v=350"></script>
-  <script defer src="js/attendance.js?v=350"></script>
-  <script defer src="js/curriculum-science-2560.js?v=350"></script>
-  <script defer src="js/curriculum-catalog.js?v=350"></script>
-  <script defer src="js/scores.js?v=350"></script>
-  <script defer src="js/qr-scores.js?v=350"></script>
-  <script defer src="js/tools.js?v=350"></script>
-  <script defer src="js/shared-utils.js?v=350"></script>
-  <script defer src="js/extras.js?v=350"></script>
-  <script defer src="js/help.js?v=350"></script>
+  <script defer src="js/core.js?v=351"></script>
+  <script defer src="js/auth.js?v=351"></script>
+  <script defer src="js/shell.js?v=351"></script>
+  <script defer src="js/dashboard.js?v=351"></script>
+  <script defer src="js/classrooms.js?v=351"></script>
+  <script defer src="js/students.js?v=351"></script>
+  <script defer src="js/timetable.js?v=351"></script>
+  <script defer src="js/reports.js?v=351"></script>
+  <script defer src="js/attendance.js?v=351"></script>
+  <script defer src="js/curriculum-science-2560.js?v=351"></script>
+  <script defer src="js/curriculum-catalog.js?v=351"></script>
+  <script defer src="js/scores.js?v=351"></script>
+  <script defer src="js/qr-scores.js?v=351"></script>
+  <script defer src="js/tools.js?v=351"></script>
+  <script defer src="js/shared-utils.js?v=351"></script>
+  <script defer src="js/extras.js?v=351"></script>
+  <script defer src="js/help.js?v=351"></script>
 </body>
 </html>

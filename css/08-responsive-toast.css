@@ -51,6 +51,7 @@
 
   .mob-nav-btn {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -66,6 +67,7 @@
   .mob-nav-btn i { font-size: 1.25rem; }
   .mob-nav-btn span { font-size: 0.62rem; font-weight: 700; }
   .mob-nav-btn.active { color: var(--primary); }
+  .mob-nav-btn.qr-score-mobile-nav { color: #0369a1; }
 
   /* แถบแท็บภายในห้อง — โชว์บนมือถือด้วย (bottom nav มีแค่เช็คชื่อ/คะแนน
      ทางเข้านักเรียนกับการเข้าเรียนอยู่ที่แถบนี้) ย่อให้เตี้ยลงเพื่อประหยัดพื้นที่แนวตั้ง */
