@@ -169,6 +169,7 @@ function toggleStudentsActionMenu(ev) {
   menu.dataset.for = 'students-actions';
   menu.innerHTML = `
     <button onclick="closeClassMenu();openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียน</span></button>
+    <button onclick="closeClassMenu();openStudentQrCardsFromRoster()"><i class="hgi-stroke hgi-qr-code"></i><span>พิมพ์ QR นักเรียน</span></button>
     <button onclick="closeClassMenu();openClassJoinActivity()"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียนผ่านกิจกรรม</span></button>
     <button onclick="closeClassMenu();triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i><span>นำเข้า Excel</span></button>
     <button class="danger" onclick="closeClassMenu();deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i><span>ลบทั้งหมด</span></button>`;

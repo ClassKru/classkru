@@ -532,16 +532,30 @@ async function syncBackgroundCloud(email) {
   }
 }
 
-async function pushStateToCloudDirectly(email, state) {
-  try {
+let _cloudWriteQueue = Promise.resolve();
+
+// ทุกจุดเขียน state ใช้คิวเดียวกัน ป้องกัน request เก่าที่ช้ากว่าเขียนทับคะแนนล่าสุด
+function enqueueCloudStateWrite(email, state, options = {}) {
+  const strict = Boolean(options.strict);
+  const snapshot = typeof structuredClone === 'function' ? structuredClone(state) : JSON.parse(JSON.stringify(state));
+  const write = async () => {
     updateCloudStatus('syncing', 'อัปโหลด...');
-    const { error } = await supabaseClient.from('classmanager_profiles').upsert({ email, state, updated_at: new Date().toISOString() });
+    if (!supabaseClient) throw new Error('Supabase client unavailable');
+    const { error } = await supabaseClient.from('classmanager_profiles').upsert({ email, state: snapshot, updated_at: new Date().toISOString() });
     if (error) throw error;
     updateCloudStatus('online', 'ซิงก์แล้ว');
-  } catch (err) {
+  };
+  const queued = _cloudWriteQueue.then(write, write);
+  _cloudWriteQueue = queued.catch(() => {});
+  if (strict) return queued;
+  return queued.catch(err => {
     console.warn(err);
     updateCloudStatus('offline', 'ออฟไลน์');
-  }
+  });
+}
+
+async function pushStateToCloudDirectly(email, state) {
+  return enqueueCloudStateWrite(email, state);
 }
 
 function updateCloudStatus(status, text) {

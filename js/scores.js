@@ -391,6 +391,7 @@ function renderQuickScoreEntry(c) {
       </div>
       <label class="score-quick-input">
         <input type="number" value="${v}" min="0" max="${item.max}" step="0.5" inputmode="decimal" placeholder="–"
+          data-class-id="${escapeScoreAttr(c.id)}" data-item-id="${escapeScoreAttr(item.id)}" data-student-id="${escapeScoreAttr(s.id)}"
           onchange="setQuickScoreMark('${c.id}','${item.id}','${s.id}',this)">
         <span>/ ${item.max}</span>
       </label>
@@ -518,7 +519,7 @@ function renderScoreMatrix(c) {
       const nameEsc = escapeScore(it.name).replace(/"/g, '&quot;');
       r3 += `<th class="sc-item-head${groupEnd ? ' sc-item-last' : ''}${cs}" data-score-col="${colIdx}">${groupEnd ? addBtn(g) : ''}
         <input class="sc-item-name-input" value="${nameEsc}" title="แก้ชื่อรายการ (คลิกพิมพ์)" onchange="setItemName('${c.id}','${it.id}',this)">
-        <div class="sc-item-max-row" title="คะแนนเต็ม"><span class="sc-item-max-lbl">/</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
+        <div class="sc-item-max-row" title="คะแนนเต็ม"><span class="sc-item-max-lbl">/</span><input type="number" class="sc-item-max-input" value="${it.max}" min="1" step="0.5" title="แก้คะแนนเต็ม (คลิกพิมพ์)" onchange="setItemMax('${c.id}','${it.id}',this)"><button class="sc-item-qr" title="กรอกงานนี้ด้วย QR" onclick="openQrScoreScanner('${c.id}','${it.id}')"><i class="hgi-stroke hgi-qr-code"></i></button><button class="sc-item-more" title="ตั้งค่ารายการ (ระยะ/ประเภท/วันที่/ลบ)" onclick="openScoreItemModal('${c.id}','${it.id}')"><i class="hgi-stroke hgi-settings-01"></i></button></div>
       </th>`;
     }
   });
@@ -541,6 +542,7 @@ function renderScoreMatrix(c) {
       const v = clampMark((sc.marks[it.id] || {})[s.id], it.max);
       body += `<td class="sc-score-cell${cs}" data-score-col="${colIdx}"><input type="number" class="score-cell-input" value="${v}" min="0" max="${it.max}" step="0.5" placeholder="–"
         data-r="${index}" data-c="${colIdx}" data-student-no="${escapeScoreAttr(studentNo)}" data-student-name="${escapeScoreAttr(s.name)}"
+        data-class-id="${escapeScoreAttr(c.id)}" data-item-id="${escapeScoreAttr(it.id)}" data-student-id="${escapeScoreAttr(s.id)}"
         data-item-name="${escapeScoreAttr(it.name)}" data-max-score="${escapeScoreAttr(it.max)}"
         aria-label="คะแนน ${escapeScoreAttr(it.name)} ของ ${escapeScoreAttr(s.name)} เต็ม ${escapeScoreAttr(it.max)}" aria-describedby="score-focus-context"
         onchange="setScoreMark('${c.id}','${it.id}','${s.id}',this)"></td>`;

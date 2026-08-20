@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QR และกิจกรรมหน้าชั้น | คู่มือ ClassKru</title>
-  <meta name="description" content="วิธีสร้างห้อง QR ให้นักเรียนกรอกชื่อเข้าห้องเรียนเอง และเปิดกิจกรรมถามตอบสดหน้าชั้น">
+  <meta name="description" content="วิธีพิมพ์บัตร QR นักเรียนและตรวจงานลงคะแนนต่อเนื่องด้วยกล้องมือถือใน ClassKru">
   <link rel="canonical" href="https://classkru-kohl.vercel.app/guide-qr.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="ClassKru">
   <meta property="og:locale" content="th_TH">
   <meta property="og:title" content="QR และกิจกรรมหน้าชั้น — คู่มือ ClassKru">
-  <meta property="og:description" content="วิธีสร้างห้อง QR ให้นักเรียนกรอกชื่อเข้าห้องเรียนเอง และเปิดกิจกรรมถามตอบสดหน้าชั้น">
+  <meta property="og:description" content="วิธีพิมพ์บัตร QR นักเรียนและตรวจงานลงคะแนนต่อเนื่องด้วยกล้องมือถือใน ClassKru">
   <meta property="og:url" content="https://classkru-kohl.vercel.app/guide-qr.html">
   <meta property="og:image" content="https://classkru-kohl.vercel.app/logo.png?v=2">
   <meta property="og:image:width" content="1024">
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/guide.css?v=346">
+  <link rel="stylesheet" href="css/guide.css?v=350">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,24 +36,49 @@
 <header class="g-article-head">
   <span class="n">หมวด 4</span>
   <h1>QR และกิจกรรมหน้าชั้น</h1>
-  <p>ให้นักเรียนสแกน QR เพื่อกรอกข้อมูลเข้าห้อง และเปิดกิจกรรมถามตอบสด</p>
-  <span class="g-meta">✏️ กำลังจัดทำเนื้อหา</span>
+  <p>พิมพ์บัตร QR ให้นักเรียน แล้วใช้มือถือสแกนตรวจงานและลงคะแนนต่อเนื่องทั้งห้อง</p>
+  <span class="g-meta">⏱ เตรียมครั้งแรกประมาณ 5 นาที · 4 ขั้นตอน</span>
 </header>
 
 <section class="g-section">
-  <div class="g-soon">
-    <p><strong>หมวดนี้กำลังเขียนอยู่</strong> — หัวข้อที่จะมีในหน้านี้</p>
-    <ul>
-      <li>สร้างห้อง QR ให้นักเรียนกรอกชื่อเข้าห้องเรียนเอง</li>
-      <li>ตรวจรายชื่อก่อนนำเข้า และการจัดการชื่อซ้ำ</li>
-      <li>เปิดกิจกรรมถามตอบ — คำตอบสั้น ตัวเลือก และระดับ 1-5</li>
-      <li>ใช้จอนำเสนอฉายหน้าห้อง</li>
-      <li>อ่านแถบเตือนเมื่อห้องยังไม่ได้บันทึกขึ้นระบบกลาง</li>
-    </ul>
+
+  <div class="g-step">
+    <div class="g-step-title"><span class="g-step-num">1</span><h3>พิมพ์บัตร QR ของนักเรียน</h3></div>
+    <div class="g-step-body">
+      <p>เข้าเมนู <strong>จัดการห้องเรียน → รายชื่อนักเรียน</strong> เลือกห้อง แล้วกด <strong>พิมพ์ QR นักเรียน</strong> ระบบจะสร้างบัตรทั้งห้องให้ทันที</p>
+      <p>กด <strong>พิมพ์ / บันทึก PDF</strong> แล้วตัดแจกนักเรียน จะเคลือบหรือแปะหลังสมุดประจำตัวก็ได้ บัตรเดิมใช้ซ้ำกับงานชิ้นต่อไปได้</p>
+      <div class="g-tip"><span>🔒</span><span>ใน QR มีเพียงรหัสอ้างอิง ไม่ได้เก็บชื่อ ห้อง คะแนน หรือข้อมูลส่วนตัวของนักเรียน</span></div>
+    </div>
   </div>
-  <div class="g-tip">
-    <span>💡</span>
-    <span>ระหว่างนี้ถ้าติดตรงไหน ทัก <a href="https://line.me/R/ti/p/@731idhsu" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">LINE ของ ClassKru</a> ได้เลย ทีมงานตอบให้โดยตรง · หรือกดปุ่ม <b>?</b> มุมจอในระบบเพื่อแจ้งปัญหา</span>
+
+  <div class="g-step">
+    <div class="g-step-title"><span class="g-step-num">2</span><h3>เลือกงานที่จะตรวจเพียงครั้งเดียว</h3></div>
+    <div class="g-step-body">
+      <p>เปิดเมนู <strong>ตรวจงานด้วย QR</strong> เลือกปี ระดับชั้น ห้อง วิชา และงาน จากนั้นตรวจว่าคะแนนเต็มถูกต้องแล้วกด <strong>เริ่มสแกน</strong></p>
+      <p>ถ้าเปิดจากหน้าตารางคะแนน ให้กดไอคอน QR ของงานนั้น ระบบจะนำห้อง วิชา งาน และคะแนนเต็มมาให้โดยอัตโนมัติ</p>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title"><span class="g-step-num">3</span><h3>สแกน → กรอกคะแนน → บันทึก</h3></div>
+    <div class="g-step-body">
+      <p>อนุญาตให้ ClassKru ใช้กล้อง แล้วหันกล้องไปที่บัตร QR ระบบจะแสดงชื่อ ห้อง และคะแนนเดิม หากถูกคนให้กรอกคะแนนใหม่แล้วกด <strong>บันทึกคะแนน</strong></p>
+      <p>เมื่อฐานข้อมูลบันทึกสำเร็จ กล้องจะพร้อมรับนักเรียนคนถัดไปเอง ไม่ต้องกด “สแกนต่อ” และไม่ต้องโหลดหน้าใหม่</p>
+      <div class="g-tip is-warn"><span>⚠️</span><span>ถ้าสแกนนักเรียนผิดห้อง ระบบจะไม่บันทึกคะแนน ให้ตรวจชื่อบนหน้าจอก่อนกดบันทึกทุกครั้ง</span></div>
+    </div>
+  </div>
+
+  <div class="g-step">
+    <div class="g-step-title"><span class="g-step-num">4</span><h3>เมื่อกล้องหรืออินเทอร์เน็ตมีปัญหา</h3></div>
+    <div class="g-step-body">
+      <ul>
+        <li>กล้องไม่เปิด — ตรวจว่าเปิดผ่าน HTTPS และอนุญาตสิทธิ์กล้องให้เว็บไซต์</li>
+        <li>QR อ่านยาก — เพิ่มแสง ถือห่างประมาณ 15–25 ซม. และอย่าให้เงาบัง</li>
+        <li>ใช้กล้องไม่ได้ — กรอกรหัสที่พิมพ์ใต้ QR ในช่องค้นหาแทนได้</li>
+        <li>บันทึกไม่สำเร็จ — ระบบจะเก็บชื่อและคะแนนบนหน้าจอไว้ ให้เชื่อมอินเทอร์เน็ตแล้วกดบันทึกอีกครั้ง</li>
+      </ul>
+      <div class="g-tip"><span>💡</span><span>เมื่อเสร็จทั้งห้อง กด <strong>หยุดสแกน</strong> แล้วตรวจคะแนนในตารางอีกครั้ง ระบบจะอัปเดตโดยไม่ Refresh หน้า</span></div>
+    </div>
   </div>
 </section>
 

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>QR roundtrip test</title></head>
+<body>
+  <div id="qr"></div>
+  <div id="reader" style="display:none"></div>
+  <output id="result">running</output>
+  <script src="../js/vendor/qrcode.min.js"></script>
+  <script src="../js/vendor/html5-qrcode.min.js"></script>
+  <script>
+    const expected = 'CKSTU:roundtrip-1';
+    const target = document.getElementById('qr');
+    const result = document.getElementById('result');
+    new QRCode(target, { text: expected, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+    const canvas = target.querySelector('canvas');
+    canvas.toBlob(async blob => {
+      try {
+        const file = new File([blob], 'student-qr.png', { type: 'image/png' });
+        const scanner = new Html5Qrcode('reader', { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE] });
+        const decoded = await scanner.scanFile(file, false);
+        result.textContent = decoded === expected ? `PASS:${decoded}` : `FAIL:${decoded}`;
+        scanner.clear();
+      } catch (error) {
+        result.textContent = `ERROR:${error.message || error}`;
+      }
+    }, 'image/png');
+  </script>
+</body>
+</html>

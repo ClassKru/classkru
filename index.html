@@ -19,17 +19,18 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=346">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=346">
-  <link rel="stylesheet" href="css/03-reports.css?v=346">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=346">
-  <link rel="stylesheet" href="css/05-home.css?v=346">
-  <link rel="stylesheet" href="css/06-attendance.css?v=346">
-  <link rel="stylesheet" href="css/07-scores.css?v=346">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=346">
-    <link rel="stylesheet" href="css/09-games.css?v=346">
-  <link rel="stylesheet" href="css/10-help.css?v=346">
-  <link rel="stylesheet" href="css/11-public-help.css?v=346">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=350">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=350">
+  <link rel="stylesheet" href="css/03-reports.css?v=350">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=350">
+  <link rel="stylesheet" href="css/05-home.css?v=350">
+  <link rel="stylesheet" href="css/06-attendance.css?v=350">
+  <link rel="stylesheet" href="css/07-scores.css?v=350">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=350">
+    <link rel="stylesheet" href="css/09-games.css?v=350">
+  <link rel="stylesheet" href="css/10-help.css?v=350">
+  <link rel="stylesheet" href="css/11-public-help.css?v=350">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=350">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -228,6 +229,7 @@
         <button class="nav-item" data-screen="students" onclick="navigateToWebScreen('students')" style="display:none;"><i class="hgi-stroke hgi-user-multiple"></i><span>จัดการรายชื่อเด็ก</span></button>
         <button class="nav-item" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
         <button class="nav-item" data-screen="tools" onclick="navigateToWebScreen('tools')"><i class="hgi-stroke hgi-magic-wand-01"></i><span>เครื่องมือช่วยสอน</span></button>
+        <button class="nav-item" onclick="openQrScoreScanner()"><i class="hgi-stroke hgi-qr-code"></i><span>ตรวจงานด้วย QR</span></button>
         <button class="nav-item" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกมการศึกษา</span></button>
         <button class="nav-item" data-screen="help" onclick="navigateToWebScreen('help')"><i class="hgi-stroke hgi-customer-service-01"></i><span>ศูนย์ช่วยเหลือ</span></button>
         <button class="nav-item" data-screen="attendance" onclick="navigateToWebScreen('attendance')" style="display:none;"><i class="hgi-stroke hgi-table"></i><span>Attendance Matrix</span></button>
@@ -376,6 +378,7 @@
               <div class="subtitle" id="web-students-count-label">พบ 0 คน</div>
               <div class="students-action-btns" style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn" style="background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);" onclick="openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
+                <button class="btn desktop-only-flex" onclick="openStudentQrCardsFromRoster()"><i class="hgi-stroke hgi-qr-code"></i> พิมพ์ QR นักเรียน</button>
                 <button class="btn ck-checkin-activity-btn desktop-only-flex" onclick="openClassJoinActivity()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียนผ่านกิจกรรม</button>
                 <button class="btn desktop-only-flex" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
                 <button class="btn btn-danger desktop-only-flex" onclick="deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i> ลบทั้งหมด</button>
@@ -499,7 +502,7 @@
             <div id="web-scores-class-list" class="class-cards-grid"></div>
           </div>
           <div id="web-scores-detail-view" style="display:none;">
-            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action" onclick="openScoreExportMenu()"><i class="hgi-stroke hgi-file-download"></i> <span class="hide-mobile">ส่งออก</span></button><button class="btn ck-hdr-action ck-ic-gray" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;min-width:0;"><button class="btn-back" onclick="goBackToWebScoresSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div style="min-width:0;"><h3 id="web-scores-detail-title" class="ck-class-switch" onclick="openClassSwitcher('scores')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action qr-score-header-btn" onclick="openQrScoreScannerFromScores()"><i class="hgi-stroke hgi-qr-code"></i> <span class="hide-mobile">กรอกคะแนนด้วย QR</span></button><button class="btn ck-hdr-action" onclick="openScoreExportMenu()"><i class="hgi-stroke hgi-file-download"></i> <span class="hide-mobile">ส่งออก</span></button><button class="btn ck-hdr-action ck-ic-gray" onclick="openScoreSettingsModal()"><i class="hgi-stroke hgi-settings-01"></i> <span class="hide-mobile">ตั้งค่า</span></button></div></div></div>
             <div id="scores-classtab-holder"></div>
             <div id="score-worktab-holder"></div>
             <div class="card" style="padding:12px;"><div id="web-scores-matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;"></div></div>
@@ -1239,26 +1242,85 @@
       </div>
     </div>
   </div>
+
+  <!-- ตรวจงานและกรอกคะแนนด้วย QR แบบสแกนต่อเนื่อง -->
+  <div class="modal-overlay qr-score-overlay" id="modal-qr-score" onclick="if(event.target===this) stopQrScoreScanner()" style="z-index:9400;">
+    <div class="bottom-sheet qr-score-sheet" role="dialog" aria-modal="true" aria-labelledby="qr-score-title">
+      <header class="qr-score-head">
+        <div><span class="qr-score-eyebrow">CONTINUOUS SCAN</span><h3 id="qr-score-title"><i class="hgi-stroke hgi-qr-code"></i> ตรวจงานด้วย QR</h3></div>
+        <button type="button" class="qr-score-close" onclick="stopQrScoreScanner()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </header>
+
+      <section id="qr-score-setup" class="qr-score-setup">
+        <p>เลือกห้องและงานเพียงครั้งเดียว จากนั้นสแกนและลงคะแนนต่อเนื่องได้ทันที</p>
+        <div class="qr-score-fields">
+          <label><span>ปีการศึกษา</span><select id="qr-score-year" class="form-control" onchange="qrScoreSetupChanged('year')"></select></label>
+          <label><span>ระดับชั้น</span><select id="qr-score-grade" class="form-control" onchange="qrScoreSetupChanged('grade')"></select></label>
+          <label><span>ห้องเรียน</span><select id="qr-score-room" class="form-control" onchange="qrScoreSetupChanged('room')"></select></label>
+          <label><span>วิชา</span><select id="qr-score-subject" class="form-control" onchange="qrScoreSetupChanged('subject')"></select></label>
+          <label class="qr-score-field-wide"><span>งาน / กิจกรรม / การสอบ</span><select id="qr-score-item" class="form-control" onchange="qrScoreSetupChanged('item')"></select></label>
+          <label><span>คะแนนเต็ม</span><input id="qr-score-max" class="form-control" value="—" readonly></label>
+        </div>
+        <div id="qr-score-setup-error" class="qr-score-inline-error" role="alert"></div>
+        <div class="qr-score-setup-actions">
+          <button type="button" class="btn" id="qr-score-print-cards" onclick="openStudentQrCards()" disabled><i class="hgi-stroke hgi-printer"></i> พิมพ์ QR นักเรียน</button>
+          <button type="button" class="btn btn-primary qr-score-start" onclick="beginQrScoreScan()"><i class="hgi-stroke hgi-camera-01"></i> เริ่มสแกน</button>
+        </div>
+      </section>
+
+      <section id="qr-score-scan" class="qr-score-scan" style="display:none;">
+        <div id="qr-score-context" class="qr-score-context"></div>
+        <div class="qr-score-workspace">
+          <div class="qr-score-camera-panel">
+            <div id="qr-score-reader" class="qr-score-reader"></div>
+            <div id="qr-score-camera-placeholder" class="qr-score-camera-placeholder"><i class="hgi-stroke hgi-camera-01"></i><span>กำลังเปิดกล้อง…</span></div>
+            <div id="qr-score-status" class="qr-score-status" role="status" aria-live="polite">พร้อมสแกนนักเรียน</div>
+            <form class="qr-score-manual" onsubmit="submitQrScoreManualCode(event)">
+              <input id="qr-score-manual-code" class="form-control" autocomplete="off" placeholder="หรือกรอกรหัสจาก QR">
+              <button class="btn" type="submit">ค้นหา</button>
+            </form>
+          </div>
+
+          <div id="qr-score-result" class="qr-score-result" style="display:none;">
+            <div id="qr-score-result-state" class="qr-score-result-state"></div>
+            <div class="qr-score-student">
+              <span id="qr-score-student-avatar" class="qr-score-avatar">—</span>
+              <div><strong id="qr-score-student-name">นักเรียน</strong><span id="qr-score-student-meta">—</span></div>
+            </div>
+            <div class="qr-score-old"><span>คะแนนปัจจุบัน</span><strong id="qr-score-old-score">ยังไม่มี</strong></div>
+            <label id="qr-score-new-wrap" class="qr-score-new"><span>คะแนนใหม่</span><div><input id="qr-score-new-score" type="number" inputmode="decimal" step="0.5" min="0" class="form-control"><b id="qr-score-max-label">/ 0</b></div></label>
+            <div id="qr-score-save-error" class="qr-score-inline-error" role="alert"></div>
+            <div class="qr-score-result-actions">
+              <button type="button" class="btn" id="qr-score-retry-btn" onclick="resumeQrScoreScan()"><i class="hgi-stroke hgi-refresh"></i> สแกนใหม่</button>
+              <button type="button" class="btn btn-primary" id="qr-score-save-btn" onclick="saveQrScannedScore()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกคะแนน</button>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn qr-score-stop" onclick="stopQrScoreScanner()"><i class="hgi-stroke hgi-stop"></i> หยุดสแกน</button>
+      </section>
+    </div>
+  </div>
   
   <!-- Hidden file input for direct class Excel import -->
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=346"></script>
-  <script defer src="js/auth.js?v=346"></script>
-  <script defer src="js/shell.js?v=346"></script>
-  <script defer src="js/dashboard.js?v=346"></script>
-  <script defer src="js/classrooms.js?v=346"></script>
-  <script defer src="js/students.js?v=346"></script>
-  <script defer src="js/timetable.js?v=346"></script>
-  <script defer src="js/reports.js?v=346"></script>
-  <script defer src="js/attendance.js?v=346"></script>
-  <script defer src="js/curriculum-science-2560.js?v=346"></script>
-  <script defer src="js/curriculum-catalog.js?v=346"></script>
-  <script defer src="js/scores.js?v=346"></script>
-  <script defer src="js/tools.js?v=346"></script>
-  <script defer src="js/shared-utils.js?v=346"></script>
-  <script defer src="js/extras.js?v=346"></script>
-  <script defer src="js/help.js?v=346"></script>
+  <script defer src="js/core.js?v=350"></script>
+  <script defer src="js/auth.js?v=350"></script>
+  <script defer src="js/shell.js?v=350"></script>
+  <script defer src="js/dashboard.js?v=350"></script>
+  <script defer src="js/classrooms.js?v=350"></script>
+  <script defer src="js/students.js?v=350"></script>
+  <script defer src="js/timetable.js?v=350"></script>
+  <script defer src="js/reports.js?v=350"></script>
+  <script defer src="js/attendance.js?v=350"></script>
+  <script defer src="js/curriculum-science-2560.js?v=350"></script>
+  <script defer src="js/curriculum-catalog.js?v=350"></script>
+  <script defer src="js/scores.js?v=350"></script>
+  <script defer src="js/qr-scores.js?v=350"></script>
+  <script defer src="js/tools.js?v=350"></script>
+  <script defer src="js/shared-utils.js?v=350"></script>
+  <script defer src="js/extras.js?v=350"></script>
+  <script defer src="js/help.js?v=350"></script>
 </body>
 </html>

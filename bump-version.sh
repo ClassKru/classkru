@@ -33,7 +33,12 @@ else
   sed -i '' -E "s/(\.(js|css))\?v=[0-9]+/\1?v=$NEW/g" "${FILES[@]}"
 fi
 
-TOTAL=$(grep -ohcE "\.(js|css)\?v=$NEW" "${FILES[@]}" | paste -sd+ - | bc)
+# รวมด้วย shell arithmetic เพื่อให้ใช้ได้ใน Git Bash บน Windows ซึ่งไม่มี `bc` มาให้
+TOTAL=0
+for f in "${FILES[@]}"; do
+  COUNT=$(grep -ocE "\.(js|css)\?v=$NEW" "$f" || true)
+  TOTAL=$((TOTAL + COUNT))
+done
 echo "✅ bump version: $CUR → $NEW  ($TOTAL refs ใน ${#FILES[@]} ไฟล์)"
 for f in "${FILES[@]}"; do
   echo "   - $f ($(grep -cE "\.(js|css)\?v=$NEW" "$f") refs)"
