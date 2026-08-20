@@ -119,12 +119,12 @@ function renderQrScoreSetup(prefillClassId, prefillItemId) {
   const subjectClasses = year && grade && room ? byGrade.filter(c => String(c.className) === room) : [];
 
   qrScoreSetOptions('qr-score-year', qrScoreAcademicYears(classes), year, classes.length ? '-- เลือกปีการศึกษา --' : 'ยังไม่มีข้อมูลห้องเรียน');
-  qrScoreSetOptions('qr-score-grade', year ? qrScoreNaturalSort(qrScoreUnique(byYear.map(qrScoreGradeLabel))) : [], grade, year ? '-- เลือกระดับชั้น --' : '-- เลือกปีการศึกษาก่อน --');
-  qrScoreSetOptions('qr-score-room', year && grade ? qrScoreNaturalSort(qrScoreUnique(byGrade.map(c => c.className))) : [], room, year && grade ? '-- เลือกห้องเรียน --' : '-- เลือกระดับชั้นก่อน --');
+  qrScoreSetOptions('qr-score-grade', year ? qrScoreNaturalSort(qrScoreUnique(byYear.map(qrScoreGradeLabel))) : [], grade, year ? '-- เลือกระดับชั้น --' : '');
+  qrScoreSetOptions('qr-score-room', year && grade ? qrScoreNaturalSort(qrScoreUnique(byGrade.map(c => c.className))) : [], room, year && grade ? '-- เลือกห้องเรียน --' : '');
   subjectClasses.sort((a, b) => String(a.subject || '').localeCompare(String(b.subject || ''), 'th', { numeric: true, sensitivity: 'base' }));
-  qrScoreSetOptions('qr-score-subject', subjectClasses.map(c => c.id), prefill?.id || '', room ? '-- เลือกวิชา --' : '-- เลือกห้องเรียนก่อน --', id => subjectClasses.find(c => c.id === id)?.subject || id);
+  qrScoreSetOptions('qr-score-subject', subjectClasses.map(c => c.id), prefill?.id || '', room ? '-- เลือกวิชา --' : '', id => subjectClasses.find(c => c.id === id)?.subject || id);
   const items = prefill ? scoreOrderedItems(prefill) : [];
-  qrScoreSetOptions('qr-score-item', items.map(i => i.id), prefillItemId || '', prefill ? (items.length ? '-- เลือกงาน --' : 'ยังไม่มีงานในวิชานี้') : '-- เลือกวิชาก่อน --', id => {
+  qrScoreSetOptions('qr-score-item', items.map(i => i.id), prefillItemId || '', prefill ? (items.length ? '-- เลือกงาน --' : 'ยังไม่มีงานในวิชานี้') : '', id => {
     const item = items.find(i => i.id === id);
     return item ? `${item.name} / ${item.max}` : id;
   });
@@ -147,15 +147,15 @@ function qrScoreSetupChanged(level) {
   if (level === 'subject') itemId = '';
 
   const byYear = year ? classes.filter(c => String(c.academicYear) === year) : [];
-  grade = qrScoreSetOptions('qr-score-grade', year ? qrScoreNaturalSort(qrScoreUnique(byYear.map(qrScoreGradeLabel))) : [], grade, year ? '-- เลือกระดับชั้น --' : '-- เลือกปีการศึกษาก่อน --');
+  grade = qrScoreSetOptions('qr-score-grade', year ? qrScoreNaturalSort(qrScoreUnique(byYear.map(qrScoreGradeLabel))) : [], grade, year ? '-- เลือกระดับชั้น --' : '');
   const byGrade = year && grade ? byYear.filter(c => qrScoreGradeLabel(c) === grade) : [];
-  room = qrScoreSetOptions('qr-score-room', year && grade ? qrScoreNaturalSort(qrScoreUnique(byGrade.map(c => c.className))) : [], room, year && grade ? '-- เลือกห้องเรียน --' : '-- เลือกระดับชั้นก่อน --');
+  room = qrScoreSetOptions('qr-score-room', year && grade ? qrScoreNaturalSort(qrScoreUnique(byGrade.map(c => c.className))) : [], room, year && grade ? '-- เลือกห้องเรียน --' : '');
   const byRoom = year && grade && room ? byGrade.filter(c => String(c.className) === room) : [];
   byRoom.sort((a, b) => String(a.subject || '').localeCompare(String(b.subject || ''), 'th', { numeric: true, sensitivity: 'base' }));
-  classId = qrScoreSetOptions('qr-score-subject', byRoom.map(c => c.id), classId, room ? '-- เลือกวิชา --' : '-- เลือกห้องเรียนก่อน --', id => byRoom.find(c => c.id === id)?.subject || id);
+  classId = qrScoreSetOptions('qr-score-subject', byRoom.map(c => c.id), classId, room ? '-- เลือกวิชา --' : '', id => byRoom.find(c => c.id === id)?.subject || id);
   const selectedClass = classes.find(c => c.id === classId);
   const items = selectedClass ? scoreOrderedItems(selectedClass) : [];
-  qrScoreSetOptions('qr-score-item', items.map(i => i.id), itemId, selectedClass ? (items.length ? '-- เลือกงาน --' : 'ยังไม่มีงานในวิชานี้') : '-- เลือกวิชาก่อน --', id => {
+  qrScoreSetOptions('qr-score-item', items.map(i => i.id), itemId, selectedClass ? (items.length ? '-- เลือกงาน --' : 'ยังไม่มีงานในวิชานี้') : '', id => {
     const item = items.find(i => i.id === id);
     return item ? `${item.name} / ${item.max}` : id;
   });
@@ -232,7 +232,9 @@ async function beginQrScoreScan(forcedClassId, forcedItemId) {
   document.getElementById('qr-score-context').innerHTML = `<div><strong>${qrScoreEsc(c.className)} • ${qrScoreEsc(c.subject)}</strong><span>${qrScoreEsc(item.name)} / ${qrScoreEsc(item.max)} คะแนน · ปี ${qrScoreEsc(c.academicYear || '—')}</span></div><button type="button" onclick="openStudentQrCards('${qrScoreEsc(c.id)}')"><i class="hgi-stroke hgi-printer"></i> พิมพ์ QR นักเรียน</button>`;
   resetQrScoreResult();
   setQrScoreStatus('กำลังเปิดกล้อง…', 'loading');
-  document.getElementById('qr-score-camera-placeholder').style.display = 'flex';
+  const cameraPlaceholder = document.getElementById('qr-score-camera-placeholder');
+  cameraPlaceholder.style.display = 'flex';
+  cameraPlaceholder.innerHTML = '<i class="hgi-stroke hgi-camera-01"></i><strong>กำลังขอสิทธิ์กล้อง…</strong><span>เมื่อมือถือถาม กรุณาเลือก “อนุญาต”</span>';
 
   try {
     await startQrScoreCamera();
@@ -245,8 +247,66 @@ async function beginQrScoreScan(forcedClassId, forcedItemId) {
   } catch (error) {
     console.warn('QR score camera error:', error);
     qrScoreState.phase = 'scanning';
-    setQrScoreStatus('เปิดกล้องไม่ได้ — อนุญาตสิทธิ์กล้อง หรือกรอกรหัส QR ด้านล่าง', 'error');
-    document.getElementById('qr-score-camera-placeholder').innerHTML = '<i class="hgi-stroke hgi-camera-off-01"></i><span>ไม่สามารถเปิดกล้องได้</span>';
+    showQrScoreCameraError(error);
+  }
+}
+
+function getQrScoreCameraErrorInfo(error) {
+  const raw = `${error?.name || ''} ${error?.message || ''} ${String(error || '')}`.toLowerCase();
+  const inAppBrowser = /line\/|\bline\b|fban|fbav|instagram|micromessenger/i.test(navigator.userAgent || '');
+  if (!window.isSecureContext) {
+    return { title: 'ต้องเปิดผ่านเว็บไซต์ HTTPS', detail: 'กล้องใช้งานได้เฉพาะการเชื่อมต่อที่ปลอดภัย กรุณาเปิดเว็บไซต์ ClassKru โดยตรง' };
+  }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return inAppBrowser
+      ? { title: 'เบราว์เซอร์ในแอปนี้ไม่รองรับกล้อง', detail: 'แตะเมนูของแอป แล้วเลือก “เปิดใน Safari” หรือ “เปิดใน Chrome”' }
+      : { title: 'เบราว์เซอร์นี้ไม่รองรับกล้อง', detail: 'กรุณาเปิด ClassKru ด้วย Safari หรือ Chrome เวอร์ชันล่าสุด' };
+  }
+  if (/notallowed|permission|denied|securityerror/.test(raw)) {
+    return { title: 'ยังไม่ได้รับอนุญาตให้ใช้กล้อง', detail: 'อนุญาต Camera ในการตั้งค่าเว็บไซต์ของ Safari/Chrome แล้วกด “ลองเปิดกล้องอีกครั้ง”' };
+  }
+  if (/notfound|devicesnotfound|no camera/.test(raw)) {
+    return { title: 'ไม่พบกล้องบนอุปกรณ์นี้', detail: 'ตรวจสอบว่ามือถือมีกล้องที่พร้อมใช้งาน หรือกรอกรหัส QR ด้านล่างแทน' };
+  }
+  if (/notreadable|trackstarterror|could not start|in use/.test(raw)) {
+    return { title: 'กล้องกำลังถูกใช้งานอยู่', detail: 'ปิดแอปอื่นที่ใช้กล้อง แล้วกด “ลองเปิดกล้องอีกครั้ง”' };
+  }
+  return inAppBrowser
+    ? { title: 'เปิดกล้องในเบราว์เซอร์นี้ไม่สำเร็จ', detail: 'ลองเปิด ClassKru ใน Safari/Chrome หรือกดลองเปิดกล้องอีกครั้ง' }
+    : { title: 'เปิดกล้องไม่สำเร็จ', detail: 'ตรวจสิทธิ์กล้องของเว็บไซต์ แล้วกดลองเปิดกล้องอีกครั้ง' };
+}
+
+function showQrScoreCameraError(error) {
+  const info = getQrScoreCameraErrorInfo(error);
+  const placeholder = document.getElementById('qr-score-camera-placeholder');
+  if (placeholder) {
+    placeholder.style.display = 'flex';
+    placeholder.innerHTML = `<i class="hgi-stroke hgi-camera-off-01"></i><strong>${qrScoreEsc(info.title)}</strong><span>${qrScoreEsc(info.detail)}</span><button type="button" onclick="retryQrScoreCamera()"><i class="hgi-stroke hgi-camera-01"></i> อนุญาตกล้อง / ลองใหม่</button>`;
+  }
+  setQrScoreStatus(`${info.title} — หรือกรอกรหัส QR ด้านล่าง`, 'error');
+}
+
+async function retryQrScoreCamera() {
+  if (!document.getElementById('modal-qr-score')?.classList.contains('show') || qrScoreState.phase === 'stopping') return;
+  qrScoreState.phase = 'starting';
+  const placeholder = document.getElementById('qr-score-camera-placeholder');
+  if (placeholder) {
+    placeholder.style.display = 'flex';
+    placeholder.innerHTML = '<i class="hgi-stroke hgi-camera-01"></i><strong>กำลังขอสิทธิ์กล้อง…</strong><span>เมื่อมือถือถาม กรุณาเลือก “อนุญาต”</span>';
+  }
+  setQrScoreStatus('กำลังขอสิทธิ์และเปิดกล้อง…', 'loading');
+  try {
+    await startQrScoreCamera();
+    if (!document.getElementById('modal-qr-score')?.classList.contains('show') || qrScoreState.phase === 'stopping') {
+      await stopQrScoreCamera();
+      return;
+    }
+    qrScoreState.phase = 'scanning';
+    setQrScoreStatus('พร้อมสแกนนักเรียน', 'ready');
+  } catch (error) {
+    console.warn('QR score camera retry error:', error);
+    qrScoreState.phase = 'scanning';
+    showQrScoreCameraError(error);
   }
 }
 
@@ -268,6 +328,8 @@ function ensureQrScoreLibrary() {
 }
 
 async function startQrScoreCamera() {
+  if (!window.isSecureContext) throw new DOMException('Camera requires a secure HTTPS context', 'SecurityError');
+  if (!navigator.mediaDevices?.getUserMedia) throw new DOMException('Camera API is unavailable in this browser', 'NotSupportedError');
   await ensureQrScoreLibrary();
   if (qrScoreScanner) await stopQrScoreCamera();
   const formats = window.Html5QrcodeSupportedFormats ? [window.Html5QrcodeSupportedFormats.QR_CODE] : undefined;
@@ -275,15 +337,19 @@ async function startQrScoreCamera() {
   const scanConfig = { fps: 12, qrbox: (w, h) => { const size = Math.floor(Math.min(w, h) * 0.72); return { width: size, height: size }; }, aspectRatio: 1 };
   const onSuccess = decoded => handleQrScoreDecoded(decoded);
   const onFailure = () => noteQrScoreNoCode();
-  try {
-    await qrScoreScanner.start({ facingMode: 'environment' }, scanConfig, onSuccess, onFailure);
-  } catch (firstError) {
-    const denied = /notallowed|permission|denied|permission denied/i.test(String(firstError?.name || firstError?.message || firstError));
-    if (denied || !window.Html5Qrcode.getCameras) throw firstError;
-    const cameras = await window.Html5Qrcode.getCameras();
-    if (!cameras?.length) throw firstError;
+  let cameraIdOrConfig = { facingMode: 'environment' };
+  if (window.Html5Qrcode.getCameras) {
+    const cameras = await window.Html5Qrcode.getCameras(); // requests permission before labels are available on mobile
+    if (!cameras?.length) throw new DOMException('No camera found', 'NotFoundError');
     const rear = cameras.find(camera => /back|rear|environment|หลัง/i.test(camera.label || '')) || cameras[cameras.length - 1];
-    await qrScoreScanner.start(rear.id, scanConfig, onSuccess, onFailure);
+    cameraIdOrConfig = rear.id;
+  }
+  try {
+    await qrScoreScanner.start(cameraIdOrConfig, scanConfig, onSuccess, onFailure);
+  } catch (firstError) {
+    const denied = /notallowed|permission|denied|securityerror/i.test(String(firstError?.name || firstError?.message || firstError));
+    if (denied || typeof cameraIdOrConfig !== 'string') throw firstError;
+    await qrScoreScanner.start({ facingMode: 'environment' }, scanConfig, onSuccess, onFailure);
   }
   document.getElementById('qr-score-camera-placeholder').style.display = 'none';
 }

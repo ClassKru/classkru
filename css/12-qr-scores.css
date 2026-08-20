@@ -35,6 +35,10 @@
 .qr-score-reader video { object-fit: cover; border-radius: 17px; }
 .qr-score-camera-placeholder { position: absolute; inset: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #d1d5db; z-index: 2; }
 .qr-score-camera-placeholder i { font-size: 2.2rem; }
+.qr-score-camera-placeholder strong { padding-inline: 16px; color: #fff; text-align: center; font-size: .98rem; }
+.qr-score-camera-placeholder span { max-width: 390px; padding-inline: 18px; color: #cbd5e1; text-align: center; font-size: .8rem; line-height: 1.55; }
+.qr-score-camera-placeholder button { display: inline-flex; align-items: center; gap: 7px; margin-top: 4px; padding: 10px 14px; border: 0; border-radius: 11px; color: #075985; background: #e0f2fe; font: inherit; font-size: .82rem; font-weight: 800; cursor: pointer; }
+.qr-score-camera-placeholder button i { font-size: 1rem; }
 .qr-score-status { margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: #f3f4f6; color: var(--text-muted); text-align: center; font-size: .88rem; font-weight: 700; }
 .qr-score-status.ready, .qr-score-status.success { color: #047857; background: #ecfdf5; }
 .qr-score-status.found { color: #1d4ed8; background: #eff6ff; }
@@ -56,8 +60,11 @@
 .qr-score-old strong { font-size: 1.05rem; }
 .qr-score-new { margin-top: 16px; }
 .qr-score-new > div { display: flex; align-items: center; gap: 10px; }
+.qr-score-scorebox { overflow: hidden; gap: 0 !important; border: 2px solid #bae6fd; border-radius: 14px; background: #fff; }
 .qr-score-new input { min-width: 0; height: 54px; text-align: center; font-size: 1.35rem; font-weight: 800; }
-.qr-score-new b { flex: 0 0 auto; color: var(--text-muted); }
+.qr-score-scorebox input { border: 0; border-radius: 0; box-shadow: none; }
+.qr-score-scorebox input:focus { box-shadow: none; }
+.qr-score-new b { flex: 0 0 auto; padding: 0 16px 0 10px; color: #0369a1; font-size: 1.15rem; white-space: nowrap; }
 .qr-score-result-actions { display: flex; gap: 8px; margin-top: 8px; }
 .qr-score-result-actions .btn { flex: 1; justify-content: center; }
 .qr-score-stop { display: flex; margin: 18px auto 0; justify-content: center; color: #b91c1c; border-color: #fecaca; background: #fff; }

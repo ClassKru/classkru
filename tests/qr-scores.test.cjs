@@ -40,6 +40,7 @@ function mockElement(id) {
 const context = vm.createContext({
   console: { ...console, warn() {} },
   URL,
+  DOMException,
   setTimeout,
   clearTimeout,
   structuredClone,
@@ -48,7 +49,8 @@ const context = vm.createContext({
   quickScoreItemId: null,
   _cloudPushTimer: null,
   supabaseClient: null,
-  window: { CSS: { escape: String } },
+  window: { CSS: { escape: String }, isSecureContext: true },
+  navigator: { userAgent: 'Mobile Safari', mediaDevices: { getUserMedia() {} } },
   document: {
     addEventListener() {},
     getElementById(id) { return mockElement(id); },
@@ -90,6 +92,9 @@ assert.equal(run("normalizeQrStudentToken('{\"student_id\":\"s-a\"}')"), 's-a');
 assert.equal(run("normalizeQrStudentToken('s-a')"), 's-a');
 assert.equal(run('QR_SCORE_SCANNER_SRC'), 'js/vendor/html5-qrcode.min.js');
 assert.deepEqual(Array.from(run('qrScoreAcademicYears(appState.classes)')), ['2569']);
+assert.equal(run("getQrScoreCameraErrorInfo({ name: 'NotAllowedError' }).title"), 'ยังไม่ได้รับอนุญาตให้ใช้กล้อง');
+assert.equal(run("navigator.userAgent='LINE/14.0'; navigator.mediaDevices=undefined; getQrScoreCameraErrorInfo({}).title"), 'เบราว์เซอร์ในแอปนี้ไม่รองรับกล้อง');
+run("navigator.userAgent='Mobile Safari'; navigator.mediaDevices={ getUserMedia() {} }");
 
 run('renderQrScoreSetup()');
 assert.equal(mockElement('qr-score-year').disabled, false, 'academic year is loaded from real classroom data');
@@ -98,6 +103,10 @@ assert.equal(mockElement('qr-score-room').disabled, true, 'room stays locked unt
 assert.equal(mockElement('qr-score-subject').disabled, true, 'subject stays locked until a room is selected');
 assert.equal(mockElement('qr-score-item').disabled, true, 'assignment stays locked until a subject is selected');
 assert.equal(mockElement('qr-score-start-btn').disabled, true);
+assert.equal(mockElement('qr-score-grade').innerHTML.includes('เลือกปีการศึกษาก่อน'), false);
+assert.equal(mockElement('qr-score-room').innerHTML.includes('เลือกระดับชั้นก่อน'), false);
+assert.equal(mockElement('qr-score-subject').innerHTML.includes('เลือกห้องเรียนก่อน'), false);
+assert.equal(mockElement('qr-score-item').innerHTML.includes('เลือกวิชาก่อน'), false);
 
 mockElement('qr-score-year').value = '2569';
 run("qrScoreSetupChanged('year')");
@@ -132,6 +141,7 @@ assert.equal(run("validateQrScore(appState.classes[0], appState.classes[0].score
 run("qrScoreState.classId='c-a'; qrScoreState.itemId='work-1'; qrScoreState.phase='scanning'; qrScoreState.blockedCode=null; handleQrScoreDecoded('CKSTU:s-a')");
 assert.equal(run('qrScoreState.phase'), 'editing');
 assert.equal(run('qrScoreState.studentId'), 's-a');
+assert.equal(mockElement('qr-score-max-label').textContent, '/ 20', 'score entry always shows the assignment maximum');
 run("qrScoreState.phase='scanning'; qrScoreState.blockedCode=null; handleQrScoreDecoded('CKSTU:s-b')");
 assert.equal(run('qrScoreState.phase'), 'error');
 assert.equal(run('qrScoreState.studentId'), null, 'wrong-room QR must never select a student for saving');
