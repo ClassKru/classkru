@@ -16,6 +16,7 @@ function createQrScoreState() {
     itemId: null,
     studentId: null,
     originScores: false,
+    setupTouched: false,
     phase: 'idle',
     blockedCode: null,
     lastSeenAt: 0,
@@ -44,6 +45,15 @@ function qrScoreClasses() {
 
 function qrScoreUnique(values) {
   return [...new Set(values.filter(v => v !== undefined && v !== null && String(v).trim() !== '').map(String))];
+}
+
+function qrScoreNaturalSort(values) {
+  return [...values].sort((a, b) => String(a).localeCompare(String(b), 'th', { numeric: true, sensitivity: 'base' }));
+}
+
+function qrScoreAcademicYears(classes) {
+  return qrScoreUnique(classes.map(c => c.academicYear))
+    .sort((a, b) => Number(b) - Number(a));
 }
 
 function qrScoreSetOptions(id, values, selected, placeholder, labeler) {
@@ -104,21 +114,26 @@ function renderQrScoreSetup(prefillClassId, prefillItemId) {
   const year = prefill ? String(prefill.academicYear || '') : '';
   const grade = prefill ? qrScoreGradeLabel(prefill) : '';
   const room = prefill ? String(prefill.className || '') : '';
-  qrScoreSetOptions('qr-score-year', qrScoreUnique(classes.map(c => c.academicYear)).sort().reverse(), year, '-- เลือกปีการศึกษา --');
-  qrScoreSetOptions('qr-score-grade', qrScoreUnique(classes.filter(c => !year || String(c.academicYear) === year).map(qrScoreGradeLabel)), grade, '-- เลือกระดับชั้น --');
-  qrScoreSetOptions('qr-score-room', qrScoreUnique(classes.filter(c => (!year || String(c.academicYear) === year) && (!grade || qrScoreGradeLabel(c) === grade)).map(c => c.className)), room, '-- เลือกห้องเรียน --');
-  const subjectClasses = classes.filter(c => (!year || String(c.academicYear) === year) && (!grade || qrScoreGradeLabel(c) === grade) && (!room || String(c.className) === room));
-  qrScoreSetOptions('qr-score-subject', subjectClasses.map(c => c.id), prefill?.id || '', '-- เลือกวิชา --', id => subjectClasses.find(c => c.id === id)?.subject || id);
+  const byYear = year ? classes.filter(c => String(c.academicYear) === year) : [];
+  const byGrade = year && grade ? byYear.filter(c => qrScoreGradeLabel(c) === grade) : [];
+  const subjectClasses = year && grade && room ? byGrade.filter(c => String(c.className) === room) : [];
+
+  qrScoreSetOptions('qr-score-year', qrScoreAcademicYears(classes), year, classes.length ? '-- เลือกปีการศึกษา --' : 'ยังไม่มีข้อมูลห้องเรียน');
+  qrScoreSetOptions('qr-score-grade', year ? qrScoreNaturalSort(qrScoreUnique(byYear.map(qrScoreGradeLabel))) : [], grade, year ? '-- เลือกระดับชั้น --' : '-- เลือกปีการศึกษาก่อน --');
+  qrScoreSetOptions('qr-score-room', year && grade ? qrScoreNaturalSort(qrScoreUnique(byGrade.map(c => c.className))) : [], room, year && grade ? '-- เลือกห้องเรียน --' : '-- เลือกระดับชั้นก่อน --');
+  subjectClasses.sort((a, b) => String(a.subject || '').localeCompare(String(b.subject || ''), 'th', { numeric: true, sensitivity: 'base' }));
+  qrScoreSetOptions('qr-score-subject', subjectClasses.map(c => c.id), prefill?.id || '', room ? '-- เลือกวิชา --' : '-- เลือกห้องเรียนก่อน --', id => subjectClasses.find(c => c.id === id)?.subject || id);
   const items = prefill ? scoreOrderedItems(prefill) : [];
-  qrScoreSetOptions('qr-score-item', items.map(i => i.id), prefillItemId || '', '-- เลือกงาน --', id => {
+  qrScoreSetOptions('qr-score-item', items.map(i => i.id), prefillItemId || '', prefill ? (items.length ? '-- เลือกงาน --' : 'ยังไม่มีงานในวิชานี้') : '-- เลือกวิชาก่อน --', id => {
     const item = items.find(i => i.id === id);
     return item ? `${item.name} / ${item.max}` : id;
   });
   updateQrScoreMax();
-  updateQrScorePrintButton();
+  updateQrScoreSetupState();
 }
 
 function qrScoreSetupChanged(level) {
+  qrScoreState.setupTouched = true;
   const classes = qrScoreClasses();
   let year = document.getElementById('qr-score-year').value;
   let grade = document.getElementById('qr-score-grade').value;
@@ -131,26 +146,57 @@ function qrScoreSetupChanged(level) {
   if (level === 'room') { classId = ''; itemId = ''; }
   if (level === 'subject') itemId = '';
 
-  const byYear = classes.filter(c => !year || String(c.academicYear) === year);
-  grade = qrScoreSetOptions('qr-score-grade', qrScoreUnique(byYear.map(qrScoreGradeLabel)), grade, '-- เลือกระดับชั้น --');
-  const byGrade = byYear.filter(c => !grade || qrScoreGradeLabel(c) === grade);
-  room = qrScoreSetOptions('qr-score-room', qrScoreUnique(byGrade.map(c => c.className)), room, '-- เลือกห้องเรียน --');
-  const byRoom = byGrade.filter(c => !room || String(c.className) === room);
-  classId = qrScoreSetOptions('qr-score-subject', byRoom.map(c => c.id), classId, '-- เลือกวิชา --', id => byRoom.find(c => c.id === id)?.subject || id);
+  const byYear = year ? classes.filter(c => String(c.academicYear) === year) : [];
+  grade = qrScoreSetOptions('qr-score-grade', year ? qrScoreNaturalSort(qrScoreUnique(byYear.map(qrScoreGradeLabel))) : [], grade, year ? '-- เลือกระดับชั้น --' : '-- เลือกปีการศึกษาก่อน --');
+  const byGrade = year && grade ? byYear.filter(c => qrScoreGradeLabel(c) === grade) : [];
+  room = qrScoreSetOptions('qr-score-room', year && grade ? qrScoreNaturalSort(qrScoreUnique(byGrade.map(c => c.className))) : [], room, year && grade ? '-- เลือกห้องเรียน --' : '-- เลือกระดับชั้นก่อน --');
+  const byRoom = year && grade && room ? byGrade.filter(c => String(c.className) === room) : [];
+  byRoom.sort((a, b) => String(a.subject || '').localeCompare(String(b.subject || ''), 'th', { numeric: true, sensitivity: 'base' }));
+  classId = qrScoreSetOptions('qr-score-subject', byRoom.map(c => c.id), classId, room ? '-- เลือกวิชา --' : '-- เลือกห้องเรียนก่อน --', id => byRoom.find(c => c.id === id)?.subject || id);
   const selectedClass = classes.find(c => c.id === classId);
   const items = selectedClass ? scoreOrderedItems(selectedClass) : [];
-  qrScoreSetOptions('qr-score-item', items.map(i => i.id), itemId, '-- เลือกงาน --', id => {
+  qrScoreSetOptions('qr-score-item', items.map(i => i.id), itemId, selectedClass ? (items.length ? '-- เลือกงาน --' : 'ยังไม่มีงานในวิชานี้') : '-- เลือกวิชาก่อน --', id => {
     const item = items.find(i => i.id === id);
     return item ? `${item.name} / ${item.max}` : id;
   });
   updateQrScoreMax();
-  updateQrScorePrintButton();
+  updateQrScoreSetupState();
   document.getElementById('qr-score-setup-error').textContent = '';
 }
 
-function updateQrScorePrintButton() {
+// Login starts cloud sync in the background. If the QR setup is already open and
+// the teacher has not touched it yet, refresh it once the real cloud state arrives.
+function refreshQrScoreSetupAfterCloudSync() {
+  const modal = document.getElementById('modal-qr-score');
+  if (!modal?.classList.contains('show') || qrScoreState.phase !== 'idle' || qrScoreState.setupTouched) return;
+  const classId = document.getElementById('qr-score-subject')?.value || null;
+  const itemId = document.getElementById('qr-score-item')?.value || null;
+  renderQrScoreSetup(classId, itemId);
+}
+
+function updateQrScoreSetupState() {
+  const classes = qrScoreClasses();
+  const classId = document.getElementById('qr-score-subject')?.value || '';
+  const itemId = document.getElementById('qr-score-item')?.value || '';
+  const selectedClass = classes.find(c => c.id === classId);
+  const items = selectedClass ? scoreOrderedItems(selectedClass) : [];
   const button = document.getElementById('qr-score-print-cards');
-  if (button) button.disabled = !document.getElementById('qr-score-subject')?.value;
+  if (button) button.disabled = !classId;
+  const startButton = document.getElementById('qr-score-start-btn');
+  if (startButton) startButton.disabled = !classId || !itemId;
+
+  const status = document.getElementById('qr-score-data-status');
+  if (!status) return;
+  if (!classes.length) {
+    status.innerHTML = '<i class="hgi-stroke hgi-alert-02"></i><span>ยังไม่มีข้อมูลห้องเรียน กรุณาสร้างห้องเรียนก่อนใช้งาน</span>';
+    status.className = 'qr-score-data-status is-warning';
+  } else if (selectedClass && !items.length) {
+    status.innerHTML = '<i class="hgi-stroke hgi-alert-02"></i><span>วิชานี้ยังไม่มีงาน กรุณาเพิ่มงานในหน้าตารางคะแนนก่อน</span>';
+    status.className = 'qr-score-data-status is-warning';
+  } else {
+    status.innerHTML = `<i class="hgi-stroke hgi-database"></i><span>ดึงจากข้อมูลจริงของคุณครู ${classes.length} วิชา</span>`;
+    status.className = 'qr-score-data-status';
+  }
 }
 
 function updateQrScoreMax() {

@@ -7,10 +7,16 @@
 .qr-score-eyebrow { color: var(--primary); font-size: .7rem; font-weight: 800; letter-spacing: .12em; }
 .qr-score-close { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 12px; color: var(--text-muted); background: var(--bg-main); cursor: pointer; font-size: 1.15rem; }
 .qr-score-setup, .qr-score-scan { padding: 24px; }
-.qr-score-setup > p { margin: 0 0 20px; color: var(--text-muted); }
+.qr-score-setup > p { margin: 0 0 12px; color: var(--text-muted); }
+.qr-score-data-status { display: flex; align-items: center; gap: 8px; margin-bottom: 18px; padding: 10px 12px; border: 1px solid #bae6fd; border-radius: 12px; color: #0369a1; background: #f0f9ff; font-size: .8rem; font-weight: 700; }
+.qr-score-data-status i { flex: 0 0 auto; font-size: 1rem; }
+.qr-score-data-status.is-warning { color: #a16207; border-color: #fde68a; background: #fffbeb; }
 .qr-score-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .qr-score-fields label, .qr-score-new { display: flex; flex-direction: column; gap: 7px; }
 .qr-score-fields label > span, .qr-score-new > span { color: var(--text-muted); font-size: .82rem; font-weight: 700; }
+.qr-score-fields label > span { display: flex; align-items: center; gap: 6px; }
+.qr-score-fields label > span b { width: 20px; height: 20px; display: inline-grid; place-items: center; border-radius: 50%; color: #0369a1; background: #e0f2fe; font-size: .7rem; }
+.qr-score-fields select:disabled { color: #94a3b8; background: #f8fafc; cursor: not-allowed; }
 .qr-score-field-wide { grid-column: span 2; }
 .qr-score-fields input[readonly] { background: var(--bg-main); font-weight: 800; }
 .qr-score-setup-actions { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 10px; margin-top: 18px; }

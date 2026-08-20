@@ -530,6 +530,7 @@ async function syncBackgroundCloud(email) {
     console.warn('Cloud sync error:', err);
     updateCloudStatus('offline', 'ออฟไลน์');
   }
+  if (typeof refreshQrScoreSetupAfterCloudSync === 'function') refreshQrScoreSetupAfterCloudSync();
 }
 
 let _cloudWriteQueue = Promise.resolve();

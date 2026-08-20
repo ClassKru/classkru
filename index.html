@@ -19,18 +19,18 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=351">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=351">
-  <link rel="stylesheet" href="css/03-reports.css?v=351">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=351">
-  <link rel="stylesheet" href="css/05-home.css?v=351">
-  <link rel="stylesheet" href="css/06-attendance.css?v=351">
-  <link rel="stylesheet" href="css/07-scores.css?v=351">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=351">
-    <link rel="stylesheet" href="css/09-games.css?v=351">
-  <link rel="stylesheet" href="css/10-help.css?v=351">
-  <link rel="stylesheet" href="css/11-public-help.css?v=351">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=351">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=352">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=352">
+  <link rel="stylesheet" href="css/03-reports.css?v=352">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=352">
+  <link rel="stylesheet" href="css/05-home.css?v=352">
+  <link rel="stylesheet" href="css/06-attendance.css?v=352">
+  <link rel="stylesheet" href="css/07-scores.css?v=352">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=352">
+    <link rel="stylesheet" href="css/09-games.css?v=352">
+  <link rel="stylesheet" href="css/10-help.css?v=352">
+  <link rel="stylesheet" href="css/11-public-help.css?v=352">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=352">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -1253,19 +1253,20 @@
       </header>
 
       <section id="qr-score-setup" class="qr-score-setup">
-        <p>เลือกห้องและงานเพียงครั้งเดียว จากนั้นสแกนและลงคะแนนต่อเนื่องได้ทันที</p>
+        <p>เลือกข้อมูลจริงที่มีอยู่ในระบบตามลำดับ จากนั้นสแกนและลงคะแนนต่อเนื่องได้ทันที</p>
+        <div id="qr-score-data-status" class="qr-score-data-status"><i class="hgi-stroke hgi-database"></i><span>กำลังเตรียมข้อมูลห้องเรียนและตารางคะแนน</span></div>
         <div class="qr-score-fields">
-          <label><span>ปีการศึกษา</span><select id="qr-score-year" class="form-control" onchange="qrScoreSetupChanged('year')"></select></label>
-          <label><span>ระดับชั้น</span><select id="qr-score-grade" class="form-control" onchange="qrScoreSetupChanged('grade')"></select></label>
-          <label><span>ห้องเรียน</span><select id="qr-score-room" class="form-control" onchange="qrScoreSetupChanged('room')"></select></label>
-          <label><span>วิชา</span><select id="qr-score-subject" class="form-control" onchange="qrScoreSetupChanged('subject')"></select></label>
-          <label class="qr-score-field-wide"><span>งาน / กิจกรรม / การสอบ</span><select id="qr-score-item" class="form-control" onchange="qrScoreSetupChanged('item')"></select></label>
+          <label><span><b>1</b> ปีการศึกษา</span><select id="qr-score-year" class="form-control" onchange="qrScoreSetupChanged('year')"></select></label>
+          <label><span><b>2</b> ระดับชั้น</span><select id="qr-score-grade" class="form-control" onchange="qrScoreSetupChanged('grade')"></select></label>
+          <label><span><b>3</b> ห้องเรียน</span><select id="qr-score-room" class="form-control" onchange="qrScoreSetupChanged('room')"></select></label>
+          <label><span><b>4</b> วิชา</span><select id="qr-score-subject" class="form-control" onchange="qrScoreSetupChanged('subject')"></select></label>
+          <label class="qr-score-field-wide"><span><b>5</b> งาน / กิจกรรม / การสอบ</span><select id="qr-score-item" class="form-control" onchange="qrScoreSetupChanged('item')"></select></label>
           <label><span>คะแนนเต็ม</span><input id="qr-score-max" class="form-control" value="—" readonly></label>
         </div>
         <div id="qr-score-setup-error" class="qr-score-inline-error" role="alert"></div>
         <div class="qr-score-setup-actions">
           <button type="button" class="btn" id="qr-score-print-cards" onclick="openStudentQrCards()" disabled><i class="hgi-stroke hgi-printer"></i> พิมพ์ QR นักเรียน</button>
-          <button type="button" class="btn btn-primary qr-score-start" onclick="beginQrScoreScan()"><i class="hgi-stroke hgi-camera-01"></i> เริ่มสแกน</button>
+          <button type="button" class="btn btn-primary qr-score-start" id="qr-score-start-btn" onclick="beginQrScoreScan()" disabled><i class="hgi-stroke hgi-camera-01"></i> เริ่มสแกน</button>
         </div>
       </section>
 
@@ -1306,22 +1307,22 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=351"></script>
-  <script defer src="js/auth.js?v=351"></script>
-  <script defer src="js/shell.js?v=351"></script>
-  <script defer src="js/dashboard.js?v=351"></script>
-  <script defer src="js/classrooms.js?v=351"></script>
-  <script defer src="js/students.js?v=351"></script>
-  <script defer src="js/timetable.js?v=351"></script>
-  <script defer src="js/reports.js?v=351"></script>
-  <script defer src="js/attendance.js?v=351"></script>
-  <script defer src="js/curriculum-science-2560.js?v=351"></script>
-  <script defer src="js/curriculum-catalog.js?v=351"></script>
-  <script defer src="js/scores.js?v=351"></script>
-  <script defer src="js/qr-scores.js?v=351"></script>
-  <script defer src="js/tools.js?v=351"></script>
-  <script defer src="js/shared-utils.js?v=351"></script>
-  <script defer src="js/extras.js?v=351"></script>
-  <script defer src="js/help.js?v=351"></script>
+  <script defer src="js/core.js?v=352"></script>
+  <script defer src="js/auth.js?v=352"></script>
+  <script defer src="js/shell.js?v=352"></script>
+  <script defer src="js/dashboard.js?v=352"></script>
+  <script defer src="js/classrooms.js?v=352"></script>
+  <script defer src="js/students.js?v=352"></script>
+  <script defer src="js/timetable.js?v=352"></script>
+  <script defer src="js/reports.js?v=352"></script>
+  <script defer src="js/attendance.js?v=352"></script>
+  <script defer src="js/curriculum-science-2560.js?v=352"></script>
+  <script defer src="js/curriculum-catalog.js?v=352"></script>
+  <script defer src="js/scores.js?v=352"></script>
+  <script defer src="js/qr-scores.js?v=352"></script>
+  <script defer src="js/tools.js?v=352"></script>
+  <script defer src="js/shared-utils.js?v=352"></script>
+  <script defer src="js/extras.js?v=352"></script>
+  <script defer src="js/help.js?v=352"></script>
 </body>
 </html>

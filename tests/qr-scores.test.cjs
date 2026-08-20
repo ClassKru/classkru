@@ -89,6 +89,31 @@ assert.equal(run("normalizeQrStudentToken('https://classkru.test/card?student_id
 assert.equal(run("normalizeQrStudentToken('{\"student_id\":\"s-a\"}')"), 's-a');
 assert.equal(run("normalizeQrStudentToken('s-a')"), 's-a');
 assert.equal(run('QR_SCORE_SCANNER_SRC'), 'js/vendor/html5-qrcode.min.js');
+assert.deepEqual(Array.from(run('qrScoreAcademicYears(appState.classes)')), ['2569']);
+
+run('renderQrScoreSetup()');
+assert.equal(mockElement('qr-score-year').disabled, false, 'academic year is loaded from real classroom data');
+assert.equal(mockElement('qr-score-grade').disabled, true, 'grade stays locked until a year is selected');
+assert.equal(mockElement('qr-score-room').disabled, true, 'room stays locked until a grade is selected');
+assert.equal(mockElement('qr-score-subject').disabled, true, 'subject stays locked until a room is selected');
+assert.equal(mockElement('qr-score-item').disabled, true, 'assignment stays locked until a subject is selected');
+assert.equal(mockElement('qr-score-start-btn').disabled, true);
+
+mockElement('qr-score-year').value = '2569';
+run("qrScoreSetupChanged('year')");
+assert.equal(mockElement('qr-score-grade').disabled, false);
+mockElement('qr-score-grade').value = 'ม.1';
+run("qrScoreSetupChanged('grade')");
+assert.equal(mockElement('qr-score-room').disabled, false);
+mockElement('qr-score-room').value = 'ม.1/2';
+run("qrScoreSetupChanged('room')");
+assert.equal(mockElement('qr-score-subject').disabled, false);
+mockElement('qr-score-subject').value = 'c-a';
+run("qrScoreSetupChanged('subject')");
+assert.equal(mockElement('qr-score-item').disabled, false);
+mockElement('qr-score-item').value = 'work-1';
+run("qrScoreSetupChanged('item')");
+assert.equal(mockElement('qr-score-start-btn').disabled, false, 'scanner starts only after the full real-data context is selected');
 
 run("qrScoreState.classId = 'c-a'");
 assert.equal(run("findQrScoreStudent('s-a').classroom.id"), 'c-a');
