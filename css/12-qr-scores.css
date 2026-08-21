@@ -107,9 +107,9 @@
 .qr-score-old span { color: var(--text-muted); font-size: .82rem; }
 .qr-score-old strong { font-size: 1.05rem; }
 .qr-score-new { margin-top: 16px; }
-.qr-score-new > div { display: flex; align-items: center; gap: 10px; }
+.qr-score-new > div { width: max-content; display: flex; align-items: center; gap: 10px; margin-inline: auto; }
 .qr-score-scorebox { overflow: hidden; gap: 0 !important; border: 2px solid #bae6fd; border-radius: 14px; background: #fff; }
-.qr-score-new input { min-width: 0; height: 54px; text-align: center; font-size: 1.35rem; font-weight: 800; }
+.qr-score-new input { width: 96px; min-width: 0; height: 54px; text-align: center; font-size: 1.35rem; font-weight: 800; }
 .qr-score-scorebox input { border: 0; border-radius: 0; box-shadow: none; }
 .qr-score-scorebox input:focus { box-shadow: none; }
 .qr-score-new b { flex: 0 0 auto; padding: 0 16px 0 10px; color: #0369a1; font-size: 1.15rem; white-space: nowrap; }
@@ -152,8 +152,8 @@
   .qr-score-student strong { max-width: 100%; font-size: 1.12rem; }
   .qr-score-old { padding: 10px 12px; }
   .qr-score-new { margin-top: 12px; }
-  .qr-score-new > div { max-width: 260px; margin-inline: auto; }
-  .qr-score-new input { height: 48px; font-size: 1.2rem; }
+  .qr-score-new > div { max-width: min(240px, 100%); margin-inline: auto; }
+  .qr-score-new input { width: 90px; height: 48px; font-size: 1.2rem; }
   .qr-score-result-actions { margin-top: 12px; }
   .qr-score-result-actions .btn { min-height: 48px; }
   .qr-score-stop { margin-bottom: calc(4px + env(safe-area-inset-bottom)); }
