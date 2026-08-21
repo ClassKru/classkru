@@ -14,12 +14,16 @@ assert.match(html, /onclick="moveSwipeStudent\(1\)"/, 'next fallback button is p
 assert.match(html, /id="swipe-card-position"/, 'roster position is visible');
 assert.doesNotMatch(html, /onclick="onSwipeCardTap\(event\)"/, 'tapping the card must not mark attendance');
 assert.doesNotMatch(js, /function onSwipeCardTap/, 'legacy tap-to-present gesture is removed');
-assert.match(js, /deltaX > SWIPE_THRESHOLD[\s\S]*moveSwipeStudent\(-1\)/, 'swiping right goes to the previous student');
-assert.match(js, /deltaX < -SWIPE_THRESHOLD[\s\S]*moveSwipeStudent\(1\)/, 'swiping left goes to the next student');
-assert.doesNotMatch(js, /deltaX > SWIPE_THRESHOLD[\s\S]{0,100}markSwipeStatus/, 'swiping must not save a status');
+assert.match(js, /function calculateSwipeMomentum\(deltaX, velocityX, availableSteps\)/, 'momentum uses drag distance and release velocity');
+assert.match(js, /SWIPE_MOMENTUM_PROJECTION_MS/, 'release velocity is projected into inertial travel');
+assert.match(js, /SWIPE_MOMENTUM_MAX_STEPS = 8/, 'a fast fling has a safe maximum travel');
+assert.match(js, /function spinSwipeStudents\(direction, steps, duration\)/, 'a fling advances through multiple cards');
+assert.match(js, /function stopSwipeMomentum/, 'touching the moving wheel can stop it');
+assert.doesNotMatch(js, /onSwipeTouchEnd[\s\S]{0,1200}markSwipeStatus/, 'swiping must not save a status');
 assert.match(js, /const previousStatus = swipeResults\[student\.id\] \|\| ''/, 'an existing mark can be changed and undone');
 assert.match(js, /autoSaveAttendance\(\);[\s\S]*if \(swipeStudentIndex === markedIndex && swipeStudentIndex < c\.students\.length - 1\) swipeStudentIndex\+\+/, 'button saves before advancing the same visible card');
 assert.match(css, /\.swipe-card-preview\.previous/, 'stacked previous card has carousel styling');
+assert.match(css, /\.swipe-card\.momentum-out-next/, 'momentum movement has outgoing card animation');
 assert.match(css, /\.swipe-btn\.active/, 'saved status is highlighted when revisiting a student');
 
 console.log('attendance carousel tests passed');

@@ -3,6 +3,15 @@ let activeQrAttendance = null;
 let qrAttendancePollTimer = null;
 let swipeDoneFinishReadyAt = 0;
 let swipeStatusAdvanceTimer = null;
+let swipeMomentumToken = 0;
+let swipeMomentumActive = false;
+let swipeTouchStartTime = 0;
+let swipeTouchLastX = 0;
+let swipeTouchLastTime = 0;
+let swipeTouchVelocity = 0;
+
+const SWIPE_MOMENTUM_MAX_STEPS = 8;
+const SWIPE_MOMENTUM_PROJECTION_MS = 240;
 
 const SWIPE_EDIT_STATUS = {
   present: { label: 'มา', icon: 'hgi-tick-02' },
@@ -817,9 +826,11 @@ function renderSwipeCard() {
 
   // Reset transform
   card.style.transform = '';
-  card.classList.remove('swipe-out-right', 'swipe-out-left', 'swipe-out-up', 'hint-right', 'hint-left');
-  card.classList.add('swipe-in');
-  setTimeout(() => card.classList.remove('swipe-in'), 300);
+  card.classList.remove('swipe-out-right', 'swipe-out-left', 'swipe-out-up', 'hint-right', 'hint-left', 'momentum-out-next', 'momentum-out-previous', 'momentum-in-next', 'momentum-in-previous');
+  if (!swipeMomentumActive) {
+    card.classList.add('swipe-in');
+    setTimeout(() => card.classList.remove('swipe-in'), 300);
+  }
 }
 
 function renderSwipeCarouselContext(c) {
@@ -855,6 +866,7 @@ function renderSwipeCarouselContext(c) {
 }
 
 function moveSwipeStudent(delta) {
+  stopSwipeMomentum();
   const c = appState.classes.find(x => x.id === swipeClassId);
   if (!c || !c.students.length) return;
   const nextIndex = Math.max(0, Math.min(swipeStudentIndex + delta, c.students.length - 1));
@@ -866,6 +878,66 @@ function moveSwipeStudent(delta) {
   }
   swipeStudentIndex = nextIndex;
   renderSwipeCard();
+}
+
+function calculateSwipeMomentum(deltaX, velocityX, availableSteps) {
+  const projectedDistance = deltaX + (velocityX * SWIPE_MOMENTUM_PROJECTION_MS);
+  if (Math.abs(deltaX) < 38 && Math.abs(velocityX) < 0.35) return { direction: 0, steps: 0, duration: 0 };
+  const direction = projectedDistance < 0 ? 1 : -1;
+  const distanceSteps = Math.max(1, Math.round(Math.abs(projectedDistance) / 105));
+  const velocitySteps = Math.max(1, Math.ceil(Math.abs(velocityX) * 3.2));
+  const steps = Math.min(availableSteps, SWIPE_MOMENTUM_MAX_STEPS, Math.max(distanceSteps, velocitySteps));
+  const duration = Math.round(Math.max(72, Math.min(138, 132 - (Math.abs(velocityX) * 24))));
+  return { direction, steps, duration };
+}
+
+function stopSwipeMomentum(resetTransform = true) {
+  swipeMomentumToken++;
+  swipeMomentumActive = false;
+  const card = document.getElementById('swipe-card');
+  if (!card) return;
+  card.classList.remove('momentum-out-next', 'momentum-out-previous', 'momentum-in-next', 'momentum-in-previous');
+  if (resetTransform) card.style.transform = '';
+}
+
+function spinSwipeStudents(direction, steps, duration) {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c || !steps || !direction) return;
+  stopSwipeMomentum();
+  swipeMomentumActive = true;
+  const token = swipeMomentumToken;
+  const halfDuration = Math.max(32, Math.round(duration / 2));
+
+  const spinStep = remaining => {
+    if (token !== swipeMomentumToken || remaining <= 0) {
+      if (token === swipeMomentumToken) swipeMomentumActive = false;
+      return;
+    }
+    const nextIndex = swipeStudentIndex + direction;
+    if (nextIndex < 0 || nextIndex >= c.students.length) {
+      swipeMomentumActive = false;
+      document.getElementById('swipe-card')?.classList.add('swipe-edge-bump');
+      setTimeout(() => document.getElementById('swipe-card')?.classList.remove('swipe-edge-bump'), 180);
+      return;
+    }
+    const card = document.getElementById('swipe-card');
+    card.style.setProperty('--momentum-half', `${halfDuration}ms`);
+    card.classList.add(direction > 0 ? 'momentum-out-next' : 'momentum-out-previous');
+    setTimeout(() => {
+      if (token !== swipeMomentumToken) return;
+      swipeStudentIndex = nextIndex;
+      renderSwipeCard();
+      const currentCard = document.getElementById('swipe-card');
+      currentCard.classList.add(direction > 0 ? 'momentum-in-next' : 'momentum-in-previous');
+      setTimeout(() => {
+        if (token !== swipeMomentumToken) return;
+        currentCard.classList.remove('momentum-in-next', 'momentum-in-previous');
+        spinStep(remaining - 1);
+      }, halfDuration);
+    }, halfDuration);
+  };
+
+  spinStep(steps);
 }
 
 // ========== DESKTOP VIEW TABLE LOGIC ==========
@@ -1244,8 +1316,14 @@ function showSaveToast() {
 
 // ===== TOUCH GESTURE HANDLERS =====
 function onSwipeTouchStart(event) {
+  stopSwipeMomentum();
+  const now = performance.now();
   swipeTouchStartX = event.touches[0].clientX;
   swipeTouchCurrentX = swipeTouchStartX;
+  swipeTouchLastX = swipeTouchStartX;
+  swipeTouchStartTime = now;
+  swipeTouchLastTime = now;
+  swipeTouchVelocity = 0;
   swipeIsDragging = true;
   document.getElementById('swipe-card').classList.add('dragging');
 }
@@ -1253,7 +1331,13 @@ function onSwipeTouchStart(event) {
 function onSwipeTouchMove(event) {
   if (!swipeIsDragging) return;
   event.preventDefault();
+  const now = performance.now();
   swipeTouchCurrentX = event.touches[0].clientX;
+  const elapsed = Math.max(1, now - swipeTouchLastTime);
+  const instantVelocity = (swipeTouchCurrentX - swipeTouchLastX) / elapsed;
+  swipeTouchVelocity = (swipeTouchVelocity * 0.35) + (instantVelocity * 0.65);
+  swipeTouchLastX = swipeTouchCurrentX;
+  swipeTouchLastTime = now;
   const deltaX = swipeTouchCurrentX - swipeTouchStartX;
   const card = document.getElementById('swipe-card');
   const rotation = deltaX * 0.05;
@@ -1267,16 +1351,21 @@ function onSwipeTouchEnd(event) {
   const card = document.getElementById('swipe-card');
   card.classList.remove('dragging');
   const deltaX = swipeTouchCurrentX - swipeTouchStartX;
+  const totalTime = Math.max(1, performance.now() - swipeTouchStartTime);
+  const overallVelocity = deltaX / totalTime;
+  const velocityX = (swipeTouchVelocity * 0.7) + (overallVelocity * 0.3);
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  const projectedDirection = (deltaX + velocityX * SWIPE_MOMENTUM_PROJECTION_MS) < 0 ? 1 : -1;
+  const availableSteps = c ? (projectedDirection > 0 ? c.students.length - 1 - swipeStudentIndex : swipeStudentIndex) : 0;
+  const momentum = calculateSwipeMomentum(deltaX, velocityX, availableSteps);
+  card.style.transform = '';
+  if (momentum.steps) spinSwipeStudents(momentum.direction, momentum.steps, momentum.duration);
+}
 
-  if (deltaX > SWIPE_THRESHOLD) {
-    card.style.transform = '';
-    moveSwipeStudent(-1);
-  } else if (deltaX < -SWIPE_THRESHOLD) {
-    card.style.transform = '';
-    moveSwipeStudent(1);
-  } else {
-    card.style.transform = '';    // Snap back
-  }
+function onSwipeTouchCancel() {
+  swipeIsDragging = false;
+  stopSwipeMomentum();
+  document.getElementById('swipe-card')?.classList.remove('dragging');
 }
 
 // ==================== MODALS ====================

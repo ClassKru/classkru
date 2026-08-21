@@ -315,6 +315,12 @@
 .swipe-card.status-saved { transform: scale(.97); box-shadow: 0 0 0 4px var(--primary-light); }
 .swipe-card.swipe-edge-bump { animation: swipeEdgeBump .18s ease; }
 @keyframes swipeEdgeBump { 50% { transform: scale(.985); } }
+.swipe-card.momentum-out-next { transition-duration: var(--momentum-half, 70ms); transform: translateX(-58%) rotate(-7deg) scale(.9); opacity: .12; }
+.swipe-card.momentum-out-previous { transition-duration: var(--momentum-half, 70ms); transform: translateX(58%) rotate(7deg) scale(.9); opacity: .12; }
+.swipe-card.momentum-in-next { animation: momentumInNext var(--momentum-half, 70ms) ease-out both; }
+.swipe-card.momentum-in-previous { animation: momentumInPrevious var(--momentum-half, 70ms) ease-out both; }
+@keyframes momentumInNext { from { transform: translateX(58%) rotate(7deg) scale(.9); opacity: .12; } to { transform: none; opacity: 1; } }
+@keyframes momentumInPrevious { from { transform: translateX(-58%) rotate(-7deg) scale(.9); opacity: .12; } to { transform: none; opacity: 1; } }
 
 /* ไกด์ถาวรบนการ์ด (บอกว่าปัด/แตะได้) */
 .swipe-card-guide {
