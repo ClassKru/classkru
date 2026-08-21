@@ -8,8 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    *{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:#172033;font-family:Sarabun,system-ui,sans-serif}.toolbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 22px;background:rgba(255,255,255,.96);border-bottom:1px solid #dfe5ef;backdrop-filter:blur(10px)}.toolbar h1{margin:0;font-size:1.15rem}.toolbar p{margin:2px 0 0;color:#667085;font-size:.82rem}.actions{display:flex;gap:8px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 14px;border:1px solid #d0d7e2;border-radius:10px;background:#fff;color:#344054;font:inherit;font-weight:700;cursor:pointer}.btn.primary{border-color:#2563eb;background:#2563eb;color:#fff}.notice{max-width:1100px;margin:18px auto 0;padding:12px 16px;border:1px solid #bfdbfe;border-radius:12px;background:#eff6ff;color:#1e40af;font-size:.86rem}.notice.warning{border-color:#fde68a;background:#fffbeb;color:#92400e}.cards{max-width:1100px;margin:18px auto 40px;padding:0 18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.student-card{break-inside:avoid;min-width:0;padding:14px;border:1px solid #dfe5ef;border-radius:16px;background:#fff;text-align:center}.brand{display:flex;align-items:center;justify-content:center;gap:7px;color:#2563eb;font-size:.72rem;font-weight:800;letter-spacing:.04em}.brand img{width:22px;height:22px;object-fit:contain}.qr{width:154px;height:154px;margin:8px auto}.qr img,.qr canvas,.qr svg{width:100%!important;height:100%!important}.name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1rem}.meta{display:block;margin-top:2px;color:#667085;font-size:.75rem}.token{display:block;overflow:hidden;margin-top:6px;color:#98a2b3;font-family:ui-monospace,monospace;font-size:.58rem;text-overflow:ellipsis;white-space:nowrap}.empty{max-width:640px;margin:70px auto;padding:36px;border:1px solid #dfe5ef;border-radius:18px;background:#fff;text-align:center}.empty h2{margin-top:0}.empty p{color:#667085}@media(max-width:850px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:620px){.toolbar{align-items:flex-start;flex-direction:column}.actions{width:100%}.actions .btn{flex:1}.cards{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 10px}.qr{width:132px;height:132px}}
-    @page{size:A4;margin:8mm}@media print{body{background:#fff}.toolbar,.notice{display:none!important}.cards{max-width:none;margin:0;padding:0;grid-template-columns:repeat(3,1fr);gap:4mm}.student-card{padding:4mm;border:1px solid #aab3c0;border-radius:3mm}.qr{width:38mm;height:38mm;margin:2mm auto}.name{font-size:11pt}.meta{font-size:8pt}.token{font-size:6pt}}
+    :root{--primary:#1d9e75;--pk:#0f6e56;--pbg:#f0fdf4;--pbd:#86efac;--bg:#f5f7fa;--card:#fff;--text:#0f172a;--muted:#64748b;--border:#e8edf2;--sh:0 1px 4px rgba(0,0,0,.06);--sh-md:0 4px 16px rgba(0,0,0,.10);--tr:all .18s cubic-bezier(.4,0,.2,1)}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Sarabun,system-ui,sans-serif}.toolbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 28px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)}.toolbar h1{margin:0;font-size:1.18rem;font-weight:800}.toolbar p{margin:3px 0 0;color:var(--muted);font-size:.84rem;font-weight:700}.actions{display:flex;gap:10px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:8px 16px;border:1px solid #d6dde8;border-radius:12px;background:#fff;color:#334155;font:inherit;font-weight:800;cursor:pointer;transition:var(--tr)}.btn:hover{transform:translateY(-1px);box-shadow:var(--sh)}.btn.primary{border-color:var(--primary);background:var(--primary);color:#fff;box-shadow:0 8px 18px rgba(29,158,117,.18)}.cards{max-width:1180px;margin:22px auto 42px;padding:0 18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.student-card{break-inside:avoid;min-width:0;padding:16px 16px 14px;border:1px solid #dde5ee;border-radius:16px;background:var(--card);text-align:center;box-shadow:var(--sh)}.brand{display:flex;align-items:center;justify-content:center;gap:7px;color:var(--primary);font-size:.68rem;font-weight:800;letter-spacing:.06em}.brand img{width:20px;height:20px;object-fit:contain}.qr{width:152px;height:152px;margin:10px auto 9px;padding:5px;border:1px solid #eef2f7;border-radius:10px;background:#fff}.qr img,.qr canvas,.qr svg{width:100%!important;height:100%!important}.name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:1.02rem;font-weight:800;line-height:1.25}.meta{display:inline-flex;margin-top:5px;padding:4px 9px;border-radius:999px;background:#f8fafc;color:var(--muted);font-size:.73rem;font-weight:700}.token{display:none!important}.empty{max-width:640px;margin:70px auto;padding:36px;border:1px solid var(--border);border-radius:18px;background:#fff;text-align:center;box-shadow:var(--sh)}.empty h2{margin-top:0}.empty p{color:var(--muted)}@media(max-width:980px){.cards{grid-template-columns:repeat(3,minmax(0,1fr));max-width:860px}}@media(max-width:620px){.toolbar{align-items:flex-start;flex-direction:column;padding:14px 16px}.actions{width:100%}.actions .btn{flex:1}.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 10px}.student-card{padding:12px}.qr{width:132px;height:132px}.meta{font-size:.68rem}}
+    @page{size:A4;margin:8mm}@media print{body{background:#fff}.toolbar{display:none!important}.cards{max-width:none;margin:0;padding:0;grid-template-columns:repeat(3,1fr);gap:4mm}.student-card{padding:4mm;border:1px solid #aab3c0;border-radius:3mm;box-shadow:none}.brand{color:#111827}.qr{width:38mm;height:38mm;margin:2mm auto;padding:0;border:0}.name{font-size:11pt}.meta{display:block;margin-top:1mm;padding:0;background:transparent;font-size:8pt}.token{display:none!important}}
   </style>
 </head>
 <body>
@@ -17,7 +18,6 @@
     <div><h1 id="page-title">บัตร QR นักเรียน</h1><p id="page-subtitle">กำลังเตรียมข้อมูล…</p></div>
     <div class="actions"><button class="btn" onclick="window.close()">ปิด</button><button class="btn primary" id="print-btn" onclick="window.print()" disabled>พิมพ์ / บันทึก PDF</button></div>
   </header>
-  <div class="notice" id="notice">QR แต่ละใบเก็บเพียงรหัสอ้างอิง ไม่เก็บชื่อหรือข้อมูลส่วนตัวของนักเรียนไว้ใน QR</div>
   <main class="cards" id="cards"></main>
 
   <script src="js/vendor/qrcode.min.js"></script>
@@ -33,7 +33,6 @@
         const h = document.createElement('h2'); h.textContent = title;
         const p = document.createElement('p'); p.textContent = message;
         cards.append(h, p);
-        document.getElementById('notice').style.display = 'none';
       }
 
       let state;
@@ -57,18 +56,9 @@
       document.getElementById('page-subtitle').textContent = `${classroom.subject} • ปีการศึกษา ${classroom.academicYear || '—'} • ${classroom.students.length} คน`;
       document.title = `QR_${classroom.className}_${classroom.subject} — ClassKru`;
 
-      const codeCounts = {};
-      classroom.students.forEach(s => {
-        const code = String(s.studentCode || '').trim();
-        if (code) codeCounts[code] = (codeCounts[code] || 0) + 1;
-      });
-      let fallbackCount = 0;
-
       classroom.students.forEach((student, index) => {
         const studentCode = String(student.studentCode || '').trim();
-        const token = studentCode && codeCounts[studentCode] === 1 ? studentCode : String(student.id);
-        if (token !== studentCode) fallbackCount++;
-        const payload = `CKSTU:${token}`;
+        const payload = `CKSTU:${encodeURIComponent(classroom.id)}:${encodeURIComponent(student.id)}`;
         const card = document.createElement('article'); card.className = 'student-card';
         const brand = document.createElement('div'); brand.className = 'brand';
         const logo = document.createElement('img'); logo.src = 'logo.png?v=2'; logo.alt = '';
@@ -76,16 +66,9 @@
         const qr = document.createElement('div'); qr.className = 'qr';
         const name = document.createElement('strong'); name.className = 'name'; name.textContent = student.name || `นักเรียน ${index + 1}`;
         const meta = document.createElement('span'); meta.className = 'meta'; meta.textContent = `เลขที่ ${student.no || index + 1} • ${classroom.className}${studentCode ? ` • รหัส ${studentCode}` : ''}`;
-        const tokenText = document.createElement('span'); tokenText.className = 'token'; tokenText.textContent = payload;
-        card.append(brand, qr, name, meta, tokenText); cards.appendChild(card);
+        card.append(brand, qr, name, meta); cards.appendChild(card);
         new QRCode(qr, { text: payload, width: 180, height: 180, colorDark: '#111827', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
       });
-
-      if (fallbackCount) {
-        const notice = document.getElementById('notice');
-        notice.classList.add('warning');
-        notice.textContent = `${fallbackCount} คนไม่มีรหัสนักเรียนหรือมีรหัสซ้ำ ระบบจึงใช้รหัสภายในที่ไม่ซ้ำเพื่อป้องกันลงคะแนนผิดคน`;
-      }
       document.getElementById('print-btn').disabled = false;
     })();
   </script>

@@ -31,7 +31,13 @@ function qrScoreEsc(value) {
 }
 
 function qrScoreClasses() {
-  return (appState.classes || []).filter(c => c && c.id);
+  return (appState.classes || []).filter(c => c && c.id).slice().sort((a, b) => {
+    const year = Number(b.academicYear || 0) - Number(a.academicYear || 0);
+    if (year) return year;
+    const room = String(a.className || '').localeCompare(String(b.className || ''), 'th', { numeric: true, sensitivity: 'base' });
+    if (room) return room;
+    return String(a.subject || '').localeCompare(String(b.subject || ''), 'th', { numeric: true, sensitivity: 'base' });
+  });
 }
 
 function qrScoreTaskValue(classId, itemId) {
@@ -66,7 +72,8 @@ function qrScoreClassOptionLabel(c) {
 }
 
 function qrScoreClassOptionMeta(c) {
-  return `${c.className || 'ไม่ระบุห้อง'} • ${c.students?.length || 0} คน${c.academicYear ? ` • ปี ${c.academicYear}` : ''}`;
+  const year = c.academicYear ? `ปี ${c.academicYear}` : 'ไม่ระบุปี';
+  return `${year} • ${c.className || 'ไม่ระบุห้อง'} • ${c.students?.length || 0} คน`;
 }
 
 function qrScoreClassDotColor(c) {
@@ -489,7 +496,7 @@ async function startQrScoreCamera() {
   if (qrScoreScanner) await stopQrScoreCamera();
   const formats = window.Html5QrcodeSupportedFormats ? [window.Html5QrcodeSupportedFormats.QR_CODE] : undefined;
   qrScoreScanner = new window.Html5Qrcode('qr-score-reader', formats ? { formatsToSupport: formats, verbose: false } : { verbose: false });
-  const scanConfig = { fps: 12, qrbox: (w, h) => { const size = Math.floor(Math.min(w, h) * 0.72); return { width: size, height: size }; }, aspectRatio: 1 };
+  const scanConfig = { fps: 12, qrbox: (w, h) => { const size = Math.floor(Math.min(w, h) * 0.64); return { width: size, height: size }; }, aspectRatio: 1 };
   const onSuccess = decoded => handleQrScoreDecoded(decoded);
   const onFailure = () => noteQrScoreNoCode();
   let cameraIdOrConfig = { facingMode: 'environment' };
@@ -535,25 +542,59 @@ function noteQrScoreNoCode() {
   }
 }
 
-function normalizeQrStudentToken(decodedText) {
+function decodeQrScorePart(value) {
+  try { return decodeURIComponent(value || ''); }
+  catch (_) { return String(value || ''); }
+}
+
+function parseQrStudentPayload(decodedText) {
   const raw = String(decodedText || '').trim();
-  if (!raw) return '';
-  if (/^CKSTU:/i.test(raw)) return raw.replace(/^CKSTU:/i, '').trim();
+  const empty = { raw, classId: '', studentId: '', legacyToken: '' };
+  if (!raw) return empty;
+  if (/^CKSTU:/i.test(raw)) {
+    const body = raw.replace(/^CKSTU:/i, '').trim();
+    const parts = body.split(':');
+    if (parts.length >= 2) {
+      return {
+        raw,
+        classId: decodeQrScorePart(parts[0]).trim(),
+        studentId: decodeQrScorePart(parts.slice(1).join(':')).trim(),
+        legacyToken: ''
+      };
+    }
+    return { raw, classId: '', studentId: '', legacyToken: body };
+  }
   try {
     const url = new URL(raw);
     const fromUrl = url.searchParams.get('student_id') || url.searchParams.get('student');
-    if (fromUrl) return fromUrl.trim();
+    const classId = url.searchParams.get('class_id') || url.searchParams.get('classId') || url.searchParams.get('class');
+    if (fromUrl) return { raw, classId: String(classId || '').trim(), studentId: fromUrl.trim(), legacyToken: '' };
   } catch (_) { /* raw token, not a URL */ }
   if (raw.startsWith('{')) {
-    try { return String(JSON.parse(raw).student_id || '').trim(); } catch (_) { /* invalid JSON */ }
+    try {
+      const data = JSON.parse(raw);
+      return {
+        raw,
+        classId: String(data.class_id || data.classId || '').trim(),
+        studentId: String(data.student_id || data.studentId || '').trim(),
+        legacyToken: ''
+      };
+    } catch (_) { /* invalid JSON */ }
   }
-  return raw;
+  return { raw, classId: '', studentId: '', legacyToken: raw };
 }
 
-function findQrScoreStudent(token) {
+function findQrScoreStudent(payload) {
   const classes = qrScoreClasses();
   const current = classes.find(c => c.id === qrScoreState.classId);
   if (!current) return null;
+  if (payload.classId && payload.studentId) {
+    const scopedClass = classes.find(c => String(c.id) === String(payload.classId));
+    const student = scopedClass?.students?.find(s => String(s.id) === String(payload.studentId));
+    return student ? { student, classroom: scopedClass, exact: true, scoped: true } : null;
+  }
+  const token = payload.studentId || payload.legacyToken || '';
+  if (!token) return null;
   let student = current.students?.find(s => String(s.id) === token);
   if (student) return { student, classroom: current, exact: true };
   for (const classroom of classes) {
@@ -580,10 +621,10 @@ function handleQrScoreDecoded(decodedText) {
   }
   qrScoreState.blockedCode = rawCode;
   qrScoreState.lastSeenAt = now;
-  const token = normalizeQrStudentToken(rawCode);
+  const payload = parseQrStudentPayload(rawCode);
   qrScoreState.phase = 'lookup';
   pauseQrScoreCamera();
-  const found = findQrScoreStudent(token);
+  const found = findQrScoreStudent(payload);
   if (!found) {
     showQrScoreLookupError('ไม่พบรหัสนักเรียนนี้ในระบบ', `รหัส: ${rawCode}`);
     return;
