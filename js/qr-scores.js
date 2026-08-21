@@ -77,8 +77,7 @@ function qrScoreClassOptionMeta(c) {
 }
 
 function qrScoreClassDotColor(c) {
-  const colors = ['#ef4444', '#f59e0b', '#ec4899', '#1d9e75', '#f97316', '#3b82f6', '#8b5cf6', '#14b8a6'];
-  return colors[Number(c?.colorIndex || 0) % colors.length] || '#1d9e75';
+  return getClassColor(c?.id).text;
 }
 
 function resetQrScorePickerPanels() {
