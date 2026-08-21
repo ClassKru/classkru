@@ -26,10 +26,11 @@ function mockElement(id) {
   if (!elements.has(id)) {
     const classes = new Set();
     elements.set(id, {
-      id, value: '', textContent: '', innerHTML: '', disabled: false, max: '', style: {},
+      id, value: '', textContent: '', innerHTML: '', disabled: false, max: '', style: { setProperty() {} },
       classList: {
         add(...names) { names.forEach(name => classes.add(name)); },
         remove(...names) { names.forEach(name => classes.delete(name)); },
+        toggle(name, force) { if (force === undefined ? !classes.has(name) : force) classes.add(name); else classes.delete(name); },
         contains(name) { return classes.has(name); }
       },
       focus() {}, select() {}
@@ -70,6 +71,7 @@ const context = vm.createContext({
     return c.scores;
   },
   scoreOrderedItems(c) { return c.scores.items; },
+  getClassColor() { return { text: '#2563eb' }; },
   showToast() {},
   updateCloudStatus() {},
   saveStateLocalOnly() {},
@@ -86,50 +88,33 @@ const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'qr-scores.js'),
 vm.runInContext(source, context, { filename: 'qr-scores.js' });
 const run = expression => vm.runInContext(expression, context);
 
-assert.equal(run("normalizeQrStudentToken('CKSTU:s-a')"), 's-a');
-assert.equal(run("normalizeQrStudentToken('https://classkru.test/card?student_id=s-a')"), 's-a');
-assert.equal(run("normalizeQrStudentToken('{\"student_id\":\"s-a\"}')"), 's-a');
-assert.equal(run("normalizeQrStudentToken('s-a')"), 's-a');
+assert.equal(run("parseQrStudentPayload('CKSTU:s-a').legacyToken"), 's-a');
+assert.equal(run("parseQrStudentPayload('https://classkru.test/card?student_id=s-a').studentId"), 's-a');
+assert.equal(run("parseQrStudentPayload('{\"student_id\":\"s-a\"}').studentId"), 's-a');
+assert.equal(run("parseQrStudentPayload('s-a').legacyToken"), 's-a');
 assert.equal(run('QR_SCORE_SCANNER_SRC'), 'js/vendor/html5-qrcode.min.js');
-assert.deepEqual(Array.from(run('qrScoreAcademicYears(appState.classes)')), ['2569']);
+assert.deepEqual(Array.from(run('qrScoreClasses().map(c => c.academicYear)')), [2569, 2569]);
 assert.equal(run("getQrScoreCameraErrorInfo({ name: 'NotAllowedError' }).title"), 'ยังไม่ได้รับอนุญาตให้ใช้กล้อง');
 assert.equal(run("navigator.userAgent='LINE/14.0'; navigator.mediaDevices=undefined; getQrScoreCameraErrorInfo({}).title"), 'เบราว์เซอร์ในแอปนี้ไม่รองรับกล้อง');
 run("navigator.userAgent='Mobile Safari'; navigator.mediaDevices={ getUserMedia() {} }");
 
 run('renderQrScoreSetup()');
-assert.equal(mockElement('qr-score-year').disabled, false, 'academic year is loaded from real classroom data');
-assert.equal(mockElement('qr-score-grade').disabled, true, 'grade stays locked until a year is selected');
-assert.equal(mockElement('qr-score-room').disabled, true, 'room stays locked until a grade is selected');
-assert.equal(mockElement('qr-score-subject').disabled, true, 'subject stays locked until a room is selected');
-assert.equal(mockElement('qr-score-item').disabled, true, 'assignment stays locked until a subject is selected');
+assert.equal(mockElement('qr-score-class').disabled, false, 'classroom picker is loaded from real classroom data');
+assert.equal(mockElement('qr-score-task').disabled, true, 'task stays locked until a classroom is selected');
 assert.equal(mockElement('qr-score-start-btn').disabled, true);
-assert.equal(mockElement('qr-score-grade').innerHTML.includes('เลือกปีการศึกษาก่อน'), false);
-assert.equal(mockElement('qr-score-room').innerHTML.includes('เลือกระดับชั้นก่อน'), false);
-assert.equal(mockElement('qr-score-subject').innerHTML.includes('เลือกห้องเรียนก่อน'), false);
-assert.equal(mockElement('qr-score-item').innerHTML.includes('เลือกวิชาก่อน'), false);
-
-mockElement('qr-score-year').value = '2569';
-run("qrScoreSetupChanged('year')");
-assert.equal(mockElement('qr-score-grade').disabled, false);
-mockElement('qr-score-grade').value = 'ม.1';
-run("qrScoreSetupChanged('grade')");
-assert.equal(mockElement('qr-score-room').disabled, false);
-mockElement('qr-score-room').value = 'ม.1/2';
-run("qrScoreSetupChanged('room')");
-assert.equal(mockElement('qr-score-subject').disabled, false);
-mockElement('qr-score-subject').value = 'c-a';
-run("qrScoreSetupChanged('subject')");
-assert.equal(mockElement('qr-score-item').disabled, false);
-mockElement('qr-score-item').value = 'work-1';
-run("qrScoreSetupChanged('item')");
+mockElement('qr-score-class').value = 'c-a';
+run('qrScoreClassChanged()');
+assert.equal(mockElement('qr-score-task').disabled, false);
+mockElement('qr-score-task').value = run("qrScoreTaskValue('c-a','work-1')");
+run('qrScoreTaskChanged()');
 assert.equal(mockElement('qr-score-start-btn').disabled, false, 'scanner starts only after the full real-data context is selected');
 assert.equal(mockElement('qr-score-max').textContent, '/20', 'setup preview shows the real assignment maximum after the editable score position');
 assert.equal(mockElement('qr-score-default-score').disabled, false, 'default score becomes editable after selecting a real assignment');
 
 run("qrScoreState.classId = 'c-a'");
-assert.equal(run("findQrScoreStudent('s-a').classroom.id"), 'c-a');
-assert.equal(run("findQrScoreStudent('s-b').classroom.id"), 'c-b');
-assert.equal(run("findQrScoreStudent('1001').student.id"), 's-a');
+assert.equal(run("findQrScoreStudent(parseQrStudentPayload('s-a')).classroom.id"), 'c-a');
+assert.equal(run("findQrScoreStudent(parseQrStudentPayload('s-b')).classroom.id"), 'c-b');
+assert.equal(run("findQrScoreStudent(parseQrStudentPayload('1001')).student.id"), 's-a');
 
 run("qrScoreState.blockedCode = 's-a'; qrScoreState.lastSeenAt = Date.now() - 1300; noteQrScoreNoCode()");
 assert.equal(run("qrScoreState.blockedCode"), null, 'same QR unlocks only after it leaves the camera long enough');

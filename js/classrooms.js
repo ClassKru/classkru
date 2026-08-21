@@ -22,6 +22,31 @@ function getClassAcademicYear(c) {
   return Number.isFinite(year) && year > 0 ? year : getCurrentThaiAcademicYear();
 }
 
+function sortClassroomsForDisplay(classes) {
+  const gradeOrder = new Map(CLASSROOM_GRADE_OPTIONS.map((option, index) => [option.value, index]));
+  return classes
+    .map((classroom, index) => ({ classroom, index }))
+    .sort((a, b) => {
+      const yearDiff = getClassAcademicYear(b.classroom) - getClassAcademicYear(a.classroom);
+      if (yearDiff) return yearDiff;
+
+      const gradeDiff = (gradeOrder.get(inferClassGrade(a.classroom)) ?? gradeOrder.size)
+        - (gradeOrder.get(inferClassGrade(b.classroom)) ?? gradeOrder.size);
+      if (gradeDiff) return gradeDiff;
+
+      const classNameDiff = String(a.classroom.className || '').localeCompare(
+        String(b.classroom.className || ''), 'th', { numeric: true, sensitivity: 'base' }
+      );
+      if (classNameDiff) return classNameDiff;
+
+      const subjectDiff = String(a.classroom.subject || '').localeCompare(
+        String(b.classroom.subject || ''), 'th', { sensitivity: 'base' }
+      );
+      return subjectDiff || a.index - b.index;
+    })
+    .map(({ classroom }) => classroom);
+}
+
 function inferClassGrade(c) {
   if (c && CLASSROOM_GRADE_OPTIONS.some(o => o.value === c.gradeLevel)) return c.gradeLevel;
   const name = String((c && c.className) || '').replace(/\s+/g, '').toLowerCase();
@@ -149,13 +174,14 @@ function renderWebClassrooms() {
     const gradeMatches = classroomFilterGrade === 'all' || inferClassGrade(c) === classroomFilterGrade;
     return yearMatches && gradeMatches;
   });
+  const sortedClasses = sortClassroomsForDisplay(filteredClasses);
   const summary = document.getElementById('classroom-filter-summary');
-  if (summary) summary.textContent = `แสดง ${filteredClasses.length} จาก ${allClasses.length} วิชา`;
-  if (!filteredClasses.length) {
+  if (summary) summary.textContent = `แสดง ${sortedClasses.length} จาก ${allClasses.length} วิชา`;
+  if (!sortedClasses.length) {
     container.innerHTML = '<div class="empty-state ck-classroom-filter-empty" style="grid-column:1/-1;"><i class="hgi-stroke hgi-filter-horizontal" style="font-size:2.4rem;"></i><p>ไม่พบห้องเรียนในหมวดที่เลือก</p><button class="btn" onclick="resetClassroomFilters()"><i class="hgi-stroke hgi-cancel-circle"></i> ล้างตัวกรอง</button></div>';
     return;
   }
-  filteredClasses.forEach(c => {
+  sortedClasses.forEach(c => {
     const pct = calculateAttendancePercentage(c);
     const pctColor = pct >= 80 ? 'var(--color-present)' : pct >= 60 ? 'var(--color-late-text)' : 'var(--color-absent)';
     const col = getClassColor(c.id);

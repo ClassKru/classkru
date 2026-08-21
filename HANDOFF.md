@@ -31,7 +31,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `357`
+- Asset version ปัจจุบัน: `373`
 - ฟีเจอร์ล่าสุด: ปรับหน้าเช็คชื่อมือถือเป็น carousel ปัดเพื่อเปลี่ยนนักเรียน และกดปุ่มเพื่อบันทึกสถานะ
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
 - ไฟล์ `BUSINESS_STRATEGY.md` เป็นงานของผู้ใช้ที่ยัง untracked ณ เวลาบันทึก ห้ามลบ แก้ หรือรวม commit โดยไม่ตรวจสอบขอบเขตงาน
