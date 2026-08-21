@@ -700,14 +700,20 @@ function showMobileClassPicker(opts) {
   const headIcon = o.icon || 'hgi-task-done-01';
   const overlay = document.createElement('div');
   overlay.className = 'ck-confirm-overlay';
-  const items = appState.classes.map(c => {
+  // ใช้ลำดับเดียวกับหน้าห้องเรียนหลัก เพื่อไม่ให้ popup นี้ดูเหมือนข้อมูลคนละชุด
+  // และสร้างรายการใหม่ทุกครั้งที่เปิด เพื่ออ่านข้อมูลห้องล่าสุดจาก appState
+  const classes = typeof sortClassroomsForDisplay === 'function'
+    ? sortClassroomsForDisplay(appState.classes || [])
+    : [...(appState.classes || [])];
+  const items = classes.map(c => {
     const pct = calculateAttendancePercentage(c);
+    const year = getClassAcademicYear(c);
     return `<div onclick="ckPickerChoose('${c.id}')"
       style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-color);cursor:pointer;transition:background 0.15s;"
       onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background=''">
       <div>
         <div style="font-weight:800;font-size:0.95rem;display:flex;align-items:center;gap:10px;"><span style="width:12px;height:12px;border-radius:50%;background:${getClassColor(c.id).text};flex-shrink:0;"></span>${c.subject}</div>
-        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;margin-left:22px;">${c.className} · ${c.students.length} คน</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;margin-left:22px;">ปี ${year} · ${c.className} · ${c.students.length} คน</div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:0.78rem;font-weight:700;color:var(--primary);">${pct}%</span>
