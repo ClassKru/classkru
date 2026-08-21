@@ -251,6 +251,47 @@
   min-height: 0;
 }
 
+.swipe-card-preview {
+  position: absolute;
+  top: 50%;
+  width: 190px;
+  height: 72%;
+  padding: 24px 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  opacity: 0.38;
+  transform: translateY(-50%) scale(0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  pointer-events: none;
+}
+.swipe-card-preview.previous { left: -108px; align-items: flex-end; text-align: right; }
+.swipe-card-preview.next { right: -108px; align-items: flex-start; text-align: left; }
+.swipe-card-preview.is-hidden { opacity: 0; }
+.swipe-card-preview small, .swipe-card-preview span { font-size: 0.68rem; color: var(--text-muted); }
+.swipe-card-preview strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); }
+
+.swipe-card-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  background: rgba(255,255,255,.9);
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-50%);
+}
+.swipe-card-nav.previous { left: 8px; }
+.swipe-card-nav.next { right: 8px; }
+.swipe-card-nav:disabled { opacity: .25; }
+
 .swipe-card {
   background: var(--bg-card);
   border-radius: 20px;
@@ -266,10 +307,14 @@
   touch-action: pan-y;
   transition: transform 0.15s ease, opacity 0.15s ease;
   position: relative;
+  z-index: 2;
   cursor: grab;
 }
 
 .swipe-card.dragging { transition: none; cursor: grabbing; }
+.swipe-card.status-saved { transform: scale(.97); box-shadow: 0 0 0 4px var(--primary-light); }
+.swipe-card.swipe-edge-bump { animation: swipeEdgeBump .18s ease; }
+@keyframes swipeEdgeBump { 50% { transform: scale(.985); } }
 
 /* ไกด์ถาวรบนการ์ด (บอกว่าปัด/แตะได้) */
 .swipe-card-guide {
@@ -281,6 +326,31 @@
   color: var(--text-muted);
   line-height: 1.5;
 }
+
+.swipe-card-position {
+  flex: 0 0 auto;
+  padding: 2px 12px 8px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .78rem;
+}
+.swipe-card-position strong { color: var(--text-main); font-size: 1rem; }
+.swipe-complete-banner {
+  margin: 0 12px 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--primary-light-border);
+  border-radius: 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: .78rem;
+  font-weight: 700;
+}
+.swipe-complete-banner[hidden] { display: none; }
+.swipe-complete-banner button { border: 0; border-radius: 9px; padding: 7px 12px; background: var(--primary); color: #fff; font-weight: 700; }
 
 /* ป้ายข้อความบอกทิศตอนลากการ์ด (guideline ตอนปัด) — ใช้ child element เลี่ยงชน ::after เดิม */
 .swipe-hint-badge {
@@ -498,6 +568,8 @@
 }
 
 .swipe-btn:active { transform: scale(0.9); }
+.swipe-btn.active i { box-shadow: 0 0 0 4px currentColor; transform: scale(1.04); }
+.swipe-btn.active span { color: var(--text-main); }
 
 .swipe-btn i {
   width: 52px;

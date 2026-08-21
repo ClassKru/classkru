@@ -19,18 +19,18 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=356">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=356">
-  <link rel="stylesheet" href="css/03-reports.css?v=356">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=356">
-  <link rel="stylesheet" href="css/05-home.css?v=356">
-  <link rel="stylesheet" href="css/06-attendance.css?v=356">
-  <link rel="stylesheet" href="css/07-scores.css?v=356">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=356">
-    <link rel="stylesheet" href="css/09-games.css?v=356">
-  <link rel="stylesheet" href="css/10-help.css?v=356">
-  <link rel="stylesheet" href="css/11-public-help.css?v=356">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=356">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=357">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=357">
+  <link rel="stylesheet" href="css/03-reports.css?v=357">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=357">
+  <link rel="stylesheet" href="css/05-home.css?v=357">
+  <link rel="stylesheet" href="css/06-attendance.css?v=357">
+  <link rel="stylesheet" href="css/07-scores.css?v=357">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=357">
+    <link rel="stylesheet" href="css/09-games.css?v=357">
+  <link rel="stylesheet" href="css/10-help.css?v=357">
+  <link rel="stylesheet" href="css/11-public-help.css?v=357">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=357">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -707,13 +707,12 @@
     <div id="swipe-mobile-view" class="mobile-only-flex" style="flex:1;flex-direction:column;overflow:hidden;">
       <!-- SWIPE CARD AREA -->
       <div class="swipe-card-area" id="swipe-card-area" style="flex:1;">
+        <button class="swipe-card-nav previous" id="swipe-card-nav-previous" type="button" onclick="moveSwipeStudent(-1)" aria-label="นักเรียนคนก่อนหน้า"><i class="hgi-stroke hgi-arrow-left-01"></i></button>
+        <div class="swipe-card-preview previous" id="swipe-card-preview-previous" aria-hidden="true"></div>
         <div class="swipe-card" id="swipe-card"
-          onclick="onSwipeCardTap(event)"
           ontouchstart="onSwipeTouchStart(event)"
           ontouchmove="onSwipeTouchMove(event)"
           ontouchend="onSwipeTouchEnd(event)">
-          <div class="swipe-hint-badge left">ลา</div>
-          <div class="swipe-hint-badge right">ขาด</div>
           <div class="swipe-card-header">
             <span class="swipe-card-no" id="swipe-card-no"></span>
             <div style="display:flex;align-items:center;gap:8px;">
@@ -726,8 +725,10 @@
           <div class="swipe-card-avatar" id="swipe-card-avatar"></div>
           <div class="swipe-card-name" id="swipe-card-name"></div>
           <div class="swipe-card-stats" id="swipe-card-stats"></div>
-          <div class="swipe-card-guide"><b style="color:var(--color-leave)">← ปัดซ้าย = ลา</b> · แตะ = <b style="color:var(--color-present)">มา</b> · <b style="color:var(--color-absent)">ปัดขวา = ขาด →</b></div>
+          <div class="swipe-card-guide"><i class="hgi-stroke hgi-arrow-left-right"></i> ปัดเพื่อเปลี่ยนนักเรียน</div>
         </div>
+        <div class="swipe-card-preview next" id="swipe-card-preview-next" aria-hidden="true"></div>
+        <button class="swipe-card-nav next" id="swipe-card-nav-next" type="button" onclick="moveSwipeStudent(1)" aria-label="นักเรียนคนถัดไป"><i class="hgi-stroke hgi-arrow-right-01"></i></button>
         <input id="swipe-student-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleSwipeStudentPhoto(event)">
         <!-- Done state -->
         <div class="swipe-done-state" id="swipe-done-state" style="display:none;">
@@ -735,6 +736,12 @@
           <h3>เช็คชื่อครบทุกคนแล้ว!</h3>
           <button class="btn btn-primary" style="margin-top:16px;padding:12px 24px;" onclick="saveSwipeAttendance()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกผลเข้าเรียน</button>
         </div>
+      </div>
+
+      <div class="swipe-card-position" id="swipe-card-position"><strong id="swipe-position-current">1</strong> / <span id="swipe-position-total">1</span></div>
+      <div class="swipe-complete-banner" id="swipe-complete-banner" hidden>
+        <span><i class="hgi-stroke hgi-checkmark-circle-02"></i> เช็คชื่อครบทุกคนแล้ว</span>
+        <button type="button" onclick="finishSwipeAttendanceFromDone(event)">เสร็จสิ้น</button>
       </div>
 
       <div id="swipe-mobile-edit-sheet" class="swipe-mobile-edit-sheet" aria-hidden="true">
@@ -754,11 +761,10 @@
 
       <!-- ACTION BUTTONS -->
       <div class="swipe-action-buttons">
-        <button class="swipe-btn late" onclick="markSwipeStatus('late')"><i class="hgi-stroke hgi-clock-01"></i><span>สาย</span></button>
-        <button class="swipe-btn absent" onclick="markSwipeStatus('absent')"><i class="hgi-stroke hgi-cancel-01"></i><span>ขาด</span></button>
-        <button class="swipe-btn present" onclick="markSwipeStatus('present')"><i class="hgi-stroke hgi-tick-02"></i><span>มา</span></button>
-        <button class="swipe-btn leave" onclick="markSwipeStatus('leave')"><i class="hgi-stroke hgi-file-02"></i><span>ลา</span></button>
-        <button class="swipe-btn undo" onclick="undoSwipe()"><i class="hgi-stroke hgi-arrow-reload-horizontal"></i><span>ย้อน</span></button>
+        <button class="swipe-btn present" data-status="present" onclick="markSwipeStatus('present')"><i class="hgi-stroke hgi-tick-02"></i><span>มา</span></button>
+        <button class="swipe-btn late" data-status="late" onclick="markSwipeStatus('late')"><i class="hgi-stroke hgi-clock-01"></i><span>สาย</span></button>
+        <button class="swipe-btn absent" data-status="absent" onclick="markSwipeStatus('absent')"><i class="hgi-stroke hgi-cancel-01"></i><span>ขาด</span></button>
+        <button class="swipe-btn leave" data-status="leave" onclick="markSwipeStatus('leave')"><i class="hgi-stroke hgi-file-02"></i><span>ลา</span></button>
       </div>
     </div>
 
@@ -1307,22 +1313,22 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=356"></script>
-  <script defer src="js/auth.js?v=356"></script>
-  <script defer src="js/shell.js?v=356"></script>
-  <script defer src="js/dashboard.js?v=356"></script>
-  <script defer src="js/classrooms.js?v=356"></script>
-  <script defer src="js/students.js?v=356"></script>
-  <script defer src="js/timetable.js?v=356"></script>
-  <script defer src="js/reports.js?v=356"></script>
-  <script defer src="js/attendance.js?v=356"></script>
-  <script defer src="js/curriculum-science-2560.js?v=356"></script>
-  <script defer src="js/curriculum-catalog.js?v=356"></script>
-  <script defer src="js/scores.js?v=356"></script>
-  <script defer src="js/qr-scores.js?v=356"></script>
-  <script defer src="js/tools.js?v=356"></script>
-  <script defer src="js/shared-utils.js?v=356"></script>
-  <script defer src="js/extras.js?v=356"></script>
-  <script defer src="js/help.js?v=356"></script>
+  <script defer src="js/core.js?v=357"></script>
+  <script defer src="js/auth.js?v=357"></script>
+  <script defer src="js/shell.js?v=357"></script>
+  <script defer src="js/dashboard.js?v=357"></script>
+  <script defer src="js/classrooms.js?v=357"></script>
+  <script defer src="js/students.js?v=357"></script>
+  <script defer src="js/timetable.js?v=357"></script>
+  <script defer src="js/reports.js?v=357"></script>
+  <script defer src="js/attendance.js?v=357"></script>
+  <script defer src="js/curriculum-science-2560.js?v=357"></script>
+  <script defer src="js/curriculum-catalog.js?v=357"></script>
+  <script defer src="js/scores.js?v=357"></script>
+  <script defer src="js/qr-scores.js?v=357"></script>
+  <script defer src="js/tools.js?v=357"></script>
+  <script defer src="js/shared-utils.js?v=357"></script>
+  <script defer src="js/extras.js?v=357"></script>
+  <script defer src="js/help.js?v=357"></script>
 </body>
 </html>

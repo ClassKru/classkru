@@ -2,6 +2,7 @@
 let activeQrAttendance = null;
 let qrAttendancePollTimer = null;
 let swipeDoneFinishReadyAt = 0;
+let swipeStatusAdvanceTimer = null;
 
 const SWIPE_EDIT_STATUS = {
   present: { label: 'มา', icon: 'hgi-tick-02' },
@@ -208,6 +209,8 @@ function updateSwipeDateDisplay() {
 
 
 function openSwipeAttendance(classId, forDate, options = {}) {
+  if (swipeStatusAdvanceTimer) clearTimeout(swipeStatusAdvanceTimer);
+  swipeStatusAdvanceTimer = null;
   swipeClassId = classId;
   swipeStudentIndex = 0;
   swipeResults = {};
@@ -258,6 +261,8 @@ function openSwipeAttendance(classId, forDate, options = {}) {
 }
 
 function closeSwipeAttendance() {
+  if (swipeStatusAdvanceTimer) clearTimeout(swipeStatusAdvanceTimer);
+  swipeStatusAdvanceTimer = null;
   stopQrAttendancePolling();
   document.getElementById('swipe-overlay').classList.remove('show');
   // ออกจากหน้าเช็คชื่อ → กลับไปหน้าที่มา (URL ต้องเปลี่ยนตามด้วย ไม่งั้นค้างที่ #checkin)
@@ -545,7 +550,7 @@ async function copyQrAttendanceLink() {
 }
 
 // แก้ไขข้อมูลนักเรียนของการ์ดที่กำลังแสดงอยู่ (หน้าเช็คชื่อมือถือ)
-// event.stopPropagation() กันไม่ให้การแตะปุ่มไปโดน onSwipeCardTap (เช็ค "มา")
+// event.stopPropagation() กัน touch gesture ของ carousel ขณะกดปุ่มบนการ์ด
 function editCurrentSwipeStudent(event) {
   if (event) event.stopPropagation();
   const c = appState.classes.find(x => x.id === swipeClassId);
@@ -770,53 +775,7 @@ function renderSwipeCard() {
   const card = document.getElementById('swipe-card');
   const doneState = document.getElementById('swipe-done-state');
 
-  // Find next unchecked student
-  let found = false;
-  for (let i = 0; i < c.students.length; i++) {
-    const idx = (swipeStudentIndex + i) % c.students.length;
-    if (!swipeResults[c.students[idx].id]) {
-      swipeStudentIndex = idx;
-      found = true;
-      break;
-    }
-  }
-
-  if (!found) {
-    card.style.display = 'none';
-    const shouldDelayFinish = doneState.style.display !== 'flex';
-    doneState.style.display = 'flex';
-    if (shouldDelayFinish) swipeDoneFinishReadyAt = Date.now() + 900;
-    const isFinishWaiting = Date.now() < swipeDoneFinishReadyAt;
-    const checked = Object.keys(swipeResults).length;
-    const present = Object.values(swipeResults).filter(s => s === 'present').length;
-    const late = Object.values(swipeResults).filter(s => s === 'late').length;
-    const absent = Object.values(swipeResults).filter(s => s === 'absent').length;
-    const leave = Object.values(swipeResults).filter(s => s === 'leave').length;
-    doneState.innerHTML = `
-      <i class="hgi-stroke hgi-checkmark-circle-02" style="font-size:3.5rem;color:var(--primary);margin-bottom:14px;"></i>
-      <h3 style="font-size:1.3rem;font-weight:800;color:var(--text-main);">เช็คชื่อครบแล้ว!</h3>
-      <p style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;">${c.students.length} คน · ${getTodayString(swipeSelectedDate || getNowDate())}</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px;">
-        <span class="summary-pill" style="background:var(--color-present-bg);color:var(--color-present);">มา ${present}</span>
-        <span class="summary-pill" style="background:var(--color-late-bg);color:var(--color-late-text);">สาย ${late}</span>
-        <span class="summary-pill" style="background:var(--color-absent-bg);color:var(--color-absent);">ขาด ${absent}</span>
-        <span class="summary-pill" style="background:var(--color-leave-bg);color:var(--color-leave);">ลา ${leave}</span>
-      </div>
-      <button class="swipe-edit-done-btn" onclick="openSwipeMobileEdit()">
-        <i class="hgi-stroke hgi-edit-02"></i> แก้ไขรายคน
-      </button>
-      <button id="swipe-done-finish-btn" class="btn btn-primary" style="margin-top:20px;padding:12px 32px;font-size:0.95rem;font-weight:700;" onclick="finishSwipeAttendanceFromDone(event)" ${isFinishWaiting ? 'disabled' : ''}>
-        <i class="hgi-stroke hgi-tick-02" style="margin-right:6px;"></i>เสร็จสิ้น
-      </button>`;
-    if (isFinishWaiting) {
-      const delay = Math.max(0, swipeDoneFinishReadyAt - Date.now());
-      setTimeout(() => {
-        const finishBtn = document.getElementById('swipe-done-finish-btn');
-        if (finishBtn && Date.now() >= swipeDoneFinishReadyAt) finishBtn.disabled = false;
-      }, delay);
-    }
-    return;
-  }
+  swipeStudentIndex = Math.max(0, Math.min(swipeStudentIndex, c.students.length - 1));
 
   card.style.display = 'flex';
   doneState.style.display = 'none';
@@ -848,11 +807,59 @@ function renderSwipeCard() {
     <span class="sc-stat late">สาย ${histLate}</span>
     <span class="sc-stat absent">ขาด ${histAbsent}</span>`;
 
+  renderSwipeCarouselContext(c);
+
   // Reset transform
   card.style.transform = '';
   card.classList.remove('swipe-out-right', 'swipe-out-left', 'swipe-out-up', 'hint-right', 'hint-left');
   card.classList.add('swipe-in');
   setTimeout(() => card.classList.remove('swipe-in'), 300);
+}
+
+function renderSwipeCarouselContext(c) {
+  const student = c.students[swipeStudentIndex];
+  const previous = c.students[swipeStudentIndex - 1];
+  const next = c.students[swipeStudentIndex + 1];
+  const renderPreview = (id, item, direction) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('is-hidden', !item);
+    el.innerHTML = item ? `<small>${direction}</small><strong>${escapeAttendanceHtml(item.nickname || item.name)}</strong><span>เลขที่ ${escapeAttendanceHtml(item.no || '')}</span>` : '';
+  };
+  renderPreview('swipe-card-preview-previous', previous, 'ก่อนหน้า');
+  renderPreview('swipe-card-preview-next', next, 'ถัดไป');
+
+  const currentEl = document.getElementById('swipe-position-current');
+  const totalEl = document.getElementById('swipe-position-total');
+  if (currentEl) currentEl.textContent = swipeStudentIndex + 1;
+  if (totalEl) totalEl.textContent = c.students.length;
+  const previousButton = document.getElementById('swipe-card-nav-previous');
+  const nextButton = document.getElementById('swipe-card-nav-next');
+  if (previousButton) previousButton.disabled = !previous;
+  if (nextButton) nextButton.disabled = !next;
+
+  document.querySelectorAll('.swipe-action-buttons .swipe-btn[data-status]').forEach(button => {
+    const active = button.dataset.status === swipeResults[student.id];
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+
+  const completeBanner = document.getElementById('swipe-complete-banner');
+  if (completeBanner) completeBanner.hidden = !isSwipeAttendanceComplete();
+}
+
+function moveSwipeStudent(delta) {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c || !c.students.length) return;
+  const nextIndex = Math.max(0, Math.min(swipeStudentIndex + delta, c.students.length - 1));
+  const card = document.getElementById('swipe-card');
+  if (nextIndex === swipeStudentIndex) {
+    card?.classList.add('swipe-edge-bump');
+    setTimeout(() => card?.classList.remove('swipe-edge-bump'), 180);
+    return;
+  }
+  swipeStudentIndex = nextIndex;
+  renderSwipeCard();
 }
 
 // ========== DESKTOP VIEW TABLE LOGIC ==========
@@ -1082,31 +1089,27 @@ function markSwipeStatus(status) {
 
   // Find current visible student
   const student = c.students[swipeStudentIndex];
-  if (!student || swipeResults[student.id]) {
-    // Already checked, find next
-    renderSwipeCard();
-    return;
-  }
+  if (!student) return;
 
+  const previousStatus = swipeResults[student.id] || '';
+  const markedIndex = swipeStudentIndex;
   swipeResults[student.id] = status;
-  swipeHistory.push({ studentId: student.id, status });
+  swipeHistory.push({ studentId: student.id, status, previousStatus });
   Tour.action('attendance-marked');
 
-  // Animate card out
   const card = document.getElementById('swipe-card');
-  if (status === 'present' || status === 'late') card.classList.add('swipe-out-up');
-  else if (status === 'absent') card.classList.add('swipe-out-right');
-  else if (status === 'leave') card.classList.add('swipe-out-left');
-
+  card.classList.add('status-saved');
   updateSwipeSummary();
+  autoSaveAttendance();
 
-  setTimeout(() => {
-    card.classList.remove('swipe-out-right', 'swipe-out-left', 'swipe-out-up');
-    swipeStudentIndex = (swipeStudentIndex + 1) % c.students.length;
+  if (swipeStatusAdvanceTimer) clearTimeout(swipeStatusAdvanceTimer);
+  swipeStatusAdvanceTimer = setTimeout(() => {
+    swipeStatusAdvanceTimer = null;
+    card.classList.remove('status-saved');
+    if (swipeStudentIndex === markedIndex && swipeStudentIndex < c.students.length - 1) swipeStudentIndex++;
     renderSwipeCard();
-    autoSaveAttendance();
     finishMobileSwipeAttendanceSoon();
-  }, 350);
+  }, 180);
 }
 
 function undoSwipe() {
@@ -1234,12 +1237,6 @@ function showSaveToast() {
 }
 
 // ===== TOUCH GESTURE HANDLERS =====
-function onSwipeCardTap(event) {
-  // If user was dragging instead of tapping, don't trigger tap
-  if (Math.abs(swipeTouchCurrentX - swipeTouchStartX) > 20) return;
-  markSwipeStatus('present');
-}
-
 function onSwipeTouchStart(event) {
   swipeTouchStartX = event.touches[0].clientX;
   swipeTouchCurrentX = swipeTouchStartX;
@@ -1256,22 +1253,21 @@ function onSwipeTouchMove(event) {
   const rotation = deltaX * 0.05;
   card.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
 
-  card.classList.remove('hint-right', 'hint-left');
-  if (deltaX > 40) card.classList.add('hint-right');       // ขาด
-  else if (deltaX < -40) card.classList.add('hint-left');   // ลา
 }
 
 function onSwipeTouchEnd(event) {
   if (!swipeIsDragging) return;
   swipeIsDragging = false;
   const card = document.getElementById('swipe-card');
-  card.classList.remove('dragging', 'hint-right', 'hint-left');
+  card.classList.remove('dragging');
   const deltaX = swipeTouchCurrentX - swipeTouchStartX;
 
   if (deltaX > SWIPE_THRESHOLD) {
-    markSwipeStatus('absent');    // ปัดขวา = ขาด
+    card.style.transform = '';
+    moveSwipeStudent(-1);
   } else if (deltaX < -SWIPE_THRESHOLD) {
-    markSwipeStatus('leave');     // ปัดซ้าย = ลา
+    card.style.transform = '';
+    moveSwipeStudent(1);
   } else {
     card.style.transform = '';    // Snap back
   }
