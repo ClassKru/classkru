@@ -328,18 +328,7 @@
 
 .swipe-student-slider-wrap {
   flex: 0 0 auto;
-  padding: 2px 22px 10px;
-}
-.swipe-slider-current {
-  min-height: 20px;
-  margin-bottom: 3px;
-  text-align: center;
-  color: var(--text-main);
-  font-size: .78rem;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 2px 22px 8px;
 }
 .swipe-student-slider {
   --slider-progress: 0%;
@@ -369,21 +358,6 @@
 .swipe-student-slider::-moz-range-track { height: 8px; border-radius: 999px; background: var(--border-color); }
 .swipe-student-slider::-moz-range-progress { height: 8px; border-radius: 999px; background: var(--primary); }
 .swipe-student-slider::-moz-range-thumb { width: 22px; height: 22px; border: 3px solid #fff; border-radius: 50%; background: var(--primary); box-shadow: 0 2px 8px rgba(15,23,42,.25); }
-.swipe-slider-ends {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-muted);
-  font-size: .68rem;
-}
-.swipe-slider-ends > :last-child { text-align: right; }
-.swipe-card-position {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: .78rem;
-}
-.swipe-card-position strong { color: var(--text-main); font-size: 1rem; }
 .swipe-complete-banner {
   margin: 0 12px 8px;
   padding: 8px 10px;

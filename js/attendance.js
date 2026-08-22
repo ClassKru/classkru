@@ -837,10 +837,6 @@ function renderSwipeCarouselContext(c) {
   renderPreview('swipe-card-preview-previous', previous, 'ก่อนหน้า');
   renderPreview('swipe-card-preview-next', next, 'ถัดไป');
 
-  const currentEl = document.getElementById('swipe-position-current');
-  const totalEl = document.getElementById('swipe-position-total');
-  if (currentEl) currentEl.textContent = swipeStudentIndex + 1;
-  if (totalEl) totalEl.textContent = c.students.length;
   const previousButton = document.getElementById('swipe-card-nav-previous');
   const nextButton = document.getElementById('swipe-card-nav-next');
   if (previousButton) previousButton.disabled = !previous;
@@ -853,15 +849,6 @@ function renderSwipeCarouselContext(c) {
     const progress = c.students.length > 1 ? (swipeStudentIndex / (c.students.length - 1)) * 100 : 0;
     slider.style.setProperty('--slider-progress', `${progress}%`);
   }
-  const firstStudent = c.students[0];
-  const lastStudent = c.students[c.students.length - 1];
-  const firstLabel = document.getElementById('swipe-slider-first');
-  const lastLabel = document.getElementById('swipe-slider-last');
-  const currentLabel = document.getElementById('swipe-slider-current-label');
-  if (firstLabel) firstLabel.textContent = `เลขที่ ${firstStudent.no || 1}`;
-  if (lastLabel) lastLabel.textContent = `เลขที่ ${lastStudent.no || c.students.length}`;
-  if (currentLabel) currentLabel.textContent = `เลขที่ ${student.no || swipeStudentIndex + 1} · ${student.nickname || student.name}`;
-
   document.querySelectorAll('.swipe-action-buttons .swipe-btn[data-status]').forEach(button => {
     const active = button.dataset.status === swipeResults[student.id];
     button.classList.toggle('active', active);
