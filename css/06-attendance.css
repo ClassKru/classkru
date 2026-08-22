@@ -245,7 +245,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 12px 20px 22px;
   position: relative;
   overflow: hidden;
   min-height: 0;
@@ -328,7 +328,11 @@
 
 .swipe-student-slider-wrap {
   flex: 0 0 auto;
-  padding: 2px 22px 8px;
+  position: relative;
+  z-index: 6;
+  margin-top: 10px;
+  padding: 8px 22px 10px;
+  background: var(--bg-app);
 }
 .swipe-student-slider {
   --slider-progress: 0%;

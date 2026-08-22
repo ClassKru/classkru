@@ -24,6 +24,7 @@ assert.match(js, /const previousStatus = swipeResults\[student\.id\] \|\| ''/, '
 assert.match(js, /autoSaveAttendance\(\);[\s\S]*if \(swipeStudentIndex === markedIndex && swipeStudentIndex < c\.students\.length - 1\) swipeStudentIndex\+\+/, 'button saves before advancing the same visible card');
 assert.match(css, /\.swipe-card-preview\.previous/, 'stacked previous card has carousel styling');
 assert.match(css, /\.swipe-student-slider::\-webkit-slider-thumb/, 'slider has a touch-friendly mobile thumb');
+assert.match(css, /\.swipe-student-slider-wrap[\s\S]{0,180}margin-top: 10px/, 'slider is separated from the card instead of covering it');
 assert.match(css, /\.swipe-btn\.active/, 'saved status is highlighted when revisiting a student');
 
 console.log('attendance carousel tests passed');
