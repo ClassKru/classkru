@@ -315,17 +315,6 @@
 .swipe-card.swipe-edge-bump { animation: swipeEdgeBump .18s ease; }
 @keyframes swipeEdgeBump { 50% { transform: scale(.985); } }
 
-/* ไกด์ถาวรบนการ์ด (บอกว่าปัด/แตะได้) */
-.swipe-card-guide {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px dashed var(--border-color);
-  width: 100%;
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
 .swipe-student-slider-wrap {
   flex: 0 0 auto;
   position: relative;

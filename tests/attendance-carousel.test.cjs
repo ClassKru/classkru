@@ -14,6 +14,7 @@ assert.match(html, /onclick="moveSwipeStudent\(1\)"/, 'next fallback button is p
 assert.match(html, /id="swipe-student-slider"[^>]*type="range"/, 'student navigation uses a range slider');
 assert.match(html, /oninput="selectSwipeStudentFromSlider\(this\.value\)"/, 'the card follows the slider while it moves');
 assert.doesNotMatch(html, /swipe-slider-current-label|swipe-slider-first|swipe-slider-last|swipe-card-position/, 'slider adds no duplicate student name or number labels');
+assert.doesNotMatch(html, /เลื่อนแถบด้านล่างเพื่อเปลี่ยนนักเรียน|swipe-card-guide/, 'the card has no redundant slider instruction');
 assert.doesNotMatch(html, /onclick="onSwipeCardTap\(event\)"/, 'tapping the card must not mark attendance');
 assert.doesNotMatch(html, /ontouchstart|ontouchmove|ontouchend/, 'the student card no longer owns a swipe gesture');
 assert.doesNotMatch(js, /function onSwipeCardTap/, 'legacy tap-to-present gesture is removed');
