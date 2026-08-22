@@ -12,18 +12,18 @@ assert.match(html, /id="swipe-card-preview-next"/, 'next student preview is pres
 assert.match(html, /onclick="moveSwipeStudent\(-1\)"/, 'previous fallback button is present');
 assert.match(html, /onclick="moveSwipeStudent\(1\)"/, 'next fallback button is present');
 assert.match(html, /id="swipe-card-position"/, 'roster position is visible');
+assert.match(html, /id="swipe-student-slider"[^>]*type="range"/, 'student navigation uses a range slider');
+assert.match(html, /oninput="selectSwipeStudentFromSlider\(this\.value\)"/, 'the card follows the slider while it moves');
 assert.doesNotMatch(html, /onclick="onSwipeCardTap\(event\)"/, 'tapping the card must not mark attendance');
+assert.doesNotMatch(html, /ontouchstart|ontouchmove|ontouchend/, 'the student card no longer owns a swipe gesture');
 assert.doesNotMatch(js, /function onSwipeCardTap/, 'legacy tap-to-present gesture is removed');
-assert.match(js, /function calculateSwipeMomentum\(deltaX, velocityX, availableSteps\)/, 'momentum uses drag distance and release velocity');
-assert.match(js, /SWIPE_MOMENTUM_PROJECTION_MS/, 'release velocity is projected into inertial travel');
-assert.match(js, /SWIPE_MOMENTUM_MAX_STEPS = 8/, 'a fast fling has a safe maximum travel');
-assert.match(js, /function spinSwipeStudents\(direction, steps, duration\)/, 'a fling advances through multiple cards');
-assert.match(js, /function stopSwipeMomentum/, 'touching the moving wheel can stop it');
-assert.doesNotMatch(js, /onSwipeTouchEnd[\s\S]{0,1200}markSwipeStatus/, 'swiping must not save a status');
+assert.match(js, /function selectSwipeStudentFromSlider\(value\)/, 'slider selects a roster index directly');
+assert.doesNotMatch(js, /calculateSwipeMomentum|spinSwipeStudents|SWIPE_MOMENTUM/, 'momentum navigation is removed');
+assert.doesNotMatch(js, /selectSwipeStudentFromSlider[\s\S]{0,500}markSwipeStatus|selectSwipeStudentFromSlider[\s\S]{0,500}autoSaveAttendance/, 'moving the slider must not save attendance');
 assert.match(js, /const previousStatus = swipeResults\[student\.id\] \|\| ''/, 'an existing mark can be changed and undone');
 assert.match(js, /autoSaveAttendance\(\);[\s\S]*if \(swipeStudentIndex === markedIndex && swipeStudentIndex < c\.students\.length - 1\) swipeStudentIndex\+\+/, 'button saves before advancing the same visible card');
 assert.match(css, /\.swipe-card-preview\.previous/, 'stacked previous card has carousel styling');
-assert.match(css, /\.swipe-card\.momentum-out-next/, 'momentum movement has outgoing card animation');
+assert.match(css, /\.swipe-student-slider::\-webkit-slider-thumb/, 'slider has a touch-friendly mobile thumb');
 assert.match(css, /\.swipe-btn\.active/, 'saved status is highlighted when revisiting a student');
 
 console.log('attendance carousel tests passed');

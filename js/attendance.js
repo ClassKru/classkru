@@ -3,15 +3,6 @@ let activeQrAttendance = null;
 let qrAttendancePollTimer = null;
 let swipeDoneFinishReadyAt = 0;
 let swipeStatusAdvanceTimer = null;
-let swipeMomentumToken = 0;
-let swipeMomentumActive = false;
-let swipeTouchStartTime = 0;
-let swipeTouchLastX = 0;
-let swipeTouchLastTime = 0;
-let swipeTouchVelocity = 0;
-
-const SWIPE_MOMENTUM_MAX_STEPS = 8;
-const SWIPE_MOMENTUM_PROJECTION_MS = 240;
 
 const SWIPE_EDIT_STATUS = {
   present: { label: 'มา', icon: 'hgi-tick-02' },
@@ -770,6 +761,8 @@ function renderSwipeCard() {
   if (!c) return;
   renderDesktopSwipeTable(); // ล้าง/รีเฟรชตารางเดสก์ท็อปตามห้องปัจจุบันเสมอ (กันค้างรายชื่อห้องก่อนหน้าเมื่อห้องนี้ 0 คน)
   if (c.students.length === 0) {
+    const sliderWrap = document.getElementById('swipe-student-slider-wrap');
+    if (sliderWrap) sliderWrap.style.display = 'none';
     document.getElementById('swipe-card').style.display = 'none';
     document.getElementById('swipe-done-state').style.display = 'flex';
     document.getElementById('swipe-done-state').innerHTML = `
@@ -789,6 +782,8 @@ function renderSwipeCard() {
 
   const card = document.getElementById('swipe-card');
   const doneState = document.getElementById('swipe-done-state');
+  const sliderWrap = document.getElementById('swipe-student-slider-wrap');
+  if (sliderWrap) sliderWrap.style.display = '';
 
   swipeStudentIndex = Math.max(0, Math.min(swipeStudentIndex, c.students.length - 1));
 
@@ -826,11 +821,7 @@ function renderSwipeCard() {
 
   // Reset transform
   card.style.transform = '';
-  card.classList.remove('swipe-out-right', 'swipe-out-left', 'swipe-out-up', 'hint-right', 'hint-left', 'momentum-out-next', 'momentum-out-previous', 'momentum-in-next', 'momentum-in-previous');
-  if (!swipeMomentumActive) {
-    card.classList.add('swipe-in');
-    setTimeout(() => card.classList.remove('swipe-in'), 300);
-  }
+  card.classList.remove('swipe-out-right', 'swipe-out-left', 'swipe-out-up', 'hint-right', 'hint-left');
 }
 
 function renderSwipeCarouselContext(c) {
@@ -855,6 +846,22 @@ function renderSwipeCarouselContext(c) {
   if (previousButton) previousButton.disabled = !previous;
   if (nextButton) nextButton.disabled = !next;
 
+  const slider = document.getElementById('swipe-student-slider');
+  if (slider) {
+    slider.max = String(c.students.length);
+    slider.value = String(swipeStudentIndex + 1);
+    const progress = c.students.length > 1 ? (swipeStudentIndex / (c.students.length - 1)) * 100 : 0;
+    slider.style.setProperty('--slider-progress', `${progress}%`);
+  }
+  const firstStudent = c.students[0];
+  const lastStudent = c.students[c.students.length - 1];
+  const firstLabel = document.getElementById('swipe-slider-first');
+  const lastLabel = document.getElementById('swipe-slider-last');
+  const currentLabel = document.getElementById('swipe-slider-current-label');
+  if (firstLabel) firstLabel.textContent = `เลขที่ ${firstStudent.no || 1}`;
+  if (lastLabel) lastLabel.textContent = `เลขที่ ${lastStudent.no || c.students.length}`;
+  if (currentLabel) currentLabel.textContent = `เลขที่ ${student.no || swipeStudentIndex + 1} · ${student.nickname || student.name}`;
+
   document.querySelectorAll('.swipe-action-buttons .swipe-btn[data-status]').forEach(button => {
     const active = button.dataset.status === swipeResults[student.id];
     button.classList.toggle('active', active);
@@ -866,7 +873,6 @@ function renderSwipeCarouselContext(c) {
 }
 
 function moveSwipeStudent(delta) {
-  stopSwipeMomentum();
   const c = appState.classes.find(x => x.id === swipeClassId);
   if (!c || !c.students.length) return;
   const nextIndex = Math.max(0, Math.min(swipeStudentIndex + delta, c.students.length - 1));
@@ -880,64 +886,13 @@ function moveSwipeStudent(delta) {
   renderSwipeCard();
 }
 
-function calculateSwipeMomentum(deltaX, velocityX, availableSteps) {
-  const projectedDistance = deltaX + (velocityX * SWIPE_MOMENTUM_PROJECTION_MS);
-  if (Math.abs(deltaX) < 38 && Math.abs(velocityX) < 0.35) return { direction: 0, steps: 0, duration: 0 };
-  const direction = projectedDistance < 0 ? 1 : -1;
-  const distanceSteps = Math.max(1, Math.round(Math.abs(projectedDistance) / 105));
-  const velocitySteps = Math.max(1, Math.ceil(Math.abs(velocityX) * 3.2));
-  const steps = Math.min(availableSteps, SWIPE_MOMENTUM_MAX_STEPS, Math.max(distanceSteps, velocitySteps));
-  const duration = Math.round(Math.max(72, Math.min(138, 132 - (Math.abs(velocityX) * 24))));
-  return { direction, steps, duration };
-}
-
-function stopSwipeMomentum(resetTransform = true) {
-  swipeMomentumToken++;
-  swipeMomentumActive = false;
-  const card = document.getElementById('swipe-card');
-  if (!card) return;
-  card.classList.remove('momentum-out-next', 'momentum-out-previous', 'momentum-in-next', 'momentum-in-previous');
-  if (resetTransform) card.style.transform = '';
-}
-
-function spinSwipeStudents(direction, steps, duration) {
+function selectSwipeStudentFromSlider(value) {
   const c = appState.classes.find(x => x.id === swipeClassId);
-  if (!c || !steps || !direction) return;
-  stopSwipeMomentum();
-  swipeMomentumActive = true;
-  const token = swipeMomentumToken;
-  const halfDuration = Math.max(32, Math.round(duration / 2));
-
-  const spinStep = remaining => {
-    if (token !== swipeMomentumToken || remaining <= 0) {
-      if (token === swipeMomentumToken) swipeMomentumActive = false;
-      return;
-    }
-    const nextIndex = swipeStudentIndex + direction;
-    if (nextIndex < 0 || nextIndex >= c.students.length) {
-      swipeMomentumActive = false;
-      document.getElementById('swipe-card')?.classList.add('swipe-edge-bump');
-      setTimeout(() => document.getElementById('swipe-card')?.classList.remove('swipe-edge-bump'), 180);
-      return;
-    }
-    const card = document.getElementById('swipe-card');
-    card.style.setProperty('--momentum-half', `${halfDuration}ms`);
-    card.classList.add(direction > 0 ? 'momentum-out-next' : 'momentum-out-previous');
-    setTimeout(() => {
-      if (token !== swipeMomentumToken) return;
-      swipeStudentIndex = nextIndex;
-      renderSwipeCard();
-      const currentCard = document.getElementById('swipe-card');
-      currentCard.classList.add(direction > 0 ? 'momentum-in-next' : 'momentum-in-previous');
-      setTimeout(() => {
-        if (token !== swipeMomentumToken) return;
-        currentCard.classList.remove('momentum-in-next', 'momentum-in-previous');
-        spinStep(remaining - 1);
-      }, halfDuration);
-    }, halfDuration);
-  };
-
-  spinStep(steps);
+  if (!c || !c.students.length) return;
+  const requestedIndex = Number.parseInt(value, 10) - 1;
+  if (!Number.isFinite(requestedIndex)) return;
+  swipeStudentIndex = Math.max(0, Math.min(requestedIndex, c.students.length - 1));
+  renderSwipeCard();
 }
 
 // ========== DESKTOP VIEW TABLE LOGIC ==========
@@ -1312,60 +1267,6 @@ function showConfirm(msg, onOk, { title = 'ยืนยัน', icon = '🗑️'
 
 function showSaveToast() {
   showToast('<i class="hgi-stroke hgi-cloud-upload" style="margin-right:4px;"></i>บันทึกแล้ว', 'success', 1500);
-}
-
-// ===== TOUCH GESTURE HANDLERS =====
-function onSwipeTouchStart(event) {
-  stopSwipeMomentum();
-  const now = performance.now();
-  swipeTouchStartX = event.touches[0].clientX;
-  swipeTouchCurrentX = swipeTouchStartX;
-  swipeTouchLastX = swipeTouchStartX;
-  swipeTouchStartTime = now;
-  swipeTouchLastTime = now;
-  swipeTouchVelocity = 0;
-  swipeIsDragging = true;
-  document.getElementById('swipe-card').classList.add('dragging');
-}
-
-function onSwipeTouchMove(event) {
-  if (!swipeIsDragging) return;
-  event.preventDefault();
-  const now = performance.now();
-  swipeTouchCurrentX = event.touches[0].clientX;
-  const elapsed = Math.max(1, now - swipeTouchLastTime);
-  const instantVelocity = (swipeTouchCurrentX - swipeTouchLastX) / elapsed;
-  swipeTouchVelocity = (swipeTouchVelocity * 0.35) + (instantVelocity * 0.65);
-  swipeTouchLastX = swipeTouchCurrentX;
-  swipeTouchLastTime = now;
-  const deltaX = swipeTouchCurrentX - swipeTouchStartX;
-  const card = document.getElementById('swipe-card');
-  const rotation = deltaX * 0.05;
-  card.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
-
-}
-
-function onSwipeTouchEnd(event) {
-  if (!swipeIsDragging) return;
-  swipeIsDragging = false;
-  const card = document.getElementById('swipe-card');
-  card.classList.remove('dragging');
-  const deltaX = swipeTouchCurrentX - swipeTouchStartX;
-  const totalTime = Math.max(1, performance.now() - swipeTouchStartTime);
-  const overallVelocity = deltaX / totalTime;
-  const velocityX = (swipeTouchVelocity * 0.7) + (overallVelocity * 0.3);
-  const c = appState.classes.find(x => x.id === swipeClassId);
-  const projectedDirection = (deltaX + velocityX * SWIPE_MOMENTUM_PROJECTION_MS) < 0 ? 1 : -1;
-  const availableSteps = c ? (projectedDirection > 0 ? c.students.length - 1 - swipeStudentIndex : swipeStudentIndex) : 0;
-  const momentum = calculateSwipeMomentum(deltaX, velocityX, availableSteps);
-  card.style.transform = '';
-  if (momentum.steps) spinSwipeStudents(momentum.direction, momentum.steps, momentum.duration);
-}
-
-function onSwipeTouchCancel() {
-  swipeIsDragging = false;
-  stopSwipeMomentum();
-  document.getElementById('swipe-card')?.classList.remove('dragging');
 }
 
 // ==================== MODALS ====================
