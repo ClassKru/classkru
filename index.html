@@ -19,18 +19,18 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=378">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=378">
-  <link rel="stylesheet" href="css/03-reports.css?v=378">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=378">
-  <link rel="stylesheet" href="css/05-home.css?v=378">
-  <link rel="stylesheet" href="css/06-attendance.css?v=378">
-  <link rel="stylesheet" href="css/07-scores.css?v=378">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=378">
-    <link rel="stylesheet" href="css/09-games.css?v=378">
-  <link rel="stylesheet" href="css/10-help.css?v=378">
-  <link rel="stylesheet" href="css/11-public-help.css?v=378">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=378">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=380">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=380">
+  <link rel="stylesheet" href="css/03-reports.css?v=380">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=380">
+  <link rel="stylesheet" href="css/05-home.css?v=380">
+  <link rel="stylesheet" href="css/06-attendance.css?v=380">
+  <link rel="stylesheet" href="css/07-scores.css?v=380">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=380">
+    <link rel="stylesheet" href="css/09-games.css?v=380">
+  <link rel="stylesheet" href="css/10-help.css?v=380">
+  <link rel="stylesheet" href="css/11-public-help.css?v=380">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=380">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -316,7 +316,7 @@
             </button>
             <button class="ck-help-card" type="button" onclick="openIssueReportForm('feature')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-bulb"></i></span>
-              <span><strong>เสนอฟีเจอร์</strong><small>ส่งไอเดียที่อยากให้ ClassKru เพิ่ม</small></span>
+              <span><strong>เสนอสิ่งที่อยากให้เพิ่ม</strong><small>ส่งไอเดียที่อยากให้ ClassKru เพิ่ม</small></span>
             </button>
             <button class="ck-help-card" type="button" onclick="openHelpLine('ติดต่อเรา')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-message-01"></i></span>
@@ -465,7 +465,7 @@
             <div id="web-reports-class-list" class="class-cards-grid"></div>
           </div>
           <div id="web-reports-detail-view" style="display:none;">
-            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;"><button class="btn-back" onclick="goBackToWebReportsSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div><h3 id="web-rep-detail-class-title" class="ck-class-switch" onclick="openClassSwitcher('reports')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action is-tinted ck-hdr-icon ck-btn-pdf" onclick="printReport()" aria-label="พิมพ์ / PDF"><i class="hgi-stroke hgi-printer"></i><span class="hide-mobile"> พิมพ์ / PDF</span></button><button class="btn ck-hdr-action is-tinted ck-hdr-icon ck-btn-excel" onclick="exportAttendanceExcel()" aria-label="Export Excel"><i class="hgi-stroke hgi-google-sheet"></i><span class="hide-mobile"> Export Excel</span></button></div></div></div>
+            <div class="card rep-detail-header-card" style="margin-bottom:16px;padding:16px 20px;"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;"><div style="display:flex;align-items:center;gap:14px;"><button class="btn-back" onclick="goBackToWebReportsSelection()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับ</button><div><h3 id="web-rep-detail-class-title" class="ck-class-switch" onclick="openClassSwitcher('reports')" style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:8px;">วิชา</h3></div></div><div style="display:flex;gap:8px;"><button class="btn ck-hdr-action is-tinted ck-hdr-icon ck-btn-pdf" onclick="printReport()" aria-label="พิมพ์ / PDF"><i class="hgi-stroke hgi-printer"></i><span class="hide-mobile"> พิมพ์ / PDF</span></button><button class="btn ck-hdr-action is-tinted ck-hdr-icon ck-btn-excel" onclick="exportAttendanceExcel()" aria-label="ดาวน์โหลดไฟล์ Excel"><i class="hgi-stroke hgi-google-sheet"></i><span class="hide-mobile"> ดาวน์โหลด Excel</span></button></div></div></div>
             <div id="reports-classtab-holder"></div>
             <div id="ck-print-header"></div>
             <div class="report-tabs" style="margin-bottom:20px;max-width:500px;">
@@ -564,17 +564,17 @@
             <div class="games-grid">
               <article class="game-card game-card-featured">
                 <div class="game-card-icon">🌿</div>
-                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Green City</h4><p>สร้างเมืองสีเขียวแห่งอนาคต ตอบคำถามสิ่งแวดล้อมแล้วเปลี่ยนเมืองให้สดใส</p><div class="game-meta"><span>City Builder</span><span>สิ่งแวดล้อม</span></div></div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Green City</h4><p>สร้างเมืองสีเขียวแห่งอนาคต ตอบคำถามสิ่งแวดล้อมแล้วเปลี่ยนเมืองให้สดใส</p><div class="game-meta"><span>สร้างเมือง</span><span>สิ่งแวดล้อม</span></div></div>
                 <a class="btn games-play-button" href="green-city/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
               </article>
               <article class="game-card game-card-featured">
                 <div class="game-card-icon">🏗️</div>
-                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Elevator Rescue</h4><p>รับบทวิศวกรกู้ภัย ออกแบบระบบรอกและลิฟต์ด้วยหลักแรง งาน และพลังงาน</p><div class="game-meta"><span>Physics Simulator</span><span>ระบบรอก</span></div></div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Elevator Rescue</h4><p>รับบทวิศวกรกู้ภัย ออกแบบระบบรอกและลิฟต์ด้วยหลักแรง งาน และพลังงาน</p><div class="game-meta"><span>จำลองฟิสิกส์</span><span>ระบบรอก</span></div></div>
                 <a class="btn games-play-button" href="elevator-rescue/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
               </article>
               <article class="game-card game-card-featured">
                 <div class="game-card-icon">🧬</div>
-                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Molecule Builder</h4><p>ทดลองลากอะตอมและสร้างพันธะ เพื่อประกอบโมเลกุลตามหลักเวเลนซ์และสูตรเคมี</p><div class="game-meta"><span>Chemistry Lab</span><span>Drag &amp; Drop</span></div></div>
+                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Molecule Builder</h4><p>ทดลองลากอะตอมและสร้างพันธะ เพื่อประกอบโมเลกุลตามหลักเวเลนซ์และสูตรเคมี</p><div class="game-meta"><span>ห้องทดลองเคมี</span><span>ลากแล้ววาง</span></div></div>
                 <a class="btn games-play-button" href="molecule-builder/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
               </article>
             </div>
@@ -590,7 +590,7 @@
               <div class="settings-section-title">ข้อมูลส่วนตัว</div>
               <div class="card settings-profile-card">
                 <div class="settings-avatar-wrap" onclick="document.getElementById('profile-upload').click()">
-                  <img src="logo.png?v=2" id="settings-profile-img" alt="Profile">
+                  <img src="logo.png?v=2" id="settings-profile-img" alt="รูปประจำตัว">
                   <div class="settings-avatar-cam"><i class="hgi-stroke hgi-camera-01"></i></div>
                 </div>
                 <input type="file" id="profile-upload" accept="image/*" style="display:none;" onchange="handleProfileUpload(event)">
@@ -619,7 +619,7 @@
               <div class="settings-section-title">จัดการข้อมูล</div>
               <div class="card settings-list">
                 <div class="settings-row settings-row-danger" onclick="deleteAllDataEverywhere()">
-                  <span class="settings-row-label"><i class="hgi-stroke hgi-delete-02"></i> ล้างข้อมูลทั้งหมด (รีเซ็ต)</span>
+                  <span class="settings-row-label"><i class="hgi-stroke hgi-delete-02"></i> ล้างข้อมูลทั้งหมดแล้วเริ่มใหม่</span>
                   <i class="hgi-stroke hgi-arrow-right-01 settings-row-arrow"></i>
                 </div>
               </div>
@@ -868,9 +868,9 @@
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">ลากไฟล์ .xlsx หรือ .csv มาวางในกรอบด้านล่างนี้ได้เลย หรือคลิกเพื่อเลือกไฟล์ ระบบจะดึงรายชื่อเข้าห้องเรียนนี้ทันที</p>
 
       <div style="background:var(--primary-light);border:1px solid var(--primary-light-border);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <span style="font-size:0.82rem;color:var(--text-main);">ไม่รู้ว่าไฟล์ต้องมีคอลัมน์อะไร? โหลดเทมเพลตไปกรอกได้เลย</span>
+        <span style="font-size:0.82rem;color:var(--text-main);">ไม่แน่ใจว่าไฟล์ต้องมีช่องอะไรบ้าง? ดาวน์โหลดไฟล์ตัวอย่างไปกรอกได้เลย</span>
         <button class="btn" onclick="downloadStudentsTemplate()" style="font-size:0.82rem;padding:8px 14px;background:var(--bg-card);border:1px solid var(--primary-light-border);color:var(--primary);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
-          <i class="hgi-stroke hgi-file-download"></i> ดาวน์โหลดเทมเพลต (.xlsx)
+          <i class="hgi-stroke hgi-file-download"></i> ดาวน์โหลดไฟล์ตัวอย่าง (.xlsx)
         </button>
       </div>
 
@@ -896,9 +896,9 @@
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">อัปโหลดไฟล์ตารางสอน (.xlsx / .csv) แล้วจับคู่คอลัมน์ วัน/คาบ/ห้องเรียน/วิชา ระบบจะสร้างคาบเรียนให้อัตโนมัติ</p>
 
       <div style="background:var(--primary-light);border:1px solid var(--primary-light-border);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <span style="font-size:0.82rem;color:var(--text-main);">ไม่รู้ว่าไฟล์ต้องมีคอลัมน์อะไร? โหลดเทมเพลตไปกรอกได้เลย</span>
+        <span style="font-size:0.82rem;color:var(--text-main);">ไม่แน่ใจว่าไฟล์ต้องมีช่องอะไรบ้าง? ดาวน์โหลดไฟล์ตัวอย่างไปกรอกได้เลย</span>
         <button class="btn" onclick="downloadTimetableTemplate()" style="font-size:0.82rem;padding:8px 14px;background:var(--bg-card);border:1px solid var(--primary-light-border);color:var(--primary);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
-          <i class="hgi-stroke hgi-file-download"></i> ดาวน์โหลดเทมเพลต (.xlsx)
+          <i class="hgi-stroke hgi-file-download"></i> ดาวน์โหลดไฟล์ตัวอย่าง (.xlsx)
         </button>
       </div>
 
@@ -918,7 +918,7 @@
           <div class="form-group"><label for="map-table-subject">วิชา</label><select id="map-table-subject" class="form-control" style="appearance:auto;"></select></div>
         </div>
         <div style="display:flex;justify-content:flex-end;border-top:1px solid var(--border-color);padding-top:20px;"><button class="btn btn-primary" onclick="confirmTimetableExcelImport()"><i class="hgi-stroke hgi-tick-02"></i> ยืนยันสร้างตาราง</button></div>
-        <div style="margin-top:20px;overflow-x:auto;"><h4 style="margin-bottom:8px;">Preview:</h4><table class="web-table" id="excel-timetable-preview-table" style="font-size:0.8rem;"></table></div>
+        <div style="margin-top:20px;overflow-x:auto;"><h4 style="margin-bottom:8px;">ตัวอย่างตารางที่จะสร้าง</h4><table class="web-table" id="excel-timetable-preview-table" style="font-size:0.8rem;"></table></div>
       </div>
 
       <div style="display:flex;gap:10px;margin-top:24px;">
@@ -1252,7 +1252,7 @@
   <div class="modal-overlay qr-score-overlay" id="modal-qr-score" onclick="if(event.target===this) stopQrScoreScanner()" style="z-index:9400;">
     <div class="bottom-sheet qr-score-sheet" role="dialog" aria-modal="true" aria-labelledby="qr-score-title">
       <header class="qr-score-head">
-        <div><span class="qr-score-eyebrow">CONTINUOUS SCAN</span><h3 id="qr-score-title"><i class="hgi-stroke hgi-qr-code"></i> กรอกคะแนนด้วย QR</h3></div>
+        <div><span class="qr-score-eyebrow">สแกนต่อเนื่อง</span><h3 id="qr-score-title"><i class="hgi-stroke hgi-qr-code"></i> กรอกคะแนนด้วย QR</h3></div>
         <button type="button" class="qr-score-close" onclick="stopQrScoreScanner()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
       </header>
 
@@ -1332,22 +1332,22 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=378"></script>
-  <script defer src="js/auth.js?v=378"></script>
-  <script defer src="js/shell.js?v=378"></script>
-  <script defer src="js/dashboard.js?v=378"></script>
-  <script defer src="js/classrooms.js?v=378"></script>
-  <script defer src="js/students.js?v=378"></script>
-  <script defer src="js/timetable.js?v=378"></script>
-  <script defer src="js/reports.js?v=378"></script>
-  <script defer src="js/attendance.js?v=378"></script>
-  <script defer src="js/curriculum-science-2560.js?v=378"></script>
-  <script defer src="js/curriculum-catalog.js?v=378"></script>
-  <script defer src="js/scores.js?v=378"></script>
-  <script defer src="js/qr-scores.js?v=378"></script>
-  <script defer src="js/tools.js?v=378"></script>
-  <script defer src="js/shared-utils.js?v=378"></script>
-  <script defer src="js/extras.js?v=378"></script>
-  <script defer src="js/help.js?v=378"></script>
+  <script defer src="js/core.js?v=380"></script>
+  <script defer src="js/auth.js?v=380"></script>
+  <script defer src="js/shell.js?v=380"></script>
+  <script defer src="js/dashboard.js?v=380"></script>
+  <script defer src="js/classrooms.js?v=380"></script>
+  <script defer src="js/students.js?v=380"></script>
+  <script defer src="js/timetable.js?v=380"></script>
+  <script defer src="js/reports.js?v=380"></script>
+  <script defer src="js/attendance.js?v=380"></script>
+  <script defer src="js/curriculum-science-2560.js?v=380"></script>
+  <script defer src="js/curriculum-catalog.js?v=380"></script>
+  <script defer src="js/scores.js?v=380"></script>
+  <script defer src="js/qr-scores.js?v=380"></script>
+  <script defer src="js/tools.js?v=380"></script>
+  <script defer src="js/shared-utils.js?v=380"></script>
+  <script defer src="js/extras.js?v=380"></script>
+  <script defer src="js/help.js?v=380"></script>
 </body>
 </html>

@@ -127,7 +127,7 @@ function openStudentQrCards(classId) {
   const url = `student-qr-cards.html?classId=${encodeURIComponent(c.id)}`;
   const tab = window.open(url, '_blank');
   if (tab) tab.opener = null;
-  if (!tab) showToast('เบราว์เซอร์บล็อกหน้าพิมพ์ QR กรุณาอนุญาต Pop-up', 'warning');
+  if (!tab) showToast('เบราว์เซอร์ปิดกั้นหน้าพิมพ์ QR กรุณาอนุญาตหน้าต่างใหม่จากเว็บนี้', 'warning');
 }
 
 function openStudentQrCardsFromRoster() {
@@ -424,7 +424,7 @@ function getQrScoreCameraErrorInfo(error) {
       : { title: 'เบราว์เซอร์นี้ไม่รองรับกล้อง', detail: 'กรุณาเปิด ClassKru ด้วย Safari หรือ Chrome เวอร์ชันล่าสุด' };
   }
   if (/notallowed|permission|denied|securityerror/.test(raw)) {
-    return { title: 'ยังไม่ได้รับอนุญาตให้ใช้กล้อง', detail: 'อนุญาต Camera ในการตั้งค่าเว็บไซต์ของ Safari/Chrome แล้วกด “ลองเปิดกล้องอีกครั้ง”' };
+    return { title: 'ยังไม่ได้รับอนุญาตให้ใช้กล้อง', detail: 'เปิดสิทธิ์กล้องในการตั้งค่าเว็บไซต์ของ Safari หรือ Chrome แล้วกด “ลองเปิดกล้องอีกครั้ง”' };
   }
   if (/notfound|devicesnotfound|no camera/.test(raw)) {
     return { title: 'ไม่พบกล้องบนอุปกรณ์นี้', detail: 'ตรวจสอบว่ามือถือมีกล้องที่พร้อมใช้งาน แล้วกดลองเปิดกล้องอีกครั้ง' };
@@ -734,7 +734,7 @@ async function persistQrScore(classId, itemId, studentId, rawScore) {
   const student = c?.students?.find(s => s.id === studentId);
   const validationError = validateQrScore(c, item, student, rawScore);
   if (validationError) return { success: false, message: validationError };
-  if (!supabaseClient) return { success: false, message: 'ยังเชื่อมต่อฐานข้อมูลไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต' };
+  if (!supabaseClient) return { success: false, message: 'ยังเชื่อมต่อระบบบันทึกคะแนนไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต' };
 
   const email = localStorage.getItem('classmanager_email');
   if (!email) return { success: false, message: 'Session หมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง' };
@@ -770,7 +770,7 @@ async function persistQrScore(classId, itemId, studentId, rawScore) {
     await enqueueCloudStateWrite(email, nextState, { strict: true });
     appState = nextState;
     saveStateLocalOnly(false);
-    updateCloudStatus('online', 'ซิงก์แล้ว');
+    updateCloudStatus('online', 'บันทึกแล้ว');
     return { success: true, student_id: studentId, assignment_id: itemId, score, old_score: oldScore ?? null, message: 'บันทึกคะแนนสำเร็จ' };
   } catch (error) {
     console.warn('QR score save error:', error);

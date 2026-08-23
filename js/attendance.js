@@ -354,7 +354,7 @@ function buildQrAttendanceRoster(c) {
 }
 
 async function qrAttendanceRpc(name, args) {
-  if (!supabaseClient) throw new Error('ยังเชื่อมต่อ Supabase ไม่ได้');
+  if (!supabaseClient) throw new Error('ยังเชื่อมต่อระบบเก็บข้อมูลไม่ได้');
   const { data, error } = await supabaseClient.rpc(name, args);
   if (error) throw error;
   return data;
@@ -364,10 +364,10 @@ function getQrAttendanceErrorMessage(err, fallback) {
   const msg = String(err?.message || '');
   const code = String(err?.code || '');
   if (code === '42883' || /function .* does not exist|could not find the function/i.test(msg)) {
-    return 'ยังไม่ได้รัน migration attendance QR ใน Supabase';
+    return 'ระบบเช็คชื่อด้วย QR ยังติดตั้งไม่ครบ กรุณาแจ้งผู้ดูแลระบบ';
   }
   if (code === '42501' || /permission denied|not authorized|execute/i.test(msg)) {
-    return 'Supabase ยังไม่ได้ grant สิทธิ์ให้ฟังก์ชัน QR attendance';
+    return 'ระบบยังไม่อนุญาตให้เปิดเช็คชื่อด้วย QR กรุณาแจ้งผู้ดูแลระบบ';
   }
   if (code === '23505' || /duplicate key|unique constraint/i.test(msg)) {
     return 'รหัส QR ซ้ำ กำลังลองสร้างใหม่';
@@ -376,7 +376,7 @@ function getQrAttendanceErrorMessage(err, fallback) {
     return 'สิทธิ์ครูไม่พร้อม กรุณาเข้าสู่ระบบใหม่แล้วเปิด QR อีกครั้ง';
   }
   if (/failed to fetch|networkerror|load failed|timeout/i.test(msg)) {
-    return 'เชื่อมต่อ Supabase ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
+    return 'เชื่อมต่อระบบเก็บข้อมูลไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่';
   }
   return msg || fallback;
 }
@@ -441,7 +441,7 @@ async function pollQrAttendance() {
     setQrAttendanceStatus(`เปิดรับเช็คชื่ออยู่${suffix}`, 'success');
   } catch (err) {
     console.warn('QR attendance poll error:', err);
-    setQrAttendanceStatus('ดึงผลเช็คชื่อไม่ได้ กรุณาตรวจว่า migration ถูกติดตั้งแล้ว', 'warning');
+    setQrAttendanceStatus('ดูผลเช็คชื่อล่าสุดไม่ได้ กรุณาลองใหม่หรือแจ้งผู้ดูแลระบบ', 'warning');
   }
 }
 

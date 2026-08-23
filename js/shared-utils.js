@@ -490,13 +490,13 @@ function saveState() {
 }
 
 async function syncBackgroundCloud(email) {
-  if (!supabaseClient) { updateCloudStatus('offline', 'ออฟไลน์'); return; }
+  if (!supabaseClient) { updateCloudStatus('offline', 'ยังบันทึกออนไลน์ไม่ได้'); return; }
   if (localStorage.getItem('classkru_skip_sync')) {
     updateCloudStatus('online', 'ล้างข้อมูลแล้ว');
     return;
   }
   try {
-    updateCloudStatus('syncing', 'กำลังซิงก์...');
+    updateCloudStatus('syncing', 'กำลังตรวจข้อมูลล่าสุด...');
     const { data, error } = await supabaseClient.from('classmanager_profiles').select('state').eq('email', email).single();
     if (error && error.code !== 'PGRST116') throw error;
     if (data && data.state) {
@@ -525,10 +525,10 @@ async function syncBackgroundCloud(email) {
     } else {
       await pushStateToCloudDirectly(email, appState);
     }
-    updateCloudStatus('online', 'ออนไลน์');
+    updateCloudStatus('online', 'ข้อมูลเป็นปัจจุบัน');
   } catch (err) {
     console.warn('Cloud sync error:', err);
-    updateCloudStatus('offline', 'ออฟไลน์');
+    updateCloudStatus('offline', 'ยังบันทึกออนไลน์ไม่ได้');
   }
   if (typeof refreshQrScoreSetupAfterCloudSync === 'function') refreshQrScoreSetupAfterCloudSync();
 }
@@ -540,18 +540,18 @@ function enqueueCloudStateWrite(email, state, options = {}) {
   const strict = Boolean(options.strict);
   const snapshot = typeof structuredClone === 'function' ? structuredClone(state) : JSON.parse(JSON.stringify(state));
   const write = async () => {
-    updateCloudStatus('syncing', 'อัปโหลด...');
+    updateCloudStatus('syncing', 'กำลังบันทึก...');
     if (!supabaseClient) throw new Error('Supabase client unavailable');
     const { error } = await supabaseClient.from('classmanager_profiles').upsert({ email, state: snapshot, updated_at: new Date().toISOString() });
     if (error) throw error;
-    updateCloudStatus('online', 'ซิงก์แล้ว');
+    updateCloudStatus('online', 'บันทึกแล้ว');
   };
   const queued = _cloudWriteQueue.then(write, write);
   _cloudWriteQueue = queued.catch(() => {});
   if (strict) return queued;
   return queued.catch(err => {
     console.warn(err);
-    updateCloudStatus('offline', 'ออฟไลน์');
+    updateCloudStatus('offline', 'ยังบันทึกออนไลน์ไม่ได้');
   });
 }
 
@@ -610,21 +610,21 @@ async function forcePullFromCloud() {
       pruneEmptyAttendance();
       appState.lastModified = Date.now(); // Stamp it so it becomes the latest local
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-      showToast('ดาวน์โหลดข้อมูลจาก Cloud สำเร็จ! 🎉', 'success', 1500);
+      showToast('ดึงข้อมูลล่าสุดในบัญชีสำเร็จ! 🎉', 'success', 1500);
       setTimeout(() => window.location.reload(), 1000);
     } else {
-      showToast('ไม่พบข้อมูลบน Cloud', 'warning');
-      updateCloudStatus('online', 'ออนไลน์');
+      showToast('ไม่พบข้อมูลที่บันทึกไว้ในบัญชี', 'warning');
+      updateCloudStatus('online', 'ข้อมูลเป็นปัจจุบัน');
     }
   } catch (err) {
     console.warn(err);
     showToast('เกิดข้อผิดพลาดในการดึงข้อมูล', 'error');
-    updateCloudStatus('offline', 'ออฟไลน์');
+    updateCloudStatus('offline', 'ยังบันทึกออนไลน์ไม่ได้');
   }
 }
 
 function resetApplicationData() {
-  showConfirm('ข้อมูลบน Cloud จะไม่หาย แค่ล้างในเครื่องนี้', () => {
+  showConfirm('ข้อมูลในบัญชีจะไม่หาย ระบบจะล้างเฉพาะข้อมูลที่เก็บไว้ในเครื่องนี้', () => {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.setItem('classkru_skip_sync', '1');
     showToast('ล้างข้อมูลในเครื่องแล้ว', 'success', 1200);

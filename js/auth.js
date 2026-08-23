@@ -229,7 +229,7 @@ function handleProfileUpload(event) {
       }
       saveState();
       updateProfileImages();
-      showToast('อัปเดตรูปโปรไฟล์แล้ว', 'success');
+      showToast('เปลี่ยนรูปประจำตัวแล้ว', 'success');
     };
     img.onerror = function() { showToast('เปิดรูปไม่สำเร็จ', 'error'); };
     img.src = e.target.result;

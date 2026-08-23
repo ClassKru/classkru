@@ -94,8 +94,8 @@
     function getReadableError(err, fallback) {
       const msg = String(err?.message || '');
       const code = String(err?.code || '');
-      if (code === '42883' || /function .* does not exist|could not find the function/i.test(msg)) return 'ระบบ QR ยังไม่ได้เปิดใช้งานบน Supabase';
-      if (code === '42501' || /permission denied|not authorized|execute/i.test(msg)) return 'ระบบ QR ยังไม่ได้รับสิทธิ์ใช้งาน กรุณาแจ้งครูให้ตรวจ Supabase';
+      if (code === '42883' || /function .* does not exist|could not find the function/i.test(msg)) return 'โรงเรียนยังไม่ได้เปิดใช้การเช็คชื่อด้วย QR กรุณาแจ้งครูผู้ดูแล';
+      if (code === '42501' || /permission denied|not authorized|execute/i.test(msg)) return 'ระบบยังไม่อนุญาตให้เช็คชื่อด้วย QR กรุณาแจ้งครูผู้ดูแล';
       if (/QR not found or closed|activity not found|closed/i.test(msg)) return 'QR นี้หมดอายุหรือถูกปิดแล้ว';
       if (/student not found/i.test(msg)) return 'ชื่อนี้ไม่อยู่ใน QR ห้องนี้ กรุณาสแกนใหม่';
       if (/เลขที่หรือรหัสนักเรียนไม่ตรง/i.test(msg)) return 'เลขที่หรือรหัสนักเรียนไม่ตรงกับรายชื่อ';

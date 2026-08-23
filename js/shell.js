@@ -168,7 +168,7 @@ function navigateToWebScreen(screenId, param) {
     reports: ['รายงานวิเคราะห์ผล', 'สถิติเชิงลึกรายห้องเรียน'],
     tools: ['เครื่องมือช่วยสอน', 'เลือกห้องเรียนและเปิดเครื่องมือหน้าชั้นเรียน'],
     games: ['เกมการศึกษา', 'เลือกกิจกรรมสนุก ๆ สำหรับนักเรียน'],
-    settings: ['ตั้งค่าระบบ', 'จัดการผู้ใช้งาน & รีเซ็ต']
+    settings: ['ตั้งค่าระบบ', 'จัดการบัญชีและข้อมูล']
   };
   if (titles[screenId] && titleEl && subEl) {
     titleEl.innerText = titles[screenId][0];

@@ -247,7 +247,7 @@ function renderCurriculumCatalog(c) {
   const catalog = window.CKCurriculumCatalog;
   if (!wrap) return;
   if (!catalog) {
-    wrap.innerHTML = '<div class="score-empty-panel"><strong>ยังไม่พบฐานข้อมูลหลักสูตร</strong><span>กรุณารีเฟรชหน้าอีกครั้ง</span></div>';
+    wrap.innerHTML = '<div class="score-empty-panel"><strong>ยังไม่พบข้อมูลหลักสูตร</strong><span>กรุณาเปิดหน้านี้ใหม่อีกครั้ง</span></div>';
     return;
   }
 
@@ -264,7 +264,7 @@ function renderCurriculumCatalog(c) {
   wrap.innerHTML = `<section class="curriculum-browser">
     <header class="curriculum-browser-head">
       <div>
-        <span class="score-mode-label">ฐานข้อมูลหลักสูตร</span>
+        <span class="score-mode-label">ข้อมูลหลักสูตร</span>
         <h3>สำรวจตัวชี้วัดก่อนสร้างงาน</h3>
         <p>พื้นที่อ่านและค้นหาเท่านั้น ยังไม่เชื่อมกับคะแนนของห้อง ${escapeScore(c.subject)} ${escapeScore(c.className)}</p>
       </div>
@@ -297,7 +297,7 @@ function curriculumUnavailableHtml(subject, catalog) {
   const available = catalog.subjects.filter(item => item.available);
   return `<div class="curriculum-unavailable">
     <span class="curriculum-unavailable-icon"><i class="hgi-stroke hgi-book-02"></i></span>
-    <div><h4>กำลังเตรียมฐานข้อมูล${escapeScore(subject.name)}</h4>
+    <div><h4>กำลังเตรียมข้อมูล${escapeScore(subject.name)}</h4>
       <p>มีตัวเลือกกลุ่มสาระไว้แล้ว แต่ยังไม่นำข้อความตัวชี้วัดมาแสดงจนกว่าจะตรวจสอบกับเอกสารทางการครบถ้วน</p>
       <span>ขณะนี้เปิดดูได้: ${available.map(item => escapeScore(item.name)).join(', ')}</span>
     </div>

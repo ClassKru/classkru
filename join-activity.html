@@ -2336,16 +2336,16 @@
 
     async function initJoinBackend() {
       if (!window.supabase) {
-        setJoinBackendStatus('โหมดเครื่องนี้: ยังไม่ได้โหลดฐานข้อมูลกลาง');
+        setJoinBackendStatus('ใช้ได้เฉพาะเครื่องนี้: ยังเชื่อมต่อข้อมูลออนไลน์ไม่ได้');
         return;
       }
       try {
         joinSupabase = window.supabase.createClient(JOIN_SUPABASE_URL, JOIN_SUPABASE_KEY);
         joinBackendReady = true;
-        setJoinBackendStatus('เชื่อมต่อฐานข้อมูลกลางแล้ว');
+        setJoinBackendStatus('พร้อมให้นักเรียนเข้าร่วมจากเครื่องอื่น');
       } catch (error) {
         console.warn('ClassKru QR backend unavailable', error);
-        setJoinBackendStatus('โหมดเครื่องนี้: เชื่อมต่อฐานข้อมูลกลางไม่ได้');
+        setJoinBackendStatus('ใช้ได้เฉพาะเครื่องนี้: ยังเชื่อมต่อข้อมูลออนไลน์ไม่ได้');
       }
     }
 
@@ -2366,7 +2366,7 @@
       const msg = String(error && error.message || '');
       const status = error && error.status;
       if (code === '42P01' || /relation .* does not exist|could not find the function/i.test(msg)) {
-        return { kind: 'no_tables', latch: true, message: 'ยังไม่ได้ติดตั้งตารางกิจกรรมบน Supabase' };
+        return { kind: 'no_tables', latch: true, message: 'ระบบกิจกรรมยังติดตั้งไม่ครบ กรุณาแจ้งผู้ดูแลระบบ' };
       }
       if (code === '23505' || /duplicate key|unique constraint/i.test(msg)) {
         return { kind: 'code_taken', latch: false, message: 'รหัสห้องซ้ำ กำลังสุ่มรหัสใหม่' };
@@ -2375,9 +2375,9 @@
         return { kind: 'auth', latch: false, message: 'ต้องเข้าสู่ระบบครูก่อน จึงจะเปิดห้องให้นักเรียนเข้าร่วมได้' };
       }
       if (/failed to fetch|networkerror|timeout|load failed/i.test(msg)) {
-        return { kind: 'network', latch: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่' };
+        return { kind: 'network', latch: false, message: 'เชื่อมต่อระบบไม่ได้ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่' };
       }
-      return { kind: 'unknown', latch: false, message: msg || 'เชื่อมต่อฐานข้อมูลกลางไม่ได้' };
+      return { kind: 'unknown', latch: false, message: msg || 'เชื่อมต่อข้อมูลออนไลน์ไม่ได้' };
     }
 
     function markJoinBackendUnavailable(error) {
@@ -2969,7 +2969,7 @@
       const presentationUrl = `${location.pathname}?present=${encodeURIComponent(code)}`;
       presentationWindow = targetWindow || window.open(presentationUrl, '_blank');
       if (!presentationWindow) {
-        alert('เบราว์เซอร์บล็อกแท็บใหม่ กรุณาอนุญาต Pop-up สำหรับเว็บไซต์นี้');
+        alert('เบราว์เซอร์ปิดกั้นหน้าจอฉาย กรุณาอนุญาตหน้าต่างใหม่จากเว็บไซต์นี้');
         return;
       }
       presentationWindow.location.href = presentationUrl;
