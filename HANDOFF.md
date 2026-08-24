@@ -31,7 +31,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `381`
+- Asset version ปัจจุบัน: `383`
 - งานล่าสุด: ปรับถ้อยคำทั่วเว็บให้ครูทั่วไปเข้าใจการกระทำและผลลัพธ์ได้ทันที โดยตัดศัพท์ระบบ เช่น Cloud, sync, migration, grant, Preview และคำสั่งอังกฤษที่ไม่จำเป็นออก พร้อมคงชื่อชนิดไฟล์ Excel/PDF/QR ที่จำเป็นต่อการใช้งาน
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
 - ไฟล์ `BUSINESS_STRATEGY.md` เป็นงานของผู้ใช้ที่ยัง untracked ณ เวลาบันทึก ห้ามลบ แก้ หรือรวม commit โดยไม่ตรวจสอบขอบเขตงาน
@@ -79,7 +79,7 @@ git remote -v
 12. Scan ผิดห้องจะไม่บันทึกโดย default
 13. บันทึกคะแนนลง Supabase ทันทีทีละคน ไม่ได้รอบันทึกรวม
 14. หลัง Database commit สำเร็จจึง update app state และ cell คะแนน; ถ้าล้มเหลวจะคงข้อมูลเดิมบนหน้าจอ
-15. เก็บ `scoreAuditHistory` สำหรับ old/new score, ผู้แก้ และเวลา
+15. ไม่สร้างประวัติการแก้คะแนนใหม่; ครูแก้ค่าปัจจุบันได้โดยตรง
 16. กล้องมือถือขอ permission ผ่าน `Html5Qrcode.getCameras()`, เลือกกล้องหลัง และ fallback เป็น `facingMode: environment`
 17. เมื่อเปิดกล้องไม่สำเร็จ มีข้อความแยกตามสาเหตุและปุ่ม **อนุญาตกล้อง / ลองใหม่**
 18. LINE in-app browser บางรุ่นไม่รองรับ WebRTC camera ให้แนะนำเปิดใน Safari/Chrome; ยังมีช่องกรอกรหัส QR เป็น fallback
@@ -90,11 +90,23 @@ git remote -v
 - ตัวเลขหลัง `/` ต้องแก้ไม่ได้และมาจาก `item.max` เท่านั้น
 - คะแนนเดิมของนักเรียนต้องมีสิทธิ์เหนือ default score
 - ห้ามใช้ `window.location.reload()` หลังบันทึก
-- อย่าสร้างตารางคะแนน schema ใหม่ ปัจจุบันข้อมูลอยู่ใน `classmanager_profiles.state`
+- คะแนนและเช็กชื่อใช้ Hybrid tables หลังติดตั้ง migration; JSON เดิมยังเป็น fallback/rollback
 
 ---
 
 ## 4. โครงสร้างข้อมูลและการบันทึก
+
+มี Hybrid persistence รุ่นใหม่ใน `js/relational-sync.js` และ migration
+`supabase/migrations/202608240001_relational_classkru.sql`:
+
+- เมื่อ schema ใหม่ยังไม่ติดตั้ง แอป fallback ไปใช้ `classmanager_profiles.state` เดิมโดยอัตโนมัติ
+- เมื่อติดตั้งแล้ว บัญชีจะย้าย JSON เดิมแบบ idempotent ตอน login และคง legacy row ไว้สำหรับ rollback
+- แยกเฉพาะ 6 ตารางที่เขียนบ่อย: classrooms, students, classroom_students, score_items, student_scores และ attendance_records
+- หลังย้าย `saveState()` ตรวจ diff และ upsert เฉพาะแถวที่เปลี่ยน; คะแนน/เช็กชื่อหนึ่งช่องไม่อัปโหลด JSON ทั้งก้อน
+- timetable, period settings, score config และข้อมูลที่เปลี่ยนน้อยยังอยู่ใน legacy JSON
+- การลบใช้ `deleted_at` และไม่ลบข้อมูลจริง
+- รายการที่ส่งไม่สำเร็จเก็บใน IndexedDB และ retry เมื่อกลับมาออนไลน์
+- ไม่มี audit history ใหม่ตามข้อกำหนดผู้ใช้; `scoreAuditHistory` เดิมยังอยู่ใน legacy JSON backup
 
 แอปเป็น Vanilla JavaScript + Supabase และเก็บ state หลักใน `classmanager_profiles.state`
 

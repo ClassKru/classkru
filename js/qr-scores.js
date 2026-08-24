@@ -746,28 +746,17 @@ async function persistQrScore(classId, itemId, studentId, rawScore) {
   const oldScore = (nextScores.marks[itemId] || {})[studentId];
   if (!nextScores.marks[itemId]) nextScores.marks[itemId] = {};
   nextScores.marks[itemId][studentId] = score;
-  nextState.scoreAuditHistory = Array.isArray(nextState.scoreAuditHistory) ? nextState.scoreAuditHistory : [];
-  nextState.scoreAuditHistory.push({
-    student_id: studentId,
-    assignment_id: itemId,
-    class_id: classId,
-    academic_year: String(nextClass.academicYear),
-    subject: nextClass.subject,
-    classroom: nextClass.className,
-    old_score: oldScore ?? null,
-    new_score: score,
-    updated_by: email,
-    updated_at: new Date().toISOString(),
-    source: 'qr_continuous_scan'
-  });
-  if (nextState.scoreAuditHistory.length > 2000) nextState.scoreAuditHistory = nextState.scoreAuditHistory.slice(-2000);
   nextState.lastModified = Date.now();
 
   try {
     clearTimeout(_cloudPushTimer);
     _cloudPushTimer = null;
     updateCloudStatus('syncing', 'กำลังบันทึก...');
-    await enqueueCloudStateWrite(email, nextState, { strict: true });
+    if (typeof relationalReady !== 'undefined' && relationalReady) {
+      await persistRelationalState(nextState, { strict: true });
+    } else {
+      await enqueueCloudStateWrite(email, nextState, { strict: true });
+    }
     appState = nextState;
     saveStateLocalOnly(false);
     updateCloudStatus('online', 'บันทึกแล้ว');
