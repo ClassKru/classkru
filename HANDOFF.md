@@ -1,6 +1,6 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 23 สิงหาคม 2569
+> อัปเดตล่าสุด: 24 สิงหาคม 2569
 >
 > **คำสั่งเริ่มงานในแชทใหม่: `สานต่อ`**
 >
@@ -31,8 +31,8 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `383`
-- งานล่าสุด: ปรับถ้อยคำทั่วเว็บให้ครูทั่วไปเข้าใจการกระทำและผลลัพธ์ได้ทันที โดยตัดศัพท์ระบบ เช่น Cloud, sync, migration, grant, Preview และคำสั่งอังกฤษที่ไม่จำเป็นออก พร้อมคงชื่อชนิดไฟล์ Excel/PDF/QR ที่จำเป็นต่อการใช้งาน
+- Asset version ปัจจุบัน: `384`
+- งานล่าสุด: คงข้อมูล Cloud เป็น JSON เดิม แต่เปลี่ยนการบันทึกเป็น operation ระดับ field ผ่าน RPC พร้อม row lock, offline queue แยกบัญชี และ archive เฉพาะข้อมูลที่ลบ
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
 - ไฟล์ `BUSINESS_STRATEGY.md` เป็นงานของผู้ใช้ที่ยัง untracked ณ เวลาบันทึก ห้ามลบ แก้ หรือรวม commit โดยไม่ตรวจสอบขอบเขตงาน
 
@@ -90,23 +90,24 @@ git remote -v
 - ตัวเลขหลัง `/` ต้องแก้ไม่ได้และมาจาก `item.max` เท่านั้น
 - คะแนนเดิมของนักเรียนต้องมีสิทธิ์เหนือ default score
 - ห้ามใช้ `window.location.reload()` หลังบันทึก
-- คะแนนและเช็กชื่อใช้ Hybrid tables หลังติดตั้ง migration; JSON เดิมยังเป็น fallback/rollback
+- คะแนนและเช็กชื่อใช้ JSON patch RPC หลังติดตั้ง migration; ข้อมูลหลักยังเป็น JSON ก้อนเดิม
 
 ---
 
 ## 4. โครงสร้างข้อมูลและการบันทึก
 
-มี Hybrid persistence รุ่นใหม่ใน `js/relational-sync.js` และ migration
-`supabase/migrations/202608240001_relational_classkru.sql`:
+ระบบบันทึกแบบรายช่องอยู่ใน `js/json-patch-sync.js` และ migration
+`supabase/migrations/202608240002_json_patch_rpc.sql`:
 
-- เมื่อ schema ใหม่ยังไม่ติดตั้ง แอป fallback ไปใช้ `classmanager_profiles.state` เดิมโดยอัตโนมัติ
-- เมื่อติดตั้งแล้ว บัญชีจะย้าย JSON เดิมแบบ idempotent ตอน login และคง legacy row ไว้สำหรับ rollback
-- แยกเฉพาะ 6 ตารางที่เขียนบ่อย: classrooms, students, classroom_students, score_items, student_scores และ attendance_records
-- หลังย้าย `saveState()` ตรวจ diff และ upsert เฉพาะแถวที่เปลี่ยน; คะแนน/เช็กชื่อหนึ่งช่องไม่อัปโหลด JSON ทั้งก้อน
-- timetable, period settings, score config และข้อมูลที่เปลี่ยนน้อยยังอยู่ใน legacy JSON
-- การลบใช้ `deleted_at` และไม่ลบข้อมูลจริง
-- รายการที่ส่งไม่สำเร็จเก็บใน IndexedDB และ retry เมื่อกลับมาออนไลน์
-- ไม่มี audit history ใหม่ตามข้อกำหนดผู้ใช้; `scoreAuditHistory` เดิมยังอยู่ใน legacy JSON backup
+- ไม่มีตารางข้อมูลใหม่และไม่มีการย้าย JSON: แหล่งข้อมูลหลักยังเป็น `classmanager_profiles.state`
+- migration สร้างเฉพาะ RPC ที่รับ operation แบบ allowlist เช่น `set_score`, `set_attendance` และ `upsert_student`
+- RPC ตรวจ `auth.email()`, ล็อก profile ด้วย `FOR UPDATE` และแก้จาก state ล่าสุด จึงไม่ทับการแก้คนละช่องจากหลายอุปกรณ์
+- `saveState()` diff จาก snapshot ล่าสุดและส่งเฉพาะ logical cell ที่เปลี่ยน; การสร้าง entity ใหม่ส่งข้อมูลของ entity ใหม่นั้นเท่านั้น
+- คิว IndexedDB แยกตามบัญชีและส่งตามลำดับ; operation เก่าที่ล้มเหลวจะกัน operation ใหม่ไม่ให้แซง
+- การลบห้อง นักเรียน รายการคะแนน คะแนน หรือเช็กชื่อ จะเอาออกจากข้อมูล active และเก็บของเดิมใน `_deletedRecords`
+- ไม่มี audit history ของการแก้ไขทั่วไป
+- ถ้า RPC ยังไม่ถูกติดตั้ง แอป fallback ไปใช้ whole-document write เดิม; ถ้าตรวจ capability ไม่ได้ชั่วคราว แอปเก็บ local/queue และไม่เสี่ยงส่งทั้งก้อนทับ Cloud
+- migration ไม่เขียนข้อมูลเดิม จึง rollback ได้โดย deploy frontend ที่รองรับ legacy ก่อน แล้ว drop เฉพาะ 4 functions; JSON เดิมไม่ต้อง restore
 
 แอปเป็น Vanilla JavaScript + Supabase และเก็บ state หลักใน `classmanager_profiles.state`
 
@@ -130,7 +131,7 @@ student.id
 scores.marks[itemId][studentId]
 ```
 
-การเขียน Cloud ทุกจุดใช้คิวร่วม `enqueueCloudStateWrite()` ใน `js/shared-utils.js` เพื่อป้องกัน request เก่าเขียนทับ state ใหม่ ห้าม bypass คิวนี้เมื่อแก้ feature คะแนน
+หลังติดตั้ง RPC การเขียน Cloud ใช้ `persistJsonPatchState()`; `enqueueCloudStateWrite()` คงไว้เฉพาะ fallback ก่อนติดตั้ง RPC และการสร้าง profile ใหม่ ห้ามเขียน `classmanager_profiles.state` ทั้งก้อนจาก feature โดยตรง
 
 ---
 
@@ -163,8 +164,10 @@ Node.js:
 ```powershell
 $node = 'C:\Users\USER\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe'
 & $node --check js/qr-scores.js
+& $node --check js/json-patch-sync.js
 & $node tests/qr-scores.test.cjs
 & $node tests/cloud-write-queue.test.cjs
+& $node tests/json-patch-sync.test.cjs
 git diff --check
 ```
 

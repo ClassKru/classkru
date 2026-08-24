@@ -418,7 +418,9 @@ function initAppState() {
     if (savedTimetable !== JSON.stringify(appState.timetable)) saveStateLocalOnly(false);
   }
   else { initAppStateDefault(); }
-  if (typeof relationalClone === 'function') relationalBaseline = relationalClone(appState);
+  if (typeof initializeJsonPatchBaseline === 'function') {
+    initializeJsonPatchBaseline(appState, localStorage.getItem('classmanager_email'));
+  }
 }
 
 // ลบ record เช็คชื่อที่ว่างเปล่า (ไม่มีนักเรียนสักคน) — กันรายงานนับเป็น "คาบ 0%" ค้าง
@@ -483,10 +485,14 @@ let _cloudPushTimer = null;
 function saveState() {
   localStorage.removeItem('classkru_skip_sync');
   saveStateLocalOnly();
-  if (typeof relationalReady !== 'undefined' && relationalReady) {
-    const shouldSyncLegacy = typeof hybridLegacyChanged === 'function' && hybridLegacyChanged(relationalBaseline, appState);
-    persistRelationalState(appState);
-    if (!shouldSyncLegacy) return;
+  if (typeof jsonPatchMode !== 'undefined') {
+    if (jsonPatchMode === 'ready') {
+      persistJsonPatchState(appState);
+      return;
+    }
+    // While capability detection is temporarily unavailable, keep changes locally.
+    // A known legacy deployment may still use the old whole-document write below.
+    if (jsonPatchMode === 'unknown') return;
   }
   clearTimeout(_cloudPushTimer);
   _cloudPushTimer = setTimeout(() => {
@@ -501,14 +507,9 @@ async function syncBackgroundCloud(email) {
     updateCloudStatus('online', 'ล้างข้อมูลแล้ว');
     return;
   }
-  if (typeof trySyncRelationalState === 'function' && await trySyncRelationalState(email)) {
-    updateProfileImages();
-    navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard', pendingDeepLinkParam);
-    if (typeof refreshQrScoreSetupAfterCloudSync === 'function') refreshQrScoreSetupAfterCloudSync();
-    return;
-  }
   try {
     updateCloudStatus('syncing', 'กำลังตรวจข้อมูลล่าสุด...');
+    if (typeof detectJsonPatchMode === 'function') await detectJsonPatchMode(email);
     const { data, error } = await supabaseClient.from('classmanager_profiles').select('state').eq('email', email).single();
     if (error && error.code !== 'PGRST116') throw error;
     if (data && data.state) {
@@ -518,6 +519,7 @@ async function syncBackgroundCloud(email) {
       
       // Pull from cloud if it's newer, or if we have no classes locally but cloud does
       if (cloudModified > localModified || (cloudState.classes && cloudState.classes.length > 0 && appState.classes.length === 0)) {
+        if (typeof initializeJsonPatchBaseline === 'function') initializeJsonPatchBaseline(cloudState, email);
         appState = cloudState;
         appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
         const cloudTimetable = JSON.stringify(appState.timetable || []);
@@ -527,18 +529,29 @@ async function syncBackgroundCloud(email) {
         const timetableMigrated = cloudTimetable !== JSON.stringify(appState.timetable);
         if (timetableMigrated) appState.lastModified = Date.now();
         saveStateLocalOnly(false);
-        if (timetableMigrated) await pushStateToCloudDirectly(email, appState);
+        if (timetableMigrated) {
+          if (typeof jsonPatchMode !== 'undefined' && jsonPatchMode === 'ready') await persistJsonPatchState(appState);
+          else if (typeof jsonPatchMode === 'undefined' || jsonPatchMode === 'legacy') await pushStateToCloudDirectly(email, appState);
+        }
         updateProfileImages();
         // deep-link (LINE OA) ชนะ activeWebScreen ที่ค้างใน cloud — แต่ถ้าผู้ใช้เปลี่ยนหน้าเองแล้ว pendingDeepLink=null
         navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard', pendingDeepLinkParam);
       } else if (localModified > cloudModified) {
-        await pushStateToCloudDirectly(email, appState);
+        if (typeof jsonPatchMode !== 'undefined' && jsonPatchMode === 'ready') {
+          initializeJsonPatchBaseline(cloudState, email);
+          await persistJsonPatchState(appState);
+        } else if (typeof jsonPatchMode === 'undefined' || jsonPatchMode === 'legacy') {
+          await pushStateToCloudDirectly(email, appState);
+        }
+      } else if (typeof initializeJsonPatchBaseline === 'function') {
+        initializeJsonPatchBaseline(appState, email);
       }
     } else {
+      // Creating a brand-new profile is the only case that must seed the complete JSON document.
       await pushStateToCloudDirectly(email, appState);
+      if (typeof initializeJsonPatchBaseline === 'function') initializeJsonPatchBaseline(appState, email);
     }
     updateCloudStatus('online', 'ข้อมูลเป็นปัจจุบัน');
-    if (typeof migrateCurrentStateToRelational === 'function') await migrateCurrentStateToRelational();
   } catch (err) {
     console.warn('Cloud sync error:', err);
     updateCloudStatus('offline', 'ยังบันทึกออนไลน์ไม่ได้');
@@ -613,11 +626,6 @@ async function forcePullFromCloud() {
   localStorage.removeItem('classkru_skip_sync');
   try {
     updateCloudStatus('syncing', 'กำลังดึงข้อมูล...');
-    if (typeof trySyncRelationalState === 'function' && await trySyncRelationalState(email)) {
-      showToast('ดึงข้อมูลล่าสุดในบัญชีสำเร็จ! 🎉', 'success', 1500);
-      setTimeout(() => window.location.reload(), 1000);
-      return;
-    }
     const { data, error } = await supabaseClient.from('classmanager_profiles').select('state').eq('email', email).single();
     if (error && error.code !== 'PGRST116') throw error;
     if (data && data.state) {
@@ -651,34 +659,36 @@ function resetApplicationData() {
 }
 
 function deleteAllDataEverywhere() {
-  showConfirm('ข้อมูลทั้งหมดจะหายถาวร ทุกเครื่อง กู้คืนไม่ได้', async () => {
-    // Block sync immediately before any async work
-    localStorage.setItem('classkru_skip_sync', '1');
-    localStorage.removeItem(STORAGE_KEY);
+  showConfirm('ข้อมูลจะถูกนำออกจากหน้าครูทุกเครื่อง และเก็บสำเนาที่ลบไว้สำหรับการกู้คืน', async () => {
     const email = localStorage.getItem('classmanager_email');
-    if (email && supabaseClient) {
-      try {
-        if (typeof relationalReady !== 'undefined' && relationalReady) {
-          const emptyState = { ...appState, classes: [], timetable: [], lastModified: Date.now() };
-          await persistRelationalState(emptyState, { strict: true });
-          appState = emptyState;
-        }
-        // ล้างเนื้อข้อมูล legacy ก่อนเสมอ แล้วค่อยลองลบทั้งแถว
-        // (ถ้าไม่มี DELETE policy ใน RLS คำสั่ง delete จะถูกบล็อกแบบเงียบ — คืน 0 แถว ไม่คืน error
-        //  ถ้าไปเช็ค error แล้วค่อยล้าง แผนสำรองจะไม่ทำงาน แล้วข้อมูลจะถูกดึงกลับมาตอนซิงก์ครั้งถัดไป)
-        await supabaseClient.from('classmanager_profiles').upsert({
-          email,
-          state: { classes: [], timetable: [], lastModified: Date.now() },
-          updated_at: new Date().toISOString()
-        });
-        await supabaseClient.from('classmanager_profiles').delete().eq('email', email);
-      } catch (e) {
-        console.warn('Delete cloud error:', e);
+    if (!email || !supabaseClient) {
+      showToast('ยังเชื่อมต่อระบบไม่ได้ ข้อมูลจึงยังไม่ถูกลบ', 'error');
+      return;
+    }
+    try {
+      const emptyState = { ...appState, classes: [], timetable: [], lastModified: Date.now() };
+      if (typeof jsonPatchMode !== 'undefined' && jsonPatchMode === 'ready') {
+        await persistJsonPatchState(emptyState, { strict: true });
+      } else if (typeof jsonPatchMode === 'undefined' || jsonPatchMode === 'legacy') {
+        const deleted = Array.isArray(appState._deletedRecords) ? appState._deletedRecords.slice() : [];
+        (appState.classes || []).forEach(c => deleted.push({ type: 'class', deletedAt: new Date().toISOString(), classId: c.id, record: c }));
+        emptyState._deletedRecords = deleted;
+        await enqueueCloudStateWrite(email, emptyState, { strict: true });
+      } else {
+        throw new Error('ยังตรวจสอบระบบบันทึกแบบรายช่องไม่สำเร็จ');
       }
+      appState = emptyState;
+      localStorage.setItem('classkru_skip_sync', '1');
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn('Delete cloud error:', e);
+      updateCloudStatus('offline', 'ลบไม่สำเร็จ');
+      showToast('ลบข้อมูลไม่สำเร็จ ข้อมูลเดิมยังอยู่ กรุณาลองใหม่', 'error');
+      return;
     }
     showToast('ลบข้อมูลทั้งหมดแล้ว', 'success', 1200);
     setTimeout(() => window.location.reload(), 800);
-  }, { title: 'ลบข้อมูลทั้งหมด?', icon: '🗑️', okText: 'ลบถาวร' });
+  }, { title: 'นำข้อมูลทั้งหมดออก?', icon: '🗑️', okText: 'นำข้อมูลออก' });
 }
 
 // ==================== OCR SCAN IMPORT ====================

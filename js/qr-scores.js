@@ -752,10 +752,12 @@ async function persistQrScore(classId, itemId, studentId, rawScore) {
     clearTimeout(_cloudPushTimer);
     _cloudPushTimer = null;
     updateCloudStatus('syncing', 'กำลังบันทึก...');
-    if (typeof relationalReady !== 'undefined' && relationalReady) {
-      await persistRelationalState(nextState, { strict: true });
-    } else {
+    if (typeof jsonPatchMode !== 'undefined' && jsonPatchMode === 'ready') {
+      await persistJsonPatchState(nextState, { strict: true });
+    } else if (typeof jsonPatchMode === 'undefined' || jsonPatchMode === 'legacy') {
       await enqueueCloudStateWrite(email, nextState, { strict: true });
+    } else {
+      throw new Error('ยังตรวจสอบระบบบันทึกแบบรายช่องไม่สำเร็จ');
     }
     appState = nextState;
     saveStateLocalOnly(false);
