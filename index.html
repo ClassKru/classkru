@@ -313,7 +313,43 @@
             </a>
             <button class="ck-help-card" type="button" onclick="replayMainTour()">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-rocket-01"></i></span>
-              <span><strong>ดูทัวร์อีกครั้ง</strong><small>ให้ระบบพาทำทีละขั้นในหน้าจอจริง</small></span>
+              <span><strong>เริ่มต้นใช้งาน</strong><small>สร้างห้อง และรู้จักปุ่มลัดบนการ์ด</small></span>
+            </button>
+            <button class="ck-help-card" type="button" onclick="startGuide('dashboard')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-home-09"></i></span>
+              <span><strong>ทัวร์หน้าแรก</strong><small>ดูคาบถัดไป ตารางวันนี้ และภาพรวมเร็ว ๆ</small></span>
+            </button>
+            <button class="ck-help-card ck-help-card-primary" type="button" onclick="startGuide('add-student')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-user-add-01"></i></span>
+              <span><strong>พาเพิ่มนักเรียน</strong><small>เปิดฟอร์ม กรอกชื่อ และบันทึกรายชื่อแรก</small></span>
+            </button>
+            <button class="ck-help-card" type="button" onclick="startGuide('checkin')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-task-done-01"></i></span>
+              <span><strong>ทัวร์เช็คชื่อ</strong><small>แตะ ปัด หรือกดสถานะ มา/สาย/ขาด/ลา</small></span>
+            </button>
+            <button class="ck-help-card" type="button" onclick="startGuide('scores')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-award-01"></i></span>
+              <span><strong>ทัวร์คะแนน</strong><small>เพิ่มงาน เก็บคะแนน และดูตารางคะแนน</small></span>
+            </button>
+            <button class="ck-help-card" type="button" onclick="startGuide('timetable')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-calendar-03"></i></span>
+              <span><strong>ทัวร์ตารางสอน</strong><small>เพิ่มคาบ เพื่อให้หน้าแรกช่วยเตือน</small></span>
+            </button>
+            <button class="ck-help-card ck-help-card-primary" type="button" onclick="startGuide('add-period')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-calendar-add-01"></i></span>
+              <span><strong>พาเพิ่มคาบสอน</strong><small>เลือกวัน คาบ วิชา/ห้อง แล้วดูผลบนหน้าแรก</small></span>
+            </button>
+            <button class="ck-help-card" type="button" onclick="startGuide('reports')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-pie-chart"></i></span>
+              <span><strong>ทัวร์รายงาน</strong><small>ดูสรุปวันนี้ รายคาบ และส่งออกข้อมูล</small></span>
+            </button>
+            <button class="ck-help-card" type="button" onclick="startGuide('tools')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-magic-wand-01"></i></span>
+              <span><strong>ทัวร์เครื่องมือ</strong><small>เลือกห้องและเปิดเครื่องมือหน้าชั้นเรียน</small></span>
+            </button>
+            <button class="ck-help-card" type="button" onclick="startGuide('games')">
+              <span class="ck-help-icon"><i class="hgi-stroke hgi-rocket-01"></i></span>
+              <span><strong>ทัวร์เกม</strong><small>เลือกเกมตามหมวดและเริ่มกิจกรรม</small></span>
             </button>
             <button class="ck-help-card" type="button" onclick="openIssueReportForm('issue')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-alert-02"></i></span>
@@ -368,7 +404,7 @@
                 <div class="card-title ck-class-switch" id="web-students-detail-title" onclick="openClassSwitcher('students')" style="margin-bottom:0;min-width:0;font-size:1.25rem;"><i class="hgi-stroke hgi-user-multiple" style="color:var(--primary)"></i> <span class="hdr-title-text">จัดการรายชื่อนักเรียน</span></div>
                 <div class="students-hdr-actions mobile-only-flex" style="margin-left:auto;gap:6px;align-items:center;">
                   <button class="ck-hdr-btn ck-ic-blue" id="students-search-btn" onclick="toggleStudentsSearch()" aria-label="ค้นหานักเรียน"><i class="hgi-stroke hgi-search-01"></i></button>
-                  <button class="ck-hdr-btn ck-ic-gray" onclick="toggleStudentsActionMenu(event)" aria-label="จัดการรายชื่อนักเรียน" title="จัดการรายชื่อนักเรียน"><i class="hgi-stroke hgi-settings-01"></i></button>
+                  <button class="ck-hdr-btn ck-ic-gray" id="btn-students-actions-mobile" onclick="toggleStudentsActionMenu(event)" aria-label="จัดการรายชื่อนักเรียน" title="จัดการรายชื่อนักเรียน"><i class="hgi-stroke hgi-settings-01"></i></button>
                 </div>
               </div>
               <div class="students-head-controls" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -382,10 +418,10 @@
             <div class="students-action-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
               <div class="subtitle" id="web-students-count-label">พบ 0 คน</div>
               <div class="students-action-btns" style="display:flex;gap:8px;flex-wrap:wrap;">
-                <button class="btn" style="background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);" onclick="openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
+                <button class="btn" id="btn-add-student-roster" style="background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);" onclick="openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
                 <button class="btn desktop-only-flex" onclick="openStudentQrCardsFromRoster()"><i class="hgi-stroke hgi-qr-code"></i> พิมพ์ QR นักเรียน</button>
                 <button class="btn ck-checkin-activity-btn desktop-only-flex" onclick="openClassJoinActivity()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียนผ่านกิจกรรม</button>
-                <button class="btn desktop-only-flex" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
+                <button class="btn desktop-only-flex" id="btn-students-import-excel" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
                 <button class="btn btn-danger desktop-only-flex" onclick="deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i> ลบทั้งหมด</button>
                 <button class="ck-class-menu-btn mobile-only-flex" aria-label="จัดการรายชื่อนักเรียน" title="จัดการรายชื่อนักเรียน" style="align-items:center;" onclick="toggleStudentsActionMenu(event)"><i class="hgi-stroke hgi-settings-01"></i></button>
               </div>
@@ -845,20 +881,22 @@
   <div class="modal-overlay" id="modal-class" onclick="if(event.target===this) closeClassModal()">
     <div class="bottom-sheet">
       <div class="modal-header"><h3>เพิ่มวิชา/ห้องเรียน</h3><button class="btn btn-text" onclick="closeClassModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
-      <div class="form-group"><label for="input-subject-name">ชื่อวิชา</label><input type="text" id="input-subject-name" class="form-control" placeholder="เช่น วิทยาศาสตร์"></div>
-      <div class="form-group">
-        <label id="class-stage-label">ระดับการศึกษา</label>
-        <input type="hidden" id="input-class-stage" value="secondary">
-        <div class="ck-class-stage-tabs" role="radiogroup" aria-labelledby="class-stage-label">
-          <button type="button" class="ck-class-stage-tab" data-stage="primary" role="radio" aria-checked="false" onclick="selectClassStage('primary')"><span>ประถม</span></button>
-          <button type="button" class="ck-class-stage-tab active" data-stage="secondary" role="radio" aria-checked="true" onclick="selectClassStage('secondary')"><span>มัธยม</span></button>
+      <div id="class-form-guide-fields">
+        <div class="form-group"><label for="input-subject-name">ชื่อวิชา</label><input type="text" id="input-subject-name" class="form-control" placeholder="เช่น วิทยาศาสตร์"></div>
+        <div class="form-group">
+          <label id="class-stage-label">ระดับการศึกษา</label>
+          <input type="hidden" id="input-class-stage" value="secondary">
+          <div class="ck-class-stage-tabs" role="radiogroup" aria-labelledby="class-stage-label">
+            <button type="button" class="ck-class-stage-tab" data-stage="primary" role="radio" aria-checked="false" onclick="selectClassStage('primary')"><span>ประถม</span></button>
+            <button type="button" class="ck-class-stage-tab active" data-stage="secondary" role="radio" aria-checked="true" onclick="selectClassStage('secondary')"><span>มัธยม</span></button>
+          </div>
         </div>
+        <div class="form-group">
+          <label for="input-class-name">ชั้น / ห้อง</label>
+          <div class="ck-class-name-field"><span id="class-name-prefix">ม.</span><input type="text" id="input-class-name" class="form-control" inputmode="text" maxlength="4" placeholder="เช่น 1/2, 5/4, 6/4" oninput="formatClassroomNumberInput(this)" autocomplete="off"></div>
+        </div>
+        <div class="form-group"><label for="input-class-year">ปีการศึกษา</label><select id="input-class-year" class="form-control" style="appearance:auto;"></select></div>
       </div>
-      <div class="form-group">
-        <label for="input-class-name">ชั้น / ห้อง</label>
-        <div class="ck-class-name-field"><span id="class-name-prefix">ม.</span><input type="text" id="input-class-name" class="form-control" inputmode="text" maxlength="4" placeholder="เช่น 1/2, 5/4, 6/4" oninput="formatClassroomNumberInput(this)" autocomplete="off"></div>
-      </div>
-      <div class="form-group"><label for="input-class-year">ปีการศึกษา</label><select id="input-class-year" class="form-control" style="appearance:auto;"></select></div>
       <div class="form-group"><label>สีประจำห้อง</label><div id="class-color-picker" style="display:grid;grid-template-columns:repeat(15,1fr);gap:7px;width:100%;place-items:center;"></div></div>
       <div style="display:flex;gap:10px;margin-top:24px;"><button class="btn" onclick="closeClassModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="btn-class-submit" onclick="saveClass()" style="flex:2;">เพิ่มห้องเรียน</button></div>
     </div>
@@ -973,7 +1011,7 @@
     <div class="bottom-sheet" style="width:420px;max-width:95vw;text-align:center;">
       <img src="logo.png?v=2" class="welcome-hero" alt="ClassKru">
       <h3 style="font-size:1.35rem;font-weight:800;margin:0 0 8px;">ยินดีต้อนรับสู่ ClassKru 🎉</h3>
-      <p style="font-size:0.92rem;color:var(--text-muted);line-height:1.7;margin:0 0 8px;">มาลองตั้งค่าห้องแรกกันใน <b style="color:var(--text-main);">3 ขั้นง่ายๆ</b><br>ใช้เวลาไม่ถึง 2 นาที เดี๋ยวพาทำทีละขั้น</p>
+      <p style="font-size:0.92rem;color:var(--text-muted);line-height:1.7;margin:0 0 8px;">เริ่มจากห้องเรียนแรกกันใน <b style="color:var(--text-main);">ไม่กี่ขั้นสั้นๆ</b><br>ระบบจะพาไปรู้จักการ์ดห้องและปุ่มลัดที่ใช้บ่อย</p>
       <div style="background:var(--primary-light);border:1px solid var(--primary-light-border);border-radius:12px;padding:10px 14px;margin:12px 0 20px;font-size:0.82rem;color:var(--primary);font-weight:600;">
         <i class="hgi-stroke hgi-idea-01"></i> อยากเช็คชื่อเลย? ไม่ต้องทำตารางสอนก่อนก็ได้
       </div>
@@ -1049,7 +1087,7 @@
     <div style="display:flex;gap:10px;"><button class="btn" onclick="closeChangePasswordModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="cp-submit" onclick="submitChangePassword()" style="flex:2;"><i class="hgi-stroke hgi-tick-02"></i> บันทึกรหัสใหม่</button></div>
   </div></div>
 
-  <div class="modal-overlay" id="modal-period" onclick="if(event.target===this) closePeriodModal()"><div class="bottom-sheet period-editor-sheet"><div class="modal-header"><h3 id="modal-period-title">เพิ่มคาบเรียน</h3><button class="btn btn-text" onclick="closePeriodModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div class="desktop-only" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;" id="modal-period-info">วันจันทร์ · คาบ 5</div><div class="mobile-only period-mobile-fields"><div class="period-mobile-grid"><div class="form-group"><label for="input-period-mobile-day">วัน</label><select id="input-period-mobile-day" class="form-control" style="appearance:auto;" onchange="switchMobilePeriodSlot()"></select></div><div class="form-group"><label for="input-period-mobile-slot">คาบและเวลา</label><select id="input-period-mobile-slot" class="form-control" style="appearance:auto;" onchange="switchMobilePeriodSlot()"></select></div></div><div class="form-group"><label for="input-period-mobile-class">วิชาและห้องเรียน</label><select id="input-period-mobile-class" class="form-control period-mobile-class-select" style="appearance:auto;"></select><div class="period-mobile-help">เลือกครั้งเดียวได้ทั้งวิชาและห้อง</div></div></div><div class="desktop-only"><div class="form-group"><label for="input-period-subject">วิชา</label><select id="input-period-subject" class="form-control" style="appearance:auto;" onchange="filterPeriodClassBySubject()"><option value="">-- เลือก --</option></select></div><div class="form-group"><label for="input-period-class">ห้อง</label><select id="input-period-class" class="form-control" style="appearance:auto;"><option value="">-- เลือก --</option></select></div></div><div class="period-editor-actions"><button class="btn" onclick="closePeriodModal()">ยกเลิก</button><button class="btn btn-danger" id="btn-period-delete" onclick="deletePeriodSlot()" style="display:none;">ลบ</button><button class="btn btn-primary" onclick="savePeriodSlot()"><i class="hgi-stroke hgi-tick-02"></i> บันทึกคาบ</button></div></div></div>
+  <div class="modal-overlay" id="modal-period" onclick="if(event.target===this) closePeriodModal()"><div class="bottom-sheet period-editor-sheet"><div class="modal-header"><h3 id="modal-period-title">เพิ่มคาบเรียน</h3><button class="btn btn-text" onclick="closePeriodModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div class="desktop-only" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;" id="modal-period-info">วันจันทร์ · คาบ 5</div><div class="mobile-only period-mobile-fields"><div class="period-mobile-grid"><div class="form-group"><label for="input-period-mobile-day">วัน</label><select id="input-period-mobile-day" class="form-control" style="appearance:auto;" onchange="switchMobilePeriodSlot()"></select></div><div class="form-group"><label for="input-period-mobile-slot">คาบและเวลา</label><select id="input-period-mobile-slot" class="form-control" style="appearance:auto;" onchange="switchMobilePeriodSlot()"></select></div></div><div class="form-group"><label for="input-period-mobile-class">วิชาและห้องเรียน</label><select id="input-period-mobile-class" class="form-control period-mobile-class-select" style="appearance:auto;"></select><div class="period-mobile-help">เลือกครั้งเดียวได้ทั้งวิชาและห้อง</div></div></div><div class="desktop-only"><div class="form-group"><label for="input-period-subject">วิชา</label><select id="input-period-subject" class="form-control" style="appearance:auto;" onchange="filterPeriodClassBySubject()"><option value="">-- เลือก --</option></select></div><div class="form-group"><label for="input-period-class">ห้อง</label><select id="input-period-class" class="form-control" style="appearance:auto;"><option value="">-- เลือก --</option></select></div></div><div class="period-editor-actions"><button class="btn" onclick="closePeriodModal()">ยกเลิก</button><button class="btn btn-danger" id="btn-period-delete" onclick="deletePeriodSlot()" style="display:none;">ลบ</button><button class="btn btn-primary" id="btn-period-save" onclick="savePeriodSlot()"><i class="hgi-stroke hgi-tick-02"></i> บันทึกคาบ</button></div></div></div>
 
   <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:14px;background:var(--bg-light);border:1px solid var(--border-color);border-radius:12px;"><img id="student-detail-photo-preview" alt="" style="display:none;width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-light-border);"><div style="flex:1;min-width:0;"><div style="font-size:0.78rem;font-weight:700;color:var(--text-main);">รูปนักเรียน <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ · รุ่นทดลอง)</span></div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">ใช้เฉพาะรูปที่ได้รับอนุญาต และลบได้ทุกเมื่อ</div></div><button type="button" class="btn" style="padding:7px 10px;font-size:0.78rem;white-space:nowrap;" onclick="openStudentDetailPhoto(event)"><i class="hgi-stroke hgi-camera-01"></i> เพิ่มรูป</button><button type="button" id="student-detail-photo-remove" class="btn btn-text" style="display:none;padding:7px 8px;font-size:0.78rem;white-space:nowrap;color:var(--color-absent);" onclick="removeStudentDetailPhoto(event)"><i class="hgi-stroke hgi-delete-02"></i> ลบรูป</button><input id="student-detail-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleStudentDetailPhoto(event)"></div><!-- สถิติ มา/สาย/ขาด/ลา ถูกตัดออก — modal นี้ทำหน้าที่ "แก้ไขข้อมูลนักเรียน" อย่างเดียว
      การรายงานผลเข้าเรียนมีหน้าเฉพาะอยู่แล้ว (รายงานวิเคราะห์ผล + modal สรุปนักเรียน) --><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">

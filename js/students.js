@@ -176,6 +176,7 @@ function toggleStudentsActionMenu(ev) {
   document.body.appendChild(menu);
   menu.style.top = (r.bottom + window.scrollY + 6) + 'px';
   menu.style.left = (r.right + window.scrollX - menu.offsetWidth) + 'px';
+  notifyTourAction('student-menu-opened');
   setTimeout(() => document.addEventListener('click', closeClassMenuOnOutside), 0);
 }
 

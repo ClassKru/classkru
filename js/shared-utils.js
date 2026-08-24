@@ -26,6 +26,7 @@ function openClassModal(classId) {
   selectClassStage(classStageFromClass(selectedClass));
   renderClassColorPicker();
   document.getElementById('modal-class').classList.add('show');
+  if (!classId) notifyTourAction('class-modal-opened');
 }
 
 function renderClassColorPicker() {
@@ -73,7 +74,7 @@ function saveClass() {
   saveState();
   closeClassModal();
   renderWebClassrooms();
-  if (isNew) Tour.action('class-created');
+  if (isNew) notifyTourAction('class-created');
 }
 
 function openStudentModal(studentId) {
@@ -101,6 +102,7 @@ function openStudentModal(studentId) {
     if (btn) btn.innerText = 'เพิ่ม';
   }
   document.getElementById('modal-student').classList.add('show');
+  if (!studentId) notifyTourAction('student-modal-opened');
 }
 
 function closeStudentModal() { document.getElementById('modal-student').classList.remove('show'); }
@@ -125,7 +127,7 @@ function saveStudent() {
   closeStudentModal();
   renderWebStudents();
   refreshSwipeIfOpen();
-  if (!editingStudentId) Tour.action('student-added');
+  if (!editingStudentId) notifyTourAction('student-added');
 }
 
 function openPeriodModal(dow, period) {
@@ -153,6 +155,7 @@ function openPeriodModal(dow, period) {
   }
   if (typeof populateMobilePeriodEditor === 'function') populateMobilePeriodEditor(existing ? existing.classId : '');
   document.getElementById('modal-period').classList.add('show');
+  notifyTourAction('period-modal-opened');
 }
 
 function closePeriodModal() { document.getElementById('modal-period').classList.remove('show'); }
@@ -188,7 +191,7 @@ function savePeriodSlot() {
   renderWebTimetable();
   renderWebDashboard();
   showToast('บันทึกตารางสอนแล้ว หน้าหลักอัปเดตเรียบร้อย', 'success');
-  Tour.action('period-added');
+  notifyTourAction('period-added');
 }
 
 function deletePeriodSlot() {

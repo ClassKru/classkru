@@ -187,6 +187,11 @@ function navigateToWebScreen(screenId, param) {
   else if (screenId === 'reports') showWebClassReport(detailClassId);
   else if (screenId === 'tools') renderTeachingToolsPage();
   else if (screenId === 'help') renderHelpHub();
+
+  if (typeof maybeStartScreenGuide === 'function') {
+    maybeStartScreenGuide(screenId);
+  }
+  if (typeof Tour !== 'undefined' && Tour.active) setTimeout(() => Tour._place(), 80);
 }
 
 function openMobileMoreMenu() {

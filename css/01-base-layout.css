@@ -13,8 +13,14 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
 
 /* ===== Onboarding tour (coach marks) ===== */
 .tour-mask { position: fixed; background: rgba(17,24,39,0.58); z-index: 12000; transition: all 0.2s ease; }
-.tour-ring { position: fixed; z-index: 12001; border-radius: 12px; box-shadow: 0 0 0 3px var(--primary), 0 0 0 7px rgba(29,158,117,0.28); pointer-events: none; transition: all 0.2s ease; }
+.tour-ring { position: fixed; z-index: 12001; border: 3px solid var(--primary); border-radius: 14px; box-shadow: 0 0 0 5px rgba(255,255,255,0.86), 0 0 0 10px rgba(29,158,117,0.26), 0 18px 44px rgba(0,0,0,0.24); pointer-events: none; transition: all 0.2s ease; }
 .tour-bubble { position: fixed; z-index: 12002; width: 300px; max-width: calc(100vw - 24px); background: var(--bg-card); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.28); padding: 16px 18px; }
+.tour-action-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.tour-action-chips span { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 999px; background: var(--primary-light); color: var(--primary-deep); font-size: 0.78rem; font-weight: 800; }
+.tour-action-chips i { font-size: 0.9rem; }
+.tour-mini-checklist { display: grid; gap: 7px; margin-top: 10px; }
+.tour-mini-checklist span { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border: 1px solid var(--primary-light-border); border-radius: 12px; background: var(--primary-light); color: var(--text-main); font-size: 0.8rem; font-weight: 700; line-height: 1.45; }
+.tour-mini-checklist b { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex: 0 0 20px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 0.72rem; }
 .tour-fab { position: fixed; bottom: 90px; right: 20px; z-index: 900; width: 46px; height: 46px; border-radius: 50%; background: var(--primary); color: #fff; border: none; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; box-shadow: 0 4px 14px rgba(0,0,0,0.2); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
 @media (min-width: 769px) { .tour-fab { bottom: 24px; right: 24px; } }
 .tour-fab:hover { animation: fab-bounce 0.7s ease infinite; box-shadow: 0 8px 22px rgba(29,158,117,0.4); }
@@ -716,6 +722,8 @@ body.ck-one-class .ck-class-switch::after { display: none; }
 }
 .ck-help-card:hover { border-color: var(--primary-light-border); box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .ck-help-card:active { transform: scale(0.98); }
+.ck-help-card-primary { border-color: var(--primary-light-border); background: linear-gradient(135deg, var(--primary-light), var(--bg-card)); }
+.ck-help-card-primary .ck-help-icon { color: var(--primary); background: var(--bg-card); }
 .ck-help-card.is-pending { cursor: default; }
 .ck-help-card.is-pending:hover { border-color: var(--border-color); box-shadow: var(--shadow-sm); transform: none; }
 .ck-help-icon {

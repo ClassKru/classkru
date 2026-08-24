@@ -35,6 +35,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - งานล่าสุด: QR ประจำตัวนักเรียนเปลี่ยนเป็น `CKSTU:<studentCode>` ใช้หนึ่งใบข้ามวิชา/ปี; Production version 388 ตรวจ marker ตัวสร้างใหม่และตัวกันรหัสซ้ำแล้ว
 - Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
 - Supabase Production ใช้ migration ครบถึง `202608260002`; ตรวจ ACL allowlist, JSON เดิม 12 แถว และ smoke test แบบ rollback ผ่านแล้ว
+- งานไกด์ล่าสุด: ต่อระบบไกด์/ทัวร์ในแอป ให้เปิดจากศูนย์ช่วยเหลือได้หลายหมวด และมีไกด์แบบพาทำสำหรับสร้างห้อง เพิ่มนักเรียน เพิ่มคาบสอน เช็คชื่อ คะแนน รายงาน เครื่องมือ และเกม
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
 - ไฟล์ `BUSINESS_STRATEGY.md` เป็นงานของผู้ใช้ที่ยัง untracked ณ เวลาบันทึก ห้ามลบ แก้ หรือรวม commit โดยไม่ตรวจสอบขอบเขตงาน
 
@@ -256,3 +257,34 @@ git branch -f main HEAD
 - syntax, carousel regression, QR score และ cloud write queue tests ผ่าน
 - ตรวจ Production ด้วย viewport มือถือ 390×844 แล้ว: การ์ดนักเรียน แถบเลื่อน และปุ่มสถานะไม่ทับกัน
 - เลื่อนจากคนที่ 1 ไปคนที่ 20 ได้แบบ real time ขณะที่ยอดยังเป็น `เช็คแล้ว 0 / 40` ยืนยันว่าการเลื่อนไม่บันทึกสถานะ
+- in-app Browser บล็อก localhost (`ERR_BLOCKED_BY_CLIENT`) จึงยังไม่ได้ยืนยัน visual layout ด้วย screenshot จริงบนเครื่องมือถือ
+
+---
+
+## 9. Feature ล่าสุด — ระบบไกด์/ทัวร์ในแอป
+
+ไฟล์หลัก:
+
+- `js/extras.js` — Tour engine, guide steps, auto-start per screen และ helper `notifyTourAction()`
+- `css/01-base-layout.css` — mask/ring/bubble, action chips, mini checklist และการ์ด help แบบ primary
+- `index.html` — ปุ่มไกด์ในศูนย์ช่วยเหลือ, id ของปุ่ม/ฟอร์มที่ไกด์ใช้ highlight, modal class/period/student
+- `js/shared-utils.js` — action hooks ตอนเปิด modal และบันทึกห้อง/นักเรียน/คาบ
+- `js/classrooms.js`, `js/students.js`, `js/attendance.js`, `js/shell.js` — action hooks และ auto-start guide เมื่อเข้าหน้าจอ
+
+พฤติกรรมปัจจุบัน:
+
+1. ศูนย์ช่วยเหลือมีปุ่มทัวร์แยกหมวด: เริ่มต้นใช้งาน, หน้าแรก, เพิ่มนักเรียน, เช็คชื่อ, คะแนน, ตารางสอน, เพิ่มคาบสอน, รายงาน, เครื่องมือ และเกม
+2. ทัวร์เริ่มต้นเดิมถูกเปลี่ยนให้ใช้ `startGuide('classrooms')` และยังปิด onboarding ด้วย `finishOnboarding()` เหมือนเดิม
+3. Tour engine รองรับ `skipIf`, `blockTarget`, `waitForActionOnly`, `allowInteraction`, `noMask`, `bubble:false` และเลือก selector ตัวที่มองเห็นจริง
+4. ขั้นที่ต้องให้ครูทำจริงเดินต่อผ่าน action เช่น `class-modal-opened`, `class-created`, `students-opened`, `student-modal-opened`, `student-added`, `period-modal-opened`, `period-added`
+5. มี `notifyTourAction()` กัน hook ในไฟล์อื่นพังถ้า Tour ยังไม่พร้อมในบางบริบททดสอบ
+6. เมื่อเปิดหน้าจอสำคัญครั้งแรก ระบบเรียก `maybeStartScreenGuide()` เพื่อเปิดไกด์อัตโนมัติถ้าไม่เคยเห็นและมีข้อมูลพร้อม
+7. ถ้าไม่มีห้อง ระบบพากลับไปสร้างห้องก่อน; ถ้าไม่มีนักเรียนและเปิดไกด์คะแนน/รายงานด้วยมือ ระบบพาไปไกด์เพิ่มนักเรียนก่อน
+8. `students` ถูกเพิ่มใน guide screen map แล้ว เพื่อให้ auto-guide ของหน้ารายชื่อนักเรียนไม่หายเงียบ
+9. Asset cache version ถูก bump เป็น `382` ผ่าน `./bump-version.sh` ครอบทุก HTML ที่มี JS/CSS query version
+
+ข้อจำกัดการตรวจครั้งล่าสุด:
+
+- `node --check js/*.js`, `tests/attendance-carousel.test.cjs`, `tests/qr-scores.test.cjs`, `tests/cloud-write-queue.test.cjs` และ `git diff --check` ผ่าน
+- เปิด local server แบบ bind `127.0.0.1:4174` แล้ว asset หลักทั้งหมดโหลด `200` และ browser console ไม่มี error ตอนหน้า login
+- ยังไม่ได้คลิก flow ไกด์หลังล็อกอินจริง เพราะ browser session อยู่ที่ login overlay และไม่มีการกรอกบัญชีในงานนี้
