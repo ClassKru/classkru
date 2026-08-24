@@ -31,7 +31,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `380`
+- Asset version ปัจจุบัน: `382`
 - งานล่าสุด: ปรับถ้อยคำทั่วเว็บให้ครูทั่วไปเข้าใจการกระทำและผลลัพธ์ได้ทันที โดยตัดศัพท์ระบบ เช่น Cloud, sync, migration, grant, Preview และคำสั่งอังกฤษที่ไม่จำเป็นออก พร้อมคงชื่อชนิดไฟล์ Excel/PDF/QR ที่จำเป็นต่อการใช้งาน
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
 - ไฟล์ `BUSINESS_STRATEGY.md` เป็นงานของผู้ใช้ที่ยัง untracked ณ เวลาบันทึก ห้ามลบ แก้ หรือรวม commit โดยไม่ตรวจสอบขอบเขตงาน
@@ -95,6 +95,15 @@ git remote -v
 ---
 
 ## 4. โครงสร้างข้อมูลและการบันทึก
+
+มี relational persistence รุ่นใหม่ใน `js/relational-sync.js` และ migration
+`supabase/migrations/202608240001_relational_classkru.sql`:
+
+- เมื่อ schema ใหม่ยังไม่ติดตั้ง แอป fallback ไปใช้ `classmanager_profiles.state` เดิมโดยอัตโนมัติ
+- เมื่อติดตั้งแล้ว บัญชีจะย้าย JSON เดิมแบบ idempotent ตอน login และคง legacy row ไว้สำหรับ rollback
+- หลังย้าย `saveState()` ตรวจ diff และ upsert เฉพาะแถวที่เปลี่ยน; การลบใช้ `deleted_at`
+- รายการที่ส่งไม่สำเร็จเก็บใน IndexedDB และ retry เมื่อกลับมาออนไลน์
+- ไม่มี audit history ใหม่ตามข้อกำหนดผู้ใช้; `scoreAuditHistory` เดิมยังอยู่ใน legacy JSON backup
 
 แอปเป็น Vanilla JavaScript + Supabase และเก็บ state หลักใน `classmanager_profiles.state`
 
