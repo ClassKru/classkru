@@ -144,11 +144,13 @@ context.supabaseClient = { from: () => ({ upsert: async () => ({ error: null }) 
   const result = await run("persistQrScore('c-a','work-1','s-a',8)");
   assert.equal(result.success, true);
   assert.equal(run("appState.classes[0].scores.marks['work-1']['s-a']"), 8);
-  assert.equal(run("appState.scoreAuditHistory"), undefined, 'score changes do not create an unbounded audit history');
+  assert.equal(run("appState.scoreAuditHistory[0].old_score"), null);
+  assert.equal(run("appState.scoreAuditHistory[0].new_score"), 8);
 
   const updated = await run("persistQrScore('c-a','work-1','s-a',9)");
   assert.equal(updated.success, true);
   assert.equal(updated.old_score, 8);
+  assert.equal(run("appState.scoreAuditHistory[1].old_score"), 8);
   assert.equal(run("appState.classes[0].scores.marks['work-1']['s-a']"), 9);
 
   context.supabaseClient = { from: () => ({ upsert: async () => ({ error: new Error('database unavailable') }) }) };

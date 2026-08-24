@@ -418,7 +418,6 @@ function initAppState() {
     if (savedTimetable !== JSON.stringify(appState.timetable)) saveStateLocalOnly(false);
   }
   else { initAppStateDefault(); }
-  if (typeof relationalClone === 'function') relationalBaseline = relationalClone(appState);
 }
 
 // ลบ record เช็คชื่อที่ว่างเปล่า (ไม่มีนักเรียนสักคน) — กันรายงานนับเป็น "คาบ 0%" ค้าง
@@ -483,10 +482,6 @@ let _cloudPushTimer = null;
 function saveState() {
   localStorage.removeItem('classkru_skip_sync');
   saveStateLocalOnly();
-  if (typeof relationalReady !== 'undefined' && relationalReady) {
-    persistRelationalState(appState);
-    return;
-  }
   clearTimeout(_cloudPushTimer);
   _cloudPushTimer = setTimeout(() => {
     const email = localStorage.getItem('classmanager_email');
@@ -498,12 +493,6 @@ async function syncBackgroundCloud(email) {
   if (!supabaseClient) { updateCloudStatus('offline', 'ยังบันทึกออนไลน์ไม่ได้'); return; }
   if (localStorage.getItem('classkru_skip_sync')) {
     updateCloudStatus('online', 'ล้างข้อมูลแล้ว');
-    return;
-  }
-  if (typeof trySyncRelationalState === 'function' && await trySyncRelationalState()) {
-    updateProfileImages();
-    navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard', pendingDeepLinkParam);
-    if (typeof refreshQrScoreSetupAfterCloudSync === 'function') refreshQrScoreSetupAfterCloudSync();
     return;
   }
   try {
@@ -537,7 +526,6 @@ async function syncBackgroundCloud(email) {
       await pushStateToCloudDirectly(email, appState);
     }
     updateCloudStatus('online', 'ข้อมูลเป็นปัจจุบัน');
-    if (typeof migrateCurrentStateToRelational === 'function') await migrateCurrentStateToRelational();
   } catch (err) {
     console.warn('Cloud sync error:', err);
     updateCloudStatus('offline', 'ยังบันทึกออนไลน์ไม่ได้');
@@ -612,11 +600,6 @@ async function forcePullFromCloud() {
   localStorage.removeItem('classkru_skip_sync');
   try {
     updateCloudStatus('syncing', 'กำลังดึงข้อมูล...');
-    if (typeof trySyncRelationalState === 'function' && await trySyncRelationalState()) {
-      showToast('ดึงข้อมูลล่าสุดในบัญชีสำเร็จ! 🎉', 'success', 1500);
-      setTimeout(() => window.location.reload(), 1000);
-      return;
-    }
     const { data, error } = await supabaseClient.from('classmanager_profiles').select('state').eq('email', email).single();
     if (error && error.code !== 'PGRST116') throw error;
     if (data && data.state) {
@@ -657,12 +640,7 @@ function deleteAllDataEverywhere() {
     const email = localStorage.getItem('classmanager_email');
     if (email && supabaseClient) {
       try {
-        if (typeof relationalReady !== 'undefined' && relationalReady) {
-          const emptyState = { ...appState, classes: [], timetable: [], lastModified: Date.now() };
-          await persistRelationalState(emptyState, { strict: true });
-          appState = emptyState;
-        }
-        // ล้างเนื้อข้อมูล legacy ก่อนเสมอ แล้วค่อยลองลบทั้งแถว
+        // ล้างเนื้อข้อมูลก่อนเสมอ แล้วค่อยลองลบทั้งแถว
         // (ถ้าไม่มี DELETE policy ใน RLS คำสั่ง delete จะถูกบล็อกแบบเงียบ — คืน 0 แถว ไม่คืน error
         //  ถ้าไปเช็ค error แล้วค่อยล้าง แผนสำรองจะไม่ทำงาน แล้วข้อมูลจะถูกดึงกลับมาตอนซิงก์ครั้งถัดไป)
         await supabaseClient.from('classmanager_profiles').upsert({
