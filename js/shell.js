@@ -96,6 +96,8 @@ window.addEventListener('hashchange', () => {
 
 // ==================== NAVIGATION ====================
 function navigateToWebScreen(screenId, param) {
+  closeMobileMoreMenu();
+
   // เมนู 'excel' ถูกตัดออกแล้ว (นำเข้าตารางสอนย้ายไปหน้าตารางสอน) — กัน state เก่าที่ค้าง
   if (screenId === 'excel') screenId = 'timetable';
 
@@ -186,6 +188,18 @@ function navigateToWebScreen(screenId, param) {
   else if (screenId === 'tools') renderTeachingToolsPage();
   else if (screenId === 'help') renderHelpHub();
 }
+
+function openMobileMoreMenu() {
+  document.getElementById('mobile-more-menu')?.classList.add('show');
+}
+
+function closeMobileMoreMenu() {
+  document.getElementById('mobile-more-menu')?.classList.remove('show');
+}
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeMobileMoreMenu();
+});
 
 function openHelpLine(topic) {
   const message = encodeURIComponent(`#${topic}`);

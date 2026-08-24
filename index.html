@@ -648,10 +648,24 @@
       <button class="mob-nav-btn checkin-btn" data-screen="checkin" onclick="mobileCheckinTap()"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
       <button class="mob-nav-btn qr-score-mobile-nav" onclick="openQrScoreScanner()"><i class="hgi-stroke hgi-qr-code"></i><span>QR คะแนน</span></button>
       <button class="mob-nav-btn" data-screen="classrooms students scores reports" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>ห้องเรียน</span></button>
-      <button class="mob-nav-btn" data-screen="tools" onclick="navigateToWebScreen('tools')"><i class="hgi-stroke hgi-magic-wand-01"></i><span>เครื่องมือ</span></button>
-      <button class="mob-nav-btn" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกม</span></button>
-      <button class="mob-nav-btn" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่า</span></button>
+      <button class="mob-nav-btn mobile-more-nav" data-screen="tools games settings help" onclick="openMobileMoreMenu()"><i class="hgi-stroke hgi-menu-01"></i><span>เพิ่มเติม</span></button>
     </nav>
+
+    <div class="modal-overlay mobile-more-overlay" id="mobile-more-menu" onclick="if(event.target===this) closeMobileMoreMenu()">
+      <div class="bottom-sheet mobile-more-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-more-title">
+        <div class="mobile-more-grip" aria-hidden="true"></div>
+        <div class="mobile-more-head">
+          <h3 id="mobile-more-title">เพิ่มเติม</h3>
+          <button class="mobile-more-close" type="button" onclick="closeMobileMoreMenu()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
+        </div>
+        <div class="mobile-more-grid">
+          <button class="mobile-more-item" type="button" onclick="closeMobileMoreMenu();navigateToWebScreen('tools')"><i class="hgi-stroke hgi-magic-wand-01"></i><span>เครื่องมือ</span></button>
+          <button class="mobile-more-item" type="button" onclick="closeMobileMoreMenu();navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกม</span></button>
+          <button class="mobile-more-item" type="button" onclick="closeMobileMoreMenu();navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่า</span></button>
+          <button class="mobile-more-item" type="button" onclick="closeMobileMoreMenu();navigateToWebScreen('help')"><i class="hgi-stroke hgi-customer-service-01"></i><span>ช่วยเหลือ</span></button>
+        </div>
+      </div>
+    </div>
 
     <!-- ปุ่มคู่มือการใช้งาน (เล่นทัวร์สอนใช้งานซ้ำได้ทุกเมื่อ) -->
     <button class="tour-fab" onclick="navigateToWebScreen('help')" aria-label="เปิดศูนย์ช่วยเหลือ" title="ศูนย์ช่วยเหลือ"><i class="hgi-stroke hgi-help-circle"></i></button>
