@@ -33,7 +33,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
 - Asset version ปัจจุบัน: `387`
 - งานล่าสุด: เปลี่ยน Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
-- Supabase Production ใช้ migration ครบถึง `202608260001`; migration `202608260002` จำกัด RPC แบบ allowlist และต้อง deploy พร้อมตรวจ smoke test ก่อนอัปเดตสถานะนี้
+- Supabase Production ใช้ migration ครบถึง `202608260002`; ตรวจ ACL allowlist, JSON เดิม 12 แถว และ smoke test แบบ rollback ผ่านแล้ว
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
 - ไฟล์ `BUSINESS_STRATEGY.md` เป็นงานของผู้ใช้ที่ยัง untracked ณ เวลาบันทึก ห้ามลบ แก้ หรือรวม commit โดยไม่ตรวจสอบขอบเขตงาน
 
