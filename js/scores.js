@@ -1067,9 +1067,9 @@ function finishMobileScoreSlide(state, shouldSave) {
   if (state.active) {
     state.handle.dataset.slideSuppressUntil = String(Date.now() + 500);
     if (shouldSave && state.changed) {
-      state.input.dispatchEvent(new Event('change', { bubbles: true }));
-      state.control.classList.add('is-slide-saved');
-      setTimeout(() => state.control.classList.remove('is-slide-saved'), 420);
+      requestMobileScoreSave(state.input);
+    } else if (state.changed) {
+      restoreMobileScoreInput(state.input);
     }
     try { state.handle.releasePointerCapture(state.pointerId); } catch (_) {}
   }
@@ -1124,7 +1124,7 @@ function bindMobileScoreSlide() {
   });
   document.addEventListener('pointercancel', event => {
     const state = mscSlideGesture;
-    if (state && event.pointerId === state.pointerId) finishMobileScoreSlide(state, state.active);
+    if (state && event.pointerId === state.pointerId) finishMobileScoreSlide(state, false);
   });
   document.addEventListener('contextmenu', event => {
     if (event.target.closest && event.target.closest('.msc-slide-handle')) event.preventDefault();
@@ -1136,6 +1136,44 @@ function bindMobileScoreSlide() {
       event.stopPropagation();
     }
   }, true);
+}
+
+function restoreMobileScoreInput(input) {
+  if (!input) return;
+  input.value = input.dataset.committedValue || '';
+}
+
+function requestMobileScoreSave(input) {
+  if (!input) return;
+  const previous = input.dataset.committedValue || '';
+  const next = clampMark(input.value, Number(input.max));
+  input.value = next;
+  if (String(next) === previous) return;
+
+  const itemName = input.dataset.itemName || 'รายการนี้';
+  const displayPrevious = previous === '' ? 'ยังไม่กรอก' : previous;
+  const displayNext = next === '' ? 'ล้างคะแนน' : `${next} คะแนน`;
+  showConfirm(
+    `เปลี่ยน “${escapeScore(itemName)}” จาก ${displayPrevious} เป็น ${displayNext}?`,
+    () => {
+      setScoreMark(input.dataset.classId, input.dataset.itemId, input.dataset.studentId, input);
+      input.dataset.committedValue = input.value;
+      refreshMobileScoreSummary(input.dataset.classId, input.dataset.studentId);
+      const control = input.closest('.msc-score-control');
+      if (control) {
+        control.classList.add('is-slide-saved');
+        setTimeout(() => control.classList.remove('is-slide-saved'), 420);
+      }
+      showToast('บันทึกคะแนนแล้ว', 'success', 1500);
+    },
+    {
+      title: 'ยืนยันการบันทึกคะแนน',
+      icon: '✓',
+      okText: 'ยืนยันบันทึก',
+      okSafe: true,
+      onCancel: () => restoreMobileScoreInput(input)
+    }
+  );
 }
 
 function renderMobileScores(c) {
@@ -1228,7 +1266,8 @@ function renderMobileStudentPanel(c, sid) {
           <span class="msc-box">
             <input type="number" class="msc-in" value="${v}" min="0" max="${it.max}" step="0.5" inputmode="decimal" placeholder="–"
               data-class-id="${escapeScoreAttr(c.id)}" data-item-id="${escapeScoreAttr(it.id)}" data-student-id="${escapeScoreAttr(sid)}"
-              onchange="setScoreMark('${c.id}','${it.id}','${sid}',this);refreshMobileScoreSummary('${c.id}','${sid}')">
+              data-item-name="${escapeScoreAttr(it.name)}" data-committed-value="${v}"
+              onchange="requestMobileScoreSave(this)">
             <span class="msc-slash">/ ${it.max}</span>
           </span>
           <button type="button" class="msc-slide-handle" aria-label="ลากขึ้นเพื่อเพิ่มคะแนน ลากลงเพื่อลดคะแนน">
@@ -1251,7 +1290,7 @@ function renderMobileStudentPanel(c, sid) {
       <div class="msc-shead-txt"><div class="msc-sname">${escapeScore(s.name)}</div></div>
     </div>
     <div class="msc-summary" id="msc-summary">${mobileScoreSummaryHtml(c, sid)}</div>
-    <div class="msc-gesture-hint"><i class="hgi-stroke hgi-tap-02"></i><span><b>ปรับคะแนนแบบเร็ว</b> ลากแถบด้านขวาขึ้นเพื่อเพิ่ม · ลากลงเพื่อลด · ปล่อยเพื่อบันทึก ไม่ต้องกดค้าง</span></div>
+    <div class="msc-gesture-hint"><i class="hgi-stroke hgi-tap-02"></i><span><b>ปรับคะแนนแบบเร็ว</b> ลากแถบด้านขวาขึ้นเพื่อเพิ่ม · ลากลงเพื่อลด · จากนั้นกดยืนยันการบันทึก</span></div>
     ${buckets}
     ${mobileStudentNavHtml(c, idx)}
   </div>`;

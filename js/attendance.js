@@ -1234,7 +1234,7 @@ function showToast(msg, type = 'success', duration = 2200) {
   }, duration);
 }
 
-function showConfirm(msg, onOk, { title = 'ยืนยัน', icon = '🗑️', okText = 'ยืนยัน', okSafe = false } = {}) {
+function showConfirm(msg, onOk, { title = 'ยืนยัน', icon = '🗑️', okText = 'ยืนยัน', okSafe = false, onCancel = null } = {}) {
   const overlay = document.createElement('div');
   overlay.className = 'ck-confirm-overlay';
   overlay.innerHTML = `
@@ -1248,8 +1248,13 @@ function showConfirm(msg, onOk, { title = 'ยืนยัน', icon = '🗑️'
       </div>
     </div>`;
   document.body.appendChild(overlay);
+  const cancel = () => {
+    overlay.remove();
+    if (typeof onCancel === 'function') onCancel();
+  };
+  overlay.querySelector('.ck-confirm-btns button').onclick = cancel;
   overlay.querySelector('#ck-ok-btn').onclick = () => { overlay.remove(); onOk(); };
-  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  overlay.addEventListener('click', e => { if (e.target === overlay) cancel(); });
 }
 
 function showSaveToast() {

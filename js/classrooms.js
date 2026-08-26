@@ -207,7 +207,7 @@ function renderWebClassrooms() {
       <div class="ck-class-actions">
         <button onclick="event.stopPropagation();switchClassTab('scores','${c.id}')"><i class="hgi-stroke hgi-award-01"></i><span>คะแนน</span></button>
         <button onclick="event.stopPropagation();switchClassTab('checkin','${c.id}')"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
-        <button onclick="event.stopPropagation();manageStudentsFromCard('${c.id}')"><i class="hgi-stroke hgi-user-multiple"></i><span>รายชื่อนักเรียน</span></button>
+        <button onclick="event.stopPropagation();manageStudentsFromCard('${c.id}')"><i class="hgi-stroke hgi-user-multiple"></i><span>รายชื่อ</span></button>
         <button onclick="event.stopPropagation();switchClassTab('reports','${c.id}')"><i class="hgi-stroke hgi-pie-chart"></i><span>การเข้าเรียน</span></button>
       </div>`;
     container.appendChild(card);
