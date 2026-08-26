@@ -33,7 +33,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
 - Asset version ปัจจุบัน: `387`
 - งานล่าสุด: เปลี่ยน Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
-- Supabase Production ใช้ migration ครบถึง `202608260001`; ตรวจหลัง deploy แล้วว่า JSON เดิมยังครบ 12 แถว, 8 ตารางเปิด/บังคับ RLS และ smoke test แบบ rollback ผ่าน
+- Supabase Production ใช้ migration ครบถึง `202608260001`; migration `202608260002` จำกัด RPC แบบ allowlist และต้อง deploy พร้อมตรวจ smoke test ก่อนอัปเดตสถานะนี้
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
 - ไฟล์ `BUSINESS_STRATEGY.md` เป็นงานของผู้ใช้ที่ยัง untracked ณ เวลาบันทึก ห้ามลบ แก้ หรือรวม commit โดยไม่ตรวจสอบขอบเขตงาน
 
@@ -110,6 +110,7 @@ git remote -v
 - ถ้า 8 ตารางยังไม่ถูกติดตั้ง แอป fallback ไปใช้ `classmanager_profiles.state`; ถ้าเคยตรวจพบตารางแล้วแต่เน็ตขาด แอปเก็บ local/queue และจะไม่ fallback ไปเขียน JSON ทั้งก้อน
 - RLS ถูก enable + force ทุกตาราง และทุก policy ผูก `teacher_id = auth.uid()`; anon ไม่มีสิทธิ์ตารางเหล่านี้
 - `supabase/tests/relational_rls_smoke.sql` ทดสอบ INSERT/UPDATE รายแถว, FK, soft delete, cross-tenant denial และ physical DELETE denial ภายใน transaction ที่ rollback เสมอ
+- migration `202608260002_function_execute_hardening.sql` revoke สิทธิ์ EXECUTE เริ่มต้นจาก `PUBLIC` แล้ว grant เฉพาะ RPC ที่ครูหรือ QR นักเรียนต้องใช้
 
 แอปเป็น Vanilla JavaScript + Supabase ใช้ localStorage เป็น working copy และใช้ 8 ตารางเป็น Cloud canonical state
 

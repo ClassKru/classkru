@@ -4,10 +4,44 @@
 begin;
 
 do $$
+declare
+  v_function regprocedure;
 begin
   if (select count(*) from public.teacher_profiles where deleted_at is null) < 2 then
     raise exception 'RLS smoke test requires at least two active teacher profiles';
   end if;
+
+  foreach v_function in array array[
+    'public.join_activity_create_session(text,text,text,text,text,jsonb,text)'::regprocedure,
+    'public.join_activity_update_session(text,text,text,jsonb)'::regprocedure,
+    'public.join_activity_set_phase(text,text)'::regprocedure,
+    'public.join_activity_teacher_snapshot(text)'::regprocedure,
+    'public.attendance_qr_create_session(text,text,text,text,text,jsonb)'::regprocedure,
+    'public.attendance_qr_teacher_snapshot(text)'::regprocedure,
+    'public.attendance_qr_close_session(text)'::regprocedure
+  ] loop
+    if has_function_privilege('anon', v_function, 'execute') then
+      raise exception 'anon can execute teacher-only RPC %', v_function;
+    end if;
+    if not has_function_privilege('authenticated', v_function, 'execute') then
+      raise exception 'authenticated cannot execute teacher RPC %', v_function;
+    end if;
+  end loop;
+
+  foreach v_function in array array[
+    'public.join_activity_get_session(text)'::regprocedure,
+    'public.join_activity_register(text,text,text,text,text,text,text)'::regprocedure,
+    'public.join_activity_submit_answer(text,uuid,text,text)'::regprocedure,
+    'public.attendance_qr_get_session(text)'::regprocedure,
+    'public.attendance_qr_mark_present(text,text,text)'::regprocedure
+  ] loop
+    if not has_function_privilege('anon', v_function, 'execute') then
+      raise exception 'anon cannot execute student QR RPC %', v_function;
+    end if;
+    if not has_function_privilege('authenticated', v_function, 'execute') then
+      raise exception 'authenticated cannot execute student QR RPC %', v_function;
+    end if;
+  end loop;
 end;
 $$;
 
