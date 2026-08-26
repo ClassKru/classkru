@@ -14,6 +14,12 @@ create table if not exists public.issue_reports (
   updated_at timestamptz not null default now()
 );
 
+-- Some production projects created issue_reports before the category field was
+-- introduced. Add it before creating the category index so this migration is
+-- safe to apply to both fresh and existing schemas.
+alter table public.issue_reports
+add column if not exists category text not null default 'issue';
+
 create index if not exists issue_reports_created_at_idx on public.issue_reports (created_at desc);
 create index if not exists issue_reports_status_idx on public.issue_reports (status);
 create index if not exists issue_reports_category_idx on public.issue_reports (category);
