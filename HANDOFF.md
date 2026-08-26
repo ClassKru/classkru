@@ -1,6 +1,6 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 24 สิงหาคม 2569
+> อัปเดตล่าสุด: 26 สิงหาคม 2569
 >
 > **คำสั่งเริ่มงานในแชทใหม่: `สานต่อ`**
 >
@@ -31,8 +31,8 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `384`
-- งานล่าสุด: คงข้อมูล Cloud เป็น JSON เดิม แต่เปลี่ยนการบันทึกเป็น operation ระดับ field ผ่าน RPC พร้อม row lock, offline queue แยกบัญชี และ archive เฉพาะข้อมูลที่ลบ
+- Asset version ปัจจุบัน: `386`
+- งานล่าสุด: เปลี่ยน Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
 - ไฟล์ `BUSINESS_STRATEGY.md` เป็นงานของผู้ใช้ที่ยัง untracked ณ เวลาบันทึก ห้ามลบ แก้ หรือรวม commit โดยไม่ตรวจสอบขอบเขตงาน
 
@@ -90,26 +90,26 @@ git remote -v
 - ตัวเลขหลัง `/` ต้องแก้ไม่ได้และมาจาก `item.max` เท่านั้น
 - คะแนนเดิมของนักเรียนต้องมีสิทธิ์เหนือ default score
 - ห้ามใช้ `window.location.reload()` หลังบันทึก
-- คะแนนและเช็กชื่อใช้ JSON patch RPC หลังติดตั้ง migration; ข้อมูลหลักยังเป็น JSON ก้อนเดิม
+- คะแนนและเช็กชื่อใช้แถวในตาราง SQL หลังติดตั้ง migration; JSON เดิมมีไว้สำหรับช่วงเปลี่ยนผ่านเท่านั้น
 
 ---
 
 ## 4. โครงสร้างข้อมูลและการบันทึก
 
-ระบบบันทึกแบบรายช่องอยู่ใน `js/json-patch-sync.js` และ migration
-`supabase/migrations/202608240002_json_patch_rpc.sql`:
+ระบบบันทึกแบบรายแถว/รายคอลัมน์อยู่ใน `js/relational-sync.js` และ migration
+`supabase/migrations/202608260001_classkru_relational_schema.sql`:
 
-- ไม่มีตารางข้อมูลใหม่และไม่มีการย้าย JSON: แหล่งข้อมูลหลักยังเป็น `classmanager_profiles.state`
-- migration สร้างเฉพาะ RPC ที่รับ operation แบบ allowlist เช่น `set_score`, `set_attendance` และ `upsert_student`
-- RPC ตรวจ `auth.email()`, ล็อก profile ด้วย `FOR UPDATE` และแก้จาก state ล่าสุด จึงไม่ทับการแก้คนละช่องจากหลายอุปกรณ์
-- `saveState()` diff จาก snapshot ล่าสุดและส่งเฉพาะ logical cell ที่เปลี่ยน; การสร้าง entity ใหม่ส่งข้อมูลของ entity ใหม่นั้นเท่านั้น
-- คิว IndexedDB แยกตามบัญชีและส่งตามลำดับ; operation เก่าที่ล้มเหลวจะกัน operation ใหม่ไม่ให้แซง
-- การลบห้อง นักเรียน รายการคะแนน คะแนน หรือเช็กชื่อ จะเอาออกจากข้อมูล active และเก็บของเดิมใน `_deletedRecords`
-- ไม่มี audit history ของการแก้ไขทั่วไป
-- ถ้า RPC ยังไม่ถูกติดตั้ง แอป fallback ไปใช้ whole-document write เดิม; ถ้าตรวจ capability ไม่ได้ชั่วคราว แอปเก็บ local/queue และไม่เสี่ยงส่งทั้งก้อนทับ Cloud
-- migration ไม่เขียนข้อมูลเดิม จึง rollback ได้โดย deploy frontend ที่รองรับ legacy ก่อน แล้ว drop เฉพาะ 4 functions; JSON เดิมไม่ต้อง restore
+- แหล่งข้อมูลหลักบน Cloud เป็น 8 ตาราง: `teacher_profiles`, `classrooms`, `students`, `classroom_students`, `timetable_entries`, `attendance_records`, `score_items`, `student_scores`
+- migration ทำงานใน transaction, ใช้ `create ... if not exists` / `on conflict ... do nothing` และ seed จาก `classmanager_profiles.state` โดยไม่แก้หรือลบ JSON เดิม
+- PK ของข้อมูลเดิมยังใช้ `class.id`, `student.id`, `scores.items[].id`; FK ที่เกี่ยวข้องรวม `teacher_id` เพื่อกันข้อมูลข้ามบัญชี
+- `saveState()` diff จาก snapshot ล่าสุด: คะแนนหนึ่งช่องเป็น upsert/update หนึ่งแถวใน `student_scores`; เช็กชื่อหนึ่งช่องเป็นหนึ่งแถวใน `attendance_records`; การแก้ entity เดิมส่งเฉพาะคอลัมน์ที่เปลี่ยน
+- การสร้าง/import หลายรายการ batch เฉพาะแถวใหม่ตามตารางและลำดับ FK เพื่อลดจำนวน request
+- การลบใช้ `deleted_at` (soft delete) ไม่มี audit/history และไม่มีตาราง backup/offline/migration เพิ่ม
+- คิวที่รอส่งอยู่ใน localStorage ของ browser เท่านั้น แยกตาม `teacher_id` และส่งตามลำดับ จึงไม่มี operation ใหม่แซงรายการเก่า
+- ถ้า 8 ตารางยังไม่ถูกติดตั้ง แอป fallback ไปใช้ `classmanager_profiles.state`; ถ้าเคยตรวจพบตารางแล้วแต่เน็ตขาด แอปเก็บ local/queue และจะไม่ fallback ไปเขียน JSON ทั้งก้อน
+- RLS ถูก enable + force ทุกตาราง และทุก policy ผูก `teacher_id = auth.uid()`; anon ไม่มีสิทธิ์ตารางเหล่านี้
 
-แอปเป็น Vanilla JavaScript + Supabase และเก็บ state หลักใน `classmanager_profiles.state`
+แอปเป็น Vanilla JavaScript + Supabase ใช้ localStorage เป็น working copy และใช้ 8 ตารางเป็น Cloud canonical state
 
 โครงคะแนนภายในแต่ละห้อง:
 
@@ -131,7 +131,17 @@ student.id
 scores.marks[itemId][studentId]
 ```
 
-หลังติดตั้ง RPC การเขียน Cloud ใช้ `persistJsonPatchState()`; `enqueueCloudStateWrite()` คงไว้เฉพาะ fallback ก่อนติดตั้ง RPC และการสร้าง profile ใหม่ ห้ามเขียน `classmanager_profiles.state` ทั้งก้อนจาก feature โดยตรง
+หลังติดตั้งตาราง การเขียน Cloud ใช้ `persistRelationalState()`; `enqueueCloudStateWrite()` คงไว้เฉพาะ fallback ก่อนติดตั้ง schema ห้ามเขียน `classmanager_profiles.state` ทั้งก้อนจาก feature โดยตรง
+
+ลำดับ deploy ที่ปลอดภัย:
+
+1. สำรองฐานข้อมูล/Supabase snapshot และ export `classmanager_profiles` ก่อนเริ่ม
+2. deploy frontend รุ่นนี้ก่อนได้ เพราะจะ fallback เป็น JSON เมื่อยังไม่พบ `teacher_profiles`
+3. รัน migration ใน Supabase แล้วตรวจจำนวน teacher/class/student/attendance/score เทียบ JSON
+4. บังคับ refresh อุปกรณ์ที่เปิดค้าง เพื่อไม่ให้ frontend รุ่นเก่าเขียนเฉพาะ JSON ต่อหลัง cutover
+5. ห้าม drop `classmanager_profiles` หรือ JSON เดิมในช่วงตรวจสอบ
+
+Rollback: migration ไม่แตะ JSON เดิมและอยู่ใน transaction จึง rollback ระหว่างรันได้อัตโนมัติ หากต้องถอยหลังหลังเริ่มมีข้อมูลใหม่ใน 8 ตาราง ห้าม drop ตาราง ให้หยุด deploy และกู้จาก database backup/forward-fix ก่อน เพราะ JSON เดิมจะไม่มีรายการที่เกิดหลัง cutover
 
 ---
 
@@ -164,10 +174,10 @@ Node.js:
 ```powershell
 $node = 'C:\Users\USER\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe'
 & $node --check js/qr-scores.js
-& $node --check js/json-patch-sync.js
+& $node --check js/relational-sync.js
 & $node tests/qr-scores.test.cjs
 & $node tests/cloud-write-queue.test.cjs
-& $node tests/json-patch-sync.test.cjs
+& $node tests/relational-sync.test.cjs
 git diff --check
 ```
 

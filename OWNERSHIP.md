@@ -25,6 +25,7 @@
 | ไฟล์ | คุมอะไร | เจ้าของหลัก |
 |---|---|---|
 | `js/core.js` 🔒 | ตัวแปร/ค่าคงที่รวม (`appState`, วันเดือน, สีการ์ด), Supabase config, boot (`DOMContentLoaded`) | **ร่วม** (Supakit คุม) — **โหลดก่อนเสมอ** |
+| `js/relational-sync.js` 🔒 | แปลง state เป็น 8 ตาราง, diff รายคอลัมน์, local write queue และ Supabase persistence | **ร่วม** (Supakit คุม) |
 | `js/auth.js` 🔒 | login / signup / google, เปลี่ยนรหัสผ่าน, โปรไฟล์, `onLoginSuccess` (+ util วันที่) | **Supakit** |
 | `js/shell.js` 🔒 | routing `#hash` (`getScreenFromHash`, `navigateToWebScreen`), นำเข้าตารางสอน (เปิด/ปิด) | **ร่วม** (Supakit คุม) |
 | `js/dashboard.js` | หน้าหลัก + ปฏิทิน | เดฟใหม่ |

@@ -151,10 +151,22 @@ context.supabaseClient = { from: () => ({ upsert: async () => ({ error: null }) 
   assert.equal(updated.old_score, 8);
   assert.equal(run("appState.classes[0].scores.marks['work-1']['s-a']"), 9);
 
-  context.supabaseClient = { from: () => ({ upsert: async () => ({ error: new Error('database unavailable') }) }) };
-  const failed = await run("persistQrScore('c-a','work-1','s-a',10)");
+  const relationalWrites = [];
+  context.relationalMode = 'ready';
+  context.persistRelationalState = async (state, options) => {
+    relationalWrites.push({ state: structuredClone(state), options });
+    return true;
+  };
+  const relational = await run("persistQrScore('c-a','work-1','s-a',10)");
+  assert.equal(relational.success, true);
+  assert.equal(relationalWrites.length, 1);
+  assert.equal(relationalWrites[0].options.strict, true, 'QR must wait for the relational row commit');
+  assert.equal(relationalWrites[0].state.classes[0].scores.marks['work-1']['s-a'], 10);
+
+  context.persistRelationalState = async () => { throw new Error('database unavailable'); };
+  const failed = await run("persistQrScore('c-a','work-1','s-a',11)");
   assert.equal(failed.success, false);
-  assert.equal(run("appState.classes[0].scores.marks['work-1']['s-a']"), 9, 'failed commit must keep the previous score');
+  assert.equal(run("appState.classes[0].scores.marks['work-1']['s-a']"), 10, 'failed commit must keep the previous score');
   console.log('qr-scores tests passed');
 })().catch(error => {
   console.error(error);

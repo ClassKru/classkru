@@ -418,8 +418,8 @@ function initAppState() {
     if (savedTimetable !== JSON.stringify(appState.timetable)) saveStateLocalOnly(false);
   }
   else { initAppStateDefault(); }
-  if (typeof initializeJsonPatchBaseline === 'function') {
-    initializeJsonPatchBaseline(appState, localStorage.getItem('classmanager_email'));
+  if (typeof initializeRelationalBaseline === 'function') {
+    initializeRelationalBaseline(appState, localStorage.getItem('classmanager_email'));
   }
 }
 
@@ -485,19 +485,22 @@ let _cloudPushTimer = null;
 function saveState() {
   localStorage.removeItem('classkru_skip_sync');
   saveStateLocalOnly();
-  if (typeof jsonPatchMode !== 'undefined') {
-    if (jsonPatchMode === 'ready') {
-      persistJsonPatchState(appState);
+  if (typeof relationalMode !== 'undefined') {
+    if (relationalMode === 'ready') {
+      persistRelationalState(appState);
       return;
     }
-    // While capability detection is temporarily unavailable, keep changes locally.
-    // A known legacy deployment may still use the old whole-document write below.
-    if (jsonPatchMode === 'unknown') return;
+    // Keep edits local while the table capability check is temporarily unavailable.
+    // A deployment known to be legacy still uses the whole-document fallback below.
+    if (relationalMode === 'unknown') return;
   }
   clearTimeout(_cloudPushTimer);
   _cloudPushTimer = setTimeout(() => {
     const email = localStorage.getItem('classmanager_email');
-    if (email && supabaseClient) pushStateToCloudDirectly(email, appState);
+    if (email && supabaseClient) {
+      pushStateToCloudDirectly(email, appState);
+      if (typeof probeRelationalAfterLegacySave === 'function') probeRelationalAfterLegacySave(email);
+    }
   }, 500);
 }
 
@@ -509,7 +512,10 @@ async function syncBackgroundCloud(email) {
   }
   try {
     updateCloudStatus('syncing', 'กำลังตรวจข้อมูลล่าสุด...');
-    if (typeof detectJsonPatchMode === 'function') await detectJsonPatchMode(email);
+    if (typeof trySyncRelationalState === 'function' && await trySyncRelationalState(email)) {
+      if (typeof refreshQrScoreSetupAfterCloudSync === 'function') refreshQrScoreSetupAfterCloudSync();
+      return;
+    }
     const { data, error } = await supabaseClient.from('classmanager_profiles').select('state').eq('email', email).single();
     if (error && error.code !== 'PGRST116') throw error;
     if (data && data.state) {
@@ -519,7 +525,6 @@ async function syncBackgroundCloud(email) {
       
       // Pull from cloud if it's newer, or if we have no classes locally but cloud does
       if (cloudModified > localModified || (cloudState.classes && cloudState.classes.length > 0 && appState.classes.length === 0)) {
-        if (typeof initializeJsonPatchBaseline === 'function') initializeJsonPatchBaseline(cloudState, email);
         appState = cloudState;
         appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
         const cloudTimetable = JSON.stringify(appState.timetable || []);
@@ -530,26 +535,17 @@ async function syncBackgroundCloud(email) {
         if (timetableMigrated) appState.lastModified = Date.now();
         saveStateLocalOnly(false);
         if (timetableMigrated) {
-          if (typeof jsonPatchMode !== 'undefined' && jsonPatchMode === 'ready') await persistJsonPatchState(appState);
-          else if (typeof jsonPatchMode === 'undefined' || jsonPatchMode === 'legacy') await pushStateToCloudDirectly(email, appState);
+          await pushStateToCloudDirectly(email, appState);
         }
         updateProfileImages();
         // deep-link (LINE OA) ชนะ activeWebScreen ที่ค้างใน cloud — แต่ถ้าผู้ใช้เปลี่ยนหน้าเองแล้ว pendingDeepLink=null
         navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard', pendingDeepLinkParam);
       } else if (localModified > cloudModified) {
-        if (typeof jsonPatchMode !== 'undefined' && jsonPatchMode === 'ready') {
-          initializeJsonPatchBaseline(cloudState, email);
-          await persistJsonPatchState(appState);
-        } else if (typeof jsonPatchMode === 'undefined' || jsonPatchMode === 'legacy') {
-          await pushStateToCloudDirectly(email, appState);
-        }
-      } else if (typeof initializeJsonPatchBaseline === 'function') {
-        initializeJsonPatchBaseline(appState, email);
+        await pushStateToCloudDirectly(email, appState);
       }
     } else {
-      // Creating a brand-new profile is the only case that must seed the complete JSON document.
+      // Legacy fallback only; relational deployments create teacher_profiles instead.
       await pushStateToCloudDirectly(email, appState);
-      if (typeof initializeJsonPatchBaseline === 'function') initializeJsonPatchBaseline(appState, email);
     }
     updateCloudStatus('online', 'ข้อมูลเป็นปัจจุบัน');
   } catch (err) {
@@ -626,6 +622,14 @@ async function forcePullFromCloud() {
   localStorage.removeItem('classkru_skip_sync');
   try {
     updateCloudStatus('syncing', 'กำลังดึงข้อมูล...');
+    if (typeof relationalMode !== 'undefined' && relationalMode === 'ready') {
+      const pulled = await forcePullRelationalState();
+      if (pulled) {
+        showToast('ดึงข้อมูลล่าสุดในบัญชีสำเร็จ! 🎉', 'success', 1500);
+        setTimeout(() => window.location.reload(), 1000);
+        return;
+      }
+    }
     const { data, error } = await supabaseClient.from('classmanager_profiles').select('state').eq('email', email).single();
     if (error && error.code !== 'PGRST116') throw error;
     if (data && data.state) {
@@ -667,15 +671,12 @@ function deleteAllDataEverywhere() {
     }
     try {
       const emptyState = { ...appState, classes: [], timetable: [], lastModified: Date.now() };
-      if (typeof jsonPatchMode !== 'undefined' && jsonPatchMode === 'ready') {
-        await persistJsonPatchState(emptyState, { strict: true });
-      } else if (typeof jsonPatchMode === 'undefined' || jsonPatchMode === 'legacy') {
-        const deleted = Array.isArray(appState._deletedRecords) ? appState._deletedRecords.slice() : [];
-        (appState.classes || []).forEach(c => deleted.push({ type: 'class', deletedAt: new Date().toISOString(), classId: c.id, record: c }));
-        emptyState._deletedRecords = deleted;
+      if (typeof relationalMode !== 'undefined' && relationalMode === 'ready') {
+        await persistRelationalState(emptyState, { strict: true });
+      } else if (typeof relationalMode === 'undefined' || relationalMode === 'legacy') {
         await enqueueCloudStateWrite(email, emptyState, { strict: true });
       } else {
-        throw new Error('ยังตรวจสอบระบบบันทึกแบบรายช่องไม่สำเร็จ');
+        throw new Error('ยังตรวจสอบระบบตารางไม่สำเร็จ');
       }
       appState = emptyState;
       localStorage.setItem('classkru_skip_sync', '1');

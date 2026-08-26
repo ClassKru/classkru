@@ -41,7 +41,7 @@ js/   (โหลดตามลำดับ core.js ก่อนเสมอ)
 | ไฟล์ js | หน้าที่ |
 |---------|---------|
 | `core.js`        | **โหลดก่อนสุด** — `appState` (global state), init, config, helper วันที่ |
-| `json-patch-sync.js` | diff ระดับช่อง, IndexedDB offline queue และ RPC สำหรับแก้ JSON เดิมแบบไม่ส่งทั้งก้อน |
+| `relational-sync.js` | แปลง `appState` เป็น 8 ตาราง, diff ระดับคอลัมน์, soft delete และคิว localStorage แยกบัญชี |
 | `auth.js`        | login overlay + Supabase auth |
 | `shell.js`       | #hash routing (รองรับลิงก์ตรงจาก LINE OA), nav, การสลับหน้าจอ |
 | `dashboard.js`   | หน้าแรก/แดชบอร์ด (ตารางวันนี้, สรุป) |
@@ -55,7 +55,7 @@ js/   (โหลดตามลำดับ core.js ก่อนเสมอ)
 | `extras.js`      | OCR สแกนรายชื่อ (tesseract), ฟีเจอร์เสริม |
 | `shared-utils.js`| modal + utility ที่ใช้ร่วมหลายหน้า |
 
-**ลำดับโหลด (ใน index.html):** core → json-patch-sync → auth → shell → dashboard → classrooms → students → timetable → reports → attendance → scores → tools → shared-utils → extras
+**ลำดับโหลด (ใน index.html):** core → relational-sync → auth → shell → dashboard → classrooms → students → timetable → reports → attendance → scores → tools → shared-utils → extras
 
 ## Dependencies (CDN, โหลดใน `<head>`)
 supabase-js@2, xlsx@0.18.5 (export Excel), tesseract.js@5 (OCR)

@@ -1,6 +1,6 @@
 /**
  * Continuous QR score entry.
- * Reuses appState + classmanager_profiles.state instead of introducing a second score schema.
+ * Reuses appState while persisting one student_scores row per scanned score.
  */
 
 const QR_SCORE_SCANNER_SRC = 'js/vendor/html5-qrcode.min.js';
@@ -752,12 +752,12 @@ async function persistQrScore(classId, itemId, studentId, rawScore) {
     clearTimeout(_cloudPushTimer);
     _cloudPushTimer = null;
     updateCloudStatus('syncing', 'กำลังบันทึก...');
-    if (typeof jsonPatchMode !== 'undefined' && jsonPatchMode === 'ready') {
-      await persistJsonPatchState(nextState, { strict: true });
-    } else if (typeof jsonPatchMode === 'undefined' || jsonPatchMode === 'legacy') {
+    if (typeof relationalMode !== 'undefined' && relationalMode === 'ready') {
+      await persistRelationalState(nextState, { strict: true });
+    } else if (typeof relationalMode === 'undefined' || relationalMode === 'legacy') {
       await enqueueCloudStateWrite(email, nextState, { strict: true });
     } else {
-      throw new Error('ยังตรวจสอบระบบบันทึกแบบรายช่องไม่สำเร็จ');
+      throw new Error('ยังตรวจสอบระบบตารางไม่สำเร็จ');
     }
     appState = nextState;
     saveStateLocalOnly(false);
