@@ -19,18 +19,18 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=386">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=386">
-  <link rel="stylesheet" href="css/03-reports.css?v=386">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=386">
-  <link rel="stylesheet" href="css/05-home.css?v=386">
-  <link rel="stylesheet" href="css/06-attendance.css?v=386">
-  <link rel="stylesheet" href="css/07-scores.css?v=386">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=386">
-    <link rel="stylesheet" href="css/09-games.css?v=386">
-  <link rel="stylesheet" href="css/10-help.css?v=386">
-  <link rel="stylesheet" href="css/11-public-help.css?v=386">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=386">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=387">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=387">
+  <link rel="stylesheet" href="css/03-reports.css?v=387">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=387">
+  <link rel="stylesheet" href="css/05-home.css?v=387">
+  <link rel="stylesheet" href="css/06-attendance.css?v=387">
+  <link rel="stylesheet" href="css/07-scores.css?v=387">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=387">
+    <link rel="stylesheet" href="css/09-games.css?v=387">
+  <link rel="stylesheet" href="css/10-help.css?v=387">
+  <link rel="stylesheet" href="css/11-public-help.css?v=387">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=387">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -216,6 +216,11 @@
 
   <!-- MAIN APP SHELL -->
   <div id="main-app" style="display:none;">
+
+    <div class="cloud-save-indicator" role="status" aria-live="polite" aria-atomic="true">
+      <span id="cloud-sync-dot" class="cloud-save-dot"></span>
+      <span id="cloud-sync-text">กำลังตรวจข้อมูล...</span>
+    </div>
 
     <!-- SIDEBAR (Desktop only — hidden on mobile via CSS) -->
     <aside class="sidebar" id="app-sidebar">
@@ -1346,23 +1351,23 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=386"></script>
-  <script defer src="js/relational-sync.js?v=386"></script>
-  <script defer src="js/auth.js?v=386"></script>
-  <script defer src="js/shell.js?v=386"></script>
-  <script defer src="js/dashboard.js?v=386"></script>
-  <script defer src="js/classrooms.js?v=386"></script>
-  <script defer src="js/students.js?v=386"></script>
-  <script defer src="js/timetable.js?v=386"></script>
-  <script defer src="js/reports.js?v=386"></script>
-  <script defer src="js/attendance.js?v=386"></script>
-  <script defer src="js/curriculum-science-2560.js?v=386"></script>
-  <script defer src="js/curriculum-catalog.js?v=386"></script>
-  <script defer src="js/scores.js?v=386"></script>
-  <script defer src="js/qr-scores.js?v=386"></script>
-  <script defer src="js/tools.js?v=386"></script>
-  <script defer src="js/shared-utils.js?v=386"></script>
-  <script defer src="js/extras.js?v=386"></script>
-  <script defer src="js/help.js?v=386"></script>
+  <script defer src="js/core.js?v=387"></script>
+  <script defer src="js/relational-sync.js?v=387"></script>
+  <script defer src="js/auth.js?v=387"></script>
+  <script defer src="js/shell.js?v=387"></script>
+  <script defer src="js/dashboard.js?v=387"></script>
+  <script defer src="js/classrooms.js?v=387"></script>
+  <script defer src="js/students.js?v=387"></script>
+  <script defer src="js/timetable.js?v=387"></script>
+  <script defer src="js/reports.js?v=387"></script>
+  <script defer src="js/attendance.js?v=387"></script>
+  <script defer src="js/curriculum-science-2560.js?v=387"></script>
+  <script defer src="js/curriculum-catalog.js?v=387"></script>
+  <script defer src="js/scores.js?v=387"></script>
+  <script defer src="js/qr-scores.js?v=387"></script>
+  <script defer src="js/tools.js?v=387"></script>
+  <script defer src="js/shared-utils.js?v=387"></script>
+  <script defer src="js/extras.js?v=387"></script>
+  <script defer src="js/help.js?v=387"></script>
 </body>
 </html>
