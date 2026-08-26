@@ -31,7 +31,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `387`
+- Asset version ปัจจุบัน: `388`
 - งานล่าสุด: เปลี่ยน Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
 - Supabase Production ใช้ migration ครบถึง `202608260002`; ตรวจ ACL allowlist, JSON เดิม 12 แถว และ smoke test แบบ rollback ผ่านแล้ว
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
@@ -84,6 +84,8 @@ git remote -v
 16. กล้องมือถือขอ permission ผ่าน `Html5Qrcode.getCameras()`, เลือกกล้องหลัง และ fallback เป็น `facingMode: environment`
 17. เมื่อเปิดกล้องไม่สำเร็จ มีข้อความแยกตามสาเหตุและปุ่ม **อนุญาตกล้อง / ลองใหม่**
 18. LINE in-app browser บางรุ่นไม่รองรับ WebRTC camera ให้แนะนำเปิดใน Safari/Chrome; ยังมีช่องกรอกรหัส QR เป็น fallback
+19. QR ประจำตัวรุ่นใหม่ใช้ `CKSTU:<studentCode>` หนึ่งรหัสต่อคน ใช้ข้ามห้อง วิชา และปีการศึกษา; QR รุ่นเดิม `CKSTU:<classId>:<studentId>` ยังสแกนได้
+20. หน้าพิมพ์สร้างภาพ QR สดจากข้อมูลในเบราว์เซอร์ ไม่มีภาพหรือ payload QR ประจำตัวเก็บในฐานข้อมูล; นักเรียนที่ไม่มีรหัสหรือมีรหัสซ้ำในห้องจะไม่ได้ QR และเห็นข้อความให้แก้ข้อมูล
 
 ข้อควรระวัง:
 

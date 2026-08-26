@@ -85,13 +85,17 @@ context.enqueueCloudStateWrite = async (email, state) => {
 };
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'js', 'qr-scores.js'), 'utf8');
+const cardSource = fs.readFileSync(path.join(__dirname, '..', 'student-qr-cards.html'), 'utf8');
 vm.runInContext(source, context, { filename: 'qr-scores.js' });
 const run = expression => vm.runInContext(expression, context);
 
 assert.equal(run("parseQrStudentPayload('CKSTU:s-a').legacyToken"), 's-a');
+assert.equal(run("parseQrStudentPayload('CKSTU:1001').studentCode"), '1001');
 assert.equal(run("parseQrStudentPayload('https://classkru.test/card?student_id=s-a').studentId"), 's-a');
 assert.equal(run("parseQrStudentPayload('{\"student_id\":\"s-a\"}').studentId"), 's-a');
 assert.equal(run("parseQrStudentPayload('s-a').legacyToken"), 's-a');
+assert.match(cardSource, /`CKSTU:\$\{encodeURIComponent\(studentCode\)\}`/, 'student cards encode the stable student code only');
+assert.doesNotMatch(cardSource, /`CKSTU:\$\{encodeURIComponent\(classroom\.id\)\}/, 'new student cards no longer encode a classroom id');
 assert.equal(run('QR_SCORE_SCANNER_SRC'), 'js/vendor/html5-qrcode.min.js');
 assert.deepEqual(Array.from(run('qrScoreClasses().map(c => c.academicYear)')), [2569, 2569]);
 assert.equal(run("getQrScoreCameraErrorInfo({ name: 'NotAllowedError' }).title"), 'ยังไม่ได้รับอนุญาตให้ใช้กล้อง');
@@ -115,6 +119,10 @@ run("qrScoreState.classId = 'c-a'");
 assert.equal(run("findQrScoreStudent(parseQrStudentPayload('s-a')).classroom.id"), 'c-a');
 assert.equal(run("findQrScoreStudent(parseQrStudentPayload('s-b')).classroom.id"), 'c-b');
 assert.equal(run("findQrScoreStudent(parseQrStudentPayload('1001')).student.id"), 's-a');
+assert.equal(run("findQrScoreStudent(parseQrStudentPayload('CKSTU:1001')).student.id"), 's-a');
+run("appState.classes[0].students.push({ id: 's-duplicate', name: 'รหัสซ้ำ', studentCode: '1001' })");
+assert.equal(run("findQrScoreStudent(parseQrStudentPayload('CKSTU:1001')).ambiguous"), true, 'duplicate codes in the selected class must not choose a student silently');
+run("appState.classes[0].students.pop()");
 
 run("qrScoreState.blockedCode = 's-a'; qrScoreState.lastSeenAt = Date.now() - 1300; noteQrScoreNoCode()");
 assert.equal(run("qrScoreState.blockedCode"), null, 'same QR unlocks only after it leaves the camera long enough');
@@ -125,7 +133,7 @@ assert.equal(run("validateQrScore(appState.classes[0], appState.classes[0].score
 assert.equal(run("validateQrScore(appState.classes[0], appState.classes[0].scores.items[0], appState.classes[0].students[0], -1)"), 'คะแนนต้องไม่ติดลบ');
 assert.equal(run("validateQrScore(appState.classes[0], appState.classes[0].scores.items[0], appState.classes[0].students[0], 8)"), '');
 
-run("qrScoreState.classId='c-a'; qrScoreState.itemId='work-1'; qrScoreState.defaultScore='8'; qrScoreState.phase='scanning'; qrScoreState.blockedCode=null; handleQrScoreDecoded('CKSTU:s-a')");
+run("qrScoreState.classId='c-a'; qrScoreState.itemId='work-1'; qrScoreState.defaultScore='8'; qrScoreState.phase='scanning'; qrScoreState.blockedCode=null; handleQrScoreDecoded('CKSTU:1001')");
 assert.equal(run('qrScoreState.phase'), 'editing');
 assert.equal(run('qrScoreState.studentId'), 's-a');
 assert.equal(mockElement('qr-score-max-label').textContent, '/20', 'score entry always shows the assignment maximum');

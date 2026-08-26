@@ -548,7 +548,7 @@ function decodeQrScorePart(value) {
 
 function parseQrStudentPayload(decodedText) {
   const raw = String(decodedText || '').trim();
-  const empty = { raw, classId: '', studentId: '', legacyToken: '' };
+  const empty = { raw, classId: '', studentId: '', studentCode: '', legacyToken: '' };
   if (!raw) return empty;
   if (/^CKSTU:/i.test(raw)) {
     const body = raw.replace(/^CKSTU:/i, '').trim();
@@ -561,7 +561,8 @@ function parseQrStudentPayload(decodedText) {
         legacyToken: ''
       };
     }
-    return { raw, classId: '', studentId: '', legacyToken: body };
+    const studentCode = decodeQrScorePart(body).trim();
+    return { raw, classId: '', studentId: '', studentCode, legacyToken: studentCode };
   }
   try {
     const url = new URL(raw);
@@ -591,6 +592,15 @@ function findQrScoreStudent(payload) {
     const scopedClass = classes.find(c => String(c.id) === String(payload.classId));
     const student = scopedClass?.students?.find(s => String(s.id) === String(payload.studentId));
     return student ? { student, classroom: scopedClass, exact: true, scoped: true } : null;
+  }
+  if (payload.studentCode) {
+    const currentMatches = (current.students || []).filter(s => String(s.studentCode || '').trim() === payload.studentCode);
+    if (currentMatches.length > 1) return { ambiguous: true, studentCode: payload.studentCode, classroom: current };
+    if (currentMatches.length === 1) return { student: currentMatches[0], classroom: current, exact: true, byStudentCode: true };
+    for (const classroom of classes) {
+      const student = classroom.students?.find(s => String(s.studentCode || '').trim() === payload.studentCode);
+      if (student) return { student, classroom, exact: true, byStudentCode: true };
+    }
   }
   const token = payload.studentId || payload.legacyToken || '';
   if (!token) return null;
@@ -626,6 +636,10 @@ function handleQrScoreDecoded(decodedText) {
   const found = findQrScoreStudent(payload);
   if (!found) {
     showQrScoreLookupError('ไม่พบรหัสนักเรียนนี้ในระบบ', `รหัส: ${rawCode}`);
+    return;
+  }
+  if (found.ambiguous) {
+    showQrScoreLookupError('รหัสประจำตัวนักเรียนซ้ำในห้องนี้', `รหัส: ${found.studentCode} • กรุณาแก้รหัสในรายชื่อนักเรียนก่อนสแกน`);
     return;
   }
   if (found.classroom.id !== qrScoreState.classId) {
