@@ -115,6 +115,32 @@ function renderWebDashboard() {
   const viewDow = viewDate.getDay();
   appState.timetableWeek = 'A';
 
+  // หน้าแรกบอกงานตั้งค่าที่จำเป็น แต่รอให้ครูเลือกเริ่มเอง
+  const setupCard = document.getElementById('home-setup-card');
+  const setupCopy = document.getElementById('home-setup-copy');
+  const setupButton = setupCard?.querySelector('button');
+  const firstClassWithoutStudents = (appState.classes || []).find(c => !(c.students || []).length);
+  if (setupCard && setupCopy && setupButton) {
+    if (!(appState.classes || []).length) {
+      setupCard.style.display = 'flex';
+      setupCopy.textContent = 'สร้างห้องเรียนและเพิ่มรายชื่อนักเรียนก่อน เพื่อให้เช็คชื่อและเก็บคะแนนได้ครบ';
+      setupButton.innerHTML = '<i class="hgi-stroke hgi-arrow-right-01"></i> เริ่มตั้งค่า';
+      setupButton.onclick = startMainTour;
+    } else if (firstClassWithoutStudents) {
+      setupCard.style.display = 'flex';
+      setupCopy.textContent = `เพิ่มรายชื่อนักเรียนใน ${firstClassWithoutStudents.subject} (${firstClassWithoutStudents.className}) เพื่อเริ่มใช้งานห้องนี้`;
+      setupButton.innerHTML = '<i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน';
+      setupButton.onclick = () => startStudentSetup(firstClassWithoutStudents.id);
+    } else if (appState.onboarding?.setupStep === 'schedule') {
+      setupCard.style.display = 'flex';
+      setupCopy.textContent = 'เพิ่มตารางสอนเพื่อให้หน้าแรกเตือนคาบถัดไป และเปิดเช็คชื่อได้ตรงเวลา';
+      setupButton.innerHTML = '<i class="hgi-stroke hgi-calendar-add-01"></i> สร้างตารางสอน';
+      setupButton.onclick = startScheduleSetup;
+    } else {
+      setupCard.style.display = 'none';
+    }
+  }
+
   // ---- Date display ----
   const dayEl = document.getElementById('home-day-name');
   const dateEl = document.getElementById('home-date-big');

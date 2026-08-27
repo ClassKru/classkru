@@ -257,7 +257,10 @@ function openSwipeAttendance(classId, forDate, options = {}) {
   // ทำให้ URL / sidebar / ชื่อหน้า ตรงกับหน้าที่เห็น (เช็คชื่อเป็นหน้าจริงแล้ว ไม่ใช่ overlay ลอย)
   applyCheckinRoute(classId);
 
-  Tour.action('opened-checkin');
+  notifyTourAction('opened-checkin');
+  if (typeof maybeStartScreenGuide === 'function') {
+    maybeStartScreenGuide('checkin');
+  }
 }
 
 function closeSwipeAttendance() {
@@ -1011,7 +1014,7 @@ function setSwipeMobileEditStatus(studentId, status) {
   const previousStatus = swipeResults[studentId] || '';
   swipeResults[studentId] = status;
   swipeHistory.push({ studentId, status, previousStatus });
-  Tour.action('attendance-marked');
+  notifyTourAction('attendance-marked');
 
   const nextUnchecked = c.students.findIndex(s => !swipeResults[s.id]);
   swipeStudentIndex = nextUnchecked >= 0 ? nextUnchecked : c.students.findIndex(s => s.id === studentId);
@@ -1049,7 +1052,7 @@ function setDesktopStudentStatus(studentId, status) {
 
   // Set the status
   swipeResults[studentId] = status;
-  Tour.action('attendance-marked');
+  notifyTourAction('attendance-marked');
 
   // Try to find the next unchecked student to update swipeStudentIndex for the mobile view
   let foundUnchecked = false;
@@ -1115,7 +1118,7 @@ function markSwipeStatus(status) {
   const markedIndex = swipeStudentIndex;
   swipeResults[student.id] = status;
   swipeHistory.push({ studentId: student.id, status, previousStatus });
-  Tour.action('attendance-marked');
+  notifyTourAction('attendance-marked');
 
   const card = document.getElementById('swipe-card');
   card.classList.add('status-saved');

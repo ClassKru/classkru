@@ -207,7 +207,7 @@ function renderWebClassrooms() {
       <div class="ck-class-actions">
         <button onclick="event.stopPropagation();switchClassTab('scores','${c.id}')"><i class="hgi-stroke hgi-award-01"></i><span>คะแนน</span></button>
         <button onclick="event.stopPropagation();switchClassTab('checkin','${c.id}')"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
-        <button onclick="event.stopPropagation();manageStudentsFromCard('${c.id}')"><i class="hgi-stroke hgi-user-multiple"></i><span>รายชื่อ</span></button>
+        <button class="ck-class-students-btn" onclick="event.stopPropagation();manageStudentsFromCard('${c.id}')"><i class="hgi-stroke hgi-user-multiple"></i><span>รายชื่อ</span></button>
         <button onclick="event.stopPropagation();switchClassTab('reports','${c.id}')"><i class="hgi-stroke hgi-pie-chart"></i><span>การเข้าเรียน</span></button>
       </div>`;
     container.appendChild(card);
@@ -255,6 +255,7 @@ function startWebClassroomsCheckin(classId) {
 
 function manageStudentsFromCard(classId) {
   navigateToWebScreen('students', classId);
+  notifyTourAction('students-opened');
 }
 
 // ==================== แถบแท็บภายในห้อง (detail tabs) — template กลางอันเดียว ใช้ทุกหน้า ====================
@@ -315,6 +316,13 @@ function positionClassTabThumb() {
     // จัดตำแหน่งได้แล้ว → สลับจากพื้นหลังสำรองบนปุ่มมาใช้ thumb
     const already = bar.classList.contains('thumb-ready');
     bar.classList.add('thumb-ready');
+    if (window.__ckQuietClassTabMotion) {
+      thumb.style.transition = 'none';
+      put(to);
+      void thumb.offsetWidth;
+      thumb.style.transition = '';
+      return;
+    }
     const from = (!already && __ckPrevTabIndex !== null && btns[__ckPrevTabIndex]) ? __ckPrevTabIndex : to;
     if (from === to) {
       // ไม่ได้ย้ายช่อง (เข้าหน้าครั้งแรก / render ซ้ำ) → วางเลย ไม่ต้องวิ่ง

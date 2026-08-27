@@ -805,6 +805,7 @@ function setScoreMark(classId, itemId, sid, el) {
   else sc.marks[itemId][sid] = n;
   saveState();
   updateScoreRow(c, sid);
+  notifyTourAction('score-mark-saved');
 }
 
 // แก้สัดส่วน % ของหมวด inline จากหัวตาราง (เตือนไม่บล็อกถ้ารวม≠100)
@@ -909,6 +910,7 @@ function openScoreItemModal(classId, itemId, presetBucket) {
   document.getElementById('btn-score-item-delete').style.display = it ? 'inline-flex' : 'none';
   document.getElementById('btn-score-item-submit').innerText = it ? 'บันทึก' : 'เพิ่ม';
   document.getElementById('modal-score-item').classList.add('show');
+  if (!itemId) notifyTourAction('score-item-modal-opened');
 }
 
 function closeScoreItemModal() {
@@ -940,6 +942,7 @@ function saveScoreItem() {
   closeScoreItemModal();
   if (!quickScoreItemId && sc.items.length) quickScoreItemId = sc.items[sc.items.length - 1].id;
   renderScoreWorkspace(c);
+  notifyTourAction('score-item-saved');
 }
 
 function deleteScoreItem() {
@@ -1214,6 +1217,7 @@ function openMobileStudentScores(classId, sid) {
   renderMobileStudentPanel(c, sid);
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (wrap) wrap.scrollTop = 0;
+  notifyTourAction('mobile-score-student-opened');
 }
 
 function backToMobileScoreGrid(classId) {

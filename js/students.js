@@ -56,8 +56,11 @@ function renderWebStudents() {
   if (!container || !filter) return;
   
   // Always rebuild filter options to reflect added/deleted classes
-  const currentVal = window.__forceStudentClassId || filter.value;
+  const forcedClassId = window.__forceStudentClassId || '';
+  const currentVal = forcedClassId || filter.value;
   window.__forceStudentClassId = null; // Consume the forced value
+  const searchInput = document.getElementById('web-student-search-input');
+  if (forcedClassId && searchInput && searchInput.value) searchInput.value = '';
   let optionsHtml = '<option value="">-- กรุณาเลือกห้องเรียน --</option>';
   appState.classes.forEach(c => {
     optionsHtml += `<option value="${c.id}">${c.subject} (${c.className})</option>`;
@@ -90,7 +93,7 @@ function renderWebStudents() {
   }
 
   container.innerHTML = '';
-  const search = (document.getElementById('web-student-search-input').value || '').trim().toLowerCase();
+  const search = (searchInput?.value || '').trim().toLowerCase();
   
   const targetClass = appState.classes.find(c => c.id === filter.value);
   if (!targetClass) return;
@@ -104,11 +107,14 @@ function renderWebStudents() {
   document.getElementById('web-students-count-label').innerText = `พบ ${filteredStudents.length} คน`;
 
   if (filteredStudents.length === 0) {
+    const emptyTitle = search ? 'ไม่พบนักเรียนที่ตรงกับคำค้น' : 'ยังไม่มีนักเรียนในห้องนี้';
+    const emptyBody = search ? 'ลองค้นด้วยชื่อ หรือรหัสนักเรียนอีกครั้ง' : 'กด “เพิ่มนักเรียน” ด้านบนเพื่อเริ่มใส่รายชื่อคนแรก';
+    const emptyIcon = search ? 'hgi-user-search-01' : 'hgi-user-add-01';
     container.innerHTML = `
       <div class="student-card-empty">
-        <i class="hgi-stroke hgi-user-search-01"></i>
-        <strong>ไม่พบนักเรียนที่ตรงกับคำค้น</strong>
-        <span>ลองค้นด้วยชื่อ หรือรหัสนักเรียนอีกครั้ง</span>
+        <i class="hgi-stroke ${emptyIcon}"></i>
+        <strong>${emptyTitle}</strong>
+        <span>${emptyBody}</span>
       </div>`;
     return;
   }
@@ -176,6 +182,7 @@ function toggleStudentsActionMenu(ev) {
   document.body.appendChild(menu);
   menu.style.top = (r.bottom + window.scrollY + 6) + 'px';
   menu.style.left = (r.right + window.scrollX - menu.offsetWidth) + 'px';
+  notifyTourAction('student-menu-opened');
   setTimeout(() => document.addEventListener('click', closeClassMenuOnOutside), 0);
 }
 

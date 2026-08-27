@@ -198,6 +198,7 @@ const Tour = {
   start(steps, opts = {}) {
     // กรอง step ตาม device (มือถือ/คอม เช็คชื่อคนละแบบ)
     this.steps = steps.filter(s => {
+      if (typeof s.skipIf === 'function' && s.skipIf()) return false;
       if (s.mobileOnly && !isMobileView()) return false;
       if (s.desktopOnly && isMobileView()) return false;
       return true;
@@ -229,14 +230,48 @@ const Tour = {
 
   next() {
     this._detachAdvance();
-    this.i++;
+    do {
+      this.i++;
+    } while (this.i < this.steps.length && typeof this.steps[this.i].skipIf === 'function' && this.steps[this.i].skipIf());
     if (this.i >= this.steps.length) return this.end(true);
     this._show();
     const step = this.steps[this.i];
-    const run = () => { this._place(); this._attachAdvance(step); };
+    step.__tourWaits = 0;
+    const run = () => this._placeAndAttach(step);
     if (step.before) { try { step.before(); } catch (e) {} }
-    if (step.nav) navigateToWebScreen(step.nav);
+    if (step.nav) {
+      this._setNavigationQuiet();
+      navigateToWebScreen(step.nav);
+    }
     setTimeout(run, (step.nav || step.before) ? 320 : 60);
+  },
+
+  _setNavigationQuiet() {
+    window.__ckQuietClassTabMotion = true;
+    clearTimeout(window.__ckQuietClassTabMotionTimer);
+    window.__ckQuietClassTabMotionTimer = setTimeout(() => {
+      window.__ckQuietClassTabMotion = false;
+    }, 900);
+  },
+
+  _placeAndAttach(step) {
+    if (!this.active || this.steps[this.i] !== step) return;
+    if (step.target && !this._target(step)) {
+      this._hide();
+      step.__tourWaits = (step.__tourWaits || 0) + 1;
+      if (step.__tourWaits <= 12) {
+        setTimeout(() => this._placeAndAttach(step), 120);
+        return;
+      }
+      // เป้าหมายหายไปจาก DOM จริง ๆ: จบทัวร์อย่างสงบ แทนการข้ามไปขั้นถัดไป
+      // เพราะระหว่างเปลี่ยนหน้าทัวร์อาจยังตามหา target ของขั้นก่อนหน้าอยู่
+      this.end(false);
+      return;
+    }
+    step.__tourWaits = 0;
+    this._show();
+    this._place();
+    this._attachAdvance(step);
   },
 
   _target(step) {
@@ -248,7 +283,7 @@ const Tour = {
       const r = el.getBoundingClientRect();
       if (r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden') return el;
     }
-    return els[0] || null;
+    return null;
   },
 
   _place() {
@@ -256,6 +291,14 @@ const Tour = {
     const el = this._target(step);
     const ring = document.getElementById('tour-ring');
     const masks = [...document.querySelectorAll('.tour-mask')];
+    const maskPointer = step.allowInteraction ? ';pointer-events:none' : '';
+    if (step.target && !el) {
+      // _place ถูกเรียกซ้ำจาก resize/scroll และหลัง render หน้าจอใหม่ได้
+      // ห้ามสั่ง next ที่นี่ ไม่เช่นนั้น target ขั้นก่อนหน้าที่ถูก render ทิ้ง
+      // จะทำให้ทัวร์ข้ามขั้นเองก่อน action ของผู้ใช้ทำงาน
+      this._hide();
+      return;
+    }
     if (el && (el.getBoundingClientRect().top < 0 || el.getBoundingClientRect().bottom > window.innerHeight)) {
       el.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
@@ -264,13 +307,17 @@ const Tour = {
     const W = window.innerWidth, H = window.innerHeight, pad = 6;
     if (r) {
       const x = r.left - pad, y = r.top - pad, w = r.width + pad * 2, h = r.height + pad * 2;
-      masks[0].style.cssText = `left:0;top:0;width:100%;height:${Math.max(0, y)}px`;
-      masks[1].style.cssText = `left:0;top:${y + h}px;width:100%;height:${Math.max(0, H - (y + h))}px`;
-      masks[2].style.cssText = `left:0;top:${y}px;width:${Math.max(0, x)}px;height:${h}px`;
-      masks[3].style.cssText = `left:${x + w}px;top:${y}px;width:${Math.max(0, W - (x + w))}px;height:${h}px`;
+      if (step.noMask) {
+        masks.forEach(mask => { mask.style.display = 'none'; });
+      } else {
+        masks[0].style.cssText = `left:0;top:0;width:100%;height:${Math.max(0, y)}px${maskPointer}`;
+        masks[1].style.cssText = `left:0;top:${y + h}px;width:100%;height:${Math.max(0, H - (y + h))}px${maskPointer}`;
+        masks[2].style.cssText = `left:0;top:${y}px;width:${Math.max(0, x)}px;height:${h}px${maskPointer}`;
+        masks[3].style.cssText = `left:${x + w}px;top:${y}px;width:${Math.max(0, W - (x + w))}px;height:${h}px${maskPointer}`;
+      }
       ring.style.cssText = `display:block;left:${x}px;top:${y}px;width:${w}px;height:${h}px`;
     } else {
-      masks[0].style.cssText = 'left:0;top:0;width:100%;height:100%';
+      masks[0].style.cssText = `left:0;top:0;width:100%;height:100%${maskPointer}`;
       masks[1].style.display = 'none'; masks[2].style.display = 'none'; masks[3].style.display = 'none';
       ring.style.display = 'none';
     }
@@ -279,6 +326,10 @@ const Tour = {
 
   _renderBubble(step, r) {
     const bubble = document.getElementById('tour-bubble');
+    if (step.bubble === false) {
+      bubble.style.display = 'none';
+      return;
+    }
     const total = this.steps.length, n = this.i + 1, last = this.i === this.steps.length - 1;
     const body = (isMobileView() && step.mobileBody) ? step.mobileBody : (step.body || '');
     const gated = step.advance && step.advance.indexOf('action') === 0;
@@ -310,22 +361,32 @@ const Tour = {
 
   _attachAdvance(step) {
     // step ที่ต้องกดเป้าจริง (click/action): ซ่อน overlay ตอนกด เพื่อให้ modal/หน้าถัดไปใช้งานได้
-    const gated = step.advance === 'click' || (step.advance && step.advance.indexOf('action') === 0);
+    const gated = step.blockTarget || step.advance === 'click' || (step.advance && step.advance.indexOf('action') === 0);
     if (gated) {
+      if (step.waitForActionOnly) return;
       const el = this._target(step);
       if (el) {
         this._clickEl = el;
-        this._clickHandler = () => {
-          this._hide();
+        this._clickHandler = event => {
+          if (step.blockTarget) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.next();
+            return;
+          }
+          if (step.hideOnClick !== false) this._hide();
           if (step.advance === 'click') setTimeout(() => this.next(), 120);
         };
-        el.addEventListener('click', this._clickHandler);
+        el.addEventListener('click', this._clickHandler, !!step.blockTarget);
       }
     }
   },
 
   _detachAdvance() {
-    if (this._clickEl && this._clickHandler) this._clickEl.removeEventListener('click', this._clickHandler);
+    if (this._clickEl && this._clickHandler) {
+      this._clickEl.removeEventListener('click', this._clickHandler);
+      this._clickEl.removeEventListener('click', this._clickHandler, true);
+    }
     this._clickEl = null; this._clickHandler = null;
   },
 
@@ -333,7 +394,9 @@ const Tour = {
   action(name) {
     if (!this.active) return;
     const step = this.steps[this.i];
-    if (step && step.advance === 'action:' + name) setTimeout(() => this.next(), 400);
+    if (step && step.advance === 'action:' + name) setTimeout(() => {
+      if (this.active && this.steps[this.i] === step) this.next();
+    }, 80);
   },
 
   prev() {
@@ -363,40 +426,375 @@ function ensureCheckinOpen() {
   if (cid && ov && !ov.classList.contains('show')) openSwipeAttendance(cid);
 }
 
-// ---- ลำดับทัวร์หลัก (เฟส 1+2) ----
-const MAIN_TOUR_STEPS = [
-  { nav: 'classrooms', target: '#btn-add-class-header', title: 'สร้างห้องเรียนแรก',
-    body: 'แตะปุ่มนี้เพื่อสร้างวิชา/ห้องที่คุณสอน แล้วกรอกชื่อวิชากับห้อง เสร็จแล้วกด “เพิ่มห้องเรียน”',
-    advance: 'action:class-created' },
-  { target: '.ck-checkin-btn', title: 'เข้าห้องเพื่อเพิ่มนักเรียน',
-    body: 'เยี่ยมมาก! ต่อไปแตะปุ่ม “เช็คชื่อ” ของห้องนี้ เพื่อเข้าไปเพิ่มรายชื่อนักเรียน',
-    advance: 'action:opened-checkin' },
-  { target: '[onclick="addStudentFromSwipe()"]', title: 'เพิ่มรายชื่อนักเรียน',
-    body: 'เพิ่มนักเรียนได้ 2 แบบ: <b>พิมพ์เอง</b> ทีละคน หรือ <b>นำเข้าจาก Excel</b> — ลองเพิ่มสัก 1 คนดู',
-    advance: 'action:student-added' },
-  // วิธีเช็คชื่อ (มือถือ) แบบ 1: ปัดการ์ด — ไฮไลต์การ์ด + สัญลักษณ์ทิศ (ไม่บังคับเช็คจริง)
-  { target: '#swipe-card', title: 'วิธีที่ 1: ปัดการ์ด', mobileOnly: true, before: ensureCheckinOpen,
-    body: 'ปัดหรือแตะการ์ดของนักเรียนที่แสดงอยู่:<div style="display:flex;justify-content:space-around;text-align:center;margin-top:14px;font-weight:800;font-size:0.82rem;"><div style="color:var(--color-leave)"><div style="font-size:1.6rem;line-height:1">←</div>ปัดซ้าย<br>ลา</div><div style="color:var(--color-present)"><div style="font-size:1.6rem;line-height:1">👆</div>แตะ<br>มา</div><div style="color:var(--color-absent)"><div style="font-size:1.6rem;line-height:1">→</div>ปัดขวา<br>ขาด</div></div>' },
-  // วิธีเช็คชื่อ (มือถือ) แบบ 2: ปุ่มด้านล่าง — ไฮไลต์ (วงๆ) ที่แถบปุ่ม
-  { target: '.swipe-action-buttons', title: 'วิธีที่ 2: กดปุ่มด้านล่าง', mobileOnly: true, before: ensureCheckinOpen,
-    body: 'ไม่ถนัดปัด? กดปุ่มเหล่านี้เพื่อเลือกสถานะได้เลย:<br><b style="color:var(--color-present)">มา</b> · <b style="color:var(--color-late-text)">สาย</b> · <b style="color:var(--color-absent)">ขาด</b> · <b style="color:var(--color-leave)">ลา</b><br>ปุ่ม “ย้อน” ไว้แก้ถ้ากดพลาด' },
-  // วิธีเช็คชื่อ (คอม) — แค่อธิบาย ไม่บังคับเช็คจริง
-  { target: '.d-col-status', title: 'วิธีเช็คชื่อ', desktopOnly: true, before: ensureCheckinOpen,
-    body: 'แต่ละแถวมีปุ่มสถานะ กดเพื่อบันทึกการเข้าเรียนของนักเรียน:<br><b style="color:var(--color-present)">มา</b> / สาย / ขาด / ลา' },
-  // สอนลงตารางสอนเอง (คอม) — แตะช่องในตาราง แล้วเลือกวิชา/ห้องที่เพิ่งสร้าง
-  { nav: 'timetable', target: '#web-timetable-matrix-container td[onclick^="openPeriodModal"]', title: 'ลงตารางสอน (ไม่บังคับ)', desktopOnly: true,
-    body: 'แตะช่องในตารางเพื่อลงคาบสอน แล้วเลือก<b>วิชา/ห้อง</b>ที่คุณเพิ่งสร้าง<br><br>ลงไว้แล้วหน้าแรกจะ<b>เตือนคาบถัดไป</b>ให้อัตโนมัติ · ยังไม่พร้อมก็ข้ามได้',
-    advance: 'action:period-added' },
-  // แนะนำปุ่มลัดบนหน้าตาราง — แค่ให้รู้จัก เดี๋ยวครูกลับมาปรับเองทีหลัง
-  { target: '#tt-desktop-controls', title: 'ปุ่มลัดบนหน้าตาราง', desktopOnly: true,
-    body: 'รู้จักไว้นิดหน่อย เดี๋ยวกลับมาปรับทีหลังได้:<br>• <b>นำเข้าตารางสอน</b> — เพิ่มหลายคาบจาก Excel<br>• <b>จัดการคาบ</b> — ตั้งเวลาเริ่ม จำนวนคาบ และเวลาพัก' },
-  // ตารางสอน (มือถือ) — เพิ่ม/แก้คาบได้จากการ์ดแต่ละวัน
-  { nav: 'timetable', title: 'ตารางสอน (ไม่บังคับ)', mobileOnly: true,
-    body: 'ถ้าลงตารางสอนไว้ หน้าแรกจะ<b>เตือนคาบถัดไป</b>ให้อัตโนมัติ<br><br>บนมือถือกด <b>+ เพิ่มคาบ</b> ที่วันต้องการ แล้วเลือกวิชาและห้องครั้งเดียว · แตะคาบเดิมเพื่อแก้ไขหรือลบได้ทันที' },
-  // หน้าแรก = ศูนย์รวม (อธิบายคาบถัดไป/เตือน/เช็คแล้ว)
-  { nav: 'dashboard', target: '#home-date-card', title: 'หน้าแรก = ศูนย์รวมของคุณ',
-    body: 'เมื่อมีตารางสอนแล้ว ทุกวันหน้านี้จะบอก:<br>• <b>คาบถัดไป</b>ใกล้ถึงยัง — แตะการ์ดคาบเพื่อไปเช็คชื่อได้ทันที<br>• ถ้า<b>ลืมเช็ค</b> จะมีแจ้งเตือนขึ้นให้<br>• คาบที่<b>เช็คแล้ว</b> จะโชว์สถานะให้เห็น<br><br>พร้อมแล้ว ลุยกันเลย! 🎉' }
-];
+function hasAnyClass() {
+  return !!((appState.classes || []).length);
+}
+
+function getGuideClassId() {
+  const classes = appState.classes || [];
+  const validId = id => id && classes.some(c => c.id === id);
+  if (typeof currentClassId !== 'undefined' && validId(currentClassId)) return currentClassId;
+  if (typeof scoreCurrentClassId !== 'undefined' && validId(scoreCurrentClassId)) return scoreCurrentClassId;
+  if (typeof swipeClassId !== 'undefined' && validId(swipeClassId)) return swipeClassId;
+  return (appState.classes && appState.classes[0] && appState.classes[0].id) || null;
+}
+
+function guideNeedsClass(key) {
+  return ['add-student', 'checkin', 'scores', 'qr-score', 'reports', 'add-period'].includes(key);
+}
+
+function guideNeedsStudent(key) {
+  return ['scores', 'qr-score', 'reports'].includes(key);
+}
+
+function guideClassHasStudents(classId) {
+  const c = (appState.classes || []).find(room => room.id === classId);
+  return !!(c && c.students && c.students.length);
+}
+
+function guideClassHasScoreItems(classId) {
+  const c = (appState.classes || []).find(room => room.id === classId);
+  return !!(c && c.scores && Array.isArray(c.scores.items) && c.scores.items.length);
+}
+
+function ensureQrScoreGuideSetup() {
+  const classId = getGuideClassId();
+  if (classId && typeof openQrScoreScanner === 'function') openQrScoreScanner(classId);
+}
+
+function notifyTourAction(name) {
+  if (typeof Tour !== 'undefined' && Tour && typeof Tour.action === 'function') {
+    Tour.action(name);
+  }
+}
+
+function prepareStudentGuideResult() {
+  const searchInput = document.getElementById('web-student-search-input');
+  if (searchInput && searchInput.value) searchInput.value = '';
+  if (typeof renderWebStudents === 'function') renderWebStudents();
+}
+
+const GUIDE_STEPS = {
+  classrooms: [
+  { nav: 'classrooms', target: '#btn-add-class-header', title: 'เริ่มจากสร้างห้องเรียน',
+    body: 'กดปุ่มนี้เพื่อเปิดฟอร์มสร้างวิชา/ห้องเรียนแรกของคุณ',
+    advance: 'action:class-modal-opened', skipIf: hasAnyClass },
+  { target: '#modal-class .bottom-sheet',
+    advance: 'action:class-created', waitForActionOnly: true, bubble: false, allowInteraction: true, noMask: true }
+  ],
+  dashboard: [
+    { nav: 'dashboard', target: '#home-date-card', title: 'หน้าแรกคือภาพรวมวันนี้',
+      body: 'ดูวันที่ สรุปมา/สาย/ขาด/ลา และภาพรวมงานที่ต้องทำวันนี้จากตรงนี้',
+      blockTarget: true },
+    { target: '#home-next-card-area', title: 'คาบถัดไป',
+      body: 'ถ้าลงตารางสอนไว้ ระบบจะดึงคาบถัดไปมาให้กดเช็คชื่อได้เร็วขึ้น',
+      blockTarget: true },
+    { target: '.home-schedule-card', title: 'ตารางวันนี้',
+      body: 'การ์ดคาบสอนช่วยให้เห็นทั้งวันแบบเร็ว ๆ คาบไหนเช็คแล้วหรือยังไม่เช็คจะสังเกตได้จากสถานะ',
+      blockTarget: true }
+  ],
+  'add-student': [
+    { nav: 'students', target: '#btn-add-student-roster', title: 'เริ่มเพิ่มนักเรียน',
+      body: 'กดปุ่มนี้เพื่อเพิ่มนักเรียนทีละคน เหมาะกับเริ่มต้นหรือเพิ่มเด็กใหม่ระหว่างเทอม',
+      desktopOnly: true,
+      advance: 'action:student-modal-opened' },
+    { target: '#btn-students-actions-mobile', title: 'เปิดเมนูจัดการรายชื่อ',
+      body: 'บนมือถือปุ่มเพิ่มนักเรียนจะอยู่ในเมนูนี้ เพื่อให้หัวจอไม่รกเกินไป',
+      mobileOnly: true,
+      advance: 'action:student-menu-opened' },
+    { target: '#ck-class-menu button:first-child', title: 'เลือกเพิ่มนักเรียน',
+      body: 'แตะ “เพิ่มนักเรียน” เพื่อเปิดฟอร์มเพิ่มรายชื่อทีละคน',
+      mobileOnly: true,
+      advance: 'action:student-modal-opened' },
+    { target: '#modal-student .bottom-sheet', title: 'ฟอร์มเพิ่มนักเรียน',
+      body: 'เลขที่จะเติมให้ถัดจากคนล่าสุดโดยอัตโนมัติ ส่วนช่องที่สำคัญที่สุดคือชื่อ-นามสกุล',
+      blockTarget: true },
+    { target: '#input-student-name', title: 'กรอกชื่อ-นามสกุล',
+      body: 'ช่องนี้จำเป็นต้องกรอกก่อนบันทึก ส่วนรหัส ชื่อเล่น และหมายเหตุเป็นข้อมูลเสริม ใส่ภายหลังได้' },
+    { target: '#btn-student-submit', title: 'บันทึกรายชื่อ',
+      body: 'เมื่อกรอกชื่อแล้ว กด “เพิ่ม” เพื่อบันทึกนักเรียนเข้าห้องนี้ ระบบจะนำไปใช้ต่อในเช็คชื่อ คะแนน และรายงาน',
+      advance: 'action:student-added', hideOnClick: false },
+    { target: '.student-roster-card', title: 'เพิ่มแล้วจะอยู่ตรงนี้', before: prepareStudentGuideResult,
+      body: 'รายชื่อที่เพิ่มจะแสดงในพื้นที่นี้ ถ้ามีนักเรียนหลายคน ใช้นำเข้า Excel ได้จากปุ่มด้านบนบนจอใหญ่',
+      blockTarget: true }
+  ],
+  checkin: [
+    { before: ensureCheckinOpen, target: '#swipe-card', title: 'การ์ดเช็คชื่อ',
+      body: 'ทีละคน ชัด ๆ แตะหรือปัดการ์ดเพื่อบันทึกสถานะ เหมาะกับมือถือเวลาอยู่หน้าห้อง',
+      mobileOnly: true, blockTarget: true },
+    { before: ensureCheckinOpen, target: '.swipe-action-buttons', title: 'ปุ่มสถานะ',
+      body: 'ถ้าไม่อยากปัด ใช้ปุ่ม มา · สาย · ขาด · ลา ได้เลย และมีปุ่มย้อนเมื่อกดพลาด',
+      mobileOnly: true, blockTarget: true },
+    { before: ensureCheckinOpen, target: '.swipe-summary-pills', title: 'สรุปเช็คชื่อ',
+      body: 'ดูจำนวนมา สาย ขาด ลา ของคาบนี้แบบทันทีหลังเช็ค',
+      mobileOnly: true, blockTarget: true },
+    { before: ensureCheckinOpen, target: '.d-attendance-table, .d-col-status', title: 'เช็คชื่อบนจอใหญ่',
+      body: 'บนเว็บ/เดสก์ท็อปจะเห็นเป็นตาราง กดสถานะในแต่ละแถวเพื่อเช็คชื่อเร็ว ๆ',
+      desktopOnly: true, blockTarget: true }
+  ],
+  scores: [
+    { target: '#web-scores-detail-title', title: 'คะแนนของห้อง',
+      body: 'เริ่มจากสร้างรายการคะแนน แล้วกรอกคะแนนของนักเรียนในห้องนี้',
+      blockTarget: true },
+    { target: '.sc-add-item-btn, .sc-add-last', title: 'เพิ่มรายการคะแนน',
+      body: 'บนจอใหญ่กดปุ่ม + ในหมวดที่ต้องการ แล้วตั้งชื่องานกับคะแนนเต็ม',
+      desktopOnly: true, skipIf: () => guideClassHasScoreItems(getGuideClassId()),
+      advance: 'action:score-item-modal-opened' },
+    { target: '.msc-card', title: 'เลือกนักเรียน',
+      body: 'บนมือถือแตะชื่อนักเรียนก่อน แล้วจึงกรอกคะแนนรายคนให้จบในหน้าเดียว',
+      mobileOnly: true, advance: 'action:mobile-score-student-opened' },
+    { target: '.msc-add', title: 'เพิ่มรายการคะแนน',
+      body: 'ถ้ายังไม่มีงาน ให้กดเพิ่มรายการในหมวดที่ต้องการก่อนเริ่มกรอกคะแนน',
+      mobileOnly: true, skipIf: () => guideClassHasScoreItems(getGuideClassId()),
+      advance: 'action:score-item-modal-opened' },
+    { target: '#modal-score-item .bottom-sheet', title: 'ตั้งค่างาน',
+      body: 'กำหนดชื่องาน คะแนนเต็ม และรายละเอียดที่ต้องการให้ครบก่อนบันทึก',
+      skipIf: () => guideClassHasScoreItems(getGuideClassId()) },
+    { target: '#input-score-name', title: 'ชื่องาน',
+      body: 'ตั้งชื่อให้จำง่าย เช่น ใบงานบทที่ 1 หรือแบบทดสอบย่อย',
+      skipIf: () => guideClassHasScoreItems(getGuideClassId()) },
+    { target: '#input-score-max', title: 'คะแนนเต็ม',
+      body: 'กำหนดคะแนนเต็มของงานนี้ ระบบจะไม่ให้กรอกคะแนนเกินค่านี้',
+      skipIf: () => guideClassHasScoreItems(getGuideClassId()) },
+    { target: '#btn-score-item-submit', title: 'บันทึกรายการคะแนน',
+      body: 'กดเพิ่มเพื่อสร้างงานจริง แล้วระบบจะแสดงช่องกรอกคะแนนให้ทันที',
+      skipIf: () => guideClassHasScoreItems(getGuideClassId()),
+      advance: 'action:score-item-saved', hideOnClick: false },
+    { target: '.score-cell-input', title: 'กรอกคะแนนในตาราง',
+      body: 'บนจอใหญ่พิมพ์คะแนนในช่องของนักเรียนได้เลย แล้วกด Enter เพื่อไปช่องถัดไป',
+      desktopOnly: true, advance: 'action:score-mark-saved' },
+    { target: '.msc-in', title: 'กรอกคะแนนรายคน',
+      body: 'บนมือถือกรอกคะแนนของนักเรียนคนนี้ แล้วกดยืนยันบันทึกก่อนเปลี่ยนคน',
+      mobileOnly: true, advance: 'action:score-mark-saved' },
+    { target: '.msc-slide-handle', title: 'ปรับคะแนนด้วยการลาก',
+      body: 'ถ้าต้องการเร็วขึ้น ลากแถบนี้ขึ้นเพื่อเพิ่มคะแนน หรือลงเพื่อลดคะแนน',
+      mobileOnly: true, allowInteraction: true },
+    { target: '.msc-nav', title: 'ไปยังคนถัดไป',
+      body: 'ใช้ปุ่มคนก่อนและคนถัดไปเพื่อกรอกคะแนนไล่ทั้งห้องโดยไม่ต้องย้อนกลับไปรายชื่อ',
+      mobileOnly: true, allowInteraction: true }
+  ],
+  'qr-score': [
+    { before: ensureQrScoreGuideSetup, target: '#modal-qr-score .qr-score-sheet', title: 'กรอกคะแนนด้วย QR',
+      body: 'นี่เป็นทางลัดหลังจากสร้างงานคะแนนแล้ว เหมาะกับการเก็บคะแนนต่อเนื่องหน้าชั้น' },
+    { target: '#qr-score-task-trigger', title: 'เลือกงานที่จะกรอก',
+      body: 'เลือกงานหรือกิจกรรมที่ต้องการเก็บคะแนน ระบบจะแสดงเฉพาะงานของห้องนี้',
+      advance: 'action:qr-score-task-selected' },
+    { target: '#qr-score-default-score', title: 'คะแนนเริ่มต้น',
+      body: 'ใส่ค่าเริ่มต้นได้เมื่อเด็กส่วนใหญ่ได้คะแนนเท่ากัน แต่ปล่อยว่างไว้ก็ได้',
+      allowInteraction: true },
+    { target: '#qr-score-start-btn', title: 'เริ่มสแกนเมื่อพร้อม',
+      body: 'กดเริ่มสแกนแล้วจึงอนุญาตใช้กล้อง ระบบจะให้ตรวจชื่อและยืนยันคะแนนของแต่ละคนก่อนบันทึก',
+      advance: 'action:qr-score-scan-started' }
+  ],
+  timetable: [
+    { nav: 'timetable', target: '#web-timetable-matrix-container, #m-timetable-days', title: 'ตารางสอนของคุณ',
+      body: 'ลงคาบสอนไว้เพื่อให้หน้าแรกเตือนคาบถัดไป และช่วยเปิดเช็คชื่อได้ตรงเวลา',
+      blockTarget: true },
+    { target: '#web-timetable-matrix-container td[onclick^="openPeriodModal"], .m-tt-add-btn, .m-tt-day-add', title: 'เพิ่มคาบสอน',
+      body: 'กดช่องว่างหรือปุ่มเพิ่มคาบ แล้วเลือกวิชา/ห้องให้ตรงกับตารางจริง',
+      blockTarget: true },
+    { target: '#tt-desktop-controls', title: 'จัดการตาราง',
+      body: 'บนจอใหญ่มีปุ่มนำเข้าและตั้งค่าคาบเรียน ช่วยจัดตารางจำนวนมากได้เร็วขึ้น',
+      desktopOnly: true, blockTarget: true }
+  ],
+  'add-period': [
+    { nav: 'timetable', target: '#web-timetable-matrix-container td[onclick^="openPeriodModal"], .m-tt-add-btn, .m-tt-day-add, .m-tt-no-class', title: 'เลือกช่องคาบสอน',
+      body: 'เริ่มจากกดช่องว่างในตาราง หรือปุ่ม “เพิ่มคาบ” บนมือถือ เพื่อเปิดฟอร์มเพิ่มคาบ',
+      advance: 'action:period-modal-opened' },
+    { target: '#modal-period .period-editor-sheet', title: 'ฟอร์มเพิ่มคาบ',
+      body: 'คาบสอนประกอบด้วยวัน เวลา และวิชา/ห้องเรียน เลือกให้ตรงกับตารางจริงของครู',
+      blockTarget: true },
+    { target: '#input-period-subject', title: 'เลือกวิชา',
+      body: 'บนจอใหญ่ให้เลือกวิชาก่อน ระบบจะกรองห้องที่อยู่ในวิชานั้นให้',
+      desktopOnly: true },
+    { target: '#input-period-class', title: 'เลือกห้อง',
+      body: 'เลือกห้องเรียนที่จะสอนในคาบนี้ เช่น ม.1/1 หรือ ม.2/1',
+      desktopOnly: true },
+    { target: '#input-period-mobile-day, #input-period-mobile-slot', title: 'เลือกวันและคาบ',
+      body: 'บนมือถือเลือกวันและคาบจากช่องนี้ ถ้ากดจากปุ่มของวัน ระบบจะตั้งค่าเริ่มต้นให้แล้ว',
+      mobileOnly: true },
+    { target: '#input-period-mobile-class', title: 'เลือกวิชาและห้อง',
+      body: 'บนมือถือเลือกครั้งเดียวได้ทั้งวิชาและห้อง เพื่อลดขั้นตอนตอนใช้งานจริง',
+      mobileOnly: true },
+    { target: '#btn-period-save', title: 'บันทึกคาบ',
+      body: 'กดบันทึกคาบ เมื่อเลือกวิชา/ห้องแล้ว หน้าแรกจะใช้ข้อมูลนี้เพื่อเตือนคาบถัดไป',
+      advance: 'action:period-added' },
+    { nav: 'dashboard', target: '#home-next-card-area, #home-date-card', title: 'ผลลัพธ์บนหน้าแรก',
+      body: 'หลังเพิ่มคาบ ตารางวันนี้และคาบถัดไปจะถูกใช้ช่วยเตือน และเปิดเช็คชื่อได้เร็วขึ้น',
+      blockTarget: true }
+  ],
+  reports: [
+    { target: '#web-rep-detail-class-title, #web-reports-class-list', title: 'รายงานของห้อง',
+      body: 'ดูสรุปวันนี้ รายคาบ รายภาค และส่งออกข้อมูลสำหรับงานเอกสาร',
+      blockTarget: true },
+    { target: '.report-tabs', title: 'เลือกมุมมองรายงาน',
+      body: 'สลับแท็บเพื่อดูรายงานแบบที่ต้องการ โดยไม่ต้องเปลี่ยนเมนูหลัก',
+      blockTarget: true },
+    { target: '#web-rep-today-pills, #web-rep-today-progress', title: 'สรุปภาพรวม',
+      body: 'ดูจำนวนและเปอร์เซ็นต์การเข้าเรียน ช่วยจับปัญหาได้เร็ว',
+      blockTarget: true },
+    { target: '.ck-btn-pdf', title: 'ส่งออกเอกสาร',
+      body: 'เมื่อข้อมูลพร้อม ใช้ปุ่มส่งออกเพื่อเก็บไฟล์รายงานหรือส่งต่อได้',
+      blockTarget: true }
+  ],
+  tools: [
+    { nav: 'tools', target: '.teaching-tools-context', title: 'เลือกห้องก่อนใช้เครื่องมือ',
+      body: 'เครื่องมือบางอย่างต้องรู้ว่ากำลังใช้กับห้องไหน เพื่อดึงรายชื่อและข้อมูลได้ถูกต้อง',
+      blockTarget: true },
+    { target: '#teaching-tools-grid', title: 'เครื่องมือช่วยสอน',
+      body: 'เลือกเครื่องมือที่เหมาะกับกิจกรรมในห้อง เช่น สุ่มชื่อ จับเวลา หรือเครื่องมือหน้าชั้นเรียน',
+      blockTarget: true },
+    { target: '#teaching-tools-grid .tool-card.ready', title: 'เปิดใช้เครื่องมือ',
+      body: 'แตะการ์ดเครื่องมือเพื่อเริ่มใช้งานได้ทันที เครื่องมือที่ยังไม่พร้อมจะมีสถานะบอกไว้',
+      blockTarget: true }
+  ],
+  games: [
+    { nav: 'games', target: '.games-hero', title: 'เกมการศึกษา',
+      body: 'หน้านี้รวมกิจกรรมเกมสำหรับใช้เสริมการสอน เลือกตามสถานการณ์ในห้องเรียน',
+      blockTarget: true },
+    { target: '.game-card .games-play-button', title: 'เริ่มเกม',
+      body: 'กดปุ่มเริ่มในเกมที่ต้องการ แล้วเลือกห้องหรือข้อมูลที่เกี่ยวข้องตามขั้นตอน',
+      blockTarget: true }
+  ]
+};
+
+const GUIDE_SCREEN_MAP = {
+  dashboard: 'dashboard',
+  classrooms: 'classrooms',
+  'add-student': 'students',
+  checkin: 'checkin',
+  scores: 'scores',
+  timetable: 'timetable',
+  'add-period': 'timetable',
+  reports: 'reports',
+  tools: 'tools',
+  games: 'games'
+};
+
+let pendingGuideKey = null;
+let pendingGuideClearTimer = null;
+
+function setPendingGuide(key) {
+  pendingGuideKey = key;
+  clearTimeout(pendingGuideClearTimer);
+  pendingGuideClearTimer = setTimeout(() => {
+    if (pendingGuideKey === key) pendingGuideKey = null;
+  }, 1600);
+}
+
+function clearPendingGuide(key) {
+  if (!key || pendingGuideKey === key) pendingGuideKey = null;
+  clearTimeout(pendingGuideClearTimer);
+}
+
+function getGuidesSeen() {
+  appState.onboarding = appState.onboarding || {};
+  appState.onboarding.guidesSeen = appState.onboarding.guidesSeen || {};
+  return appState.onboarding.guidesSeen;
+}
+
+function getGuidesCompleted() {
+  appState.onboarding = appState.onboarding || {};
+  appState.onboarding.guidesCompleted = appState.onboarding.guidesCompleted || {};
+  return appState.onboarding.guidesCompleted;
+}
+
+function markGuideCompleted(key) {
+  getGuidesCompleted()[key] = true;
+  saveStateLocalOnly(false);
+  if (typeof refreshGuideCompletionState === 'function') refreshGuideCompletionState();
+}
+
+function markGuideSeen(key) {
+  const seen = getGuidesSeen();
+  seen[key] = true;
+  if (key === 'classrooms' || key === 'add-student') {
+    seen.students = true;
+    seen['add-student'] = true;
+  }
+  if (key === 'timetable' || key === 'add-period') {
+    seen['add-period'] = true;
+  }
+  saveStateLocalOnly(false);
+}
+
+function shouldNavigateForGuide(screenId, classId) {
+  if (appState.activeWebScreen !== screenId) return true;
+  if (!classId) return false;
+  if (screenId === 'scores') return typeof scoreCurrentClassId === 'undefined' || scoreCurrentClassId !== classId;
+  if (screenId === 'students' || screenId === 'reports') return typeof currentClassId === 'undefined' || currentClassId !== classId;
+  return false;
+}
+
+function startGuide(key = 'classrooms', opts = {}) {
+  const steps = GUIDE_STEPS[key];
+  if (!steps) return;
+
+  if (guideNeedsClass(key) && !hasAnyClass()) {
+    if (!opts.auto) showToast('เริ่มจากสร้างห้องเรียนก่อน แล้วค่อยเปิดไกด์นี้นะครับ', 'info');
+    navigateToWebScreen('classrooms');
+    return;
+  }
+
+  const cid = getGuideClassId();
+  if (guideNeedsStudent(key) && !guideClassHasStudents(cid)) {
+    if (!opts.auto) {
+      showToast('เพิ่มรายชื่อนักเรียนก่อน แล้วค่อยดูไกด์คะแนน/รายงานนะครับ', 'info');
+      startGuide('add-student', { delay: 500 });
+      return;
+    }
+    if (cid) navigateToWebScreen('students', cid);
+    return;
+  }
+
+  if (key === 'qr-score' && !guideClassHasScoreItems(cid)) {
+    if (!opts.auto) showToast('สร้างรายการคะแนนก่อน แล้วค่อยลองกรอกด้วย QR นะครับ', 'info');
+    startGuide('scores', { delay: 500 });
+    return;
+  }
+
+  clearTimeout(window.__ckClassroomsGuideTimer);
+  setPendingGuide(key);
+  if (Tour.active) Tour.end(false);
+  if (typeof closePublicHelp === 'function') closePublicHelp();
+
+  if (key === 'checkin') {
+    if (cid) openSwipeAttendance(cid);
+  } else if (['students', 'scores', 'qr-score', 'reports'].includes(key)) {
+    const screenId = key === 'qr-score' ? 'scores' : key;
+    if (shouldNavigateForGuide(screenId, cid)) navigateToWebScreen(screenId, cid);
+  } else {
+    const targetScreen = GUIDE_SCREEN_MAP[key] || key;
+    if (shouldNavigateForGuide(targetScreen, cid)) navigateToWebScreen(targetScreen, targetScreen === 'students' ? cid : undefined);
+  }
+
+  window.__ckClassroomsGuideTimer = setTimeout(() => {
+    clearPendingGuide(key);
+    Tour.start(steps, {
+      guideKey: key,
+      onEnd: completed => {
+        markGuideSeen(key);
+        if (completed) markGuideCompleted(key);
+        if (typeof opts.onEnd === 'function') opts.onEnd(completed);
+        else if (completed) showGuideComplete(key);
+      }
+    });
+  }, opts.delay || 360);
+}
+
+function startClassroomsGuide(opts = {}) {
+  startGuide('classrooms', opts);
+}
+
+function maybeStartClassroomsGuide() {
+  maybeStartScreenGuide('classrooms');
+}
+
+function maybeStartScreenGuide(screenId) {
+  // ทัวร์ต้องเริ่มจากความตั้งใจของครูเสมอ: การเปิดหน้า/เปลี่ยนแท็บเองไม่ควรทำให้
+  // มี overlay เด้งขึ้นหรือพาเปลี่ยนหน้า เพราะรบกวนงานที่กำลังทำและทำให้ดูเหมือนรีเฟรช
+  void screenId;
+}
 
 let onboardingChecked = false;
 function maybeStartOnboarding() {
@@ -410,24 +808,119 @@ function maybeStartOnboarding() {
 
 function startMainTour() {
   document.getElementById('modal-welcome').classList.remove('show');
-  Tour.start(MAIN_TOUR_STEPS, { onEnd: finishOnboarding });
+  appState.onboarding = { ...(appState.onboarding || {}), setupActive: true, setupStep: 'classroom' };
+  saveStateLocalOnly(false);
+  startGuide('classrooms', { onEnd: finishClassroomSetup });
+}
+
+function finishClassroomSetup(completed) {
+  if (!completed || !hasAnyClass()) return;
+  appState.onboarding = { ...(appState.onboarding || {}), setupActive: true, setupStep: 'students' };
+  saveStateLocalOnly(false);
+  showSetupNext('students');
+}
+
+function startStudentSetup(classId) {
+  closeSetupNext();
+  if (classId) currentClassId = classId;
+  startGuide('add-student', { onEnd: finishStudentSetup });
+}
+
+function finishStudentSetup(completed) {
+  const classId = getGuideClassId();
+  if (!completed || !guideClassHasStudents(classId)) return;
+  appState.onboarding = { ...(appState.onboarding || {}), done: true, setupActive: false, setupStep: 'schedule' };
+  saveStateLocalOnly(false);
+  showSetupNext('schedule');
+}
+
+function startScheduleSetup() {
+  closeSetupNext();
+  startGuide('add-period', { onEnd: finishOnboarding });
+}
+
+function showSetupNext(step) {
+  const modal = document.getElementById('modal-onboarding-next');
+  const title = document.getElementById('onboarding-next-title');
+  const body = document.getElementById('onboarding-next-body');
+  const button = document.getElementById('onboarding-next-button');
+  if (!modal || !title || !body || !button) return;
+  if (step === 'students') {
+    title.textContent = 'สร้างห้องเรียนแล้ว';
+    body.textContent = 'ต่อไปเพิ่มรายชื่อนักเรียน เพื่อให้เช็คชื่อ เก็บคะแนน และดูรายงานได้';
+    button.innerHTML = '<i class="hgi-stroke hgi-user-add-01"></i> ต่อไป: เพิ่มนักเรียน';
+    button.onclick = startStudentSetup;
+  } else {
+    title.textContent = 'ห้องพร้อมใช้งานแล้ว';
+    body.textContent = 'เพิ่มตารางสอนต่อได้เลย เพื่อให้หน้าแรกเตือนคาบถัดไปให้คุณ';
+    button.innerHTML = '<i class="hgi-stroke hgi-calendar-add-01"></i> ต่อไป: สร้างตารางสอน';
+    button.onclick = startScheduleSetup;
+  }
+  modal.classList.add('show');
+}
+
+function closeSetupNext() {
+  document.getElementById('modal-onboarding-next')?.classList.remove('show');
+}
+
+function showGuideComplete(key) {
+  const modal = document.getElementById('modal-guide-complete');
+  const title = document.getElementById('guide-complete-title');
+  const body = document.getElementById('guide-complete-body');
+  const primary = document.getElementById('guide-complete-primary');
+  const secondary = document.getElementById('guide-complete-secondary');
+  if (!modal || !title || !body || !primary || !secondary) return;
+  const labels = {
+    classrooms: 'สร้างห้องเรียน', dashboard: 'หน้าแรก', 'add-student': 'เพิ่มนักเรียน',
+    checkin: 'เช็คชื่อ', scores: 'คะแนน', 'qr-score': 'กรอกคะแนนด้วย QR', timetable: 'ตารางสอน',
+    'add-period': 'เพิ่มคาบสอน', reports: 'รายงาน', tools: 'เครื่องมือ', games: 'เกม'
+  };
+  title.textContent = `จบทัวร์${labels[key] || ''}แล้ว`;
+  if (key === 'scores') {
+    body.textContent = 'ตอนนี้ลองใช้ QR เพื่อกรอกคะแนนต่อเนื่องหน้าชั้นได้ หรือเปิดดูไกด์อื่นที่ศูนย์ช่วยเหลือ';
+    primary.innerHTML = '<i class="hgi-stroke hgi-qr-code"></i> ลองกรอกด้วย QR';
+    primary.onclick = startQrScoreGuide;
+    secondary.innerHTML = '<i class="hgi-stroke hgi-headphones"></i> ไปศูนย์ช่วยเหลือ';
+    secondary.onclick = openGuideHelpCenter;
+  } else {
+    body.textContent = 'เครื่องหมายติ๊กในศูนย์ช่วยเหลือจะบอกว่าดูหัวข้อนี้แล้ว และเปิดดูซ้ำได้ทุกเมื่อ';
+    primary.innerHTML = '<i class="hgi-stroke hgi-headphones"></i> ไปศูนย์ช่วยเหลือ';
+    primary.onclick = openGuideHelpCenter;
+    secondary.textContent = 'ปิด';
+    secondary.onclick = closeGuideComplete;
+  }
+  modal.classList.add('show');
+}
+
+function closeGuideComplete() {
+  document.getElementById('modal-guide-complete')?.classList.remove('show');
+}
+
+function openGuideHelpCenter() {
+  closeGuideComplete();
+  navigateToWebScreen('help');
+}
+
+function startQrScoreGuide() {
+  closeGuideComplete();
+  startGuide('qr-score');
 }
 
 // เปิดทัวร์ซ้ำจากศูนย์ช่วยเหลือ — เดิมทัวร์เปิดได้ครั้งเดียวตอนยังไม่มีห้องเรียน
 // ครูที่ใช้ไปแล้วจะไม่มีทางกลับมาดูได้อีก ทั้งที่ toast บอกว่าเปิดซ้ำได้
 function replayMainTour() {
   if (typeof closePublicHelp === 'function') closePublicHelp();
-  Tour.start(MAIN_TOUR_STEPS, { onEnd: finishOnboarding });
+  startGuide('classrooms');
 }
 
 function finishOnboarding(completed) {
-  appState.onboarding = { done: true };
+  appState.onboarding = { ...(appState.onboarding || {}), done: true, setupActive: false, setupStep: completed ? 'complete' : 'schedule' };
   saveState();
-  if (completed) showToast('พร้อมใช้งานแล้ว 🎉 ดูทัวร์ซ้ำได้ที่ ศูนย์ช่วยเหลือ', 'success');
+  if (completed) showGuideComplete('add-period');
 }
 
 function skipOnboarding() {
   document.getElementById('modal-welcome').classList.remove('show');
-  appState.onboarding = { done: true };
+  appState.onboarding = { ...(appState.onboarding || {}), done: true };
   saveState();
 }

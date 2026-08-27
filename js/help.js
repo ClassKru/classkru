@@ -70,11 +70,30 @@ document.addEventListener('DOMContentLoaded', () => {
   if (location.hash === '#help-public' && document.getElementById('login-overlay')) showPublicHelp();
 });
 
+function refreshGuideCompletionState() {
+  const completed = (appState.onboarding && appState.onboarding.guidesCompleted) || {};
+  document.querySelectorAll('[data-guide-key]').forEach(card => {
+    const key = card.dataset.guideKey;
+    const done = !!completed[key];
+    card.classList.toggle('is-completed', done);
+    let status = card.querySelector('.ck-help-tour-status');
+    if (!status) {
+      const copy = card.querySelector('span:nth-child(2)');
+      if (!copy) return;
+      status = document.createElement('span');
+      status.className = 'ck-help-tour-status';
+      copy.append(status);
+    }
+    status.innerHTML = '<i class="hgi-stroke hgi-checkmark-circle-02"></i> ดูแล้ว';
+  });
+}
+
 function renderHelpHub() {
   const hub = document.getElementById('help-hub-view');
   const detail = document.getElementById('help-detail-view');
   if (hub) hub.style.display = 'block';
   if (detail) { detail.style.display = 'none'; detail.innerHTML = ''; }
+  refreshGuideCompletionState();
 }
 
 function openHelpDetail(key) {
