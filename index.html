@@ -19,18 +19,18 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=390">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=390">
-  <link rel="stylesheet" href="css/03-reports.css?v=390">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=390">
-  <link rel="stylesheet" href="css/05-home.css?v=390">
-  <link rel="stylesheet" href="css/06-attendance.css?v=390">
-  <link rel="stylesheet" href="css/07-scores.css?v=390">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=390">
-    <link rel="stylesheet" href="css/09-games.css?v=390">
-  <link rel="stylesheet" href="css/10-help.css?v=390">
-  <link rel="stylesheet" href="css/11-public-help.css?v=390">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=390">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=391">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=391">
+  <link rel="stylesheet" href="css/03-reports.css?v=391">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=391">
+  <link rel="stylesheet" href="css/05-home.css?v=391">
+  <link rel="stylesheet" href="css/06-attendance.css?v=391">
+  <link rel="stylesheet" href="css/07-scores.css?v=391">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=391">
+    <link rel="stylesheet" href="css/09-games.css?v=391">
+  <link rel="stylesheet" href="css/10-help.css?v=391">
+  <link rel="stylesheet" href="css/11-public-help.css?v=391">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=391">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -295,6 +295,15 @@
             </aside>
           </div>
 
+          <section id="home-setup-card" class="card home-setup-card" style="display:none;">
+            <div>
+              <span class="home-setup-kicker"><i class="hgi-stroke hgi-rocket-01"></i> เริ่มต้นใช้งาน</span>
+              <h2>ตั้งค่าห้องเรียนให้พร้อมก่อนเริ่มงาน</h2>
+              <p id="home-setup-copy">สร้างห้องเรียนและเพิ่มรายชื่อนักเรียนก่อน เพื่อให้เช็คชื่อและเก็บคะแนนได้ครบ</p>
+            </div>
+            <button class="btn btn-primary" type="button" onclick="startMainTour()"><i class="hgi-stroke hgi-arrow-right-01"></i> เริ่มตั้งค่า</button>
+          </section>
+
           <!-- legacy warning target kept for existing scripts; desktop summary now lives in the right panel -->
           <div id="home-unchecked-card" style="display:none;"></div>
         </div>
@@ -311,43 +320,43 @@
               <span class="ck-help-icon"><i class="hgi-stroke hgi-book-open-01"></i></span>
               <span><strong>วิธีใช้งาน</strong><small>คู่มือทีละขั้นพร้อมภาพประกอบ</small></span>
             </a>
-            <button class="ck-help-card" type="button" onclick="replayMainTour()">
+            <button class="ck-help-card" type="button" data-guide-key="classrooms" onclick="replayMainTour()">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-rocket-01"></i></span>
               <span><strong>เริ่มต้นใช้งาน</strong><small>สร้างห้อง และรู้จักปุ่มลัดบนการ์ด</small></span>
             </button>
-            <button class="ck-help-card" type="button" onclick="startGuide('dashboard')">
+            <button class="ck-help-card" type="button" data-guide-key="dashboard" onclick="startGuide('dashboard')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-home-09"></i></span>
               <span><strong>ทัวร์หน้าแรก</strong><small>ดูคาบถัดไป ตารางวันนี้ และภาพรวมเร็ว ๆ</small></span>
             </button>
-            <button class="ck-help-card ck-help-card-primary" type="button" onclick="startGuide('add-student')">
+            <button class="ck-help-card" type="button" data-guide-key="add-student" onclick="startGuide('add-student')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-user-add-01"></i></span>
               <span><strong>พาเพิ่มนักเรียน</strong><small>เปิดฟอร์ม กรอกชื่อ และบันทึกรายชื่อแรก</small></span>
             </button>
-            <button class="ck-help-card" type="button" onclick="startGuide('checkin')">
+            <button class="ck-help-card" type="button" data-guide-key="checkin" onclick="startGuide('checkin')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-task-done-01"></i></span>
               <span><strong>ทัวร์เช็คชื่อ</strong><small>แตะ ปัด หรือกดสถานะ มา/สาย/ขาด/ลา</small></span>
             </button>
-            <button class="ck-help-card" type="button" onclick="startGuide('scores')">
+            <button class="ck-help-card" type="button" data-guide-key="scores" onclick="startGuide('scores')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-award-01"></i></span>
               <span><strong>ทัวร์คะแนน</strong><small>เพิ่มงาน เก็บคะแนน และดูตารางคะแนน</small></span>
             </button>
-            <button class="ck-help-card" type="button" onclick="startGuide('timetable')">
+            <button class="ck-help-card" type="button" data-guide-key="timetable" onclick="startGuide('timetable')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-calendar-03"></i></span>
               <span><strong>ทัวร์ตารางสอน</strong><small>เพิ่มคาบ เพื่อให้หน้าแรกช่วยเตือน</small></span>
             </button>
-            <button class="ck-help-card ck-help-card-primary" type="button" onclick="startGuide('add-period')">
+            <button class="ck-help-card" type="button" data-guide-key="add-period" onclick="startGuide('add-period')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-calendar-add-01"></i></span>
               <span><strong>พาเพิ่มคาบสอน</strong><small>เลือกวัน คาบ วิชา/ห้อง แล้วดูผลบนหน้าแรก</small></span>
             </button>
-            <button class="ck-help-card" type="button" onclick="startGuide('reports')">
+            <button class="ck-help-card" type="button" data-guide-key="reports" onclick="startGuide('reports')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-pie-chart"></i></span>
               <span><strong>ทัวร์รายงาน</strong><small>ดูสรุปวันนี้ รายคาบ และส่งออกข้อมูล</small></span>
             </button>
-            <button class="ck-help-card" type="button" onclick="startGuide('tools')">
+            <button class="ck-help-card" type="button" data-guide-key="tools" onclick="startGuide('tools')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-magic-wand-01"></i></span>
               <span><strong>ทัวร์เครื่องมือ</strong><small>เลือกห้องและเปิดเครื่องมือหน้าชั้นเรียน</small></span>
             </button>
-            <button class="ck-help-card" type="button" onclick="startGuide('games')">
+            <button class="ck-help-card" type="button" data-guide-key="games" onclick="startGuide('games')">
               <span class="ck-help-icon"><i class="hgi-stroke hgi-rocket-01"></i></span>
               <span><strong>ทัวร์เกม</strong><small>เลือกเกมตามหมวดและเริ่มกิจกรรม</small></span>
             </button>
@@ -1011,13 +1020,37 @@
     <div class="bottom-sheet" style="width:420px;max-width:95vw;text-align:center;">
       <img src="logo.png?v=2" class="welcome-hero" alt="ClassKru">
       <h3 style="font-size:1.35rem;font-weight:800;margin:0 0 8px;">ยินดีต้อนรับสู่ ClassKru 🎉</h3>
-      <p style="font-size:0.92rem;color:var(--text-muted);line-height:1.7;margin:0 0 8px;">เริ่มจากห้องเรียนแรกกันใน <b style="color:var(--text-main);">ไม่กี่ขั้นสั้นๆ</b><br>ระบบจะพาไปรู้จักการ์ดห้องและปุ่มลัดที่ใช้บ่อย</p>
+      <p style="font-size:0.92rem;color:var(--text-muted);line-height:1.7;margin:0 0 8px;">ตั้งค่าห้องแรกให้พร้อมใน <b style="color:var(--text-main);">3 ขั้นสั้น ๆ</b><br>สร้างห้องเรียน เพิ่มนักเรียน แล้วค่อยสร้างตารางสอน</p>
       <div style="background:var(--primary-light);border:1px solid var(--primary-light-border);border-radius:12px;padding:10px 14px;margin:12px 0 20px;font-size:0.82rem;color:var(--primary);font-weight:600;">
         <i class="hgi-stroke hgi-idea-01"></i> อยากเช็คชื่อเลย? ไม่ต้องทำตารางสอนก่อนก็ได้
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button class="btn btn-primary" onclick="startMainTour()" style="width:100%;padding:14px;font-weight:700;"><i class="hgi-stroke hgi-rocket-01"></i> เริ่มเลย พาทำทีละขั้น</button>
+        <button class="btn btn-primary" onclick="startMainTour()" style="width:100%;padding:14px;font-weight:700;"><i class="hgi-stroke hgi-rocket-01"></i> เริ่มตั้งค่า</button>
         <button class="btn" onclick="skipOnboarding()" style="width:100%;color:var(--text-muted);">ข้ามไปก่อน</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-onboarding-next" style="z-index:12050;" onclick="if(event.target===this) closeSetupNext()">
+    <div class="bottom-sheet" style="width:420px;max-width:95vw;text-align:center;">
+      <span class="home-setup-kicker"><i class="hgi-stroke hgi-checkmark-circle-02"></i> ตั้งค่าสำเร็จ</span>
+      <h3 id="onboarding-next-title" style="font-size:1.35rem;font-weight:800;margin:12px 0 8px;"></h3>
+      <p id="onboarding-next-body" style="font-size:0.92rem;color:var(--text-muted);line-height:1.7;margin:0 0 20px;"></p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button id="onboarding-next-button" class="btn btn-primary" type="button" style="width:100%;padding:14px;font-weight:700;"></button>
+        <button class="btn" type="button" onclick="closeSetupNext()" style="width:100%;color:var(--text-muted);">ไว้ทำภายหลัง</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-guide-complete" style="z-index:12050;" onclick="if(event.target===this) closeGuideComplete()">
+    <div class="bottom-sheet" style="width:420px;max-width:95vw;text-align:center;">
+      <span class="home-setup-kicker"><i class="hgi-stroke hgi-checkmark-circle-02"></i> ดูทัวร์แล้ว</span>
+      <h3 id="guide-complete-title" style="font-size:1.35rem;font-weight:800;margin:12px 0 8px;">จบทัวร์แล้ว</h3>
+      <p id="guide-complete-body" style="font-size:0.92rem;color:var(--text-muted);line-height:1.7;margin:0 0 20px;">กลับมาดูทัวร์อื่นหรือเปิดซ้ำได้ทุกเมื่อที่ศูนย์ช่วยเหลือ</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="btn btn-primary" type="button" onclick="openGuideHelpCenter()" style="width:100%;padding:14px;font-weight:700;"><i class="hgi-stroke hgi-headphones"></i> ไปศูนย์ช่วยเหลือ</button>
+        <button class="btn" type="button" onclick="closeGuideComplete()" style="width:100%;color:var(--text-muted);">ปิด</button>
       </div>
     </div>
   </div>
@@ -1389,23 +1422,23 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=390"></script>
-  <script defer src="js/relational-sync.js?v=390"></script>
-  <script defer src="js/auth.js?v=390"></script>
-  <script defer src="js/shell.js?v=390"></script>
-  <script defer src="js/dashboard.js?v=390"></script>
-  <script defer src="js/classrooms.js?v=390"></script>
-  <script defer src="js/students.js?v=390"></script>
-  <script defer src="js/timetable.js?v=390"></script>
-  <script defer src="js/reports.js?v=390"></script>
-  <script defer src="js/attendance.js?v=390"></script>
-  <script defer src="js/curriculum-science-2560.js?v=390"></script>
-  <script defer src="js/curriculum-catalog.js?v=390"></script>
-  <script defer src="js/scores.js?v=390"></script>
-  <script defer src="js/qr-scores.js?v=390"></script>
-  <script defer src="js/tools.js?v=390"></script>
-  <script defer src="js/shared-utils.js?v=390"></script>
-  <script defer src="js/extras.js?v=390"></script>
-  <script defer src="js/help.js?v=390"></script>
+  <script defer src="js/core.js?v=391"></script>
+  <script defer src="js/relational-sync.js?v=391"></script>
+  <script defer src="js/auth.js?v=391"></script>
+  <script defer src="js/shell.js?v=391"></script>
+  <script defer src="js/dashboard.js?v=391"></script>
+  <script defer src="js/classrooms.js?v=391"></script>
+  <script defer src="js/students.js?v=391"></script>
+  <script defer src="js/timetable.js?v=391"></script>
+  <script defer src="js/reports.js?v=391"></script>
+  <script defer src="js/attendance.js?v=391"></script>
+  <script defer src="js/curriculum-science-2560.js?v=391"></script>
+  <script defer src="js/curriculum-catalog.js?v=391"></script>
+  <script defer src="js/scores.js?v=391"></script>
+  <script defer src="js/qr-scores.js?v=391"></script>
+  <script defer src="js/tools.js?v=391"></script>
+  <script defer src="js/shared-utils.js?v=391"></script>
+  <script defer src="js/extras.js?v=391"></script>
+  <script defer src="js/help.js?v=391"></script>
 </body>
 </html>

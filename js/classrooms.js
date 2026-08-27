@@ -316,6 +316,13 @@ function positionClassTabThumb() {
     // จัดตำแหน่งได้แล้ว → สลับจากพื้นหลังสำรองบนปุ่มมาใช้ thumb
     const already = bar.classList.contains('thumb-ready');
     bar.classList.add('thumb-ready');
+    if (window.__ckQuietClassTabMotion) {
+      thumb.style.transition = 'none';
+      put(to);
+      void thumb.offsetWidth;
+      thumb.style.transition = '';
+      return;
+    }
     const from = (!already && __ckPrevTabIndex !== null && btns[__ckPrevTabIndex]) ? __ckPrevTabIndex : to;
     if (from === to) {
       // ไม่ได้ย้ายช่อง (เข้าหน้าครั้งแรก / render ซ้ำ) → วางเลย ไม่ต้องวิ่ง
