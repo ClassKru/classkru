@@ -268,6 +268,7 @@ function selectQrScoreTask(value) {
   select.value = value;
   toggleQrScoreTaskPanel(false);
   qrScoreTaskChanged();
+  notifyTourAction('qr-score-task-selected');
 }
 
 function qrScoreTaskChanged() {
@@ -387,6 +388,7 @@ async function beginQrScoreScan(forcedClassId, forcedItemId) {
   qrScoreState.itemId = item.id;
   qrScoreState.defaultScore = defaultScore;
   qrScoreState.phase = 'starting';
+  notifyTourAction('qr-score-scan-started');
   document.getElementById('qr-score-setup').style.display = 'none';
   document.getElementById('qr-score-scan').style.display = 'block';
   document.getElementById('qr-score-scan').classList.remove('has-result');

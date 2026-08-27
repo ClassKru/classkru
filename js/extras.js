@@ -230,7 +230,9 @@ const Tour = {
 
   next() {
     this._detachAdvance();
-    this.i++;
+    do {
+      this.i++;
+    } while (this.i < this.steps.length && typeof this.steps[this.i].skipIf === 'function' && this.steps[this.i].skipIf());
     if (this.i >= this.steps.length) return this.end(true);
     this._show();
     const step = this.steps[this.i];
@@ -438,16 +440,26 @@ function getGuideClassId() {
 }
 
 function guideNeedsClass(key) {
-  return ['add-student', 'checkin', 'scores', 'reports', 'add-period'].includes(key);
+  return ['add-student', 'checkin', 'scores', 'qr-score', 'reports', 'add-period'].includes(key);
 }
 
 function guideNeedsStudent(key) {
-  return ['scores', 'reports'].includes(key);
+  return ['scores', 'qr-score', 'reports'].includes(key);
 }
 
 function guideClassHasStudents(classId) {
   const c = (appState.classes || []).find(room => room.id === classId);
   return !!(c && c.students && c.students.length);
+}
+
+function guideClassHasScoreItems(classId) {
+  const c = (appState.classes || []).find(room => room.id === classId);
+  return !!(c && c.scores && Array.isArray(c.scores.items) && c.scores.items.length);
+}
+
+function ensureQrScoreGuideSetup() {
+  const classId = getGuideClassId();
+  if (classId && typeof openQrScoreScanner === 'function') openQrScoreScanner(classId);
 }
 
 function notifyTourAction(name) {
@@ -522,17 +534,57 @@ const GUIDE_STEPS = {
   ],
   scores: [
     { target: '#web-scores-detail-title', title: 'คะแนนของห้อง',
-      body: 'ใช้จัดงาน เก็บคะแนน และดูภาพรวมคะแนนของนักเรียนในห้องนี้',
+      body: 'เริ่มจากสร้างรายการคะแนน แล้วกรอกคะแนนของนักเรียนในห้องนี้',
       blockTarget: true },
-    { target: '#score-worktab-holder', title: 'เลือกหมวดงาน',
-      body: 'สลับดูงานแต่ละหมวด เช่น งานเดี่ยว เก็บคะแนน หรือสอบ เพื่อไม่ให้ตารางรก',
-      blockTarget: true },
-    { target: '.score-items-head .btn-primary, .score-empty-panel .btn-primary', title: 'เพิ่มงานคะแนน',
-      body: 'เริ่มจากเพิ่มงานหนึ่งชิ้น แล้วจึงกรอกคะแนนรายคน หรือใช้ QR คะแนนเมื่อต้องการเก็บเร็ว',
-      blockTarget: true },
-    { target: '#web-scores-matrix-wrap, .score-empty-panel', title: 'ตารางคะแนน',
-      body: 'พื้นที่นี้จะแสดงคะแนนของนักเรียนตามงานที่สร้างไว้ เหมาะกับจอใหญ่สำหรับตรวจภาพรวม',
-      blockTarget: true }
+    { target: '.sc-add-item-btn, .sc-add-last', title: 'เพิ่มรายการคะแนน',
+      body: 'บนจอใหญ่กดปุ่ม + ในหมวดที่ต้องการ แล้วตั้งชื่องานกับคะแนนเต็ม',
+      desktopOnly: true, skipIf: () => guideClassHasScoreItems(getGuideClassId()),
+      advance: 'action:score-item-modal-opened' },
+    { target: '.msc-card', title: 'เลือกนักเรียน',
+      body: 'บนมือถือแตะชื่อนักเรียนก่อน แล้วจึงกรอกคะแนนรายคนให้จบในหน้าเดียว',
+      mobileOnly: true, advance: 'action:mobile-score-student-opened' },
+    { target: '.msc-add', title: 'เพิ่มรายการคะแนน',
+      body: 'ถ้ายังไม่มีงาน ให้กดเพิ่มรายการในหมวดที่ต้องการก่อนเริ่มกรอกคะแนน',
+      mobileOnly: true, skipIf: () => guideClassHasScoreItems(getGuideClassId()),
+      advance: 'action:score-item-modal-opened' },
+    { target: '#modal-score-item .bottom-sheet', title: 'ตั้งค่างาน',
+      body: 'กำหนดชื่องาน คะแนนเต็ม และรายละเอียดที่ต้องการให้ครบก่อนบันทึก',
+      skipIf: () => guideClassHasScoreItems(getGuideClassId()) },
+    { target: '#input-score-name', title: 'ชื่องาน',
+      body: 'ตั้งชื่อให้จำง่าย เช่น ใบงานบทที่ 1 หรือแบบทดสอบย่อย',
+      skipIf: () => guideClassHasScoreItems(getGuideClassId()) },
+    { target: '#input-score-max', title: 'คะแนนเต็ม',
+      body: 'กำหนดคะแนนเต็มของงานนี้ ระบบจะไม่ให้กรอกคะแนนเกินค่านี้',
+      skipIf: () => guideClassHasScoreItems(getGuideClassId()) },
+    { target: '#btn-score-item-submit', title: 'บันทึกรายการคะแนน',
+      body: 'กดเพิ่มเพื่อสร้างงานจริง แล้วระบบจะแสดงช่องกรอกคะแนนให้ทันที',
+      skipIf: () => guideClassHasScoreItems(getGuideClassId()),
+      advance: 'action:score-item-saved', hideOnClick: false },
+    { target: '.score-cell-input', title: 'กรอกคะแนนในตาราง',
+      body: 'บนจอใหญ่พิมพ์คะแนนในช่องของนักเรียนได้เลย แล้วกด Enter เพื่อไปช่องถัดไป',
+      desktopOnly: true, advance: 'action:score-mark-saved' },
+    { target: '.msc-in', title: 'กรอกคะแนนรายคน',
+      body: 'บนมือถือกรอกคะแนนของนักเรียนคนนี้ แล้วกดยืนยันบันทึกก่อนเปลี่ยนคน',
+      mobileOnly: true, advance: 'action:score-mark-saved' },
+    { target: '.msc-slide-handle', title: 'ปรับคะแนนด้วยการลาก',
+      body: 'ถ้าต้องการเร็วขึ้น ลากแถบนี้ขึ้นเพื่อเพิ่มคะแนน หรือลงเพื่อลดคะแนน',
+      mobileOnly: true, allowInteraction: true },
+    { target: '.msc-nav', title: 'ไปยังคนถัดไป',
+      body: 'ใช้ปุ่มคนก่อนและคนถัดไปเพื่อกรอกคะแนนไล่ทั้งห้องโดยไม่ต้องย้อนกลับไปรายชื่อ',
+      mobileOnly: true, allowInteraction: true }
+  ],
+  'qr-score': [
+    { before: ensureQrScoreGuideSetup, target: '#modal-qr-score .qr-score-sheet', title: 'กรอกคะแนนด้วย QR',
+      body: 'นี่เป็นทางลัดหลังจากสร้างงานคะแนนแล้ว เหมาะกับการเก็บคะแนนต่อเนื่องหน้าชั้น' },
+    { target: '#qr-score-task-trigger', title: 'เลือกงานที่จะกรอก',
+      body: 'เลือกงานหรือกิจกรรมที่ต้องการเก็บคะแนน ระบบจะแสดงเฉพาะงานของห้องนี้',
+      advance: 'action:qr-score-task-selected' },
+    { target: '#qr-score-default-score', title: 'คะแนนเริ่มต้น',
+      body: 'ใส่ค่าเริ่มต้นได้เมื่อเด็กส่วนใหญ่ได้คะแนนเท่ากัน แต่ปล่อยว่างไว้ก็ได้',
+      allowInteraction: true },
+    { target: '#qr-score-start-btn', title: 'เริ่มสแกนเมื่อพร้อม',
+      body: 'กดเริ่มสแกนแล้วจึงอนุญาตใช้กล้อง ระบบจะให้ตรวจชื่อและยืนยันคะแนนของแต่ละคนก่อนบันทึก',
+      advance: 'action:qr-score-scan-started' }
   ],
   timetable: [
     { nav: 'timetable', target: '#web-timetable-matrix-container, #m-timetable-days', title: 'ตารางสอนของคุณ',
@@ -695,6 +747,12 @@ function startGuide(key = 'classrooms', opts = {}) {
     return;
   }
 
+  if (key === 'qr-score' && !guideClassHasScoreItems(cid)) {
+    if (!opts.auto) showToast('สร้างรายการคะแนนก่อน แล้วค่อยลองกรอกด้วย QR นะครับ', 'info');
+    startGuide('scores', { delay: 500 });
+    return;
+  }
+
   clearTimeout(window.__ckClassroomsGuideTimer);
   setPendingGuide(key);
   if (Tour.active) Tour.end(false);
@@ -702,8 +760,9 @@ function startGuide(key = 'classrooms', opts = {}) {
 
   if (key === 'checkin') {
     if (cid) openSwipeAttendance(cid);
-  } else if (['students', 'scores', 'reports'].includes(key)) {
-    if (shouldNavigateForGuide(key, cid)) navigateToWebScreen(key, cid);
+  } else if (['students', 'scores', 'qr-score', 'reports'].includes(key)) {
+    const screenId = key === 'qr-score' ? 'scores' : key;
+    if (shouldNavigateForGuide(screenId, cid)) navigateToWebScreen(screenId, cid);
   } else {
     const targetScreen = GUIDE_SCREEN_MAP[key] || key;
     if (shouldNavigateForGuide(targetScreen, cid)) navigateToWebScreen(targetScreen, targetScreen === 'students' ? cid : undefined);
@@ -808,14 +867,28 @@ function showGuideComplete(key) {
   const modal = document.getElementById('modal-guide-complete');
   const title = document.getElementById('guide-complete-title');
   const body = document.getElementById('guide-complete-body');
-  if (!modal || !title || !body) return;
+  const primary = document.getElementById('guide-complete-primary');
+  const secondary = document.getElementById('guide-complete-secondary');
+  if (!modal || !title || !body || !primary || !secondary) return;
   const labels = {
     classrooms: 'สร้างห้องเรียน', dashboard: 'หน้าแรก', 'add-student': 'เพิ่มนักเรียน',
-    checkin: 'เช็คชื่อ', scores: 'คะแนน', timetable: 'ตารางสอน',
+    checkin: 'เช็คชื่อ', scores: 'คะแนน', 'qr-score': 'กรอกคะแนนด้วย QR', timetable: 'ตารางสอน',
     'add-period': 'เพิ่มคาบสอน', reports: 'รายงาน', tools: 'เครื่องมือ', games: 'เกม'
   };
   title.textContent = `จบทัวร์${labels[key] || ''}แล้ว`;
-  body.textContent = 'เครื่องหมายติ๊กในศูนย์ช่วยเหลือจะบอกว่าดูหัวข้อนี้แล้ว และเปิดดูซ้ำได้ทุกเมื่อ';
+  if (key === 'scores') {
+    body.textContent = 'ตอนนี้ลองใช้ QR เพื่อกรอกคะแนนต่อเนื่องหน้าชั้นได้ หรือเปิดดูไกด์อื่นที่ศูนย์ช่วยเหลือ';
+    primary.innerHTML = '<i class="hgi-stroke hgi-qr-code"></i> ลองกรอกด้วย QR';
+    primary.onclick = startQrScoreGuide;
+    secondary.innerHTML = '<i class="hgi-stroke hgi-headphones"></i> ไปศูนย์ช่วยเหลือ';
+    secondary.onclick = openGuideHelpCenter;
+  } else {
+    body.textContent = 'เครื่องหมายติ๊กในศูนย์ช่วยเหลือจะบอกว่าดูหัวข้อนี้แล้ว และเปิดดูซ้ำได้ทุกเมื่อ';
+    primary.innerHTML = '<i class="hgi-stroke hgi-headphones"></i> ไปศูนย์ช่วยเหลือ';
+    primary.onclick = openGuideHelpCenter;
+    secondary.textContent = 'ปิด';
+    secondary.onclick = closeGuideComplete;
+  }
   modal.classList.add('show');
 }
 
@@ -826,6 +899,11 @@ function closeGuideComplete() {
 function openGuideHelpCenter() {
   closeGuideComplete();
   navigateToWebScreen('help');
+}
+
+function startQrScoreGuide() {
+  closeGuideComplete();
+  startGuide('qr-score');
 }
 
 // เปิดทัวร์ซ้ำจากศูนย์ช่วยเหลือ — เดิมทัวร์เปิดได้ครั้งเดียวตอนยังไม่มีห้องเรียน
