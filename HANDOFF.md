@@ -32,7 +32,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
 - Asset version ปัจจุบัน: `393` (bump จาก 392 เพราะ Production cache มี asset เก่าที่ใช้เลขซ้ำ)
-- งานล่าสุดที่กำลังปิด: เมนู Desktop/Mobile ใช้ `APP_NAVIGATION` ชุดเดียว, Sidebar desktop เป็น rail 80px และขยายเมื่อ hover/focus; ตรวจ local ที่ 1440×900 และ 390×844 แล้ว
+- งานล่าสุด: เมนู Desktop/Mobile ใช้ `APP_NAVIGATION` ชุดเดียว, Sidebar desktop เป็น rail 80px และขยายเมื่อ hover/focus; Production version 393 ตรวจ HTML mount points, JS renderer และ CSS rail markers แล้ว
 - Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
 - Supabase Production ใช้ migration ครบถึง `202608260002`; ตรวจ ACL allowlist, JSON เดิม 12 แถว และ smoke test แบบ rollback ผ่านแล้ว
 - งานไกด์ล่าสุด: ต่อระบบไกด์/ทัวร์ในแอป ให้เปิดจากศูนย์ช่วยเหลือได้หลายหมวด และมีไกด์แบบพาทำสำหรับสร้างห้อง เพิ่มนักเรียน เพิ่มคาบสอน เช็คชื่อ คะแนน รายงาน เครื่องมือ และเกม
@@ -277,6 +277,7 @@ git branch -f main HEAD
 3. Mobile คง 6 ปุ่มด่วน และสร้าง 4 รายการในแผ่น “เพิ่มเติม” จากข้อมูลชุดเดียวกัน
 4. หน้า `students`, `scores`, `reports` และ `checkin` ยังทำให้เมนูห้องเรียนบน Desktop active; Mobile ใช้ปุ่มเช็คชื่อของตัวเอง
 5. ตรวจ local viewport 1440×900 และ 390×844: จำนวน/ลำดับเมนู, breakpoint, ระยะ main content และ JavaScript console ผ่าน
+6. Production version 393 ตอบ HTTP 200 และตรวจ marker `desktop-navigation`, `mobile-more-navigation`, `APP_NAVIGATION`, `renderAppNavigation` และ sidebar rail ครบแล้ว
 
 ---
 
