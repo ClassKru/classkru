@@ -31,7 +31,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `392` (รอ commit/deploy งาน Navigation shell)
+- Asset version ปัจจุบัน: `393` (bump จาก 392 เพราะ Production cache มี asset เก่าที่ใช้เลขซ้ำ)
 - งานล่าสุดที่กำลังปิด: เมนู Desktop/Mobile ใช้ `APP_NAVIGATION` ชุดเดียว, Sidebar desktop เป็น rail 80px และขยายเมื่อ hover/focus; ตรวจ local ที่ 1440×900 และ 390×844 แล้ว
 - Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
 - Supabase Production ใช้ migration ครบถึง `202608260002`; ตรวจ ACL allowlist, JSON เดิม 12 แถว และ smoke test แบบ rollback ผ่านแล้ว
