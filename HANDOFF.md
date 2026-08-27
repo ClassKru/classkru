@@ -1,6 +1,6 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 26 สิงหาคม 2569
+> อัปเดตล่าสุด: 27 สิงหาคม 2569
 >
 > **คำสั่งเริ่มงานในแชทใหม่: `สานต่อ`**
 >
@@ -31,8 +31,8 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `388`
-- งานล่าสุด: QR ประจำตัวนักเรียนเปลี่ยนเป็น `CKSTU:<studentCode>` ใช้หนึ่งใบข้ามวิชา/ปี; Production version 388 ตรวจ marker ตัวสร้างใหม่และตัวกันรหัสซ้ำแล้ว
+- Asset version ปัจจุบัน: `392` (รอ commit/deploy งาน Navigation shell)
+- งานล่าสุดที่กำลังปิด: เมนู Desktop/Mobile ใช้ `APP_NAVIGATION` ชุดเดียว, Sidebar desktop เป็น rail 80px และขยายเมื่อ hover/focus; ตรวจ local ที่ 1440×900 และ 390×844 แล้ว
 - Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
 - Supabase Production ใช้ migration ครบถึง `202608260002`; ตรวจ ACL allowlist, JSON เดิม 12 แถว และ smoke test แบบ rollback ผ่านแล้ว
 - Vercel Deploy จาก `main` โดยอัตโนมัติ
@@ -256,3 +256,24 @@ git branch -f main HEAD
 - syntax, carousel regression, QR score และ cloud write queue tests ผ่าน
 - ตรวจ Production ด้วย viewport มือถือ 390×844 แล้ว: การ์ดนักเรียน แถบเลื่อน และปุ่มสถานะไม่ทับกัน
 - เลื่อนจากคนที่ 1 ไปคนที่ 20 ได้แบบ real time ขณะที่ยอดยังเป็น `เช็คแล้ว 0 / 40` ยืนยันว่าการเลื่อนไม่บันทึกสถานะ
+
+---
+
+## 9. Feature ล่าสุด — Navigation shell ชุดเดียวทุกขนาดจอ
+
+ไฟล์หลัก:
+
+- `js/shell.js` — `APP_NAVIGATION`, การสร้างเมนู และ active state กลาง
+- `index.html` — เหลือ mount point ของเมนู Desktop, Mobile quick และ Mobile more
+- `css/01-base-layout.css` — Sidebar rail 80px ขยายเป็น 264px เมื่อ hover/focus
+- `css/08-responsive-toast.css` — Tablet rail 72px ขยายเป็น 236px
+- `css/06-attendance.css` — overlay เช็คชื่อเยื้องตรงกับ rail
+- `tests/navigation-shell.test.cjs` — regression test ป้องกันเมนูซ้ำและ breakpoint ถอยหลัง
+
+พฤติกรรม:
+
+1. รายการ ชื่อ ไอคอน ลำดับ และหน้าที่สังกัดของเมนูทุกขนาดจออยู่ใน `APP_NAVIGATION` ชุดเดียว
+2. Desktop แสดง rail แบบไอคอนเพื่อคืนพื้นที่ให้หน้าวันนี้ และขยายให้เห็นข้อความเมื่อใช้เมาส์หรือคีย์บอร์ด
+3. Mobile คง 6 ปุ่มด่วน และสร้าง 4 รายการในแผ่น “เพิ่มเติม” จากข้อมูลชุดเดียวกัน
+4. หน้า `students`, `scores`, `reports` และ `checkin` ยังทำให้เมนูห้องเรียนบน Desktop active; Mobile ใช้ปุ่มเช็คชื่อของตัวเอง
+5. ตรวจ local viewport 1440×900 และ 390×844: จำนวน/ลำดับเมนู, breakpoint, ระยะ main content และ JavaScript console ผ่าน

@@ -95,6 +95,62 @@ window.addEventListener('hashchange', () => {
 });
 
 // ==================== NAVIGATION ====================
+// เมนูทุกขนาดจอใช้ข้อมูลกลางชุดเดียว เพิ่ม/ย้ายเมนูได้โดยไม่ต้องแก้ HTML ซ้ำหลายจุด
+const APP_NAVIGATION = [
+  { id: 'dashboard', label: 'หน้าหลัก', mobileLabel: 'หน้าหลัก', icon: 'hgi-home-01', screens: ['dashboard'], desktopOrder: 1, mobileOrder: 1 },
+  { id: 'classrooms', label: 'ห้องเรียนของฉัน', mobileLabel: 'ห้องเรียน', icon: 'hgi-school', screens: ['classrooms', 'students', 'scores', 'reports'], desktopScreens: ['classrooms', 'students', 'scores', 'reports', 'checkin'], desktopOrder: 2, mobileOrder: 5 },
+  { id: 'timetable', label: 'ตารางสอน', mobileLabel: 'ตารางสอน', icon: 'hgi-calendar-03', screens: ['timetable'], desktopOrder: 3, mobileOrder: 2 },
+  { id: 'checkin', label: 'เช็คชื่อ', mobileLabel: 'เช็คชื่อ', icon: 'hgi-task-done-01', screens: ['checkin'], mobileOrder: 3, className: 'checkin-btn', action: 'mobileCheckinTap()' },
+  { id: 'tools', label: 'เครื่องมือช่วยสอน', mobileLabel: 'เครื่องมือ', icon: 'hgi-magic-wand-01', screens: ['tools'], desktopOrder: 4, moreOrder: 1 },
+  { id: 'qr-score', label: 'กรอกคะแนนด้วย QR', mobileLabel: 'QR คะแนน', icon: 'hgi-qr-code', screens: [], desktopOrder: 5, mobileOrder: 4, className: 'qr-score-mobile-nav', action: 'openQrScoreScanner()' },
+  { id: 'games', label: 'เกมการศึกษา', mobileLabel: 'เกม', icon: 'hgi-rocket-01', screens: ['games'], desktopOrder: 6, moreOrder: 2 },
+  { id: 'help', label: 'ศูนย์ช่วยเหลือ', mobileLabel: 'ช่วยเหลือ', icon: 'hgi-customer-service-01', screens: ['help'], desktopOrder: 7, moreOrder: 4 },
+  { id: 'settings', label: 'ตั้งค่าระบบ', mobileLabel: 'ตั้งค่า', icon: 'hgi-settings-01', screens: ['settings'], desktopOrder: 8, moreOrder: 3 }
+];
+
+function navigationAction(item) {
+  return item.action || `navigateToWebScreen('${item.id}')`;
+}
+
+function navigationButton(item, variant) {
+  const label = variant === 'desktop' ? item.label : item.mobileLabel;
+  const screens = (item[`${variant}Screens`] || item.screens).join(' ');
+  const classes = variant === 'desktop'
+    ? 'nav-item'
+    : variant === 'mobile'
+      ? `mob-nav-btn ${item.className || ''}`.trim()
+      : 'mobile-more-item';
+  return `<button class="${classes}" type="button" data-nav-id="${item.id}" data-screen="${screens}" onclick="${navigationAction(item)}" aria-label="${item.label}" title="${item.label}"><i class="hgi-stroke ${item.icon}"></i><span>${label}</span></button>`;
+}
+
+function renderAppNavigation() {
+  const desktop = document.getElementById('desktop-navigation');
+  const mobile = document.getElementById('mobile-bottom-nav');
+  const more = document.getElementById('mobile-more-navigation');
+  if (desktop) desktop.innerHTML = APP_NAVIGATION.filter(item => item.desktopOrder).sort((a, b) => a.desktopOrder - b.desktopOrder).map(item => navigationButton(item, 'desktop')).join('');
+  if (mobile) {
+    const quickItems = APP_NAVIGATION.filter(item => item.mobileOrder).sort((a, b) => a.mobileOrder - b.mobileOrder);
+    const moreItems = APP_NAVIGATION.filter(item => item.moreOrder).sort((a, b) => a.moreOrder - b.moreOrder);
+    const moreScreens = moreItems.flatMap(item => item.screens).join(' ');
+    mobile.innerHTML = quickItems.map(item => navigationButton(item, 'mobile')).join('')
+      + `<button class="mob-nav-btn mobile-more-nav" type="button" data-nav-id="more" data-screen="${moreScreens}" onclick="openMobileMoreMenu()" aria-label="เมนูเพิ่มเติม" title="เมนูเพิ่มเติม"><i class="hgi-stroke hgi-menu-01"></i><span>เพิ่มเติม</span></button>`;
+  }
+  if (more) more.innerHTML = APP_NAVIGATION.filter(item => item.moreOrder).sort((a, b) => a.moreOrder - b.moreOrder).map(item => navigationButton(item, 'more')).join('');
+  updateNavigationState(appState?.activeWebScreen || 'dashboard');
+}
+
+function updateNavigationState(screenId) {
+  document.querySelectorAll('[data-nav-id]').forEach(button => {
+    const owns = (button.getAttribute('data-screen') || '').split(' ').filter(Boolean);
+    const active = owns.includes(screenId);
+    button.classList.toggle('active', active);
+    if (active) button.setAttribute('aria-current', 'page');
+    else button.removeAttribute('aria-current');
+  });
+}
+
+renderAppNavigation();
+
 function navigateToWebScreen(screenId, param) {
   closeMobileMoreMenu();
 
@@ -144,18 +200,7 @@ function navigateToWebScreen(screenId, param) {
     if (el) el.style.display = s === screenId ? 'block' : 'none';
   });
 
-  // Sidebar active
-  document.querySelectorAll('.sidebar-menu .nav-item').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-screen') === screenId);
-  });
-
-  // Mobile bottom nav active — data-screen รับได้หลายหน้าคั่นด้วยช่องว่าง
-  // ปุ่ม "นักเรียน" ครอบทั้ง "classrooms students" เพราะหน้าเลือกห้องกับหน้ารายชื่อ
-  // เป็นขั้นตอนเดียวกันในสายตาครู ไฟต้องติดค้างตลอดทาง ไม่ใช่ดับตอนเลือกห้อง
-  document.querySelectorAll('.mob-nav-btn').forEach(btn => {
-    const owns = (btn.getAttribute('data-screen') || '').split(' ');
-    btn.classList.toggle('active', owns.includes(screenId));
-  });
+  updateNavigationState(screenId);
 
   const titleEl = document.getElementById('web-header-title');
   const subEl = document.getElementById('web-header-subtitle');
@@ -233,14 +278,7 @@ function applyCheckinRoute(classId) {
   });
 
   // เช็คชื่อสังกัดห้องเรียน → ไฮไลต์เมนู "ห้องเรียนวิชาสอน" ไม่ปล่อยให้ค้างที่หน้าเดิม
-  document.querySelectorAll('.sidebar-menu .nav-item').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-screen') === 'classrooms');
-  });
-  // bottom nav มือถือ: ไฮไลต์ปุ่ม "เช็คชื่อ" ตรงๆ (ปุ่ม "นักเรียน" ถือ data-screen="classrooms"
-  // ไปแล้ว ถ้าไฮไลต์ด้วย 'classrooms' เหมือน sidebar จะไฟติดผิดปุ่ม)
-  document.querySelectorAll('.mob-nav-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-screen') === 'checkin');
-  });
+  updateNavigationState('checkin');
 
   const titleEl = document.getElementById('web-header-title');
   const subEl = document.getElementById('web-header-subtitle');

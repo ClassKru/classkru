@@ -19,18 +19,18 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=390">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=390">
-  <link rel="stylesheet" href="css/03-reports.css?v=390">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=390">
-  <link rel="stylesheet" href="css/05-home.css?v=390">
-  <link rel="stylesheet" href="css/06-attendance.css?v=390">
-  <link rel="stylesheet" href="css/07-scores.css?v=390">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=390">
-    <link rel="stylesheet" href="css/09-games.css?v=390">
-  <link rel="stylesheet" href="css/10-help.css?v=390">
-  <link rel="stylesheet" href="css/11-public-help.css?v=390">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=390">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=392">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=392">
+  <link rel="stylesheet" href="css/03-reports.css?v=392">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=392">
+  <link rel="stylesheet" href="css/05-home.css?v=392">
+  <link rel="stylesheet" href="css/06-attendance.css?v=392">
+  <link rel="stylesheet" href="css/07-scores.css?v=392">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=392">
+    <link rel="stylesheet" href="css/09-games.css?v=392">
+  <link rel="stylesheet" href="css/10-help.css?v=392">
+  <link rel="stylesheet" href="css/11-public-help.css?v=392">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=392">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -228,19 +228,7 @@
         <img src="logo.png?v=2" alt="ClassKru" class="sidebar-logo">
         <span class="sidebar-tagline">เช็คชื่อ · จัดการห้องเรียน</span>
       </div>
-      <nav class="sidebar-menu">
-        <button class="nav-item active" data-screen="dashboard" onclick="navigateToWebScreen('dashboard')"><i class="hgi-stroke hgi-home-01"></i><span>หน้าหลัก</span></button>
-        <button class="nav-item" data-screen="classrooms" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>ห้องเรียนของฉัน</span></button>
-        <button class="nav-item" data-screen="students" onclick="navigateToWebScreen('students')" style="display:none;"><i class="hgi-stroke hgi-user-multiple"></i><span>จัดการรายชื่อเด็ก</span></button>
-        <button class="nav-item" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
-        <button class="nav-item" data-screen="tools" onclick="navigateToWebScreen('tools')"><i class="hgi-stroke hgi-magic-wand-01"></i><span>เครื่องมือช่วยสอน</span></button>
-        <button class="nav-item" onclick="openQrScoreScanner()"><i class="hgi-stroke hgi-qr-code"></i><span>กรอกคะแนนด้วย QR</span></button>
-        <button class="nav-item" data-screen="games" onclick="navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกมการศึกษา</span></button>
-        <button class="nav-item" data-screen="help" onclick="navigateToWebScreen('help')"><i class="hgi-stroke hgi-customer-service-01"></i><span>ศูนย์ช่วยเหลือ</span></button>
-        <button class="nav-item" data-screen="attendance" onclick="navigateToWebScreen('attendance')" style="display:none;"><i class="hgi-stroke hgi-table"></i><span>Attendance Matrix</span></button>
-        <!-- เมนู "รายงานวิเคราะห์ผล" ถูกยกออก — เข้ารายงาน (การเข้าเรียน) ผ่านการ์ดหน้าห้องเรียนวิชาสอนเท่านั้น -->
-        <button class="nav-item" data-screen="settings" onclick="navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่าระบบ</span></button>
-      </nav>
+      <nav class="sidebar-menu" id="desktop-navigation" aria-label="เมนูหลัก"></nav>
       <div class="sidebar-profile" onclick="navigateToWebScreen('settings')" style="cursor:pointer;">
         <img src="logo.png?v=2" id="sidebar-profile-img" alt="Profile" style="object-fit:contain; background-color:white; padding: 2px;">
         <div class="profile-info"><span class="profile-name" id="sidebar-profile-name">คุณครู</span><span class="profile-role" id="sidebar-profile-email">teacher@school.com</span></div>
@@ -647,14 +635,7 @@
     </div>
 
     <!-- MOBILE BOTTOM NAV (visible on small screens only via CSS) -->
-    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
-      <button class="mob-nav-btn active" data-screen="dashboard" onclick="navigateToWebScreen('dashboard')"><i class="hgi-stroke hgi-home-01"></i><span>หน้าหลัก</span></button>
-      <button class="mob-nav-btn" data-screen="timetable" onclick="navigateToWebScreen('timetable')"><i class="hgi-stroke hgi-calendar-03"></i><span>ตารางสอน</span></button>
-      <button class="mob-nav-btn checkin-btn" data-screen="checkin" onclick="mobileCheckinTap()"><i class="hgi-stroke hgi-task-done-01"></i><span>เช็คชื่อ</span></button>
-      <button class="mob-nav-btn qr-score-mobile-nav" onclick="openQrScoreScanner()"><i class="hgi-stroke hgi-qr-code"></i><span>QR คะแนน</span></button>
-      <button class="mob-nav-btn" data-screen="classrooms students scores reports" onclick="navigateToWebScreen('classrooms')"><i class="hgi-stroke hgi-school"></i><span>ห้องเรียน</span></button>
-      <button class="mob-nav-btn mobile-more-nav" data-screen="tools games settings help" onclick="openMobileMoreMenu()"><i class="hgi-stroke hgi-menu-01"></i><span>เพิ่มเติม</span></button>
-    </nav>
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="เมนูด่วน"></nav>
 
     <div class="modal-overlay mobile-more-overlay" id="mobile-more-menu" onclick="if(event.target===this) closeMobileMoreMenu()">
       <div class="bottom-sheet mobile-more-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-more-title">
@@ -663,12 +644,7 @@
           <h3 id="mobile-more-title">เพิ่มเติม</h3>
           <button class="mobile-more-close" type="button" onclick="closeMobileMoreMenu()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
         </div>
-        <div class="mobile-more-grid">
-          <button class="mobile-more-item" type="button" onclick="closeMobileMoreMenu();navigateToWebScreen('tools')"><i class="hgi-stroke hgi-magic-wand-01"></i><span>เครื่องมือ</span></button>
-          <button class="mobile-more-item" type="button" onclick="closeMobileMoreMenu();navigateToWebScreen('games')"><i class="hgi-stroke hgi-rocket-01"></i><span>เกม</span></button>
-          <button class="mobile-more-item" type="button" onclick="closeMobileMoreMenu();navigateToWebScreen('settings')"><i class="hgi-stroke hgi-settings-01"></i><span>ตั้งค่า</span></button>
-          <button class="mobile-more-item" type="button" onclick="closeMobileMoreMenu();navigateToWebScreen('help')"><i class="hgi-stroke hgi-customer-service-01"></i><span>ช่วยเหลือ</span></button>
-        </div>
+        <div class="mobile-more-grid" id="mobile-more-navigation"></div>
       </div>
     </div>
 
@@ -1351,23 +1327,23 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=390"></script>
-  <script defer src="js/relational-sync.js?v=390"></script>
-  <script defer src="js/auth.js?v=390"></script>
-  <script defer src="js/shell.js?v=390"></script>
-  <script defer src="js/dashboard.js?v=390"></script>
-  <script defer src="js/classrooms.js?v=390"></script>
-  <script defer src="js/students.js?v=390"></script>
-  <script defer src="js/timetable.js?v=390"></script>
-  <script defer src="js/reports.js?v=390"></script>
-  <script defer src="js/attendance.js?v=390"></script>
-  <script defer src="js/curriculum-science-2560.js?v=390"></script>
-  <script defer src="js/curriculum-catalog.js?v=390"></script>
-  <script defer src="js/scores.js?v=390"></script>
-  <script defer src="js/qr-scores.js?v=390"></script>
-  <script defer src="js/tools.js?v=390"></script>
-  <script defer src="js/shared-utils.js?v=390"></script>
-  <script defer src="js/extras.js?v=390"></script>
-  <script defer src="js/help.js?v=390"></script>
+  <script defer src="js/core.js?v=392"></script>
+  <script defer src="js/relational-sync.js?v=392"></script>
+  <script defer src="js/auth.js?v=392"></script>
+  <script defer src="js/shell.js?v=392"></script>
+  <script defer src="js/dashboard.js?v=392"></script>
+  <script defer src="js/classrooms.js?v=392"></script>
+  <script defer src="js/students.js?v=392"></script>
+  <script defer src="js/timetable.js?v=392"></script>
+  <script defer src="js/reports.js?v=392"></script>
+  <script defer src="js/attendance.js?v=392"></script>
+  <script defer src="js/curriculum-science-2560.js?v=392"></script>
+  <script defer src="js/curriculum-catalog.js?v=392"></script>
+  <script defer src="js/scores.js?v=392"></script>
+  <script defer src="js/qr-scores.js?v=392"></script>
+  <script defer src="js/tools.js?v=392"></script>
+  <script defer src="js/shared-utils.js?v=392"></script>
+  <script defer src="js/extras.js?v=392"></script>
+  <script defer src="js/help.js?v=392"></script>
 </body>
 </html>

@@ -378,12 +378,13 @@
 /* TABLET (769–1024px) — บีบ sidebar + grid ให้พอดีจอกลาง */
 /* ========================================== */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar { width: 208px; padding: 20px 12px; }
-  .sidebar-brand .sidebar-logo { height: 68px !important; }
-  .sidebar-menu .nav-item { font-size: 0.85rem; padding: 9px 12px; gap: 10px; }
-  .main-content { margin-left: 208px; }
+  .sidebar { --sidebar-rail-width: 72px; --sidebar-open-width: 236px; width: var(--sidebar-rail-width); padding: 16px 8px; }
+  .sidebar:hover, .sidebar:focus-within { width: var(--sidebar-open-width); }
+  .sidebar-brand .sidebar-logo { height: 50px !important; }
+  .sidebar-menu .nav-item { font-size: 0.85rem; padding: 9px 12px; gap: 12px; }
+  .main-content { margin-left: 72px; }
   /* overlay เช็คชื่อต้องเยื้องเท่า main-content ไม่งั้นสลับแท็บแล้วหน้าเลื่อน 42px */
-  .swipe-overlay { left: 208px; }
+  .swipe-overlay { left: 72px; }
   .app-content { padding: 18px; }
   /* กรอบในหน้าเช็คชื่อต้องเท่า padding ของ .app-content (18px) ไม่ใช่ 24px ของจอใหญ่ */
   .swipe-class-card { margin: 18px 18px 0; }

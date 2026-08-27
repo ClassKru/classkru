@@ -5,7 +5,7 @@
 /* ========================================== */
 .swipe-overlay {
   position: fixed;
-  top: 0; left: 250px; right: 0; bottom: 0;
+  top: 0; left: 80px; right: 0; bottom: 0;
   z-index: 8000;
   background: linear-gradient(170deg, #fbfcfb 0%, #f7f8f7 48%, #ffffff 100%);
   display: none;
