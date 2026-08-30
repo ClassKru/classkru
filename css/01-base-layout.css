@@ -83,6 +83,23 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
   --transition-normal: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* โหมดถนอมสายตา: ลดความขาวจัดด้วยพื้นโทนอุ่น โดยคงสีสถานะให้แยกได้ชัด */
+html.eye-care-mode {
+  color-scheme: light;
+  --bg-app: #f3eee2;
+  --bg-card: #fffaf0;
+  --bg-light: #eee7d8;
+  --text-main: #373329;
+  --text-muted: #736c5e;
+  --border-color: #dfd5c3;
+  --primary-light: #edf5e9;
+  --primary-light-border: #ccdfca;
+  --shadow-sm: 0 1px 3px rgba(79,62,35,0.06), 0 2px 8px rgba(79,62,35,0.035);
+  --shadow-md: 0 6px 18px rgba(79,62,35,0.08), 0 1px 3px rgba(79,62,35,0.04);
+}
+
+html.eye-care-mode body { background-color: var(--bg-app); }
+
 * {
   box-sizing: border-box;
   margin: 0;

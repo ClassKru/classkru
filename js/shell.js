@@ -151,6 +151,23 @@ function updateNavigationState(screenId) {
 
 renderAppNavigation();
 
+const EYE_CARE_STORAGE_KEY = 'classkru-eye-care';
+
+function setEyeCareMode(enabled) {
+  document.documentElement.classList.toggle('eye-care-mode', Boolean(enabled));
+  const toggle = document.getElementById('settings-eye-care-toggle');
+  if (toggle) toggle.checked = Boolean(enabled);
+  try { localStorage.setItem(EYE_CARE_STORAGE_KEY, String(Boolean(enabled))); } catch (_) {}
+}
+
+function syncEyeCareSetting() {
+  const enabled = document.documentElement.classList.contains('eye-care-mode');
+  const toggle = document.getElementById('settings-eye-care-toggle');
+  if (toggle) toggle.checked = enabled;
+}
+
+syncEyeCareSetting();
+
 // คลิกเลือกเมนูแล้วหด sidebar ทันที แม้เมาส์ยังค้างอยู่บนแถบ
 // mouseleave จะปลดล็อก เพื่อให้ hover รอบถัดไปเปิดได้ตามปกติ
 const appSidebar = document.getElementById('app-sidebar');
@@ -214,6 +231,7 @@ function navigateToWebScreen(screenId, param) {
   });
 
   updateNavigationState(screenId);
+  if (screenId === 'settings') syncEyeCareSetting();
 
   const titleEl = document.getElementById('web-header-title');
   const subEl = document.getElementById('web-header-subtitle');

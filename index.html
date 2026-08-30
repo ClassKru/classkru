@@ -19,9 +19,9 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=395">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=396">
   <link rel="stylesheet" href="css/02-dashboard-tables.css?v=395">
-  <link rel="stylesheet" href="css/03-reports.css?v=395">
+  <link rel="stylesheet" href="css/03-reports.css?v=396">
   <link rel="stylesheet" href="css/04-modal-misc.css?v=395">
   <link rel="stylesheet" href="css/05-home.css?v=395">
   <link rel="stylesheet" href="css/06-attendance.css?v=395">
@@ -40,6 +40,13 @@
   <!-- HugeIcons (นำร่อง: sidebar + เมนูมือถือ) -->
   <link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css">
   <script>
+    // ใช้ค่าธีมก่อนเริ่มวาดหน้า เพื่อลดการกะพริบจากพื้นขาวเมื่อเปิดโหมดถนอมสายตาไว้
+    try {
+      if (localStorage.getItem('classkru-eye-care') === 'true') {
+        document.documentElement.classList.add('eye-care-mode');
+      }
+    } catch (_) {}
+
     // HugeIcons ใช้ codepoint ช่วง CJK เป็น glyph — ก่อนฟอนต์ไอคอนโหลดเสร็จ เบราว์เซอร์จะเรนเดอร์เป็น
     // "ตัวอักษรจีน" ด้วยฟอนต์สำรอง. ซ่อนไอคอนไว้ก่อนแล้วค่อยเผยเมื่อฟอนต์พร้อม (มี safety timeout กันค้าง)
     (function () {
@@ -638,6 +645,21 @@
                   <div class="settings-email-row"><i class="hgi-stroke hgi-mail-01"></i> <span id="web-settings-profile-email">teacher@school.com</span></div>
                   <span id="web-settings-profile-name" style="display:none;"></span>
                 </div>
+              </div>
+            </div>
+
+            <!-- การแสดงผล -->
+            <div class="settings-section">
+              <div class="settings-section-title">การแสดงผล</div>
+              <div class="card settings-list">
+                <label class="settings-row settings-eye-care-row" for="settings-eye-care-toggle">
+                  <span class="settings-row-label settings-eye-care-label">
+                    <span class="settings-eye-care-icon"><i class="hgi-stroke hgi-sun-03"></i></span>
+                    <span>โหมดถนอมสายตา<small>ปรับหน้าจอเป็นโทนอุ่น ลดแสงจ้า</small></span>
+                  </span>
+                  <input class="settings-toggle-input" id="settings-eye-care-toggle" type="checkbox" role="switch" onchange="setEyeCareMode(this.checked)">
+                  <span class="settings-toggle" aria-hidden="true"><span></span></span>
+                </label>
               </div>
             </div>
 
@@ -1401,7 +1423,7 @@
   <script defer src="js/core.js?v=395"></script>
   <script defer src="js/relational-sync.js?v=395"></script>
   <script defer src="js/auth.js?v=395"></script>
-  <script defer src="js/shell.js?v=395"></script>
+  <script defer src="js/shell.js?v=396"></script>
   <script defer src="js/dashboard.js?v=395"></script>
   <script defer src="js/classrooms.js?v=395"></script>
   <script defer src="js/students.js?v=395"></script>
