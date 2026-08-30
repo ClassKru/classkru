@@ -103,10 +103,9 @@ html.eye-care-mode body { background-color: var(--bg-app); }
 /* Dark Mode เปลี่ยนเฉพาะฉากหลังและเมนู เนื้อหา/ตาราง/สีสถานะยังใช้ชุดสีปกติ */
 html.dark-mode {
   color-scheme: light;
-  --bg-app: #111816;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.2);
-  --shadow-md: 0 6px 18px rgba(0,0,0,0.32), 0 1px 3px rgba(0,0,0,0.24);
-  --shadow-lg: 0 14px 36px rgba(0,0,0,0.42), 0 4px 10px rgba(0,0,0,0.3);
+  /* เนื้อหาและตารางยังเป็นกระดาษสีขาว จึงใช้ฉากหลังเทาอมเขียวแทนดำสนิท
+     เพื่อไม่ให้เกิดช่องว่างดำขนาดใหญ่และคอนทราสต์กระโดดระหว่างส่วน */
+  --bg-app: #e7ece9;
 }
 
 html.dark-mode body { background-color: var(--bg-app); }
