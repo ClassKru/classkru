@@ -125,7 +125,7 @@ body {
 }
 
 .sidebar:hover,
-.sidebar:focus-within {
+.sidebar:has(:focus-visible) {
   width: var(--sidebar-open-width);
   box-shadow: 12px 0 32px rgba(15, 23, 42, 0.12);
 }
@@ -161,7 +161,7 @@ body {
 }
 
 .sidebar:hover .sidebar-tagline,
-.sidebar:focus-within .sidebar-tagline {
+.sidebar:has(:focus-visible) .sidebar-tagline {
   max-width: 210px;
   opacity: 1;
   transform: translateY(0);
@@ -202,9 +202,9 @@ body {
   transition: opacity 140ms ease 20ms, transform 180ms ease 20ms;
 }
 .sidebar:hover .nav-item span,
-.sidebar:focus-within .nav-item span,
+.sidebar:has(:focus-visible) .nav-item span,
 .sidebar:hover .profile-info,
-.sidebar:focus-within .profile-info {
+.sidebar:has(:focus-visible) .profile-info {
   opacity: 1;
   transform: translateX(0);
 }

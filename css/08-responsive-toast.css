@@ -379,7 +379,7 @@
 /* ========================================== */
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar { --sidebar-rail-width: 72px; --sidebar-open-width: 236px; width: var(--sidebar-rail-width); padding: 16px 8px; }
-  .sidebar:hover, .sidebar:focus-within { width: var(--sidebar-open-width); }
+  .sidebar:hover, .sidebar:has(:focus-visible) { width: var(--sidebar-open-width); }
   .sidebar-brand .sidebar-logo { height: 50px !important; }
   .sidebar-menu .nav-item { font-size: 0.85rem; padding: 9px 12px; gap: 12px; }
   .main-content { margin-left: 72px; }
