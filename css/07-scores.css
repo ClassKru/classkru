@@ -5,14 +5,14 @@
 .sc-matrix-wrap { overflow: visible !important; }
 .score-matrix-scroll {
   position: relative; max-height: min(68vh, 720px); overflow: auto; overscroll-behavior: contain;
-  border: 1px solid var(--border-color); border-radius: 12px; background: #fff;
+  border: 2px solid #d9dfe3; border-radius: 12px; background: #fff;
   scrollbar-gutter: stable;
 }
 /* width:auto = คอลัมน์ขนาดพอดีเนื้อหา ไม่ยืดเต็มจอตอนรายการน้อย (เพิ่มรายการค่อยขยาย) */
 .score-matrix-table { width: auto; min-width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.86rem; background: #fff; }
 .score-matrix-table th, .score-matrix-table td { padding: 7px 8px; border-right: none; }
 /* มีเส้นแนวตั้งเฉพาะจุดเริ่มกลุ่มข้อมูล ลดภาพแบบ Excel และยังแบ่งหมวดได้ชัด */
-.score-matrix-table .sc-cat-start { border-left: 2px solid #d8dee6; }
+.score-matrix-table .sc-cat-start { border-left: 3px solid #cbd3db; }
 .score-matrix-table tbody td.sc-cat-start { padding-left: 10px; }
 
 /* แถบบอกบริบทช่องที่กำลังกรอก — เล็ก กระชับ และอยู่เหนือหัวตารางตลอด */
@@ -45,7 +45,7 @@
 .score-matrix-table thead { position: sticky; top: 42px; z-index: 8; }
 /* คั่นหัวออกจากเนื้อตาราง = เส้นบางเส้นเดียวเต็มแนว (แทนเงา 3 ชั้นเดิม) วางที่ขอบบนของแถวข้อมูลแรก
    จึงลากยาวครบทุกคอลัมน์รวมช่องตรึงซ้าย/สรุปขวา ไม่ขาดเป็นช่วง */
-.score-matrix-table tbody tr:first-child td { border-top: 1px solid var(--border-color); }
+.score-matrix-table tbody tr:first-child td { border-top: 2px solid #d9dfe3; }
 /* หัวหมวดใหญ่ = เรียบเข้าชุดกับเนื้อตาราง (ไม่มีพื้นสี/กรอบ/เงา) บอกลำดับชั้นด้วยตัวหนา + จัดบรรทัดบนให้เท่ากัน */
 .score-matrix-table thead .sc-bucket-head {
   color: var(--text-main); background: var(--sc-group-tint, transparent);
@@ -53,8 +53,8 @@
   vertical-align: top; padding: 10px 10px 8px;
   /* เส้นใต้คลุม "ช่วงกว้างของกลุ่ม" — บอกขอบเขต คะแนนเก็บ / สอบกลางภาค / สอบปลายภาค
      เลือกแบบนี้แทนการตีกรอบเต็ม เพราะกรอบทำให้ภาพรวมหนักและกลับไปเป็นทรงกล่องที่เอาออกไปแล้ว */
-  border-top: 1px solid var(--sc-group-accent, #d8dee6);
-  border-bottom: 1px solid var(--sc-group-accent, #d8dee6);
+  border-top: 2px solid var(--sc-group-accent, #d8dee6);
+  border-bottom: 2px solid var(--sc-group-accent, #d8dee6);
 }
 /* หัวหมวด/ระยะ = ชื่ออยู่บรรทัดเดียวไม่ตัดคำ, %+ตัวเลขอยู่ด้วยกัน — ช่องแคบก็ตกลงบรรทัดใหม่ทั้งก้อน
    หัวกลุ่มคร่อมหลายคอลัมน์ จึงขยายฟอนต์ได้โดยไม่ดันความกว้างตาราง (ต่างจากชื่อรายการ) */
@@ -89,21 +89,13 @@
 .sc-w-readonly { font-weight: 700; }
 /* บล็อกว่าง (ยังไม่มีรายการ) — ปุ่ม + เพิ่มรายการในระยะนั้น */
 .score-matrix-table .sc-item-empty { vertical-align: middle; text-align: center; min-width: 52px; }
-/* ปุ่มเพิ่มรายการ (จอคอม) — ต่อท้ายรายการสุดท้ายของบล็อก ชิดขอบขวา "ด้านใน" เส้นแบ่ง
-   ⚠️ ต้องอยู่ในขอบเสมอ ห้ามใช้ right ติดลบให้ล้นออกไป: เส้นแบ่งเป็นของที่บล็อกซ้าย
-   กับบล็อกขวาใช้ร่วมกัน ปุ่มที่คร่อมหรือล้ำออกนอกขอบจะอ่านได้ 2 แบบว่าเป็นของบล็อกไหน
-   อยู่ในขอบ = เป็นของบล็อกนั้นชัดเจน ไม่ต้องตีความ
-   ทรง = "แท็บ" ด้านขวาตัดเรียบแนบกับเส้นแบ่ง มนไปทางซ้าย (radius 5px 0 0 5px)
-   ด้านที่ชนเส้นต้องเป็นด้านตรงเสมอ ถึงจะจอยกับเส้นสนิทไม่มีช่องว่างที่มุมโค้ง
-   สัดส่วน: ผอมสูง (9x26) ไม่ใช่ป้อม — ความกว้างคือสิ่งที่ไปเบียดคนอื่น ความสูงไม่เบียด
-   ยิ่งผอมยิ่งกินพื้นที่แนวนอนของคอลัมน์น้อย เลย "จ่าย" ค่าความสูงเพิ่มได้โดยไม่ชนอะไร
-   9px กินริมขวาของคอลัมน์ 68px ซึ่งชื่อรายการเหลือที่ว่างริมละ ~5px อยู่แล้ว
-   ⚠️ อย่าขยายความกว้างเกิน ~10px จะเริ่มทับตัวท้ายของชื่อรายการ
-   วางชิดขอบล่างระดับแถว "/ เต็ม ⚙" ไม่ใช่กึ่งกลาง — กันไม่ให้ล้นขึ้นไปเหนือหัวคอลัมน์
+/* ปุ่มเพิ่มรายการ (จอคอม) — เว้นจากเส้นแบ่ง 4px และกันพื้นที่ในหัวคอลัมน์ไว้ให้ปุ่ม
+   จึงมองเห็นเครื่องหมาย + ครบ ไม่ชนเส้น และไม่ทับคะแนนเต็ม/ปุ่มตั้งค่า
    มือถือใช้ .msc-add (ปุ่มยาวมีข้อความ) ไม่เกี่ยวกับสองตัวนี้ */
-.sc-add-last, .sc-add-item-btn { position: absolute; right: 0; z-index: 6; width: 9px; height: 26px; border: 1px solid #c5ccd5; border-right: none; border-radius: 4px 0 0 4px; background: #e7eaee; color: #475569; cursor: pointer; font-size: 0.62rem; font-weight: 800; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.sc-add-last, .sc-add-item-btn { position: absolute; right: 4px; z-index: 6; width: 16px; height: 26px; border: 1px solid #b8c2cc; border-radius: 5px; background: #e7eaee; color: #475569; cursor: pointer; font-size: 0.7rem; font-weight: 800; line-height: 1; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: background 0.15s, color 0.15s, border-color 0.15s; }
 .sc-add-last:hover, .sc-add-item-btn:hover { background: #d7dde4; border-color: #aeb8c4; color: #334155; }
 .score-matrix-table th.sc-item-last, .score-matrix-table th.sc-item-empty { position: relative; }
+.score-matrix-table th.sc-item-last { padding-right: 24px; }
 .sc-add-last { bottom: 2px; }
 /* บล็อกว่างไม่มีแถวชื่อ/คะแนนเต็มมาแย่งที่ → จัดกึ่งกลางแนวตั้งได้ */
 .sc-add-item-btn { top: 50%; transform: translateY(-50%); }
@@ -113,11 +105,11 @@
 /* หัวกลุ่มย่อยระยะ (ก่อน/หลังกลางภาค) ใต้ "คะแนนเก็บ" — โทนอ่อนกว่าหัวหมวด */
 /* หัวระยะ = ชิดบน ไม่ใช่กึ่งกลาง — กลุ่มที่มีรายการเดียว (ช่องแคบ) ข้อความจะตกเป็น 2 บรรทัด
    ถ้าจัดกึ่งกลาง บรรทัดแรกของแต่ละกลุ่มจะไม่ตรงกัน (เช่น "หลังกลางภาค" ลอยสูงกว่า "ก่อนกลางภาค") */
-.score-matrix-table thead .sc-phase-head { background: var(--sc-group-tint, transparent); color: var(--text-muted); font-weight: 600; font-size: 0.84rem; text-align: center; white-space: normal; line-height: 1.3; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--sc-group-accent, #dfe3e8); }
+.score-matrix-table thead .sc-phase-head { background: var(--sc-group-tint, transparent); color: var(--text-muted); font-weight: 600; font-size: 0.84rem; text-align: center; white-space: normal; line-height: 1.3; vertical-align: top; padding: 8px 10px; border-bottom: 2px solid var(--sc-group-accent, #dfe3e8); }
 /* เส้นแบ่งกลุ่มบนแถวหัวหมวด/หัวระยะ — ต้องประกาศซ้ำที่ specificity สูงกว่า
    เพราะ `.sc-bucket-head { border:none }` ชนะ `.sc-cat-start` ทำให้เส้นหายเฉพาะ 2 แถวบน */
 .score-matrix-table thead .sc-bucket-head.sc-cat-start,
-.score-matrix-table thead .sc-phase-head.sc-cat-start { border-left: 2px solid var(--sc-group-accent, #cbd5e1); }
+.score-matrix-table thead .sc-phase-head.sc-cat-start { border-left: 3px solid var(--sc-group-accent, #cbd5e1); }
 /* ช่องแก้สัดส่วน % inline บนหัวหมวด (แก้ได้เลยไม่ต้องเปิดตั้งค่า) */
 /* ช่อง % = ตัวเลขเปล่าบนพื้นขาว ไม่มีพื้นเขียว (พื้นเขียวเดิมเด่นจนแย่งสายตาจากชื่อรายการ)
    ยังคลิกพิมพ์แก้ได้ — บอกว่าแก้ได้ด้วยพื้นเทาตอน hover แทน */
@@ -126,7 +118,7 @@
 .sc-weight-input:focus { outline: none; background: var(--primary-light); box-shadow: 0 0 0 2px var(--primary-light-border); }
 .sc-weight-input::-webkit-outer-spin-button, .sc-weight-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .sc-weight-input { -moz-appearance: textfield; appearance: textfield; }
-.score-matrix-table tbody td { border-bottom: 1px solid #eef1f4; background: #fff; }
+.score-matrix-table tbody td { border-bottom: 2px solid #e3e7eb; background: #fff; }
 .score-matrix-table tbody tr:nth-child(even) td { background: #fbfcfd; }
 .score-matrix-table tbody tr:last-child td { border-bottom: none; }
 .score-matrix-table tbody tr { transition: background 0.12s ease, opacity 0.16s ease, filter 0.16s ease; }
@@ -147,7 +139,7 @@
 .score-matrix-table .sc-c-no   { position: sticky; left: 0;     width: 48px;  min-width: 48px;  text-align: center; z-index: 3; color: var(--text-muted); font-weight: 700; }
 .score-matrix-table .sc-c-code { position: sticky; left: 48px;  width: 78px;  min-width: 78px;  text-align: center; z-index: 3; color: var(--text-muted); font-size: 0.84rem; font-variant-numeric: tabular-nums; }
 /* ขอบขวาคอลัมน์ชื่อ = เส้นทึบ (เดิมเป็นเงาฟุ้ง) — เอาเงาออกตามที่ตกลง ยังแยกช่องตรึงซ้ายออกจากคะแนนได้ */
-.score-matrix-table .sc-c-name { position: sticky; left: 126px; width: 184px; min-width: 184px; max-width: 184px; z-index: 3; text-align: left; font-weight: 600; color: var(--text-main); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-right: 1px solid var(--border-color); }
+.score-matrix-table .sc-c-name { position: sticky; left: 126px; width: 184px; min-width: 184px; max-width: 184px; z-index: 3; text-align: left; font-weight: 600; color: var(--text-main); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-right: 2px solid #d9dfe3; }
 .score-matrix-table thead .sc-c-no, .score-matrix-table thead .sc-c-code, .score-matrix-table thead .sc-c-name { z-index: 9; background: #f8fafc; }
 .score-matrix-table .sc-c-manage { text-align: center; white-space: nowrap; }
 .score-matrix-table .sc-manage-actions { display: flex; justify-content: center; align-items: center; gap: 6px; }
