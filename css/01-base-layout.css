@@ -130,6 +130,12 @@ body {
   box-shadow: 12px 0 32px rgba(15, 23, 42, 0.12);
 }
 
+/* หลังเลือกเมนูด้วยเมาส์ ให้หดทันทีแม้ pointer ยังอยู่ใน sidebar */
+.sidebar.is-click-collapsed {
+  width: var(--sidebar-rail-width);
+  box-shadow: 8px 0 28px rgba(15, 23, 42, 0);
+}
+
 .sidebar-brand {
   display: flex;
   flex-direction: column;
@@ -165,6 +171,12 @@ body {
   max-width: 210px;
   opacity: 1;
   transform: translateY(0);
+}
+
+.sidebar.is-click-collapsed .sidebar-tagline {
+  max-width: 0;
+  opacity: 0;
+  transform: translateY(-4px);
 }
 
 .sidebar-menu {
@@ -207,6 +219,11 @@ body {
 .sidebar:has(:focus-visible) .profile-info {
   opacity: 1;
   transform: translateX(0);
+}
+.sidebar.is-click-collapsed .nav-item span,
+.sidebar.is-click-collapsed .profile-info {
+  opacity: 0;
+  transform: translateX(-8px);
 }
 .sidebar-menu .nav-item:hover { background-color: #f5f8f6; color: var(--text-main); transform: translateX(2px); }
 .sidebar-menu .nav-item.active { background-color: #e8f4ec; color: var(--primary); font-weight: 700; }

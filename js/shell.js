@@ -151,6 +151,19 @@ function updateNavigationState(screenId) {
 
 renderAppNavigation();
 
+// คลิกเลือกเมนูแล้วหด sidebar ทันที แม้เมาส์ยังค้างอยู่บนแถบ
+// mouseleave จะปลดล็อก เพื่อให้ hover รอบถัดไปเปิดได้ตามปกติ
+const appSidebar = document.getElementById('app-sidebar');
+appSidebar?.addEventListener('click', (event) => {
+  if (event.detail === 0) return; // การกดด้วยคีย์บอร์ดยังใช้ focus-visible เพื่อเปิดเมนู
+  if (event.target.closest('.nav-item, .sidebar-profile')) {
+    appSidebar.classList.add('is-click-collapsed');
+  }
+});
+appSidebar?.addEventListener('mouseleave', () => {
+  appSidebar.classList.remove('is-click-collapsed');
+});
+
 function navigateToWebScreen(screenId, param) {
   closeMobileMoreMenu();
 
