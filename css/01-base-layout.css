@@ -100,6 +100,51 @@ html.eye-care-mode {
 
 html.eye-care-mode body { background-color: var(--bg-app); }
 
+/* Dark Mode ใช้ตัวแปรกลางเพื่อให้ทุกหน้าหลักเปลี่ยนพร้อมกันและยังอ่านสีสถานะได้ชัด */
+html.dark-mode {
+  color-scheme: dark;
+  --primary: #42c99a;
+  --primary-hover: #5bd8ab;
+  --primary-deep: #70e0bb;
+  --primary-light: #173c32;
+  --primary-light-border: #285b4c;
+  --bg-app: #111816;
+  --bg-card: #1b2421;
+  --bg-light: #26302d;
+  --text-main: #edf5f1;
+  --text-muted: #a7b5af;
+  --border-color: #35413d;
+  --color-present-bg: #173b2b;
+  --color-late-bg: #403515;
+  --color-absent-bg: #422421;
+  --color-leave-bg: #1c3049;
+  --tab-today-bg: #173b2b;
+  --tab-weekly-bg: #1c3049;
+  --tab-term-bg: #30294a;
+  --tab-overall-bg: #422b1c;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.2);
+  --shadow-md: 0 6px 18px rgba(0,0,0,0.32), 0 1px 3px rgba(0,0,0,0.24);
+  --shadow-lg: 0 14px 36px rgba(0,0,0,0.42), 0 4px 10px rgba(0,0,0,0.3);
+}
+
+html.dark-mode body { background-color: var(--bg-app); }
+html.dark-mode input,
+html.dark-mode select,
+html.dark-mode textarea { color: var(--text-main); background-color: var(--bg-card); }
+html.dark-mode .ck-class-stage-tab.active,
+html.dark-mode .score-matrix-wrap,
+html.dark-mode .score-matrix-table,
+html.dark-mode .score-matrix-table tbody td,
+html.dark-mode .sc-item-name-input:hover,
+html.dark-mode .sc-item-name-input:focus,
+html.dark-mode .sc-item-max-input:hover,
+html.dark-mode .sc-item-max-input:focus,
+html.dark-mode .qr-score-head,
+html.dark-mode .qr-score-picker-trigger,
+html.dark-mode .qr-score-picker-panel,
+html.dark-mode .qr-score-result,
+html.dark-mode .qr-score-scorebox { background: var(--bg-card); }
+
 * {
   box-sizing: border-box;
   margin: 0;

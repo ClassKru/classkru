@@ -152,21 +152,36 @@ function updateNavigationState(screenId) {
 renderAppNavigation();
 
 const EYE_CARE_STORAGE_KEY = 'classkru-eye-care';
+const THEME_STORAGE_KEY = 'classkru-theme';
+
+function applyDisplayTheme(theme) {
+  const validTheme = theme === 'dark' || theme === 'eye-care' ? theme : 'light';
+  document.documentElement.classList.toggle('eye-care-mode', validTheme === 'eye-care');
+  document.documentElement.classList.toggle('dark-mode', validTheme === 'dark');
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, validTheme);
+    // คง key เดิมเพื่อรองรับผู้ใช้จากเวอร์ชันก่อนหน้า
+    localStorage.setItem(EYE_CARE_STORAGE_KEY, String(validTheme === 'eye-care'));
+  } catch (_) {}
+  syncDisplaySettings();
+}
 
 function setEyeCareMode(enabled) {
-  document.documentElement.classList.toggle('eye-care-mode', Boolean(enabled));
-  const toggle = document.getElementById('settings-eye-care-toggle');
-  if (toggle) toggle.checked = Boolean(enabled);
-  try { localStorage.setItem(EYE_CARE_STORAGE_KEY, String(Boolean(enabled))); } catch (_) {}
+  applyDisplayTheme(enabled ? 'eye-care' : 'light');
 }
 
-function syncEyeCareSetting() {
-  const enabled = document.documentElement.classList.contains('eye-care-mode');
-  const toggle = document.getElementById('settings-eye-care-toggle');
-  if (toggle) toggle.checked = enabled;
+function setDarkMode(enabled) {
+  applyDisplayTheme(enabled ? 'dark' : 'light');
 }
 
-syncEyeCareSetting();
+function syncDisplaySettings() {
+  const eyeCareToggle = document.getElementById('settings-eye-care-toggle');
+  const darkModeToggle = document.getElementById('settings-dark-mode-toggle');
+  if (eyeCareToggle) eyeCareToggle.checked = document.documentElement.classList.contains('eye-care-mode');
+  if (darkModeToggle) darkModeToggle.checked = document.documentElement.classList.contains('dark-mode');
+}
+
+syncDisplaySettings();
 
 // คลิกเลือกเมนูแล้วหด sidebar ทันที แม้เมาส์ยังค้างอยู่บนแถบ
 // mouseleave จะปลดล็อก เพื่อให้ hover รอบถัดไปเปิดได้ตามปกติ
@@ -231,7 +246,7 @@ function navigateToWebScreen(screenId, param) {
   });
 
   updateNavigationState(screenId);
-  if (screenId === 'settings') syncEyeCareSetting();
+  if (screenId === 'settings') syncDisplaySettings();
 
   const titleEl = document.getElementById('web-header-title');
   const subEl = document.getElementById('web-header-subtitle');

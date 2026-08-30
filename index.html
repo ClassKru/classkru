@@ -19,9 +19,9 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=396">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=397">
   <link rel="stylesheet" href="css/02-dashboard-tables.css?v=395">
-  <link rel="stylesheet" href="css/03-reports.css?v=396">
+  <link rel="stylesheet" href="css/03-reports.css?v=397">
   <link rel="stylesheet" href="css/04-modal-misc.css?v=395">
   <link rel="stylesheet" href="css/05-home.css?v=395">
   <link rel="stylesheet" href="css/06-attendance.css?v=395">
@@ -40,11 +40,11 @@
   <!-- HugeIcons (นำร่อง: sidebar + เมนูมือถือ) -->
   <link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css">
   <script>
-    // ใช้ค่าธีมก่อนเริ่มวาดหน้า เพื่อลดการกะพริบจากพื้นขาวเมื่อเปิดโหมดถนอมสายตาไว้
+    // ใช้ค่าธีมก่อนเริ่มวาดหน้า เพื่อลดการกะพริบระหว่างโหลด
     try {
-      if (localStorage.getItem('classkru-eye-care') === 'true') {
-        document.documentElement.classList.add('eye-care-mode');
-      }
+      var savedTheme = localStorage.getItem('classkru-theme');
+      if (savedTheme === 'dark') document.documentElement.classList.add('dark-mode');
+      else if (savedTheme === 'eye-care' || localStorage.getItem('classkru-eye-care') === 'true') document.documentElement.classList.add('eye-care-mode');
     } catch (_) {}
 
     // HugeIcons ใช้ codepoint ช่วง CJK เป็น glyph — ก่อนฟอนต์ไอคอนโหลดเสร็จ เบราว์เซอร์จะเรนเดอร์เป็น
@@ -658,6 +658,14 @@
                     <span>โหมดถนอมสายตา<small>ปรับหน้าจอเป็นโทนอุ่น ลดแสงจ้า</small></span>
                   </span>
                   <input class="settings-toggle-input" id="settings-eye-care-toggle" type="checkbox" role="switch" onchange="setEyeCareMode(this.checked)">
+                  <span class="settings-toggle" aria-hidden="true"><span></span></span>
+                </label>
+                <label class="settings-row settings-dark-mode-row" for="settings-dark-mode-toggle">
+                  <span class="settings-row-label settings-eye-care-label">
+                    <span class="settings-display-icon settings-dark-mode-icon"><i class="hgi-stroke hgi-moon-02"></i></span>
+                    <span>Dark Mode<small>ใช้พื้นหลังสีเข้ม เหมาะกับที่แสงน้อย</small></span>
+                  </span>
+                  <input class="settings-toggle-input" id="settings-dark-mode-toggle" type="checkbox" role="switch" onchange="setDarkMode(this.checked)">
                   <span class="settings-toggle" aria-hidden="true"><span></span></span>
                 </label>
               </div>
@@ -1423,7 +1431,7 @@
   <script defer src="js/core.js?v=395"></script>
   <script defer src="js/relational-sync.js?v=395"></script>
   <script defer src="js/auth.js?v=395"></script>
-  <script defer src="js/shell.js?v=396"></script>
+  <script defer src="js/shell.js?v=397"></script>
   <script defer src="js/dashboard.js?v=395"></script>
   <script defer src="js/classrooms.js?v=395"></script>
   <script defer src="js/students.js?v=395"></script>
