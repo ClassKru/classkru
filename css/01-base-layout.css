@@ -100,50 +100,36 @@ html.eye-care-mode {
 
 html.eye-care-mode body { background-color: var(--bg-app); }
 
-/* Dark Mode ใช้ตัวแปรกลางเพื่อให้ทุกหน้าหลักเปลี่ยนพร้อมกันและยังอ่านสีสถานะได้ชัด */
+/* Dark Mode เปลี่ยนเฉพาะฉากหลังและเมนู เนื้อหา/ตาราง/สีสถานะยังใช้ชุดสีปกติ */
 html.dark-mode {
-  color-scheme: dark;
-  --primary: #42c99a;
-  --primary-hover: #5bd8ab;
-  --primary-deep: #70e0bb;
-  --primary-light: #173c32;
-  --primary-light-border: #285b4c;
+  color-scheme: light;
   --bg-app: #111816;
-  --bg-card: #1b2421;
-  --bg-light: #26302d;
-  --text-main: #edf5f1;
-  --text-muted: #a7b5af;
-  --border-color: #35413d;
-  --color-present-bg: #173b2b;
-  --color-late-bg: #403515;
-  --color-absent-bg: #422421;
-  --color-leave-bg: #1c3049;
-  --tab-today-bg: #173b2b;
-  --tab-weekly-bg: #1c3049;
-  --tab-term-bg: #30294a;
-  --tab-overall-bg: #422b1c;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.28), 0 2px 8px rgba(0,0,0,0.2);
   --shadow-md: 0 6px 18px rgba(0,0,0,0.32), 0 1px 3px rgba(0,0,0,0.24);
   --shadow-lg: 0 14px 36px rgba(0,0,0,0.42), 0 4px 10px rgba(0,0,0,0.3);
 }
 
 html.dark-mode body { background-color: var(--bg-app); }
-html.dark-mode input,
-html.dark-mode select,
-html.dark-mode textarea { color: var(--text-main); background-color: var(--bg-card); }
-html.dark-mode .ck-class-stage-tab.active,
-html.dark-mode .score-matrix-wrap,
-html.dark-mode .score-matrix-table,
-html.dark-mode .score-matrix-table tbody td,
-html.dark-mode .sc-item-name-input:hover,
-html.dark-mode .sc-item-name-input:focus,
-html.dark-mode .sc-item-max-input:hover,
-html.dark-mode .sc-item-max-input:focus,
-html.dark-mode .qr-score-head,
-html.dark-mode .qr-score-picker-trigger,
-html.dark-mode .qr-score-picker-panel,
-html.dark-mode .qr-score-result,
-html.dark-mode .qr-score-scorebox { background: var(--bg-card); }
+html.dark-mode .sidebar { background-color: #17201d; border-right-color: #2d3a36; }
+html.dark-mode .sidebar-brand,
+html.dark-mode .sidebar-profile { border-color: #2d3a36; }
+html.dark-mode .sidebar-brand .sidebar-tagline,
+html.dark-mode .sidebar-menu .nav-item,
+html.dark-mode .profile-role { color: #a7b5af; }
+html.dark-mode .profile-name { color: #edf5f1; }
+html.dark-mode .sidebar-menu .nav-item:hover,
+html.dark-mode .sidebar-profile:hover { color: #edf5f1; background-color: #25322e; }
+html.dark-mode .sidebar-menu .nav-item.active { color: #70e0bb; background-color: #173c32; }
+html.dark-mode .sidebar-menu .nav-item.active::before { background: #42c99a; }
+html.dark-mode .mobile-bottom-nav { background: rgba(23,32,29,0.94); border-top-color: #35413d; }
+html.dark-mode .mobile-bottom-nav .mob-nav-btn { color: #a7b5af; }
+html.dark-mode .mobile-bottom-nav .mob-nav-btn.active { color: #70e0bb; }
+html.dark-mode .mobile-more-sheet { background: #1b2421; }
+html.dark-mode .mobile-more-head h3 { color: #edf5f1; }
+html.dark-mode .mobile-more-grip { background: #52605b; }
+html.dark-mode .mobile-more-close,
+html.dark-mode .mobile-more-item { color: #edf5f1; background: #25302d; border-color: #3b4944; }
+html.dark-mode .mobile-more-item i { color: #70e0bb; background: #173c32; }
 
 * {
   box-sizing: border-box;
