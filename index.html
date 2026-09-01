@@ -792,7 +792,8 @@
           <div class="swipe-card-stats" id="swipe-card-stats"></div>
         </div>
         <button class="swipe-card-nav next" id="swipe-card-nav-next" type="button" onclick="moveSwipeStudent(1)" aria-label="นักเรียนคนถัดไป"><i class="hgi-stroke hgi-arrow-right-01"></i></button>
-        <input id="swipe-student-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleSwipeStudentPhoto(event)">
+        <input id="swipe-student-camera-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleSwipeStudentPhoto(event)">
+        <input id="swipe-student-photo-input" type="file" accept="image/*" style="display:none;" onchange="handleSwipeStudentPhoto(event)">
         <!-- Done state -->
         <div class="swipe-done-state" id="swipe-done-state" style="display:none;">
           <i class="hgi-stroke hgi-checkmark-circle-02" style="font-size:3rem;color:var(--primary);margin-bottom:12px;"></i>
@@ -818,6 +819,21 @@
             <button type="button" class="swipe-mobile-edit-close" onclick="closeSwipeMobileEdit()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
           </header>
           <div id="swipe-mobile-edit-list" class="swipe-mobile-edit-list"></div>
+        </section>
+      </div>
+
+      <div id="swipe-photo-source-sheet" class="swipe-photo-source-sheet" aria-hidden="true">
+        <div class="swipe-photo-source-backdrop" onclick="closeSwipePhotoSource()"></div>
+        <section class="swipe-photo-source-panel" role="dialog" aria-modal="true" aria-labelledby="swipe-photo-source-title">
+          <div class="swipe-photo-source-handle"></div>
+          <div class="swipe-photo-source-head">
+            <strong id="swipe-photo-source-title">เพิ่มรูปนักเรียน</strong>
+            <button type="button" class="swipe-mobile-edit-close" onclick="closeSwipePhotoSource()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button>
+          </div>
+          <div class="swipe-photo-source-actions">
+            <button type="button" onclick="chooseSwipePhotoSource('camera')"><i class="hgi-stroke hgi-camera-01"></i><span>ถ่ายรูป</span></button>
+            <button type="button" onclick="chooseSwipePhotoSource('gallery')"><i class="hgi-stroke hgi-image-01"></i><span>เลือกรูปจากเครื่อง</span></button>
+          </div>
         </section>
       </div>
 

@@ -242,14 +242,15 @@
   position: absolute;
   top: 50%;
   z-index: 4;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--border-color);
   border-radius: 50%;
   background: rgba(255,255,255,.9);
   color: var(--text-main);
   box-shadow: var(--shadow-sm);
   transform: translateY(-50%);
+  touch-action: manipulation;
 }
 .swipe-card-nav.previous { left: 8px; }
 .swipe-card-nav.next { right: 8px; }
@@ -481,6 +482,10 @@
   display: none;
 }
 
+.swipe-photo-source-sheet {
+  display: none;
+}
+
 @keyframes swipeSheetUp {
   from { transform: translateY(18px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -566,6 +571,63 @@
     align-items: flex-end;
     justify-content: center;
   }
+
+  .swipe-photo-source-sheet {
+    position: absolute;
+    inset: 0;
+    z-index: 21;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .swipe-photo-source-sheet.show { display: flex; }
+  .swipe-photo-source-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,23,42,0.34);
+  }
+  .swipe-photo-source-panel {
+    position: relative;
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: 18px 18px 0 0;
+    padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+    animation: swipeSheetUp 0.2s ease;
+  }
+  .swipe-photo-source-handle {
+    width: 46px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--border-color);
+    margin: 2px auto 10px;
+  }
+  .swipe-photo-source-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 2px 12px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .swipe-photo-source-head strong { color: var(--text-main); font-size: 1.02rem; }
+  .swipe-photo-source-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 12px; }
+  .swipe-photo-source-actions button {
+    min-height: 64px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-soft);
+    color: var(--text-main);
+    font: inherit;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .swipe-photo-source-actions i { color: var(--primary); font-size: 1.25rem; }
   .swipe-mobile-edit-sheet.show {
     display: flex;
   }

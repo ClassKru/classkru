@@ -17,6 +17,10 @@ assert.doesNotMatch(html, /เลื่อนแถบด้านล่าง�
 assert.doesNotMatch(html, /swipe-progress-bar/, 'duplicate progress bar is removed because checked count already communicates progress');
 assert.doesNotMatch(html, /onclick="onSwipeCardTap\(event\)"/, 'tapping the card must not mark attendance');
 assert.doesNotMatch(html, /ontouchstart|ontouchmove|ontouchend/, 'the student card no longer owns a swipe gesture');
+assert.match(html, /id="swipe-student-camera-input"[^>]*capture="environment"/, 'camera input explicitly opens the rear camera');
+assert.match(html, /id="swipe-student-photo-input"[^>]*accept="image\/\*"(?![^>]*capture)/, 'gallery input allows choosing an existing photo');
+assert.match(html, /id="swipe-photo-source-sheet"/, 'photo source picker is present');
+assert.match(js, /function chooseSwipePhotoSource/, 'photo source picker routes to camera or gallery');
 assert.doesNotMatch(js, /function onSwipeCardTap/, 'legacy tap-to-present gesture is removed');
 assert.doesNotMatch(js, /function selectSwipeStudentFromSlider/, 'legacy slider navigation function is removed');
 assert.doesNotMatch(js, /calculateSwipeMomentum|spinSwipeStudents|SWIPE_MOMENTUM/, 'momentum navigation is removed');
@@ -25,6 +29,8 @@ assert.match(js, /autoSaveAttendance\(\);[\s\S]*if \(swipeStudentIndex === marke
 assert.doesNotMatch(css, /swipe-card-preview/, 'legacy background card styling is removed');
 assert.doesNotMatch(css, /swipe-progress-bar/, 'legacy progress bar styling is removed');
 assert.doesNotMatch(css, /swipe-student-slider/, 'legacy slider styling is removed');
+assert.match(css, /\.swipe-card-nav[\s\S]*width: 44px;[\s\S]*height: 44px;/, 'mobile navigation buttons have a comfortable touch target');
+assert.match(css, /\.swipe-card-nav[\s\S]*touch-action: manipulation;/, 'navigation buttons do not trigger browser double-tap zoom');
 assert.match(css, /\.swipe-btn\.active/, 'saved status is highlighted when revisiting a student');
 
 console.log('attendance carousel tests passed');

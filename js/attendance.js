@@ -566,7 +566,26 @@ function editCurrentSwipeStudent(event) {
 function openSwipeStudentPhoto(event) {
   if (event) event.stopPropagation();
   if (!ensureStudentPhotoPermission()) return;
-  document.getElementById('swipe-student-photo-input')?.click();
+  const sheet = document.getElementById('swipe-photo-source-sheet');
+  if (!sheet) {
+    document.getElementById('swipe-student-photo-input')?.click();
+    return;
+  }
+  sheet.classList.add('show');
+  sheet.setAttribute('aria-hidden', 'false');
+}
+
+function closeSwipePhotoSource() {
+  const sheet = document.getElementById('swipe-photo-source-sheet');
+  if (!sheet) return;
+  sheet.classList.remove('show');
+  sheet.setAttribute('aria-hidden', 'true');
+}
+
+function chooseSwipePhotoSource(source) {
+  closeSwipePhotoSource();
+  const inputId = source === 'camera' ? 'swipe-student-camera-input' : 'swipe-student-photo-input';
+  document.getElementById(inputId)?.click();
 }
 
 // รูปนักเรียนเป็นข้อมูลส่วนบุคคล: ให้ครูรับทราบหน้าที่และยืนยันสิทธิ์ก่อนใช้ฟีเจอร์ทดลองครั้งแรก
