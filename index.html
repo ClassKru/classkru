@@ -24,7 +24,7 @@
   <link rel="stylesheet" href="css/03-reports.css?v=397">
   <link rel="stylesheet" href="css/04-modal-misc.css?v=395">
   <link rel="stylesheet" href="css/05-home.css?v=395">
-  <link rel="stylesheet" href="css/06-attendance.css?v=396">
+  <link rel="stylesheet" href="css/06-attendance.css?v=404">
   <link rel="stylesheet" href="css/07-scores.css?v=400">
     <link rel="stylesheet" href="css/08-responsive-toast.css?v=395">
     <link rel="stylesheet" href="css/09-games.css?v=395">
@@ -837,6 +837,12 @@
         </section>
       </div>
 
+      <!-- ตัวเลื่อนรายชื่อฝังบนเส้นคั่น ไม่เพิ่มแถวเนื้อหาใหม่ -->
+      <div class="swipe-student-scrubber" id="swipe-student-scrubber" hidden>
+        <input id="swipe-student-range" type="range" min="0" max="0" value="0"
+          aria-label="เลื่อนรายชื่อนักเรียน" oninput="selectSwipeStudentFromScrubber(this.value)">
+      </div>
+
       <!-- ACTION BUTTONS -->
       <div class="swipe-action-buttons">
         <button class="swipe-btn present" data-status="present" onclick="markSwipeStatus('present')"><i class="hgi-stroke hgi-tick-02"></i><span>มา</span></button>
@@ -1462,7 +1468,7 @@
   <script defer src="js/students.js?v=395"></script>
   <script defer src="js/timetable.js?v=395"></script>
   <script defer src="js/reports.js?v=395"></script>
-  <script defer src="js/attendance.js?v=396"></script>
+  <script defer src="js/attendance.js?v=404"></script>
   <script defer src="js/curriculum-science-2560.js?v=395"></script>
   <script defer src="js/curriculum-catalog.js?v=395"></script>
   <script defer src="js/scores.js?v=395"></script>

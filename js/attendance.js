@@ -797,11 +797,12 @@ function loadSwipeForDate() {
   updateSwipeScheduleWarning();
 }
 
-function renderSwipeCard() {
+function renderSwipeCard(refreshDesktop = true) {
   const c = appState.classes.find(x => x.id === swipeClassId);
   if (!c) return;
-  renderDesktopSwipeTable(); // ล้าง/รีเฟรชตารางเดสก์ท็อปตามห้องปัจจุบันเสมอ (กันค้างรายชื่อห้องก่อนหน้าเมื่อห้องนี้ 0 คน)
+  if (refreshDesktop) renderDesktopSwipeTable(); // ตอนลาก scrubber ไม่ต้อง render ตารางเดสก์ท็อปซ้ำทุกตำแหน่ง
   if (c.students.length === 0) {
+    updateSwipeStudentScrubber(c);
     document.getElementById('swipe-card').style.display = 'none';
     document.getElementById('swipe-done-state').style.display = 'flex';
     document.getElementById('swipe-done-state').innerHTML = `
@@ -823,6 +824,7 @@ function renderSwipeCard() {
   const doneState = document.getElementById('swipe-done-state');
 
   swipeStudentIndex = Math.max(0, Math.min(swipeStudentIndex, c.students.length - 1));
+  updateSwipeStudentScrubber(c);
 
   card.style.display = 'flex';
   doneState.style.display = 'none';
@@ -878,6 +880,33 @@ function renderSwipeCarouselContext(c) {
 
   const completeBanner = document.getElementById('swipe-complete-banner');
   if (completeBanner) completeBanner.hidden = !isSwipeAttendanceComplete();
+}
+
+function updateSwipeStudentScrubber(c) {
+  const wrap = document.getElementById('swipe-student-scrubber');
+  const range = document.getElementById('swipe-student-range');
+  if (!wrap || !range) return;
+
+  const count = c?.students?.length || 0;
+  wrap.hidden = count < 2;
+  if (count < 2) return;
+
+  const student = c.students[swipeStudentIndex];
+  const max = count - 1;
+  const progress = max > 0 ? (swipeStudentIndex / max) * 100 : 0;
+  range.max = String(max);
+  range.value = String(swipeStudentIndex);
+  range.setAttribute('aria-valuetext', `${swipeStudentIndex + 1} จาก ${count}: ${student?.name || ''}`);
+  range.style.setProperty('--swipe-scrub-progress', `${progress}%`);
+}
+
+function selectSwipeStudentFromScrubber(value) {
+  const c = appState.classes.find(x => x.id === swipeClassId);
+  if (!c || !c.students.length) return;
+  const nextIndex = Math.max(0, Math.min(Number(value) || 0, c.students.length - 1));
+  if (nextIndex === swipeStudentIndex) return;
+  swipeStudentIndex = nextIndex;
+  renderSwipeCard(false);
 }
 
 function moveSwipeStudent(delta) {
