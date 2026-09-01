@@ -196,11 +196,13 @@ appSidebar?.addEventListener('click', (event) => {
 appSidebar?.addEventListener('mouseleave', () => {
   appSidebar.classList.remove('is-click-collapsed');
 });
-appSidebar?.addEventListener('pointermove', (event) => {
-  if (event.buttons === 0 && appSidebar.classList.contains('is-click-collapsed')) {
+// ฟังที่ document เพราะเมื่อ sidebar หด พื้นที่เดิมด้านขวาจะกลายเป็นของ main-content
+// ทำให้ pointermove อาจไม่ bubble ผ่าน sidebar อีกต่อไป
+document.addEventListener('pointermove', (event) => {
+  if (event.buttons === 0 && appSidebar?.classList.contains('is-click-collapsed')) {
     appSidebar.classList.remove('is-click-collapsed');
   }
-});
+}, { passive: true });
 
 function navigateToWebScreen(screenId, param) {
   closeMobileMoreMenu();
