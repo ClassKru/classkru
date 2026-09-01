@@ -174,6 +174,9 @@ body {
 .sidebar:hover,
 .sidebar:has(:focus-visible) {
   width: var(--sidebar-open-width);
+  /* หน้าเช็กชื่อเป็น overlay ระดับ 8000 และเริ่มถัดจาก rail
+     ยก sidebar เฉพาะตอนเปิด เพื่อให้ส่วนที่ขยายวางทับหน้าเช็กชื่อได้จริง */
+  z-index: 8500;
   box-shadow: 12px 0 32px rgba(15, 23, 42, 0.12);
 }
 
