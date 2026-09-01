@@ -184,7 +184,8 @@ function syncDisplaySettings() {
 syncDisplaySettings();
 
 // คลิกเลือกเมนูแล้วหด sidebar ทันที แม้เมาส์ยังค้างอยู่บนแถบ
-// mouseleave จะปลดล็อก เพื่อให้ hover รอบถัดไปเปิดได้ตามปกติ
+// ถ้า sidebar หดครอบตำแหน่ง pointer เดิม browser อาจไม่ยิง mouseleave จึงต้องปลดล็อก
+// เมื่อผู้ใช้ขยับเมาส์ครั้งถัดไปด้วย ไม่เช่นนั้นข้อความเมนูจะถูกตัดค้างใน rail แคบ
 const appSidebar = document.getElementById('app-sidebar');
 appSidebar?.addEventListener('click', (event) => {
   if (event.detail === 0) return; // การกดด้วยคีย์บอร์ดยังใช้ focus-visible เพื่อเปิดเมนู
@@ -194,6 +195,11 @@ appSidebar?.addEventListener('click', (event) => {
 });
 appSidebar?.addEventListener('mouseleave', () => {
   appSidebar.classList.remove('is-click-collapsed');
+});
+appSidebar?.addEventListener('pointermove', (event) => {
+  if (event.buttons === 0 && appSidebar.classList.contains('is-click-collapsed')) {
+    appSidebar.classList.remove('is-click-collapsed');
+  }
 });
 
 function navigateToWebScreen(screenId, param) {
