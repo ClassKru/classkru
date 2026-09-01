@@ -21,6 +21,9 @@ assert.match(html, /id="swipe-student-camera-input"[^>]*capture="environment"/, 
 assert.match(html, /id="swipe-student-photo-input"[^>]*accept="image\/\*"(?![^>]*capture)/, 'gallery input allows choosing an existing photo');
 assert.match(html, /id="swipe-photo-source-sheet"/, 'photo source picker is present');
 assert.match(js, /function chooseSwipePhotoSource/, 'photo source picker routes to camera or gallery');
+assert.match(html, /id="student-detail-photo-source-sheet"/, 'student edit photo source picker is present');
+assert.match(html, /id="student-detail-photo-camera-input"[^>]*capture="environment"/, 'student edit camera input explicitly opens the rear camera');
+assert.match(js, /function chooseStudentDetailPhotoSource/, 'student edit photo source picker routes to camera or gallery');
 assert.doesNotMatch(js, /function onSwipeCardTap/, 'legacy tap-to-present gesture is removed');
 assert.doesNotMatch(js, /function selectSwipeStudentFromSlider/, 'legacy slider navigation function is removed');
 assert.doesNotMatch(js, /calculateSwipeMomentum|spinSwipeStudents|SWIPE_MOMENTUM/, 'momentum navigation is removed');

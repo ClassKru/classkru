@@ -647,7 +647,26 @@ function handleSwipeStudentPhoto(event) {
 function openStudentDetailPhoto(event) {
   if (event) event.stopPropagation();
   if (!ensureStudentPhotoPermission()) return;
-  document.getElementById('student-detail-photo-input')?.click();
+  const sheet = document.getElementById('student-detail-photo-source-sheet');
+  if (!sheet) {
+    document.getElementById('student-detail-photo-input')?.click();
+    return;
+  }
+  sheet.classList.add('show');
+  sheet.setAttribute('aria-hidden', 'false');
+}
+
+function closeStudentDetailPhotoSource() {
+  const sheet = document.getElementById('student-detail-photo-source-sheet');
+  if (!sheet) return;
+  sheet.classList.remove('show');
+  sheet.setAttribute('aria-hidden', 'true');
+}
+
+function chooseStudentDetailPhotoSource(source) {
+  closeStudentDetailPhotoSource();
+  const inputId = source === 'camera' ? 'student-detail-photo-camera-input' : 'student-detail-photo-input';
+  document.getElementById(inputId)?.click();
 }
 
 function handleStudentDetailPhoto(event) {

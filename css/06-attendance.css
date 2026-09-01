@@ -627,7 +627,47 @@
     cursor: pointer;
     touch-action: manipulation;
   }
-  .swipe-photo-source-actions i { color: var(--primary); font-size: 1.25rem; }
+.swipe-photo-source-actions i { color: var(--primary); font-size: 1.25rem; }
+
+.student-detail-photo-source-sheet {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  align-items: flex-end;
+  justify-content: center;
+}
+.student-detail-photo-source-sheet.show { display: flex; }
+.student-detail-photo-source-backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.34); }
+.student-detail-photo-source-panel {
+  position: relative;
+  width: min(100%, 480px);
+  background: var(--bg-card);
+  border-radius: 18px 18px 0 0;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  animation: swipeSheetUp 0.2s ease;
+}
+.student-detail-photo-source-handle { width: 46px; height: 5px; border-radius: 999px; background: var(--border-color); margin: 2px auto 10px; }
+.student-detail-photo-source-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 2px 12px; border-bottom: 1px solid var(--border-color); }
+.student-detail-photo-source-head strong { color: var(--text-main); font-size: 1.02rem; }
+.student-detail-photo-source-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 12px; }
+.student-detail-photo-source-actions button {
+  min-height: 64px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-soft);
+  color: var(--text-main);
+  font: inherit;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.student-detail-photo-source-actions i { color: var(--primary); font-size: 1.25rem; }
   .swipe-mobile-edit-sheet.show {
     display: flex;
   }
