@@ -55,12 +55,12 @@
 }
 
 .swipe-compact-header {
-  padding: 10px 16px 8px;
+  padding: 8px 16px 7px;
   background: rgba(255,255,255,0.6);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 @media (max-width: 768px) {
@@ -78,7 +78,7 @@
   .swipe-class-card .header-actions { flex-shrink: 0; gap: 6px !important; }
   .swipe-class-card .header-actions .btn { font-size: 0.7rem !important; padding: 5px 8px !important; }
   .swipe-class-card .header-actions .btn-text { font-size: 0.7rem !important; }
-  .swipe-compact-header { padding: 8px 12px 6px; }
+  .swipe-compact-header { padding: 6px 12px 7px; }
 
   /* บีบการ์ดหัวหน้ารายงาน (เฉพาะมือถือ) */
   .rep-detail-header-card { padding: 9px 8px !important; margin-bottom: 10px !important; }
@@ -173,28 +173,29 @@
 /* Summary Pills Row */
 .swipe-summary-pills {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   justify-content: center;
   flex-wrap: wrap;
 }
 
 .s-pill {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 2px;
-  padding: 8px 12px;
-  border-radius: 14px;
+  justify-content: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: 999px;
   font-weight: 600;
   border: none;
   flex: 1;
-  min-width: 64px;
+  min-width: 0;
 }
 
 .s-pill-top { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .s-pill-top i { font-size: 0.95rem; opacity: 0.9; }
-.s-pill-num { font-size: 1.4rem; font-weight: 700; line-height: 1; }
-.s-pill-label { font-size: 0.78rem; font-weight: 600; opacity: 0.95; text-align: center; }
+.s-pill-num { font-size: 0.86rem; font-weight: 800; line-height: 1; }
+.s-pill-label { font-size: 0.72rem; font-weight: 700; opacity: 0.95; text-align: center; }
 
 .s-pill.present { background: var(--color-present-bg); color: var(--color-present); }
 .s-pill.late { background: var(--color-late-bg); color: var(--color-late-text); }
@@ -205,30 +206,16 @@
 .swipe-progress {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 0;
+  margin-top: 0;
 }
-.swipe-progress-bar {
-  width: 100%;
-  height: 9px;
-  border-radius: 999px;
-  background: #eaeaef;
-  overflow: hidden;
-}
-.swipe-progress-fill {
-  height: 100%;
-  width: 0;
-  border-radius: 999px;
-  background: var(--primary);
-  transition: width 0.35s ease;
-}
-.swipe-progress-checked { flex: 1; text-align: center; font-size: 1.05rem; font-weight: 400; color: var(--text-main); white-space: nowrap; }
-.swipe-progress-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.swipe-progress-checked { flex: 1; text-align: center; font-size: 0.92rem; font-weight: 700; color: var(--text-main); white-space: nowrap; }
+.swipe-progress-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .swipe-progress-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .swipe-mini-btn {
   display: flex; align-items: center; gap: 6px;
-  font-size: 0.78rem; font-weight: 700;
-  padding: 7px 14px; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700;
+  padding: 5px 10px; border-radius: 999px;
   background: var(--bg-card); color: var(--text-muted);
   border: 1px solid var(--border-color); cursor: pointer;
   transition: var(--transition-normal); white-space: nowrap; flex-shrink: 0;
@@ -245,35 +232,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 12px 20px 22px;
+  padding: 18px 18px 12px;
   position: relative;
   overflow: hidden;
   min-height: 0;
 }
-
-.swipe-card-preview {
-  position: absolute;
-  top: 50%;
-  width: 190px;
-  height: 72%;
-  padding: 24px 18px;
-  border: 1px solid var(--border-color);
-  border-radius: 20px;
-  background: var(--bg-card);
-  box-shadow: var(--shadow-sm);
-  opacity: 0.38;
-  transform: translateY(-50%) scale(0.9);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 5px;
-  pointer-events: none;
-}
-.swipe-card-preview.previous { left: -108px; align-items: flex-end; text-align: right; }
-.swipe-card-preview.next { right: -108px; align-items: flex-start; text-align: left; }
-.swipe-card-preview.is-hidden { opacity: 0; }
-.swipe-card-preview small, .swipe-card-preview span { font-size: 0.68rem; color: var(--text-muted); }
-.swipe-card-preview strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); }
 
 .swipe-card-nav {
   position: absolute;
@@ -296,9 +259,9 @@
   background: var(--bg-card);
   border-radius: 20px;
   box-shadow: var(--shadow-md);
-  padding: 28px 24px 24px;
-  width: 320px;
-  max-width: 90%;
+  padding: 30px 24px 26px;
+  width: min(340px, 88vw);
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -315,42 +278,6 @@
 .swipe-card.swipe-edge-bump { animation: swipeEdgeBump .18s ease; }
 @keyframes swipeEdgeBump { 50% { transform: scale(.985); } }
 
-.swipe-student-slider-wrap {
-  flex: 0 0 auto;
-  position: relative;
-  z-index: 6;
-  margin-top: 10px;
-  padding: 8px 22px 10px;
-  background: var(--bg-app);
-}
-.swipe-student-slider {
-  --slider-progress: 0%;
-  width: 100%;
-  height: 30px;
-  margin: 0;
-  appearance: none;
-  -webkit-appearance: none;
-  background: transparent;
-  touch-action: pan-x;
-}
-.swipe-student-slider::-webkit-slider-runnable-track {
-  height: 8px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--primary) 0 var(--slider-progress), var(--border-color) var(--slider-progress) 100%);
-}
-.swipe-student-slider::-webkit-slider-thumb {
-  width: 26px;
-  height: 26px;
-  margin-top: -9px;
-  border: 3px solid #fff;
-  border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 2px 8px rgba(15,23,42,.25);
-  -webkit-appearance: none;
-}
-.swipe-student-slider::-moz-range-track { height: 8px; border-radius: 999px; background: var(--border-color); }
-.swipe-student-slider::-moz-range-progress { height: 8px; border-radius: 999px; background: var(--primary); }
-.swipe-student-slider::-moz-range-thumb { width: 22px; height: 22px; border: 3px solid #fff; border-radius: 50%; background: var(--primary); box-shadow: 0 2px 8px rgba(15,23,42,.25); }
 .swipe-complete-banner {
   margin: 0 12px 8px;
   padding: 8px 10px;
@@ -564,8 +491,8 @@
   display: flex;
   justify-content: center;
   align-items: flex-end;
-  gap: 12px;
-  padding: 16px 20px 24px;
+  gap: 10px;
+  padding: 12px 20px calc(16px + env(safe-area-inset-bottom));
   background: rgba(255,255,255,0.92);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -588,19 +515,19 @@
 .swipe-btn.active span { color: var(--text-main); }
 
 .swipe-btn i {
-  width: 52px;
-  height: 52px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
-  border: 2.5px solid;
+  font-size: 1.05rem;
+  border: 2px solid;
   transition: var(--transition-normal);
 }
 
 .swipe-btn span {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -1378,19 +1305,17 @@
 .swipe-schedule-warning {
   display: flex;
   align-items: center;
-  gap: 10px;
-  /* ช่องไฟบน 12px กันไม่ให้แปะติดการ์ดสรุป (เดิมเป็น 0 เลยดูเบียด)
-     ล่างไม่ต้องมี — ระยะถัดไปมาจาก padding ของกล่องเนื้อหาอยู่แล้ว */
-  margin: 12px 12px 0;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  font-size: 0.85rem;
-  line-height: 1.35;
+  gap: 7px;
+  margin: 7px 12px 0;
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  line-height: 1.25;
   background: #FEF3E2;
   border: 1px solid #F6C77A;
   color: #92610A;
 }
-.swipe-schedule-warning > i { font-size: 1.15rem; flex-shrink: 0; }
+.swipe-schedule-warning > i { font-size: 0.92rem; flex-shrink: 0; }
 .swipe-schedule-warning > span { flex: 1; min-width: 0; }
 .swipe-schedule-warning > button {
   flex-shrink: 0;
@@ -1398,9 +1323,9 @@
   background: transparent;
   color: inherit;
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 5px 12px;
+  padding: 4px 9px;
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;

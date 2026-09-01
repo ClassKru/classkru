@@ -756,13 +756,12 @@
 
     <div class="swipe-compact-header">
       <div class="swipe-summary-pills" id="swipe-summary-pills">
-        <div class="s-pill present"><span class="s-pill-num" id="swipe-cnt-present">0</span><span class="s-pill-label">มา</span></div>
-        <div class="s-pill late"><span class="s-pill-num" id="swipe-cnt-late">0</span><span class="s-pill-label">สาย</span></div>
-        <div class="s-pill absent"><span class="s-pill-num" id="swipe-cnt-absent">0</span><span class="s-pill-label">ขาด</span></div>
-        <div class="s-pill leave"><span class="s-pill-num" id="swipe-cnt-leave">0</span><span class="s-pill-label">ลา</span></div>
+        <div class="s-pill present"><span class="s-pill-label">มา</span><span class="s-pill-num" id="swipe-cnt-present">0</span></div>
+        <div class="s-pill late"><span class="s-pill-label">สาย</span><span class="s-pill-num" id="swipe-cnt-late">0</span></div>
+        <div class="s-pill absent"><span class="s-pill-label">ขาด</span><span class="s-pill-num" id="swipe-cnt-absent">0</span></div>
+        <div class="s-pill leave"><span class="s-pill-label">ลา</span><span class="s-pill-num" id="swipe-cnt-leave">0</span></div>
       </div>
       <div class="swipe-progress">
-        <div class="swipe-progress-bar"><div class="swipe-progress-fill" id="swipe-progress-fill"></div></div>
         <div class="swipe-progress-actions">
           <button class="swipe-mini-btn primary" onclick="setAllSwipePresent()"><i class="hgi-stroke hgi-tick-02"></i> มาทุกคน</button>
           <span class="swipe-progress-checked">เช็คแล้ว <span id="swipe-checked-count">0</span> / <span id="swipe-total-count">0</span></span>
@@ -778,7 +777,6 @@
       <!-- SWIPE CARD AREA -->
       <div class="swipe-card-area" id="swipe-card-area" style="flex:1;">
         <button class="swipe-card-nav previous" id="swipe-card-nav-previous" type="button" onclick="moveSwipeStudent(-1)" aria-label="นักเรียนคนก่อนหน้า"><i class="hgi-stroke hgi-arrow-left-01"></i></button>
-        <div class="swipe-card-preview previous" id="swipe-card-preview-previous" aria-hidden="true"></div>
         <div class="swipe-card" id="swipe-card">
           <div class="swipe-card-header">
             <span class="swipe-card-no" id="swipe-card-no"></span>
@@ -793,7 +791,6 @@
           <div class="swipe-card-name" id="swipe-card-name"></div>
           <div class="swipe-card-stats" id="swipe-card-stats"></div>
         </div>
-        <div class="swipe-card-preview next" id="swipe-card-preview-next" aria-hidden="true"></div>
         <button class="swipe-card-nav next" id="swipe-card-nav-next" type="button" onclick="moveSwipeStudent(1)" aria-label="นักเรียนคนถัดไป"><i class="hgi-stroke hgi-arrow-right-01"></i></button>
         <input id="swipe-student-photo-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleSwipeStudentPhoto(event)">
         <!-- Done state -->
@@ -804,9 +801,6 @@
         </div>
       </div>
 
-      <div class="swipe-student-slider-wrap" id="swipe-student-slider-wrap">
-        <input id="swipe-student-slider" class="swipe-student-slider" type="range" min="1" max="1" value="1" step="1" oninput="selectSwipeStudentFromSlider(this.value)" aria-label="เลื่อนเพื่อเลือกนักเรียน">
-      </div>
       <div class="swipe-complete-banner" id="swipe-complete-banner" hidden>
         <span><i class="hgi-stroke hgi-checkmark-circle-02"></i> เช็คชื่อครบทุกคนแล้ว</span>
         <button type="button" onclick="finishSwipeAttendanceFromDone(event)">เสร็จสิ้น</button>

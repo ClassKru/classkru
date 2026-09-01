@@ -76,10 +76,10 @@ function updateSwipeScheduleWarning() {
   el.style.display = 'flex';
   if (isExtra) {
     el.className = 'swipe-schedule-warning is-extra';
-    el.innerHTML = `<i class="hgi-stroke hgi-calendar-add-01"></i><span>วันนี้บันทึกเป็น <b>คาบเสริม / ชดเชย</b></span><button onclick="cancelSwipeExtraDay()">ยกเลิกคาบเสริม</button>`;
+    el.innerHTML = `<i class="hgi-stroke hgi-calendar-add-01"></i><span>คาบเสริม / ชดเชย</span>`;
   } else {
     el.className = 'swipe-schedule-warning';
-    el.innerHTML = `<i class="hgi-stroke hgi-alert-02"></i><span>วันนี้ห้องนี้ <b>ไม่มีคาบสอนตามตาราง</b> — เช็กว่าเลือกวันถูกไหม</span><button onclick="ensureSwipeDateAllowed(updateSwipeScheduleWarning)">เพิ่มเป็นคาบเสริม</button>`;
+    el.innerHTML = `<i class="hgi-stroke hgi-alert-02"></i><span>ไม่มีคาบตามตาราง</span><button onclick="ensureSwipeDateAllowed(updateSwipeScheduleWarning)">เพิ่มคาบเสริม</button>`;
   }
 }
 
@@ -764,8 +764,6 @@ function renderSwipeCard() {
   if (!c) return;
   renderDesktopSwipeTable(); // ล้าง/รีเฟรชตารางเดสก์ท็อปตามห้องปัจจุบันเสมอ (กันค้างรายชื่อห้องก่อนหน้าเมื่อห้องนี้ 0 คน)
   if (c.students.length === 0) {
-    const sliderWrap = document.getElementById('swipe-student-slider-wrap');
-    if (sliderWrap) sliderWrap.style.display = 'none';
     document.getElementById('swipe-card').style.display = 'none';
     document.getElementById('swipe-done-state').style.display = 'flex';
     document.getElementById('swipe-done-state').innerHTML = `
@@ -785,8 +783,6 @@ function renderSwipeCard() {
 
   const card = document.getElementById('swipe-card');
   const doneState = document.getElementById('swipe-done-state');
-  const sliderWrap = document.getElementById('swipe-student-slider-wrap');
-  if (sliderWrap) sliderWrap.style.display = '';
 
   swipeStudentIndex = Math.max(0, Math.min(swipeStudentIndex, c.students.length - 1));
 
@@ -831,27 +827,11 @@ function renderSwipeCarouselContext(c) {
   const student = c.students[swipeStudentIndex];
   const previous = c.students[swipeStudentIndex - 1];
   const next = c.students[swipeStudentIndex + 1];
-  const renderPreview = (id, item, direction) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.toggle('is-hidden', !item);
-    el.innerHTML = item ? `<small>${direction}</small><strong>${escapeAttendanceHtml(item.nickname || item.name)}</strong><span>เลขที่ ${escapeAttendanceHtml(item.no || '')}</span>` : '';
-  };
-  renderPreview('swipe-card-preview-previous', previous, 'ก่อนหน้า');
-  renderPreview('swipe-card-preview-next', next, 'ถัดไป');
 
   const previousButton = document.getElementById('swipe-card-nav-previous');
   const nextButton = document.getElementById('swipe-card-nav-next');
   if (previousButton) previousButton.disabled = !previous;
   if (nextButton) nextButton.disabled = !next;
-
-  const slider = document.getElementById('swipe-student-slider');
-  if (slider) {
-    slider.max = String(c.students.length);
-    slider.value = String(swipeStudentIndex + 1);
-    const progress = c.students.length > 1 ? (swipeStudentIndex / (c.students.length - 1)) * 100 : 0;
-    slider.style.setProperty('--slider-progress', `${progress}%`);
-  }
   document.querySelectorAll('.swipe-action-buttons .swipe-btn[data-status]').forEach(button => {
     const active = button.dataset.status === swipeResults[student.id];
     button.classList.toggle('active', active);
@@ -873,15 +853,6 @@ function moveSwipeStudent(delta) {
     return;
   }
   swipeStudentIndex = nextIndex;
-  renderSwipeCard();
-}
-
-function selectSwipeStudentFromSlider(value) {
-  const c = appState.classes.find(x => x.id === swipeClassId);
-  if (!c || !c.students.length) return;
-  const requestedIndex = Number.parseInt(value, 10) - 1;
-  if (!Number.isFinite(requestedIndex)) return;
-  swipeStudentIndex = Math.max(0, Math.min(requestedIndex, c.students.length - 1));
   renderSwipeCard();
 }
 
@@ -1101,8 +1072,6 @@ function updateSwipeSummary() {
   document.getElementById('swipe-checked-count').innerText = checked;
   const totalEl = document.getElementById('swipe-total-count');
   if (totalEl) totalEl.innerText = total;
-  const fill = document.getElementById('swipe-progress-fill');
-  if (fill) fill.style.width = (total > 0 ? (checked / total) * 100 : 0) + '%';
 }
 
 function markSwipeStatus(status) {
