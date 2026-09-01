@@ -338,10 +338,7 @@ body {
 
 @media (max-width: 768px) {
   .cloud-save-indicator {
-    top: auto;
-    right: 10px;
-    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-    max-width: calc(100vw - 20px);
+    display: none;
   }
 }
 
