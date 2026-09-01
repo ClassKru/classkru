@@ -342,13 +342,37 @@ function renderTermReport() {
     const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
     return `${o.getDate()} ${months[o.getMonth()]} ${o.getFullYear() + 543}`;
   };
+  const dateParts = d => {
+    const o = new Date(d + 'T00:00:00');
+    const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const days = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+    return { dow: days[o.getDay()], dayMonth: `${o.getDate()} ${months[o.getMonth()]}`, year: o.getFullYear() + 543 };
+  };
+  const scheduleTitle = d => {
+    const dow = new Date(d + 'T00:00:00').getDay();
+    const periods = (appState.timetable || [])
+      .filter(entry => entry.classId === c.id && Number(entry.dow) === dow)
+      .map(entry => Number(entry.period)).filter(Number.isFinite).sort((a, b) => a - b);
+    return periods.length ? ` · ตามตารางสอนคาบ ${periods.join(', ')}` : '';
+  };
 
-  // grid columns: ชื่อ 140px + คาบ 28px ต่อคาบ + รวม (พื้นที่ที่เหลือชิดขวา)
-  const gridCols = `140px repeat(${dates.length}, 28px) minmax(90px, 1fr)`;
+  // วันที่จริงต้องอ่านครบวัน/เดือน/ปี จึงกว้างกว่าจุดสถานะเดิมและเลื่อนแนวนอนได้
+  const gridCols = `140px repeat(${dates.length}, 68px) minmax(90px, 1fr)`;
 
   // ===== เดสก์ท็อป: ตาราง dot รายคาบเต็ม =====
   let desktop = `<div class="term-grid-row term-grid-header" style="--term-cols:${gridCols};"><div class="term-grid-name"></div>`;
-  dates.forEach((d, i) => { desktop += `<div class="term-grid-cell term-grid-date" style="font-size:0.7rem;" title="คาบ ${i+1} · ${dateTitle(d)}">${i+1}</div>`; });
+  dates.forEach(d => {
+    const parts = dateParts(d);
+    desktop += `<div class="term-grid-cell term-grid-date">
+      <label class="term-date-editor" title="วันที่บันทึก ${dateTitle(d)}${scheduleTitle(d)} · คลิกเพื่อแก้ไข">
+        <span class="term-date-dow">${parts.dow}</span>
+        <span class="term-date-day">${parts.dayMonth}</span>
+        <span class="term-date-year">${parts.year}</span>
+        <input type="date" value="${d}" max="${todayStr}" aria-label="แก้ไขวันที่บันทึก ${dateTitle(d)}"
+          onchange="changeTermAttendanceDate('${c.id}','${d}',this)">
+      </label>
+    </div>`;
+  });
   desktop += `<div class="term-grid-summary is-header">รวม</div></div>`;
 
   // ===== มือถือ: การ์ดสรุปต่อคน มา/สาย/ขาด/ลา + % (dot รายคาบไปดูบนคอม) =====
@@ -357,14 +381,14 @@ function renderTermReport() {
   c.students.forEach(s => {
     let absent=0, late=0, leave=0, present=0;
     let cells = '';
-    dates.forEach((d, i) => {
+    dates.forEach(d => {
       const st = (c.attendance[d]||{})[s.id] || '';
       if (st==='present') present++;
       else if (st==='late') late++;
       else if (st==='absent') absent++;
       else if (st==='leave') leave++;
       const bg = STATUS_COLOR[st] || '#d1d5db';
-      cells += `<div class="term-grid-cell"><button class="term-dot-btn" type="button" title="คาบ ${i+1} · ${dateTitle(d)}" onclick="openAttendanceDateFromReport(event,'${c.id}','${d}')"><span style="background:${bg};"></span></button></div>`;
+      cells += `<div class="term-grid-cell"><button class="term-dot-btn" type="button" title="วันที่บันทึก ${dateTitle(d)}${scheduleTitle(d)}" onclick="openAttendanceDateFromReport(event,'${c.id}','${d}')"><span style="background:${bg};"></span></button></div>`;
     });
     const attended = present + late + leave;
     const pctS = dates.length > 0 ? Math.round(attended / dates.length * 100) : 0;
@@ -395,6 +419,31 @@ function renderTermReport() {
   });
 
   heatmap.innerHTML = `<div class="term-desktop-view">${desktop}</div><div class="term-mobile-view">${mobile}</div>`;
+}
+
+function changeTermAttendanceDate(classId, oldDate, input) {
+  const c = appState.classes.find(x => x.id === classId);
+  const newDate = String(input?.value || '');
+  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(newDate)
+    && !Number.isNaN(Date.parse(newDate + 'T00:00:00'))
+    && newDate <= getTodayString();
+  if (!c || !c.attendance?.[oldDate] || !validDate) {
+    if (input) input.value = oldDate;
+    showToast('วันที่ไม่ถูกต้อง กรุณาเลือกใหม่', 'warning');
+    return;
+  }
+  if (newDate === oldDate) return;
+  if (c.attendance[newDate]) {
+    input.value = oldDate;
+    showToast('วันที่นี้มีข้อมูลการเช็กชื่ออยู่แล้ว จึงยังไม่ได้เปลี่ยน', 'warning');
+    return;
+  }
+
+  c.attendance[newDate] = c.attendance[oldDate];
+  delete c.attendance[oldDate];
+  saveState();
+  renderTermReport();
+  showToast('แก้ไขวันที่บันทึกเรียบร้อย', 'success');
 }
 
 function openAttendanceDateFromReport(event, classId, dateKey) {

@@ -80,7 +80,14 @@
 .term-dot-btn span { width: 16px; height: 16px; border-radius: 50%; display: block; transition: transform 0.15s ease, box-shadow 0.15s ease; }
 .term-dot-btn:hover span { transform: scale(1.18); box-shadow: 0 0 0 4px var(--primary-light); }
 .term-dot-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.term-grid-date { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); padding: 5px 0; }
+.term-grid-date { min-width: 68px; font-size: 0.65rem; font-weight: 700; color: var(--text-muted); padding: 3px 4px; }
+.term-date-editor { position: relative; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; border-radius: 8px; cursor: pointer; transition: background .15s ease, color .15s ease; }
+.term-date-editor:hover { color: var(--primary-deep); background: var(--primary-light); }
+.term-date-editor:focus-within { outline: 2px solid var(--primary); outline-offset: -2px; }
+.term-date-dow { font-size: .58rem; font-weight: 600; line-height: 1.1; color: var(--text-muted); }
+.term-date-day { font-size: .7rem; font-weight: 800; line-height: 1.25; white-space: nowrap; color: var(--text-main); }
+.term-date-year { font-size: .58rem; font-weight: 600; line-height: 1.1; color: var(--text-muted); }
+.term-date-editor input[type="date"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .term-grid-summary { position: sticky; right: 0; z-index: 2; background: inherit; padding: 4px 8px; display: flex; flex-direction: column; gap: 3px; align-items: flex-end; }
 .term-grid-summary.is-header { justify-content: center; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; }
 .term-grid-header .term-grid-name, .term-grid-header .term-grid-summary { background: var(--bg-light); }
