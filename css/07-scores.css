@@ -636,6 +636,14 @@
   gap: 14px;
 }
 
+.main-curriculum-browser {
+  padding: 18px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+
 .curriculum-browser-head {
   display: flex;
   align-items: flex-start;

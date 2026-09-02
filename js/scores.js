@@ -42,6 +42,7 @@ let scoreCurriculumFilters = {
 };
 let scoreIndicatorSearchOpen = false;
 let scoreIndicatorEditingId = null;
+let curriculumCatalogContext = 'score';
 
 function defaultScoreConfig() {
   return {
@@ -214,8 +215,7 @@ function setCurriculumCatalogSubject(subjectId) {
   scoreCurriculumFilters.unitId = 'all';
   scoreCurriculumFilters.standardId = 'all';
   scoreCurriculumFilters.query = '';
-  const c = appState.classes.find(x => x.id === scoreCurrentClassId);
-  if (c) renderCurriculumCatalog(c);
+  refreshCurriculumCatalogView();
 }
 
 function setCurriculumCatalogFilter(key, value) {
@@ -225,14 +225,22 @@ function setCurriculumCatalogFilter(key, value) {
     scoreCurriculumFilters.unitId = 'all';
     scoreCurriculumFilters.standardId = 'all';
   }
-  const c = appState.classes.find(x => x.id === scoreCurrentClassId);
-  if (c) renderCurriculumCatalog(c);
+  refreshCurriculumCatalogView();
 }
 
 function setCurriculumCatalogQuery(value) {
   scoreCurriculumFilters.query = value;
+  if (curriculumCatalogContext === 'main') renderMainCurriculumCatalogResults();
+  else {
+    const c = appState.classes.find(x => x.id === scoreCurrentClassId);
+    if (c) renderCurriculumCatalogResults(c);
+  }
+}
+
+function refreshCurriculumCatalogView() {
+  if (curriculumCatalogContext === 'main') return renderMainCurriculumCatalog();
   const c = appState.classes.find(x => x.id === scoreCurrentClassId);
-  if (c) renderCurriculumCatalogResults(c);
+  if (c) renderCurriculumCatalog(c);
 }
 
 function curriculumSubjectRailHtml(catalog) {
@@ -248,7 +256,41 @@ function curriculumSubjectRailHtml(catalog) {
   </div>`;
 }
 
+function renderMainCurriculumCatalog() {
+  curriculumCatalogContext = 'main';
+  const wrap = document.getElementById('main-curriculum-catalog');
+  const catalog = window.CKCurriculumCatalog;
+  if (!wrap) return;
+  if (!catalog) {
+    wrap.innerHTML = '<div class="score-empty-panel"><strong>ยังไม่พบข้อมูลหลักสูตร</strong><span>กรุณาเปิดหน้านี้ใหม่อีกครั้ง</span></div>';
+    return;
+  }
+  const subject = catalog.getSubject(scoreCurriculumFilters.subjectId);
+  const grades = catalog.getGrades(subject.id);
+  if (subject.available && !grades.includes(scoreCurriculumFilters.grade)) scoreCurriculumFilters.grade = grades[0] || '';
+  const grade = scoreCurriculumFilters.grade;
+  const units = catalog.getUnits(subject.id, grade);
+  const standards = catalog.getStandards(subject.id, grade);
+  const stats = catalog.getStats();
+  wrap.innerHTML = `<section class="curriculum-browser main-curriculum-browser">
+    <header class="curriculum-browser-head"><div><span class="score-mode-label">ข้อมูลหลักสูตร</span><h3>คลังตัวชี้วัด</h3><p>อ่านรายละเอียดและค้นหาตัวชี้วัดจากฐานข้อมูล ClassKru</p></div><div class="curriculum-database-stat"><strong>${stats.indicators}</strong><span>ตัวชี้วัดพร้อมใช้</span></div></header>
+    ${curriculumSubjectRailHtml(catalog)}
+    ${subject.available ? `<div class="curriculum-filter-bar">
+      <label><span>ระดับชั้น</span><select onchange="setCurriculumCatalogFilter('grade',this.value)">${grades.map(value => `<option value="${value}"${value === grade ? ' selected' : ''}>${curriculumGradeLabel(value)}</option>`).join('')}</select></label>
+      <label><span>หน่วย / สาระ</span><select onchange="setCurriculumCatalogFilter('unitId',this.value)"><option value="all">ทุกหน่วย</option>${units.map(unit => `<option value="${unit.id}"${unit.id === scoreCurriculumFilters.unitId ? ' selected' : ''}>${escapeScore(unit.title)} (${unit.indicatorCount})</option>`).join('')}</select></label>
+      <label><span>มาตรฐาน</span><select onchange="setCurriculumCatalogFilter('standardId',this.value)"><option value="all">ทุกมาตรฐาน</option>${standards.map(standard => `<option value="${standard.id}"${standard.id === scoreCurriculumFilters.standardId ? ' selected' : ''}>${escapeScore(standard.code)} · ${escapeScore(standard.title)}</option>`).join('')}</select></label>
+      <label class="curriculum-search"><span>ค้นหา</span><div><i class="hgi-stroke hgi-search-01"></i><input type="search" value="${escapeScore(scoreCurriculumFilters.query).replace(/"/g,'&quot;')}" placeholder="รหัสหรือคำสำคัญ" oninput="setCurriculumCatalogQuery(this.value)"></div></label>
+    </div><div id="main-curriculum-results"></div>` : curriculumUnavailableHtml(subject,catalog)}
+  </section>`;
+  if (subject.available) renderMainCurriculumCatalogResults();
+}
+
+function renderMainCurriculumCatalogResults() {
+  renderCurriculumCatalogResults(null, 'main-curriculum-results');
+}
+
 function renderCurriculumCatalog(c) {
+  curriculumCatalogContext = 'score';
   const wrap = document.getElementById('web-scores-matrix-wrap');
   const catalog = window.CKCurriculumCatalog;
   if (!wrap) return;
@@ -470,8 +512,8 @@ function curriculumUnavailableHtml(subject, catalog) {
   </div>`;
 }
 
-function renderCurriculumCatalogResults(c) {
-  const holder = document.getElementById('curriculum-catalog-results');
+function renderCurriculumCatalogResults(c, holderId = 'curriculum-catalog-results') {
+  const holder = document.getElementById(holderId);
   const catalog = window.CKCurriculumCatalog;
   if (!holder || !catalog) return;
   const subject = catalog.getSubject(scoreCurriculumFilters.subjectId);
@@ -489,7 +531,7 @@ function renderCurriculumCatalogResults(c) {
     return `<article class="curriculum-indicator-row">
       <div class="curriculum-indicator-code"><strong>${escapeScore(item.code)}</strong><span>${escapeScore(standard?.title || '')}</span></div>
       <div class="curriculum-indicator-text"><p>${escapeScore(item.text)}</p><span><i class="hgi-stroke hgi-book-02"></i> ${escapeScore(unit?.title || 'ไม่ระบุหน่วย')} · ${escapeScore(standard?.strand || '')}</span></div>
-      <button class="curriculum-readonly-badge curriculum-pick-btn" type="button" onclick="addScoreIndicatorBlock('${c.id}','${subject.id}','${item.id}')"><i class="hgi-stroke hgi-add-01"></i> เลือก</button>
+      ${c ? `<button class="curriculum-readonly-badge curriculum-pick-btn" type="button" onclick="addScoreIndicatorBlock('${c.id}','${subject.id}','${item.id}')"><i class="hgi-stroke hgi-add-01"></i> เลือก</button>` : '<span class="curriculum-readonly-badge">ดูข้อมูล</span>'}
     </article>`;
   }).join('')}</div>` : `<div class="curriculum-no-results"><i class="hgi-stroke hgi-search-01"></i><strong>ไม่พบตัวชี้วัด</strong><span>ลองเปลี่ยนหน่วย มาตรฐาน หรือคำค้นหา</span></div>`}`;
 }

@@ -18,9 +18,11 @@ assert.match(js, /function renderAppNavigation\(\)/, 'all navigation variants re
 assert.match(js, /function updateNavigationState\(screenId\)/, 'active state is updated centrally');
 assert.match(js, /desktopScreens: \['classrooms', 'students', 'scores', 'reports', 'checkin'\]/, 'classroom flows stay highlighted on desktop');
 assert.match(js, /screens: \['checkin'\][^\n]+mobileOrder: 3/, 'mobile check-in keeps its dedicated active item');
+assert.match(js, /id: 'curriculum'[^\n]+screens: \['curriculum'\]/, 'curriculum catalog is available from the shared main navigation');
+assert.match(html, /id="web-screen-curriculum"/, 'curriculum catalog has a dedicated screen');
 
 assert.match(baseCss, /--sidebar-rail-width: 80px/, 'desktop sidebar defaults to a compact rail');
-assert.match(baseCss, /\.sidebar:hover,[\s\S]{0,100}\.sidebar:focus-within[\s\S]{0,100}width: var\(--sidebar-open-width\)/, 'sidebar expands for mouse and keyboard users');
+assert.match(baseCss, /\.sidebar:hover,[\s\S]{0,100}\.sidebar:has\(:focus-visible\)[\s\S]{0,100}width: var\(--sidebar-open-width\)/, 'sidebar expands for mouse and keyboard users');
 assert.match(baseCss, /\.main-content \{[\s\S]{0,100}margin-left: 80px/, 'desktop content aligns with the compact rail');
 assert.match(responsiveCss, /@media \(min-width: 769px\) and \(max-width: 1024px\)[\s\S]*--sidebar-rail-width: 72px/, 'tablet rail uses the compact breakpoint width');
 
