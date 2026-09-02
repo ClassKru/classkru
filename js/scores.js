@@ -40,6 +40,7 @@ let scoreCurriculumFilters = {
   standardId: 'all',
   query: ''
 };
+let scoreIndicatorSearchOpen = false;
 
 function defaultScoreConfig() {
   return {
@@ -178,6 +179,7 @@ function scoreWorkTabsHtml(c) {
 
 function setScoreWorkspaceMode(mode, classId) {
   scoreWorkspaceMode = mode;
+  if (mode !== 'curriculum') scoreIndicatorSearchOpen = false;
   const c = appState.classes.find(x => x.id === classId);
   if (c) renderScoreWorkspace(c);
 }
@@ -259,45 +261,37 @@ function renderCurriculumCatalog(c) {
   const grade = scoreCurriculumFilters.grade;
   const units = catalog.getUnits(subject.id, grade);
   const standards = catalog.getStandards(subject.id, grade);
-  const stats = catalog.getStats();
-
   const board = getScoreIndicatorBoard(c);
   wrap.innerHTML = `<section class="curriculum-browser indicator-workspace">
     <header class="curriculum-browser-head">
       <div>
         <span class="score-mode-label">เชื่อมงานกับหลักสูตร</span>
         <h3>ตัวชี้วัดรายวิชา</h3>
-        <p>ค้นหาตัวชี้วัด แล้วลากบล็อกจัดพื้นที่เพื่อเห็นภาพรวมโดยไม่รบกวนตารางคะแนน</p>
+        <p>เลือกงานที่ใช้ประเมินแต่ละตัวชี้วัด ระบบจะรวมคะแนนเต็มให้อัตโนมัติ</p>
       </div>
-      <div class="curriculum-database-stat"><strong>${board.length}</strong><span>ตัวชี้วัดที่เลือก</span></div>
+      <button class="btn btn-primary indicator-add-btn" type="button" onclick="openScoreIndicatorSearch('${c.id}')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มตัวชี้วัด</button>
     </header>
-    ${curriculumSubjectRailHtml(catalog)}
-    ${subject.available ? `
-      <div class="curriculum-filter-bar">
-        <label><span>ระดับชั้น</span><select onchange="setCurriculumCatalogFilter('grade',this.value)">
-          ${grades.map(value => `<option value="${value}"${value === grade ? ' selected' : ''}>${curriculumGradeLabel(value)}</option>`).join('')}
-        </select></label>
-        <label><span>หน่วย / สาระ</span><select onchange="setCurriculumCatalogFilter('unitId',this.value)">
-          <option value="all">ทุกหน่วย</option>
-          ${units.map(unit => `<option value="${unit.id}"${unit.id === scoreCurriculumFilters.unitId ? ' selected' : ''}>${escapeScore(unit.title)} (${unit.indicatorCount})</option>`).join('')}
-        </select></label>
-        <label><span>มาตรฐาน</span><select onchange="setCurriculumCatalogFilter('standardId',this.value)">
-          <option value="all">ทุกมาตรฐาน</option>
-          ${standards.map(standard => `<option value="${standard.id}"${standard.id === scoreCurriculumFilters.standardId ? ' selected' : ''}>${escapeScore(standard.code)} · ${escapeScore(standard.title)}</option>`).join('')}
-        </select></label>
-        <label class="curriculum-search"><span>ค้นหา</span><div><i class="hgi-stroke hgi-search-01"></i><input type="search" value="${escapeScore(scoreCurriculumFilters.query).replace(/"/g, '&quot;')}" placeholder="รหัสหรือคำสำคัญ" oninput="setCurriculumCatalogQuery(this.value)"></div></label>
-      </div>
-      <div class="indicator-workspace-layout">
-        <aside id="curriculum-catalog-results"></aside>
-        <div id="score-indicator-canvas" class="score-indicator-canvas" aria-label="พื้นที่จัดวางตัวชี้วัด"></div>
-      </div>
-    ` : curriculumUnavailableHtml(subject, catalog)}
+    <div class="indicator-selected-head"><span>เลือกแล้ว</span><strong>${board.length} ตัวชี้วัด</strong></div>
+    <div id="score-indicator-list" class="score-indicator-list"></div>
+    ${scoreIndicatorSearchOpen && subject.available ? `<div class="indicator-search-overlay" onclick="if(event.target===this) closeScoreIndicatorSearch('${c.id}')">
+      <section class="indicator-search-panel">
+        <header><div><span>คลังหลักสูตร ClassKru</span><h3>เพิ่มตัวชี้วัด</h3></div><button type="button" onclick="closeScoreIndicatorSearch('${c.id}')" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button></header>
+        <label class="indicator-search-main"><i class="hgi-stroke hgi-search-01"></i><input type="search" value="${escapeScore(scoreCurriculumFilters.query).replace(/"/g, '&quot;')}" placeholder="ค้นหารหัสหรือคำสำคัญ เช่น เซลล์" oninput="setCurriculumCatalogQuery(this.value)" autofocus></label>
+        <details class="indicator-search-filters"><summary><i class="hgi-stroke hgi-filter"></i> ตัวกรองเพิ่มเติม</summary>
+          <div class="curriculum-filter-bar">
+            <label><span>ระดับชั้น</span><select onchange="setCurriculumCatalogFilter('grade',this.value)">${grades.map(value => `<option value="${value}"${value === grade ? ' selected' : ''}>${curriculumGradeLabel(value)}</option>`).join('')}</select></label>
+            <label><span>หน่วย / สาระ</span><select onchange="setCurriculumCatalogFilter('unitId',this.value)"><option value="all">ทุกหน่วย</option>${units.map(unit => `<option value="${unit.id}"${unit.id === scoreCurriculumFilters.unitId ? ' selected' : ''}>${escapeScore(unit.title)} (${unit.indicatorCount})</option>`).join('')}</select></label>
+            <label><span>มาตรฐาน</span><select onchange="setCurriculumCatalogFilter('standardId',this.value)"><option value="all">ทุกมาตรฐาน</option>${standards.map(standard => `<option value="${standard.id}"${standard.id === scoreCurriculumFilters.standardId ? ' selected' : ''}>${escapeScore(standard.code)} · ${escapeScore(standard.title)}</option>`).join('')}</select></label>
+          </div>
+        </details>
+        <div id="curriculum-catalog-results" class="indicator-search-results"></div>
+      </section>
+    </div>` : ''}
+    ${scoreIndicatorSearchOpen && !subject.available ? curriculumUnavailableHtml(subject, catalog) : ''}
   </section>`;
 
-  if (subject.available) {
-    renderCurriculumCatalogResults(c);
-    renderScoreIndicatorCanvas(c);
-  }
+  renderScoreIndicatorList(c);
+  if (scoreIndicatorSearchOpen && subject.available) renderCurriculumCatalogResults(c);
 }
 
 function getScoreIndicatorBoard(c) {
@@ -317,10 +311,31 @@ function addScoreIndicatorBlock(classId, subjectId, indicatorId) {
     showToast('เลือกตัวชี้วัดนี้ไว้แล้ว', 'warning');
     return;
   }
-  const offset = board.length % 5;
-  board.push({ indicatorId, subjectId, x: 24 + offset * 28, y: 24 + offset * 28, maxScore: 0, itemIds: [] });
+  board.push({ indicatorId, subjectId, itemIds: [] });
   saveState();
-  renderScoreIndicatorCanvas(c);
+  scoreIndicatorSearchOpen = false;
+  scoreCurriculumFilters.query = '';
+  renderCurriculumCatalog(c);
+}
+
+function openScoreIndicatorSearch(classId) {
+  scoreIndicatorSearchOpen = true;
+  const c = appState.classes.find(x => x.id === classId);
+  if (c) {
+    const gradeMatch = `${c.gradeLevel || ''} ${c.className || ''}`.match(/(?:ม\.?|M)\s*([1-6])/i);
+    const classGrade = gradeMatch ? `M${gradeMatch[1]}` : '';
+    const grades = window.CKCurriculumCatalog?.getGrades(scoreCurriculumFilters.subjectId) || [];
+    if (grades.includes(classGrade)) scoreCurriculumFilters.grade = classGrade;
+    renderCurriculumCatalog(c);
+    setTimeout(() => document.querySelector('.indicator-search-main input')?.focus(), 0);
+  }
+}
+
+function closeScoreIndicatorSearch(classId) {
+  scoreIndicatorSearchOpen = false;
+  scoreCurriculumFilters.query = '';
+  const c = appState.classes.find(x => x.id === classId);
+  if (c) renderCurriculumCatalog(c);
 }
 
 function removeScoreIndicatorBlock(classId, indicatorId) {
@@ -331,13 +346,9 @@ function removeScoreIndicatorBlock(classId, indicatorId) {
   renderCurriculumCatalog(c);
 }
 
-function changeIndicatorMaxScore(classId, indicatorId, delta) {
-  const c = appState.classes.find(x => x.id === classId);
-  const block = c && getScoreIndicatorBoard(c).find(item => item.indicatorId === indicatorId);
-  if (!block) return;
-  block.maxScore = Math.max(0, (Number(block.maxScore) || 0) + Number(delta || 0));
-  saveState();
-  renderScoreIndicatorCanvas(c);
+function indicatorScoreTotal(c, block) {
+  const selected = new Set(block.itemIds || []);
+  return ensureScores(c).items.reduce((sum, item) => selected.has(item.id) ? sum + (Number(item.max) || 0) : sum, 0);
 }
 
 function toggleIndicatorItem(classId, indicatorId, itemId, checked) {
@@ -348,54 +359,35 @@ function toggleIndicatorItem(classId, indicatorId, itemId, checked) {
   checked ? ids.add(itemId) : ids.delete(itemId);
   block.itemIds = Array.from(ids);
   saveState();
-  const count = document.querySelector(`[data-indicator-count="${CSS.escape(indicatorId)}"]`);
+  const row = document.querySelector(`[data-indicator-id="${CSS.escape(indicatorId)}"]`);
+  const count = row?.querySelector('[data-indicator-count]');
+  const total = row?.querySelector('[data-indicator-total]');
   if (count) count.textContent = `${block.itemIds.length} งาน`;
+  if (total) total.textContent = `${indicatorScoreTotal(c, block)} คะแนน`;
 }
 
-function renderScoreIndicatorCanvas(c) {
-  const canvas = document.getElementById('score-indicator-canvas');
+function renderScoreIndicatorList(c) {
+  const holder = document.getElementById('score-indicator-list');
   const catalog = window.CKCurriculumCatalog;
-  if (!canvas || !catalog) return;
+  if (!holder || !catalog) return;
   const board = getScoreIndicatorBoard(c);
   if (!board.length) {
-    canvas.innerHTML = '<div class="indicator-canvas-empty"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>ยังไม่มีตัวชี้วัดในพื้นที่นี้</strong><span>ค้นหาแล้วกด “เลือก” จากรายการด้านซ้าย</span></div>';
+    holder.innerHTML = `<div class="indicator-list-empty"><i class="hgi-stroke hgi-book-open-01"></i><strong>ยังไม่ได้เลือกตัวชี้วัด</strong><span>เริ่มจากเพิ่มตัวชี้วัด แล้วเลือกงานที่ใช้ประเมิน</span><button class="btn btn-primary" type="button" onclick="openScoreIndicatorSearch('${c.id}')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มตัวชี้วัด</button></div>`;
     return;
   }
-  canvas.innerHTML = board.map(block => {
+  holder.innerHTML = board.map(block => {
     const subject = catalog.getSubject(block.subjectId);
     const indicator = subject.dataset?.indicators.find(item => item.id === block.indicatorId);
     if (!indicator) return '';
     const selected = new Set(block.itemIds || []);
-    return `<article class="indicator-board-block" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(0, Number(block.x)||0)}px;top:${Math.max(0, Number(block.y)||0)}px">
-      <header class="indicator-block-drag"><span><strong>${escapeScore(indicator.code)}</strong><small>ลากเพื่อย้าย</small></span><button type="button" onclick="removeScoreIndicatorBlock('${c.id}','${block.indicatorId}')" aria-label="นำออก"><i class="hgi-stroke hgi-cancel-01"></i></button></header>
-      <p>${escapeScore(indicator.text)}</p>
-      <div class="indicator-block-score"><span>คะแนนเต็ม</span><strong>${Number(block.maxScore)||0}</strong><button type="button" onclick="changeIndicatorMaxScore('${c.id}','${block.indicatorId}',1)" aria-label="เพิ่มคะแนนเต็ม"><i class="hgi-stroke hgi-add-01"></i></button><button type="button" onclick="changeIndicatorMaxScore('${c.id}','${block.indicatorId}',-1)" aria-label="ลดคะแนนเต็ม">−</button></div>
-      <details class="indicator-item-picker"><summary>เลือกงาน <span data-indicator-count="${escapeScoreAttr(block.indicatorId)}">${selected.size} งาน</span></summary>
-        <div>${c.scores.items.length ? c.scores.items.map(item => `<label><input type="checkbox"${selected.has(item.id) ? ' checked' : ''} onchange="toggleIndicatorItem('${c.id}','${block.indicatorId}','${item.id}',this.checked)"><span>${escapeScore(item.name)}</span><small>/${item.max}</small></label>`).join('') : '<p>ยังไม่มีงานในรายวิชานี้</p>'}</div>
-      </details>
-    </article>`;
+    return `<details class="indicator-list-item" data-indicator-id="${escapeScoreAttr(block.indicatorId)}">
+      <summary><span class="indicator-list-chevron"><i class="hgi-stroke hgi-arrow-right-01"></i></span><span class="indicator-list-copy"><strong>${escapeScore(indicator.code)}</strong><span>${escapeScore(indicator.text)}</span></span><span class="indicator-list-stats"><b data-indicator-count>${selected.size} งาน</b><b data-indicator-total>${indicatorScoreTotal(c, block)} คะแนน</b></span></summary>
+      <div class="indicator-list-detail"><p>${escapeScore(indicator.text)}</p><div class="indicator-linked-title"><span>งานที่ใช้ประเมิน</span><small>คะแนนเต็มรวมจากงานที่เลือก</small></div>
+        <div class="indicator-linked-items">${c.scores.items.length ? c.scores.items.map(item => `<label><input type="checkbox"${selected.has(item.id) ? ' checked' : ''} onchange="toggleIndicatorItem('${c.id}','${block.indicatorId}','${item.id}',this.checked)"><span>${escapeScore(item.name)}</span><small>${item.max} คะแนน</small></label>`).join('') : '<div class="indicator-no-items">ยังไม่มีงานในรายวิชานี้ กรุณาเพิ่มงานในแท็บคะแนนก่อน</div>'}</div>
+        <button class="indicator-remove-btn" type="button" onclick="removeScoreIndicatorBlock('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-delete-02"></i> นำตัวชี้วัดนี้ออก</button>
+      </div>
+    </details>`;
   }).join('');
-  enableScoreIndicatorDragging(c, canvas);
-}
-
-function enableScoreIndicatorDragging(c, canvas) {
-  canvas.querySelectorAll('.indicator-block-drag').forEach(handle => {
-    handle.onpointerdown = event => {
-      if (event.target.closest('button')) return;
-      const el = handle.closest('.indicator-board-block');
-      const block = getScoreIndicatorBoard(c).find(item => item.indicatorId === el.dataset.indicatorId);
-      if (!block) return;
-      event.preventDefault();
-      handle.setPointerCapture(event.pointerId);
-      const startX = event.clientX, startY = event.clientY, originX = Number(block.x)||0, originY = Number(block.y)||0;
-      handle.onpointermove = move => {
-        block.x = Math.max(0, Math.min(canvas.clientWidth - el.offsetWidth, originX + move.clientX - startX));
-        block.y = Math.max(0, Math.min(canvas.clientHeight - el.offsetHeight, originY + move.clientY - startY));
-        el.style.left = `${block.x}px`; el.style.top = `${block.y}px`;
-      };
-      handle.onpointerup = () => { handle.onpointermove = null; handle.onpointerup = null; saveState(); };
-    };
-  });
 }
 
 function curriculumUnavailableHtml(subject, catalog) {
