@@ -414,14 +414,32 @@ function formatIndicatorScore(value) {
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }
 
+function formatIndicatorDetail(value) {
+  const rounded = Math.round((Number(value) || 0) * 100) / 100;
+  return Number.isInteger(rounded) ? String(rounded) : String(rounded).replace(/0$/, '');
+}
+
 function indicatorConfiguredMax(block) {
   const value = Number(block.maxScore);
   return Number.isFinite(value) && value > 0 ? value : 10;
 }
 
-function indicatorLinkedMax(c, block) {
+function indicatorItemAllocations(c, block) {
   const selected = new Set(block.itemIds || []);
-  return ensureScores(c).items.reduce((sum, item) => selected.has(item.id) ? sum + (Number(item.max) || 0) : sum, 0);
+  const items = ensureScores(c).items.filter(item => selected.has(item.id));
+  const linkedMax = items.reduce((sum, item) => sum + (Number(item.max) || 0), 0);
+  const targetMax = indicatorConfiguredMax(block);
+  let usedWeight = 0;
+  let usedPoints = 0;
+  return items.map((item, index) => {
+    const last = index === items.length - 1;
+    const ratio = linkedMax ? (Number(item.max) || 0) / linkedMax : 0;
+    const weight = last ? Math.max(0, Math.round((100 - usedWeight) * 10) / 10) : Math.round(ratio * 1000) / 10;
+    const points = last ? Math.max(0, Math.round((targetMax - usedPoints) * 100) / 100) : Math.round(ratio * targetMax * 100) / 100;
+    usedWeight += weight;
+    usedPoints += points;
+    return { item, weight, points };
+  });
 }
 
 function setIndicatorMaxScore(classId, indicatorId, value) {
@@ -465,16 +483,15 @@ function renderScoreIndicatorList(c) {
     const indicator = subject.dataset?.indicators.find(item => item.id === block.indicatorId);
     if (!indicator) return '';
     const selected = new Set(block.itemIds || []);
-    const linkedItems = ensureScores(c).items.filter(item => selected.has(item.id));
-    const linkedMax = indicatorLinkedMax(c, block);
+    const allocations = indicatorItemAllocations(c, block);
     const x = Number.isFinite(Number(block.x)) ? Number(block.x) : 18 + (index % 4) * 228;
     const y = Number.isFinite(Number(block.y)) ? Number(block.y) : 18 + Math.floor(index / 4) * 146;
     return `<article class="indicator-map-group" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(0,x)}px;top:${Math.max(0,y)}px">
       <div class="indicator-mini-block">
-        <header class="indicator-mini-drag"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>${escapeScore(indicator.code)}</strong><span>ลากเพื่อย้าย</span></header>
-        <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนเต็มตัวชี้วัด</small><strong>${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div><footer><b>${selected.size} งาน</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button></footer></div>
+        <header class="indicator-mini-drag" title="ลากเพื่อย้ายตำแหน่ง"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>${escapeScore(indicator.code)}</strong></header>
+        <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนเต็มสำหรับ ปพ.5</small><strong>${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div><footer><b>${selected.size} งาน</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button></footer></div>
       </div>
-      <div class="indicator-job-branches">${linkedItems.length ? linkedItems.map(item => { const weight = linkedMax ? Math.round((Number(item.max)||0) / linkedMax * 100) : 0; return `<div class="indicator-job-node"><span>${escapeScore(item.name)}</span><strong>${formatIndicatorScore(item.max)} คะแนน</strong><small>สัดส่วน ${weight}%</small></div>`; }).join('') : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เลือกงาน</button>`}</div>
+      <div class="indicator-job-branches">${allocations.length ? allocations.map(({item,weight,points}) => `<div class="indicator-job-node"><span>${escapeScore(item.name)}</span><strong>เต็ม ${formatIndicatorScore(item.max)} คะแนน</strong><small>น้ำหนัก ${formatIndicatorDetail(weight)}% · คิดเป็น ${formatIndicatorDetail(points)} คะแนน</small></div>`).join('') : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เลือกงาน</button>`}</div>
     </article>`;
   }).join('');
   enableScoreIndicatorMiniDragging(c, holder);

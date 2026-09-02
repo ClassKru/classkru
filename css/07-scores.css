@@ -1127,7 +1127,7 @@
 .indicator-search-results .curriculum-indicator-list { grid-template-columns: 1fr; }
 .indicator-search-results .curriculum-indicator-row { grid-template-columns: 120px minmax(0,1fr) auto; }
 .score-indicator-list.indicator-mini-canvas { position: relative; display: block; min-height: 620px; overflow: auto; border: 1px dashed color-mix(in srgb, var(--primary) 28%, var(--border-color)); border-radius: 16px; background-color: #fbfcff; background-image: radial-gradient(circle, #dce3eb 1px, transparent 1px); background-size: 22px 22px; }
-.indicator-map-group { position: absolute; display: grid; grid-template-columns: 204px 210px; align-items: center; gap: 30px; width: 444px; }
+.indicator-map-group { position: absolute; display: grid; grid-template-columns: 204px 236px; align-items: center; gap: 30px; width: 470px; }
 .indicator-mini-block { position: relative; width: 204px; border: 1px solid var(--border-color); border-radius: 13px; background: var(--bg-card); box-shadow: 0 5px 15px rgba(15,23,42,.08); overflow: hidden; }
 .indicator-mini-drag { display: flex; align-items: center; gap: 6px; min-height: 31px; padding: 6px 8px; background: var(--primary-light); cursor: grab; user-select: none; touch-action: none; }
 .indicator-mini-drag:active { cursor: grabbing; }
@@ -1135,7 +1135,7 @@
 .indicator-mini-drag strong { flex: 1; color: var(--primary-deep); font-size: .72rem; }
 .indicator-mini-drag span { color: var(--text-muted); font-size: .58rem; }
 .indicator-mini-content { display: block; width: 100%; padding: 9px 10px; color: inherit; text-align: left; }
-.indicator-mini-content > span { display: -webkit-box; min-height: 34px; overflow: hidden; color: var(--text-main); font-size: .7rem; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.indicator-mini-content > span { display: -webkit-box; min-height: 46px; overflow: hidden; color: var(--text-main); font-size: .7rem; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .indicator-live-score { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin-top: 8px; padding: 7px 8px; border-radius: 9px; background: var(--primary-light); }
 .indicator-live-score small { color: var(--primary-deep); font-size: .56rem; }
 .indicator-live-score strong { color: var(--primary-deep); font-size: .92rem; }
@@ -1147,7 +1147,7 @@
 .indicator-job-branches { position: relative; display: grid; gap: 7px; padding-left: 16px; }
 .indicator-job-branches::before { content: ''; position: absolute; left: 0; top: 18px; bottom: 18px; width: 2px; border-radius: 2px; background: color-mix(in srgb,var(--primary) 38%,var(--border-color)); }
 .indicator-job-node,
-.indicator-branch-empty { position: relative; width: 194px; min-height: 46px; padding: 7px 9px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-card); box-shadow: 0 3px 10px rgba(15,23,42,.05); }
+.indicator-branch-empty { position: relative; width: 220px; min-height: 46px; padding: 7px 9px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-card); box-shadow: 0 3px 10px rgba(15,23,42,.05); }
 .indicator-job-node::before,
 .indicator-branch-empty::before { content: ''; position: absolute; right: 100%; top: 50%; width: 16px; height: 2px; background: color-mix(in srgb,var(--primary) 38%,var(--border-color)); }
 .indicator-job-node { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 2px 7px; }
