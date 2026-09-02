@@ -31,8 +31,8 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `409`
-- งานล่าสุด: เพิ่ม **คลังตัวชี้วัด** เป็นเมนูหลักสำหรับค้นหาและอ่านรายละเอียดแบบ read-only แยกจากแท็บ **ตัวชี้วัดรายวิชา** ซึ่งเป็นบล็อกขนาดเล็กที่ลากจัดตำแหน่งและเชื่อมงานเพื่อรวมคะแนนได้
+- Asset version ปัจจุบัน: `410`
+- งานล่าสุด: บล็อก **ตัวชี้วัดรายวิชา** แสดงคะแนนเฉลี่ยปัจจุบันเทียบคะแนนเต็ม ซึ่งรวมตามคะแนนเต็มของงานที่เชื่อม พร้อมเส้นกิ่งแสดงงาน คะแนนรายงาน จำนวนที่กรอก และสัดส่วนของแต่ละงานโดยไม่ต้องเปิดหน้าต่างรายละเอียด
 - งานล่าสุด: เมนู Desktop/Mobile ใช้ `APP_NAVIGATION` ชุดเดียว, Sidebar desktop เป็น rail 80px และขยายเมื่อ hover/focus; Production version 393 ตรวจ HTML mount points, JS renderer และ CSS rail markers แล้ว
 - Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
 - Supabase Production ใช้ migration ครบถึง `202608260002`; ตรวจ ACL allowlist, JSON เดิม 12 แถว และ smoke test แบบ rollback ผ่านแล้ว
