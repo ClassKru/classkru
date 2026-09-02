@@ -41,6 +41,7 @@ let scoreCurriculumFilters = {
   query: ''
 };
 let scoreIndicatorSearchOpen = false;
+let scoreIndicatorEditingId = null;
 
 function defaultScoreConfig() {
   return {
@@ -179,7 +180,10 @@ function scoreWorkTabsHtml(c) {
 
 function setScoreWorkspaceMode(mode, classId) {
   scoreWorkspaceMode = mode;
-  if (mode !== 'curriculum') scoreIndicatorSearchOpen = false;
+  if (mode !== 'curriculum') {
+    scoreIndicatorSearchOpen = false;
+    scoreIndicatorEditingId = null;
+  }
   const c = appState.classes.find(x => x.id === classId);
   if (c) renderScoreWorkspace(c);
 }
@@ -288,6 +292,7 @@ function renderCurriculumCatalog(c) {
       </section>
     </div>` : ''}
     ${scoreIndicatorSearchOpen && !subject.available ? curriculumUnavailableHtml(subject, catalog) : ''}
+    ${scoreIndicatorEditingId ? scoreIndicatorEditorHtml(c, scoreIndicatorEditingId) : ''}
   </section>`;
 
   renderScoreIndicatorList(c);
@@ -311,7 +316,8 @@ function addScoreIndicatorBlock(classId, subjectId, indicatorId) {
     showToast('เลือกตัวชี้วัดนี้ไว้แล้ว', 'warning');
     return;
   }
-  board.push({ indicatorId, subjectId, itemIds: [] });
+  const offset = board.length % 5;
+  board.push({ indicatorId, subjectId, itemIds: [], x: 18 + offset * 24, y: 18 + offset * 24 });
   saveState();
   scoreIndicatorSearchOpen = false;
   scoreCurriculumFilters.query = '';
@@ -320,6 +326,7 @@ function addScoreIndicatorBlock(classId, subjectId, indicatorId) {
 
 function openScoreIndicatorSearch(classId) {
   scoreIndicatorSearchOpen = true;
+  scoreIndicatorEditingId = null;
   const c = appState.classes.find(x => x.id === classId);
   if (c) {
     const gradeMatch = `${c.gradeLevel || ''} ${c.className || ''}`.match(/(?:ม\.?|M)\s*([1-6])/i);
@@ -338,10 +345,24 @@ function closeScoreIndicatorSearch(classId) {
   if (c) renderCurriculumCatalog(c);
 }
 
+function openScoreIndicatorEditor(classId, indicatorId) {
+  scoreIndicatorSearchOpen = false;
+  scoreIndicatorEditingId = indicatorId;
+  const c = appState.classes.find(x => x.id === classId);
+  if (c) renderCurriculumCatalog(c);
+}
+
+function closeScoreIndicatorEditor(classId) {
+  scoreIndicatorEditingId = null;
+  const c = appState.classes.find(x => x.id === classId);
+  if (c) renderCurriculumCatalog(c);
+}
+
 function removeScoreIndicatorBlock(classId, indicatorId) {
   const c = appState.classes.find(x => x.id === classId);
   if (!c) return;
   c.scores.config.indicatorBoard = getScoreIndicatorBoard(c).filter(item => item.indicatorId !== indicatorId);
+  if (scoreIndicatorEditingId === indicatorId) scoreIndicatorEditingId = null;
   saveState();
   renderCurriculumCatalog(c);
 }
@@ -364,6 +385,8 @@ function toggleIndicatorItem(classId, indicatorId, itemId, checked) {
   const total = row?.querySelector('[data-indicator-total]');
   if (count) count.textContent = `${block.itemIds.length} งาน`;
   if (total) total.textContent = `${indicatorScoreTotal(c, block)} คะแนน`;
+  const editorTotal = document.querySelector('.indicator-editor-total');
+  if (editorTotal && scoreIndicatorEditingId === indicatorId) editorTotal.innerHTML = `<span>เลือกแล้ว ${block.itemIds.length} งาน</span><strong>${indicatorScoreTotal(c, block)} คะแนน</strong>`;
 }
 
 function renderScoreIndicatorList(c) {
@@ -375,19 +398,65 @@ function renderScoreIndicatorList(c) {
     holder.innerHTML = `<div class="indicator-list-empty"><i class="hgi-stroke hgi-book-open-01"></i><strong>ยังไม่ได้เลือกตัวชี้วัด</strong><span>เริ่มจากเพิ่มตัวชี้วัด แล้วเลือกงานที่ใช้ประเมิน</span><button class="btn btn-primary" type="button" onclick="openScoreIndicatorSearch('${c.id}')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มตัวชี้วัด</button></div>`;
     return;
   }
-  holder.innerHTML = board.map(block => {
+  holder.classList.add('indicator-mini-canvas');
+  holder.innerHTML = board.map((block, index) => {
     const subject = catalog.getSubject(block.subjectId);
     const indicator = subject.dataset?.indicators.find(item => item.id === block.indicatorId);
     if (!indicator) return '';
     const selected = new Set(block.itemIds || []);
-    return `<details class="indicator-list-item" data-indicator-id="${escapeScoreAttr(block.indicatorId)}">
-      <summary><span class="indicator-list-chevron"><i class="hgi-stroke hgi-arrow-right-01"></i></span><span class="indicator-list-copy"><strong>${escapeScore(indicator.code)}</strong><span>${escapeScore(indicator.text)}</span></span><span class="indicator-list-stats"><b data-indicator-count>${selected.size} งาน</b><b data-indicator-total>${indicatorScoreTotal(c, block)} คะแนน</b></span></summary>
-      <div class="indicator-list-detail"><p>${escapeScore(indicator.text)}</p><div class="indicator-linked-title"><span>งานที่ใช้ประเมิน</span><small>คะแนนเต็มรวมจากงานที่เลือก</small></div>
-        <div class="indicator-linked-items">${c.scores.items.length ? c.scores.items.map(item => `<label><input type="checkbox"${selected.has(item.id) ? ' checked' : ''} onchange="toggleIndicatorItem('${c.id}','${block.indicatorId}','${item.id}',this.checked)"><span>${escapeScore(item.name)}</span><small>${item.max} คะแนน</small></label>`).join('') : '<div class="indicator-no-items">ยังไม่มีงานในรายวิชานี้ กรุณาเพิ่มงานในแท็บคะแนนก่อน</div>'}</div>
-        <button class="indicator-remove-btn" type="button" onclick="removeScoreIndicatorBlock('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-delete-02"></i> นำตัวชี้วัดนี้ออก</button>
-      </div>
-    </details>`;
+    const x = Number.isFinite(Number(block.x)) ? Number(block.x) : 18 + (index % 4) * 228;
+    const y = Number.isFinite(Number(block.y)) ? Number(block.y) : 18 + Math.floor(index / 4) * 146;
+    return `<article class="indicator-mini-block" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(0,x)}px;top:${Math.max(0,y)}px">
+      <header class="indicator-mini-drag"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>${escapeScore(indicator.code)}</strong><span>ลากเพื่อย้าย</span></header>
+      <button class="indicator-mini-content" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><span>${escapeScore(indicator.text)}</span><footer><b data-indicator-count>${selected.size} งาน</b><b data-indicator-total>${indicatorScoreTotal(c, block)} คะแนน</b></footer></button>
+    </article>`;
   }).join('');
+  enableScoreIndicatorMiniDragging(c, holder);
+}
+
+function enableScoreIndicatorMiniDragging(c, canvas) {
+  canvas.querySelectorAll('.indicator-mini-drag').forEach(handle => {
+    handle.onpointerdown = event => {
+      const el = handle.closest('.indicator-mini-block');
+      const block = getScoreIndicatorBoard(c).find(item => item.indicatorId === el.dataset.indicatorId);
+      if (!block) return;
+      event.preventDefault();
+      handle.setPointerCapture(event.pointerId);
+      const startX = event.clientX, startY = event.clientY;
+      const originX = Number(el.style.left.replace('px','')) || 0;
+      const originY = Number(el.style.top.replace('px','')) || 0;
+      handle.onpointermove = move => {
+        block.x = Math.max(0, Math.min(canvas.clientWidth - el.offsetWidth, originX + move.clientX - startX));
+        block.y = Math.max(0, Math.min(canvas.clientHeight - el.offsetHeight, originY + move.clientY - startY));
+        el.style.left = `${block.x}px`;
+        el.style.top = `${block.y}px`;
+      };
+      handle.onpointerup = () => {
+        handle.onpointermove = null;
+        handle.onpointerup = null;
+        if (block.x === undefined) block.x = originX;
+        if (block.y === undefined) block.y = originY;
+        saveState();
+      };
+    };
+  });
+}
+
+function scoreIndicatorEditorHtml(c, indicatorId) {
+  const catalog = window.CKCurriculumCatalog;
+  const block = getScoreIndicatorBoard(c).find(item => item.indicatorId === indicatorId);
+  if (!catalog || !block) return '';
+  const subject = catalog.getSubject(block.subjectId);
+  const indicator = subject.dataset?.indicators.find(item => item.id === indicatorId);
+  if (!indicator) return '';
+  const selected = new Set(block.itemIds || []);
+  return `<div class="indicator-editor-overlay" onclick="if(event.target===this) closeScoreIndicatorEditor('${c.id}')"><section class="indicator-editor-panel">
+    <header><div><strong>${escapeScore(indicator.code)}</strong><h3>งานที่ใช้ประเมิน</h3></div><button type="button" onclick="closeScoreIndicatorEditor('${c.id}')" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button></header>
+    <p>${escapeScore(indicator.text)}</p>
+    <div class="indicator-editor-total"><span>เลือกแล้ว ${selected.size} งาน</span><strong>${indicatorScoreTotal(c, block)} คะแนน</strong></div>
+    <div class="indicator-linked-items">${c.scores.items.length ? c.scores.items.map(item => `<label><input type="checkbox"${selected.has(item.id) ? ' checked' : ''} onchange="toggleIndicatorItem('${c.id}','${block.indicatorId}','${item.id}',this.checked)"><span>${escapeScore(item.name)}</span><small>${item.max} คะแนน</small></label>`).join('') : '<div class="indicator-no-items">ยังไม่มีงานในรายวิชานี้ กรุณาเพิ่มงานในแท็บคะแนนก่อน</div>'}</div>
+    <footer><button class="indicator-remove-btn" type="button" onclick="removeScoreIndicatorBlock('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-delete-02"></i> นำตัวชี้วัดออก</button><button class="btn btn-primary" type="button" onclick="closeScoreIndicatorEditor('${c.id}')">เสร็จแล้ว</button></footer>
+  </section></div>`;
 }
 
 function curriculumUnavailableHtml(subject, catalog) {

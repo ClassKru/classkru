@@ -1118,6 +1118,28 @@
 .indicator-search-results { min-height: 0; margin-top: 12px; overflow: auto; }
 .indicator-search-results .curriculum-indicator-list { grid-template-columns: 1fr; }
 .indicator-search-results .curriculum-indicator-row { grid-template-columns: 120px minmax(0,1fr) auto; }
+.score-indicator-list.indicator-mini-canvas { position: relative; display: block; min-height: 520px; overflow: hidden; border: 1px dashed color-mix(in srgb, var(--primary) 28%, var(--border-color)); border-radius: 16px; background-color: #fbfcff; background-image: radial-gradient(circle, #dce3eb 1px, transparent 1px); background-size: 22px 22px; }
+.indicator-mini-block { position: absolute; width: 204px; border: 1px solid var(--border-color); border-radius: 13px; background: var(--bg-card); box-shadow: 0 5px 15px rgba(15,23,42,.08); overflow: hidden; }
+.indicator-mini-drag { display: flex; align-items: center; gap: 6px; min-height: 31px; padding: 6px 8px; background: var(--primary-light); cursor: grab; user-select: none; touch-action: none; }
+.indicator-mini-drag:active { cursor: grabbing; }
+.indicator-mini-drag i { color: var(--text-muted); font-size: .8rem; }
+.indicator-mini-drag strong { flex: 1; color: var(--primary-deep); font-size: .72rem; }
+.indicator-mini-drag span { color: var(--text-muted); font-size: .58rem; }
+.indicator-mini-content { display: block; width: 100%; padding: 9px 10px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.indicator-mini-content > span { display: -webkit-box; min-height: 34px; overflow: hidden; color: var(--text-main); font-size: .7rem; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.indicator-mini-content footer { display: flex; gap: 5px; margin-top: 8px; }
+.indicator-mini-content b { padding: 3px 6px; border-radius: 999px; background: var(--bg-light); color: var(--text-muted); font-size: .6rem; }
+.indicator-mini-content b:last-child { background: var(--primary-light); color: var(--primary-deep); }
+.indicator-editor-overlay { position: fixed; inset: 0; z-index: 9210; display: grid; place-items: center; padding: 18px; background: rgba(15,23,42,.42); backdrop-filter: blur(3px); }
+.indicator-editor-panel { width: min(520px,100%); max-height: min(720px,calc(100vh - 36px)); display: flex; flex-direction: column; padding: 18px; border-radius: 20px; background: var(--bg-card); box-shadow: var(--shadow-lg); }
+.indicator-editor-panel > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.indicator-editor-panel > header strong { color: var(--primary); font-size: .76rem; }
+.indicator-editor-panel > header h3 { margin-top: 2px; font-size: 1.05rem; }
+.indicator-editor-panel > header button { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--bg-light); color: var(--text-muted); cursor: pointer; }
+.indicator-editor-panel > p { margin: 12px 0; color: var(--text-muted); font-size: .78rem; line-height: 1.55; }
+.indicator-editor-total { display: flex; justify-content: space-between; margin-bottom: 9px; padding: 9px 11px; border-radius: 10px; background: var(--primary-light); color: var(--primary-deep); font-size: .78rem; }
+.indicator-editor-panel .indicator-linked-items { min-height: 0; overflow: auto; }
+.indicator-editor-panel > footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 13px; }
 .m-tt-settings-btn { width: 42px; padding: 0; background: var(--bg-card); color: var(--text-muted); }
 .m-tt-add-btn { padding: 0 14px; background: var(--primary); border-color: var(--primary); color: #fff; }
 .m-tt-settings-btn:active,
@@ -1182,6 +1204,10 @@
   .indicator-search-filters .curriculum-filter-bar { grid-template-columns: 1fr; }
   .indicator-search-results .curriculum-indicator-row { grid-template-columns: 1fr auto; }
   .indicator-search-results .curriculum-indicator-code { grid-column: 1 / -1; }
+  .score-indicator-list.indicator-mini-canvas { min-height: 600px; }
+  .indicator-mini-block { width: min(190px,calc(100% - 12px)); }
+  .indicator-editor-overlay { align-items: end; padding: 0; }
+  .indicator-editor-panel { width: 100%; max-height: 88vh; border-radius: 20px 20px 0 0; padding-bottom: max(18px,env(safe-area-inset-bottom)); }
   .period-editor-sheet { width: 100%; max-width: 100%; padding-bottom: max(18px, env(safe-area-inset-bottom)); }
   .period-editor-actions { position: sticky; bottom: 0; z-index: 2; margin: 18px -20px -18px; padding: 12px 20px max(12px, env(safe-area-inset-bottom)); background: var(--bg-card); border-top: 1px solid var(--border-color); }
   .period-editor-actions .btn { min-height: 46px; }
