@@ -31,7 +31,8 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `413`
+- Asset version ปัจจุบัน: `414`
+- งานล่าสุด: คลังตัวชี้วัด ม.1-ม.3 เปิดใช้ครบ 8 กลุ่มสาระ รวม 688 ตัวชี้วัด (ภาษาไทย 103, คณิตศาสตร์ 33, วิทยาศาสตร์ 174, สังคมศึกษา 140, สุขศึกษา 72, ศิลปะ 86, การงานอาชีพ 18 และภาษาต่างประเทศ 62) พร้อมตัวตรวจจำนวน รหัสซ้ำ ความสัมพันธ์มาตรฐาน/หัวข้อ และการค้นหาผ่าน catalog
 - งานล่าสุด: แผนภาพ **ตัวชี้วัดรายวิชา** แสดงคะแนนเต็มสำหรับ ปพ.5 และแต่ละกิ่งงานแสดงคะแนนเต็มดิบ น้ำหนักแบบทศนิยมที่รวมได้ 100% พร้อมคะแนนที่คิดเป็นจากคะแนนเต็มตัวชี้วัด เพื่อลดความสับสนระหว่างสองสเกลคะแนน
 - งานล่าสุด: เมนู Desktop/Mobile ใช้ `APP_NAVIGATION` ชุดเดียว, Sidebar desktop เป็น rail 80px และขยายเมื่อ hover/focus; Production version 393 ตรวจ HTML mount points, JS renderer และ CSS rail markers แล้ว
 - Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน

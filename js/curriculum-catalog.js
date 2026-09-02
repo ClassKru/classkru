@@ -5,20 +5,34 @@
 (function () {
   'use strict';
 
-  const science = window.CK_CURRICULUM_SCIENCE_2560 || null;
+  const datasets = {
+    thai: window.CK_CURRICULUM_THAI_2551 || null,
+    math: window.CK_CURRICULUM_MATH_2560 || null,
+    science: window.CK_CURRICULUM_SCIENCE_2560 || null,
+    social: window.CK_CURRICULUM_SOCIAL_2560 || null,
+    health: window.CK_CURRICULUM_HEALTH_2551 || null,
+    art: window.CK_CURRICULUM_ART_2551 || null,
+    career: window.CK_CURRICULUM_CAREER_2551 || null,
+    foreign: window.CK_CURRICULUM_FOREIGN_2551 || null
+  };
   const subjects = [
-    { id: 'thai', code: 'ท', name: 'ภาษาไทย', shortName: 'ภาษาไทย', available: false },
-    { id: 'math', code: 'ค', name: 'คณิตศาสตร์', shortName: 'คณิตศาสตร์', available: false },
+    { id: 'thai', code: 'ท', name: 'ภาษาไทย', shortName: 'ภาษาไทย' },
+    { id: 'math', code: 'ค', name: 'คณิตศาสตร์', shortName: 'คณิตศาสตร์' },
     {
       id: 'science', code: 'ว', name: 'วิทยาศาสตร์และเทคโนโลยี', shortName: 'วิทยาศาสตร์',
-      available: !!science, grades: ['M1', 'M2', 'M3'], dataset: science
+      grades: ['M1', 'M2', 'M3']
     },
-    { id: 'social', code: 'ส', name: 'สังคมศึกษา ศาสนา และวัฒนธรรม', shortName: 'สังคมศึกษา', available: false },
-    { id: 'health', code: 'พ', name: 'สุขศึกษาและพลศึกษา', shortName: 'สุขศึกษา', available: false },
-    { id: 'art', code: 'ศ', name: 'ศิลปะ', shortName: 'ศิลปะ', available: false },
-    { id: 'career', code: 'ง', name: 'การงานอาชีพ', shortName: 'การงานอาชีพ', available: false },
-    { id: 'foreign', code: 'ต', name: 'ภาษาต่างประเทศ', shortName: 'ภาษาต่างประเทศ', available: false }
-  ];
+    { id: 'social', code: 'ส', name: 'สังคมศึกษา ศาสนา และวัฒนธรรม', shortName: 'สังคมศึกษา' },
+    { id: 'health', code: 'พ', name: 'สุขศึกษาและพลศึกษา', shortName: 'สุขศึกษา' },
+    { id: 'art', code: 'ศ', name: 'ศิลปะ', shortName: 'ศิลปะ' },
+    { id: 'career', code: 'ง', name: 'การงานอาชีพ', shortName: 'การงานอาชีพ' },
+    { id: 'foreign', code: 'ต', name: 'ภาษาต่างประเทศ', shortName: 'ภาษาอังกฤษ' }
+  ].map(subject => ({
+    ...subject,
+    available: !!datasets[subject.id],
+    grades: ['M1', 'M2', 'M3'],
+    dataset: datasets[subject.id]
+  }));
 
   function normalize(value) {
     return String(value || '')
