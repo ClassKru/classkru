@@ -1162,6 +1162,9 @@
 .indicator-editor-panel > header h3 { margin-top: 2px; font-size: 1.05rem; }
 .indicator-editor-panel > header button { width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--bg-light); color: var(--text-muted); cursor: pointer; }
 .indicator-editor-panel > p { margin: 12px 0; color: var(--text-muted); font-size: .78rem; line-height: 1.55; }
+.indicator-max-field { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; padding: 9px 11px; border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-main); font-size: .78rem; font-weight: 750; }
+.indicator-max-field input { width: 86px; min-height: 34px; padding: 5px 8px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-card); color: var(--text-main); font: inherit; font-weight: 800; text-align: right; }
+.indicator-max-field input:focus { border-color: var(--primary); outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb,var(--primary) 12%,transparent); }
 .indicator-editor-total { display: flex; justify-content: space-between; margin-bottom: 9px; padding: 9px 11px; border-radius: 10px; background: var(--primary-light); color: var(--primary-deep); font-size: .78rem; }
 .indicator-editor-panel .indicator-linked-items { min-height: 0; overflow: auto; }
 .indicator-editor-panel > footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 13px; }

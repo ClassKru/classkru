@@ -359,7 +359,7 @@ function addScoreIndicatorBlock(classId, subjectId, indicatorId) {
     return;
   }
   const offset = board.length % 5;
-  board.push({ indicatorId, subjectId, itemIds: [], x: 18 + offset * 24, y: 18 + offset * 24 });
+  board.push({ indicatorId, subjectId, itemIds: [], maxScore: 10, x: 18 + offset * 24, y: 18 + offset * 24 });
   saveState();
   scoreIndicatorSearchOpen = false;
   scoreCurriculumFilters.query = '';
@@ -422,20 +422,40 @@ function indicatorItemProgress(c, item) {
     return sum + (value === '' || value == null ? 0 : Number(value) || 0);
   }, 0);
   const filled = students.filter(student => marks[student.id] !== '' && marks[student.id] != null).length;
-  return { average: students.length ? obtained / students.length : 0, max: Number(item.max) || 0, filled, total: students.length };
+  return { current: students.length ? obtained / students.length : 0, max: Number(item.max) || 0, filled, total: students.length };
+}
+
+function indicatorConfiguredMax(block) {
+  const value = Number(block.maxScore);
+  return Number.isFinite(value) && value > 0 ? value : 10;
 }
 
 function indicatorScoreProgress(c, block) {
   const selected = new Set(block.itemIds || []);
   const items = ensureScores(c).items.filter(item => selected.has(item.id));
-  return items.reduce((summary, item) => {
+  const raw = items.reduce((summary, item) => {
     const progress = indicatorItemProgress(c, item);
-    summary.average += progress.average;
-    summary.max += progress.max;
+    summary.current += progress.current;
+    summary.rawMax += progress.max;
     summary.filled += progress.filled;
     summary.total += progress.total;
     return summary;
-  }, { average: 0, max: 0, filled: 0, total: 0 });
+  }, { current: 0, rawMax: 0, filled: 0, total: 0 });
+  const max = indicatorConfiguredMax(block);
+  return { ...raw, current: raw.rawMax ? raw.current / raw.rawMax * max : 0, max };
+}
+
+function setIndicatorMaxScore(classId, indicatorId, value) {
+  const c = appState.classes.find(x => x.id === classId);
+  const block = c && getScoreIndicatorBoard(c).find(item => item.indicatorId === indicatorId);
+  const maxScore = Number(value);
+  if (!block || !Number.isFinite(maxScore) || maxScore <= 0) {
+    showToast('คะแนนเต็มตัวชี้วัดต้องมากกว่า 0', 'warning');
+    return;
+  }
+  block.maxScore = maxScore;
+  saveState();
+  renderCurriculumCatalog(c);
 }
 
 function toggleIndicatorItem(classId, indicatorId, itemId, checked) {
@@ -449,7 +469,7 @@ function toggleIndicatorItem(classId, indicatorId, itemId, checked) {
   renderScoreIndicatorList(c);
   const progress = indicatorScoreProgress(c, block);
   const editorTotal = document.querySelector('.indicator-editor-total');
-  if (editorTotal && scoreIndicatorEditingId === indicatorId) editorTotal.innerHTML = `<span>เลือกแล้ว ${block.itemIds.length} งาน</span><strong>เฉลี่ย ${formatIndicatorScore(progress.average)} / ${formatIndicatorScore(progress.max)} คะแนน</strong>`;
+  if (editorTotal && scoreIndicatorEditingId === indicatorId) editorTotal.innerHTML = `<span>เลือกแล้ว ${block.itemIds.length} งาน</span><strong>${formatIndicatorScore(progress.current)} / ${formatIndicatorScore(progress.max)} คะแนน</strong>`;
 }
 
 function renderScoreIndicatorList(c) {
@@ -474,9 +494,9 @@ function renderScoreIndicatorList(c) {
     return `<article class="indicator-map-group" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(0,x)}px;top:${Math.max(0,y)}px">
       <div class="indicator-mini-block">
         <header class="indicator-mini-drag"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>${escapeScore(indicator.code)}</strong><span>ลากเพื่อย้าย</span></header>
-        <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนเฉลี่ยปัจจุบัน</small><strong>${formatIndicatorScore(progress.average)} <em>/ ${formatIndicatorScore(progress.max)}</em></strong></div><footer><b>${selected.size} งาน</b><b>กรอก ${progress.filled}/${progress.total}</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไข</button></footer></div>
+        <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนที่ได้ปัจจุบัน</small><strong>${formatIndicatorScore(progress.current)} <em>/ ${formatIndicatorScore(progress.max)}</em></strong></div><footer><b>${selected.size} งาน</b><b>กรอก ${progress.filled}/${progress.total}</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไข</button></footer></div>
       </div>
-      <div class="indicator-job-branches">${linkedItems.length ? linkedItems.map(item => { const itemProgress = indicatorItemProgress(c,item); const weight = progress.max ? Math.round(itemProgress.max / progress.max * 100) : 0; return `<div class="indicator-job-node"><span>${escapeScore(item.name)}</span><strong>${formatIndicatorScore(itemProgress.average)} <em>/ ${formatIndicatorScore(itemProgress.max)}</em></strong><small>กรอก ${itemProgress.filled}/${itemProgress.total} · สัดส่วน ${weight}%</small></div>`; }).join('') : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เลือกงาน</button>`}</div>
+      <div class="indicator-job-branches">${linkedItems.length ? linkedItems.map(item => { const itemProgress = indicatorItemProgress(c,item); const weight = progress.rawMax ? Math.round(itemProgress.max / progress.rawMax * 100) : 0; return `<div class="indicator-job-node"><span>${escapeScore(item.name)}</span><strong>${formatIndicatorScore(itemProgress.current)} <em>/ ${formatIndicatorScore(itemProgress.max)}</em></strong><small>กรอก ${itemProgress.filled}/${itemProgress.total} · สัดส่วน ${weight}%</small></div>`; }).join('') : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เลือกงาน</button>`}</div>
     </article>`;
   }).join('');
   enableScoreIndicatorMiniDragging(c, holder);
@@ -521,7 +541,8 @@ function scoreIndicatorEditorHtml(c, indicatorId) {
   return `<div class="indicator-editor-overlay" onclick="if(event.target===this) closeScoreIndicatorEditor('${c.id}')"><section class="indicator-editor-panel">
     <header><div><strong>${escapeScore(indicator.code)}</strong><h3>งานที่ใช้ประเมิน</h3></div><button type="button" onclick="closeScoreIndicatorEditor('${c.id}')" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button></header>
     <p>${escapeScore(indicator.text)}</p>
-    <div class="indicator-editor-total"><span>เลือกแล้ว ${selected.size} งาน</span><strong>เฉลี่ย ${formatIndicatorScore(indicatorScoreProgress(c,block).average)} / ${formatIndicatorScore(indicatorScoreProgress(c,block).max)} คะแนน</strong></div>
+    <label class="indicator-max-field"><span>คะแนนเต็มของตัวชี้วัด</span><input type="number" min="0.5" step="0.5" value="${escapeScoreAttr(indicatorConfiguredMax(block))}" onchange="setIndicatorMaxScore('${c.id}','${block.indicatorId}',this.value)"></label>
+    <div class="indicator-editor-total"><span>เลือกแล้ว ${selected.size} งาน</span><strong>${formatIndicatorScore(indicatorScoreProgress(c,block).current)} / ${formatIndicatorScore(indicatorScoreProgress(c,block).max)} คะแนน</strong></div>
     <div class="indicator-linked-items">${c.scores.items.length ? c.scores.items.map(item => `<label><input type="checkbox"${selected.has(item.id) ? ' checked' : ''} onchange="toggleIndicatorItem('${c.id}','${block.indicatorId}','${item.id}',this.checked)"><span>${escapeScore(item.name)}</span><small>${item.max} คะแนน</small></label>`).join('') : '<div class="indicator-no-items">ยังไม่มีงานในรายวิชานี้ กรุณาเพิ่มงานในแท็บคะแนนก่อน</div>'}</div>
     <footer><button class="indicator-remove-btn" type="button" onclick="removeScoreIndicatorBlock('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-delete-02"></i> นำตัวชี้วัดออก</button><button class="btn btn-primary" type="button" onclick="closeScoreIndicatorEditor('${c.id}')">เสร็จแล้ว</button></footer>
   </section></div>`;
