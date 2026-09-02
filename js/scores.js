@@ -168,7 +168,7 @@ function viewClassScores(classId) {
 function scoreWorkTabsHtml(c) {
   const tabs = [
     { key: 'overview', label: 'คะแนน', icon: 'hgi-table' },
-    { key: 'curriculum', label: 'คลังตัวชี้วัด', icon: 'hgi-book-open-01' }
+    { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01' }
   ];
   return `<div class="score-worktabs">${tabs.map(t => `
     <button class="score-worktab${scoreWorkspaceMode === t.key ? ' active' : ''}" onclick="setScoreWorkspaceMode('${t.key}','${c.id}')">
@@ -261,14 +261,15 @@ function renderCurriculumCatalog(c) {
   const standards = catalog.getStandards(subject.id, grade);
   const stats = catalog.getStats();
 
-  wrap.innerHTML = `<section class="curriculum-browser">
+  const board = getScoreIndicatorBoard(c);
+  wrap.innerHTML = `<section class="curriculum-browser indicator-workspace">
     <header class="curriculum-browser-head">
       <div>
-        <span class="score-mode-label">ข้อมูลหลักสูตร</span>
-        <h3>สำรวจตัวชี้วัดก่อนสร้างงาน</h3>
-        <p>พื้นที่อ่านและค้นหาเท่านั้น ยังไม่เชื่อมกับคะแนนของห้อง ${escapeScore(c.subject)} ${escapeScore(c.className)}</p>
+        <span class="score-mode-label">เชื่อมงานกับหลักสูตร</span>
+        <h3>ตัวชี้วัดรายวิชา</h3>
+        <p>ค้นหาตัวชี้วัด แล้วลากบล็อกจัดพื้นที่เพื่อเห็นภาพรวมโดยไม่รบกวนตารางคะแนน</p>
       </div>
-      <div class="curriculum-database-stat"><strong>${stats.indicators}</strong><span>ตัวชี้วัดพร้อมใช้</span></div>
+      <div class="curriculum-database-stat"><strong>${board.length}</strong><span>ตัวชี้วัดที่เลือก</span></div>
     </header>
     ${curriculumSubjectRailHtml(catalog)}
     ${subject.available ? `
@@ -286,11 +287,115 @@ function renderCurriculumCatalog(c) {
         </select></label>
         <label class="curriculum-search"><span>ค้นหา</span><div><i class="hgi-stroke hgi-search-01"></i><input type="search" value="${escapeScore(scoreCurriculumFilters.query).replace(/"/g, '&quot;')}" placeholder="รหัสหรือคำสำคัญ" oninput="setCurriculumCatalogQuery(this.value)"></div></label>
       </div>
-      <div id="curriculum-catalog-results"></div>
+      <div class="indicator-workspace-layout">
+        <aside id="curriculum-catalog-results"></aside>
+        <div id="score-indicator-canvas" class="score-indicator-canvas" aria-label="พื้นที่จัดวางตัวชี้วัด"></div>
+      </div>
     ` : curriculumUnavailableHtml(subject, catalog)}
   </section>`;
 
-  if (subject.available) renderCurriculumCatalogResults(c);
+  if (subject.available) {
+    renderCurriculumCatalogResults(c);
+    renderScoreIndicatorCanvas(c);
+  }
+}
+
+function getScoreIndicatorBoard(c) {
+  const sc = ensureScores(c);
+  if (!Array.isArray(sc.config.indicatorBoard)) sc.config.indicatorBoard = [];
+  return sc.config.indicatorBoard;
+}
+
+function addScoreIndicatorBlock(classId, subjectId, indicatorId) {
+  const c = appState.classes.find(x => x.id === classId);
+  const catalog = window.CKCurriculumCatalog;
+  if (!c || !catalog) return;
+  const indicator = catalog.getSubject(subjectId).dataset?.indicators.find(item => item.id === indicatorId);
+  if (!indicator) return;
+  const board = getScoreIndicatorBoard(c);
+  if (board.some(item => item.indicatorId === indicatorId)) {
+    showToast('เลือกตัวชี้วัดนี้ไว้แล้ว', 'warning');
+    return;
+  }
+  const offset = board.length % 5;
+  board.push({ indicatorId, subjectId, x: 24 + offset * 28, y: 24 + offset * 28, maxScore: 0, itemIds: [] });
+  saveState();
+  renderScoreIndicatorCanvas(c);
+}
+
+function removeScoreIndicatorBlock(classId, indicatorId) {
+  const c = appState.classes.find(x => x.id === classId);
+  if (!c) return;
+  c.scores.config.indicatorBoard = getScoreIndicatorBoard(c).filter(item => item.indicatorId !== indicatorId);
+  saveState();
+  renderCurriculumCatalog(c);
+}
+
+function changeIndicatorMaxScore(classId, indicatorId, delta) {
+  const c = appState.classes.find(x => x.id === classId);
+  const block = c && getScoreIndicatorBoard(c).find(item => item.indicatorId === indicatorId);
+  if (!block) return;
+  block.maxScore = Math.max(0, (Number(block.maxScore) || 0) + Number(delta || 0));
+  saveState();
+  renderScoreIndicatorCanvas(c);
+}
+
+function toggleIndicatorItem(classId, indicatorId, itemId, checked) {
+  const c = appState.classes.find(x => x.id === classId);
+  const block = c && getScoreIndicatorBoard(c).find(item => item.indicatorId === indicatorId);
+  if (!block) return;
+  const ids = new Set(Array.isArray(block.itemIds) ? block.itemIds : []);
+  checked ? ids.add(itemId) : ids.delete(itemId);
+  block.itemIds = Array.from(ids);
+  saveState();
+  const count = document.querySelector(`[data-indicator-count="${CSS.escape(indicatorId)}"]`);
+  if (count) count.textContent = `${block.itemIds.length} งาน`;
+}
+
+function renderScoreIndicatorCanvas(c) {
+  const canvas = document.getElementById('score-indicator-canvas');
+  const catalog = window.CKCurriculumCatalog;
+  if (!canvas || !catalog) return;
+  const board = getScoreIndicatorBoard(c);
+  if (!board.length) {
+    canvas.innerHTML = '<div class="indicator-canvas-empty"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>ยังไม่มีตัวชี้วัดในพื้นที่นี้</strong><span>ค้นหาแล้วกด “เลือก” จากรายการด้านซ้าย</span></div>';
+    return;
+  }
+  canvas.innerHTML = board.map(block => {
+    const subject = catalog.getSubject(block.subjectId);
+    const indicator = subject.dataset?.indicators.find(item => item.id === block.indicatorId);
+    if (!indicator) return '';
+    const selected = new Set(block.itemIds || []);
+    return `<article class="indicator-board-block" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(0, Number(block.x)||0)}px;top:${Math.max(0, Number(block.y)||0)}px">
+      <header class="indicator-block-drag"><span><strong>${escapeScore(indicator.code)}</strong><small>ลากเพื่อย้าย</small></span><button type="button" onclick="removeScoreIndicatorBlock('${c.id}','${block.indicatorId}')" aria-label="นำออก"><i class="hgi-stroke hgi-cancel-01"></i></button></header>
+      <p>${escapeScore(indicator.text)}</p>
+      <div class="indicator-block-score"><span>คะแนนเต็ม</span><strong>${Number(block.maxScore)||0}</strong><button type="button" onclick="changeIndicatorMaxScore('${c.id}','${block.indicatorId}',1)" aria-label="เพิ่มคะแนนเต็ม"><i class="hgi-stroke hgi-add-01"></i></button><button type="button" onclick="changeIndicatorMaxScore('${c.id}','${block.indicatorId}',-1)" aria-label="ลดคะแนนเต็ม">−</button></div>
+      <details class="indicator-item-picker"><summary>เลือกงาน <span data-indicator-count="${escapeScoreAttr(block.indicatorId)}">${selected.size} งาน</span></summary>
+        <div>${c.scores.items.length ? c.scores.items.map(item => `<label><input type="checkbox"${selected.has(item.id) ? ' checked' : ''} onchange="toggleIndicatorItem('${c.id}','${block.indicatorId}','${item.id}',this.checked)"><span>${escapeScore(item.name)}</span><small>/${item.max}</small></label>`).join('') : '<p>ยังไม่มีงานในรายวิชานี้</p>'}</div>
+      </details>
+    </article>`;
+  }).join('');
+  enableScoreIndicatorDragging(c, canvas);
+}
+
+function enableScoreIndicatorDragging(c, canvas) {
+  canvas.querySelectorAll('.indicator-block-drag').forEach(handle => {
+    handle.onpointerdown = event => {
+      if (event.target.closest('button')) return;
+      const el = handle.closest('.indicator-board-block');
+      const block = getScoreIndicatorBoard(c).find(item => item.indicatorId === el.dataset.indicatorId);
+      if (!block) return;
+      event.preventDefault();
+      handle.setPointerCapture(event.pointerId);
+      const startX = event.clientX, startY = event.clientY, originX = Number(block.x)||0, originY = Number(block.y)||0;
+      handle.onpointermove = move => {
+        block.x = Math.max(0, Math.min(canvas.clientWidth - el.offsetWidth, originX + move.clientX - startX));
+        block.y = Math.max(0, Math.min(canvas.clientHeight - el.offsetHeight, originY + move.clientY - startY));
+        el.style.left = `${block.x}px`; el.style.top = `${block.y}px`;
+      };
+      handle.onpointerup = () => { handle.onpointermove = null; handle.onpointerup = null; saveState(); };
+    };
+  });
 }
 
 function curriculumUnavailableHtml(subject, catalog) {
@@ -304,7 +409,7 @@ function curriculumUnavailableHtml(subject, catalog) {
   </div>`;
 }
 
-function renderCurriculumCatalogResults() {
+function renderCurriculumCatalogResults(c) {
   const holder = document.getElementById('curriculum-catalog-results');
   const catalog = window.CKCurriculumCatalog;
   if (!holder || !catalog) return;
@@ -323,7 +428,7 @@ function renderCurriculumCatalogResults() {
     return `<article class="curriculum-indicator-row">
       <div class="curriculum-indicator-code"><strong>${escapeScore(item.code)}</strong><span>${escapeScore(standard?.title || '')}</span></div>
       <div class="curriculum-indicator-text"><p>${escapeScore(item.text)}</p><span><i class="hgi-stroke hgi-book-02"></i> ${escapeScore(unit?.title || 'ไม่ระบุหน่วย')} · ${escapeScore(standard?.strand || '')}</span></div>
-      <span class="curriculum-readonly-badge">ดูข้อมูล</span>
+      <button class="curriculum-readonly-badge curriculum-pick-btn" type="button" onclick="addScoreIndicatorBlock('${c.id}','${subject.id}','${item.id}')"><i class="hgi-stroke hgi-add-01"></i> เลือก</button>
     </article>`;
   }).join('')}</div>` : `<div class="curriculum-no-results"><i class="hgi-stroke hgi-search-01"></i><strong>ไม่พบตัวชี้วัด</strong><span>ลองเปลี่ยนหน่วย มาตรฐาน หรือคำค้นหา</span></div>`}`;
 }

@@ -1,6 +1,6 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 27 สิงหาคม 2569
+> อัปเดตล่าสุด: 2 กันยายน 2569
 >
 > **คำสั่งเริ่มงานในแชทใหม่: `สานต่อ`**
 >
@@ -31,7 +31,8 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 - Branch ทำงาน: `codex/qr-continuous-score-scan`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบัน: `393` (bump จาก 392 เพราะ Production cache มี asset เก่าที่ใช้เลขซ้ำ)
+- Asset version ปัจจุบัน: `406`
+- งานล่าสุด: เพิ่มแท็บ **ตัวชี้วัดรายวิชา** ในหน้าคะแนน ใช้ค้นหาคลังหลักสูตร เลือกตัวชี้วัดเป็นบล็อก ลากจัดตำแหน่ง กำหนดคะแนนเต็ม และผูกงานหลายชิ้นได้ โดยเก็บผังใน `scores.config.indicatorBoard` ของรายวิชา
 - งานล่าสุด: เมนู Desktop/Mobile ใช้ `APP_NAVIGATION` ชุดเดียว, Sidebar desktop เป็น rail 80px และขยายเมื่อ hover/focus; Production version 393 ตรวจ HTML mount points, JS renderer และ CSS rail markers แล้ว
 - Cloud canonical state เป็น 8 ตาราง SQL, เขียนรายแถว/รายคอลัมน์, soft delete, RLS ตาม `teacher_id` และคง JSON เดิมไว้สำหรับ fallback/rollback ช่วงเปลี่ยนผ่าน
 - Supabase Production ใช้ migration ครบถึง `202608260002`; ตรวจ ACL allowlist, JSON เดิม 12 แถว และ smoke test แบบ rollback ผ่านแล้ว
