@@ -201,6 +201,7 @@ function renderScoreWorkspace(c) {
 }
 
 function curriculumGradeLabel(grade) {
+  if (grade === 'M4_6') return 'ม.4-6';
   if (/^M[1-6]$/.test(grade || '')) return `ม.${grade.slice(1)}`;
   if (/^P[1-6]$/.test(grade || '')) return `ป.${grade.slice(1)}`;
   return grade || '';

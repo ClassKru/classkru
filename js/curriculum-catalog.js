@@ -15,13 +15,16 @@
     career: window.CK_CURRICULUM_CAREER_2551 || null,
     foreign: window.CK_CURRICULUM_FOREIGN_2551 || null
   };
+  const gradeOrder = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M4_6'];
+  function inferGrades(dataset) {
+    if (!dataset) return ['M1', 'M2', 'M3'];
+    const used = new Set(dataset.indicators.map(item => item.grade).filter(Boolean));
+    return gradeOrder.filter(grade => used.has(grade));
+  }
   const subjects = [
     { id: 'thai', code: 'ท', name: 'ภาษาไทย', shortName: 'ภาษาไทย' },
     { id: 'math', code: 'ค', name: 'คณิตศาสตร์', shortName: 'คณิตศาสตร์' },
-    {
-      id: 'science', code: 'ว', name: 'วิทยาศาสตร์และเทคโนโลยี', shortName: 'วิทยาศาสตร์',
-      grades: ['M1', 'M2', 'M3']
-    },
+    { id: 'science', code: 'ว', name: 'วิทยาศาสตร์และเทคโนโลยี', shortName: 'วิทยาศาสตร์' },
     { id: 'social', code: 'ส', name: 'สังคมศึกษา ศาสนา และวัฒนธรรม', shortName: 'สังคมศึกษา' },
     { id: 'health', code: 'พ', name: 'สุขศึกษาและพลศึกษา', shortName: 'สุขศึกษา' },
     { id: 'art', code: 'ศ', name: 'ศิลปะ', shortName: 'ศิลปะ' },
@@ -30,7 +33,7 @@
   ].map(subject => ({
     ...subject,
     available: !!datasets[subject.id],
-    grades: ['M1', 'M2', 'M3'],
+    grades: subject.grades || inferGrades(datasets[subject.id]),
     dataset: datasets[subject.id]
   }));
 
