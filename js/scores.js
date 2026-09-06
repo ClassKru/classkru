@@ -443,7 +443,7 @@ function scoreItemShortLabel(item, index = 0) {
 }
 
 function scoreIndicatorBranchNode(item, index) {
-  const label = scoreItemShortLabel(item, index);
+  const label = item.name || `งาน ${index + 1}`;
   const title = `${item.name || 'งาน'} · ${scoreBucketLabel(item.bucket)} · เต็ม ${formatIndicatorScore(item.max)} คะแนน`;
   return `<span class="indicator-job-node" title="${escapeScoreAttr(title)}" aria-label="${escapeScoreAttr(title)}">${escapeScore(label)}</span>`;
 }
