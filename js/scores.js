@@ -43,6 +43,7 @@ let scoreCurriculumFilters = {
 let scoreIndicatorSearchOpen = false;
 let scoreIndicatorEditingId = null;
 let curriculumCatalogContext = 'score';
+const SCORE_INDICATOR_BOARD_MIN_WIDTH = 760;
 
 function defaultScoreConfig() {
   return {
@@ -359,8 +360,8 @@ function addScoreIndicatorBlock(classId, subjectId, indicatorId) {
     showToast('เลือกตัวชี้วัดนี้ไว้แล้ว', 'warning');
     return;
   }
-  const offset = board.length % 5;
-  board.push({ indicatorId, subjectId, itemIds: [], maxScore: 10, x: 18 + offset * 24, y: 18 + offset * 24 });
+  const position = scoreIndicatorDefaultPosition(board.length);
+  board.push({ indicatorId, subjectId, itemIds: [], maxScore: 10, x: position.x, y: position.y });
   saveState();
   scoreIndicatorSearchOpen = false;
   scoreCurriculumFilters.query = '';
@@ -441,24 +442,19 @@ function scoreItemShortLabel(item, index = 0) {
   return compact ? Array.from(compact).slice(0, 5).join('') : `งาน${fallbackNo}`;
 }
 
-function scoreIndicatorBranchGroups(items) {
-  return {
-    before: items.filter(item => item.bucket !== 'after' && item.bucket !== 'final'),
-    after: items.filter(item => item.bucket === 'after' || item.bucket === 'final')
-  };
-}
-
 function scoreIndicatorBranchNode(item, index) {
   const label = scoreItemShortLabel(item, index);
   const title = `${item.name || 'งาน'} · ${scoreBucketLabel(item.bucket)} · เต็ม ${formatIndicatorScore(item.max)} คะแนน`;
   return `<span class="indicator-job-node" title="${escapeScoreAttr(title)}" aria-label="${escapeScoreAttr(title)}">${escapeScore(label)}</span>`;
 }
 
-function scoreIndicatorBranchColumn(label, items) {
-  return `<section class="indicator-branch-column">
-    <header>${label}</header>
-    <div>${items.length ? items.map(scoreIndicatorBranchNode).join('') : '<span class="indicator-branch-none">—</span>'}</div>
-  </section>`;
+function scoreIndicatorDefaultPosition(index) {
+  const lane = index % 2;
+  return { x: 48 + lane * 380, y: 58 + Math.floor(index / 2) * 230 };
+}
+
+function scoreIndicatorCanvasWidth(canvas) {
+  return Math.max(canvas.clientWidth, SCORE_INDICATOR_BOARD_MIN_WIDTH);
 }
 
 function setIndicatorMaxScore(classId, indicatorId, value) {
@@ -493,25 +489,26 @@ function renderScoreIndicatorList(c) {
   if (!holder || !catalog) return;
   const board = getScoreIndicatorBoard(c);
   if (!board.length) {
+    holder.classList.remove('indicator-mini-canvas');
     holder.innerHTML = `<div class="indicator-list-empty"><i class="hgi-stroke hgi-book-open-01"></i><strong>ยังไม่ได้เลือกตัวชี้วัด</strong><span>เริ่มจากเพิ่มตัวชี้วัด แล้วเชื่อมโยงกับงานในรายวิชา</span><button class="btn btn-primary" type="button" onclick="openScoreIndicatorSearch('${c.id}')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มตัวชี้วัด</button></div>`;
     return;
   }
   holder.classList.add('indicator-mini-canvas');
-  holder.innerHTML = board.map((block, index) => {
+  holder.innerHTML = `<div class="indicator-canvas-lanes" aria-hidden="true"><span>ก่อนกลางภาค</span><span>หลังกลางภาค</span></div>` + board.map((block, index) => {
     const subject = catalog.getSubject(block.subjectId);
     const indicator = subject.dataset?.indicators.find(item => item.id === block.indicatorId);
     if (!indicator) return '';
     const selected = new Set(block.itemIds || []);
     const linkedItems = indicatorLinkedItems(c, block);
-    const branchGroups = scoreIndicatorBranchGroups(linkedItems);
-    const x = Number.isFinite(Number(block.x)) ? Number(block.x) : 18 + (index % 3) * 350;
-    const y = Number.isFinite(Number(block.y)) ? Number(block.y) : 18 + Math.floor(index / 3) * 250;
+    const defaultPosition = scoreIndicatorDefaultPosition(index);
+    const x = Number.isFinite(Number(block.x)) ? Number(block.x) : defaultPosition.x;
+    const y = Number.isFinite(Number(block.y)) ? Number(block.y) : defaultPosition.y;
     return `<article class="indicator-map-group" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(0,x)}px;top:${Math.max(0,y)}px">
       <div class="indicator-mini-block">
         <header class="indicator-mini-drag" title="ลากเพื่อย้ายตำแหน่ง"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>${escapeScore(indicator.code)}</strong></header>
         <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนเต็มสำหรับ ปพ.5</small><strong>${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div><footer><b>${selected.size} งานที่เชื่อม</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button></footer></div>
       </div>
-      ${linkedItems.length ? `<div class="indicator-job-branches">${scoreIndicatorBranchColumn('ก่อนกลางภาค', branchGroups.before)}${scoreIndicatorBranchColumn('หลังกลางภาค', branchGroups.after)}</div>` : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เชื่อมโยงงาน</button>`}
+      ${linkedItems.length ? `<div class="indicator-job-branches">${linkedItems.map(scoreIndicatorBranchNode).join('')}</div>` : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เชื่อมโยงงาน</button>`}
     </article>`;
   }).join('');
   enableScoreIndicatorMiniDragging(c, holder);
@@ -529,7 +526,7 @@ function enableScoreIndicatorMiniDragging(c, canvas) {
       const originX = Number(el.style.left.replace('px','')) || 0;
       const originY = Number(el.style.top.replace('px','')) || 0;
       handle.onpointermove = move => {
-        block.x = Math.max(0, Math.min(canvas.clientWidth - el.offsetWidth, originX + move.clientX - startX));
+        block.x = Math.max(0, Math.min(scoreIndicatorCanvasWidth(canvas) - el.offsetWidth, originX + move.clientX - startX));
         block.y = Math.max(0, Math.min(canvas.clientHeight - el.offsetHeight, originY + move.clientY - startY));
         el.style.left = `${block.x}px`;
         el.style.top = `${block.y}px`;

@@ -1127,7 +1127,11 @@
 .indicator-search-results .curriculum-indicator-list { grid-template-columns: 1fr; }
 .indicator-search-results .curriculum-indicator-row { grid-template-columns: 120px minmax(0,1fr) auto; }
 .score-indicator-list.indicator-mini-canvas { position: relative; display: block; min-height: 700px; overflow: auto; border: 1px dashed color-mix(in srgb, var(--primary) 28%, var(--border-color)); border-radius: 16px; background-color: #fbfcff; background-image: radial-gradient(circle, #dce3eb 1px, transparent 1px); background-size: 22px 22px; }
-.indicator-map-group { position: absolute; display: grid; justify-items: center; gap: 0; width: 320px; }
+.indicator-canvas-lanes { position: absolute; inset: 0 auto 0 0; z-index: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); width: max(100%,760px); min-height: 100%; pointer-events: none; }
+.indicator-canvas-lanes > span { display: block; padding-top: 14px; color: var(--text-muted); font-size: .76rem; font-weight: 850; text-align: center; }
+.indicator-canvas-lanes > span:first-child { border-right: 1px solid color-mix(in srgb,var(--primary) 34%,var(--border-color)); background: linear-gradient(90deg,rgba(20,184,166,.05),rgba(255,255,255,.2)); }
+.indicator-canvas-lanes > span:last-child { background: linear-gradient(90deg,rgba(255,255,255,.2),rgba(14,165,233,.05)); }
+.indicator-map-group { position: absolute; z-index: 1; display: grid; justify-items: center; gap: 0; width: 204px; }
 .indicator-mini-block { position: relative; width: 204px; border: 1px solid var(--border-color); border-radius: 13px; background: var(--bg-card); box-shadow: 0 5px 15px rgba(15,23,42,.08); overflow: hidden; }
 .indicator-mini-drag { display: flex; align-items: center; gap: 6px; min-height: 31px; padding: 6px 8px; background: var(--primary-light); cursor: grab; user-select: none; touch-action: none; }
 .indicator-mini-drag:active { cursor: grabbing; }
@@ -1142,15 +1146,9 @@
 .indicator-mini-content footer { display: flex; align-items: center; gap: 5px; margin-top: 8px; }
 .indicator-mini-content b { padding: 3px 6px; border-radius: 999px; background: var(--bg-light); color: var(--text-muted); font-size: .6rem; }
 .indicator-mini-content footer button { margin-left: auto; padding: 3px 5px; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: .58rem; cursor: pointer; }
-.indicator-job-branches { position: relative; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; width: 100%; padding-top: 24px; }
-.indicator-job-branches::before { content: ''; position: absolute; left: 50%; top: 0; width: 2px; height: 24px; border-radius: 2px; background: color-mix(in srgb,var(--primary) 38%,var(--border-color)); transform: translateX(-50%); }
-.indicator-job-branches::after { content: ''; position: absolute; left: 25%; right: 25%; top: 24px; height: 2px; border-radius: 2px; background: color-mix(in srgb,var(--primary) 38%,var(--border-color)); }
-.indicator-branch-column { position: relative; display: grid; gap: 7px; min-width: 0; padding-top: 12px; }
-.indicator-branch-column::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; border-radius: 2px; background: color-mix(in srgb,var(--primary) 28%,var(--border-color)); transform: translateX(-50%); }
-.indicator-branch-column > header { position: relative; z-index: 1; justify-self: center; max-width: 100%; padding: 3px 7px; border: 1px solid var(--border-color); border-radius: 999px; background: var(--bg-card); color: var(--text-muted); font-size: .56rem; font-weight: 800; white-space: nowrap; }
-.indicator-branch-column > div { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 26px; }
+.indicator-job-branches { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; padding-top: 24px; }
+.indicator-job-branches::before { content: ''; position: absolute; left: 50%; top: 0; width: 2px; height: 100%; border-radius: 2px; background: color-mix(in srgb,var(--primary) 32%,var(--border-color)); transform: translateX(-50%); }
 .indicator-job-node { display: inline-grid; place-items: center; min-width: 44px; max-width: 92px; min-height: 28px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 9px; background: var(--bg-card); box-shadow: 0 3px 10px rgba(15,23,42,.05); color: var(--primary-deep); font-size: .66rem; font-weight: 850; line-height: 1.15; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.indicator-branch-none { display: inline-grid; place-items: center; width: 24px; height: 24px; border: 1px dashed var(--border-color); border-radius: 999px; background: var(--bg-card); color: var(--text-muted); font-size: .66rem; }
 .indicator-branch-empty { position: relative; margin-top: 24px; width: 150px; min-height: 38px; padding: 7px 9px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-card); box-shadow: 0 3px 10px rgba(15,23,42,.05); color: var(--primary); font: inherit; font-size: .66rem; font-weight: 800; cursor: pointer; }
 .indicator-branch-empty::before { content: ''; position: absolute; left: 50%; bottom: 100%; width: 2px; height: 24px; background: color-mix(in srgb,var(--primary) 38%,var(--border-color)); transform: translateX(-50%); }
 .indicator-editor-overlay { position: fixed; inset: 0; z-index: 9210; display: grid; place-items: center; padding: 18px; background: rgba(15,23,42,.42); backdrop-filter: blur(3px); }
@@ -1231,12 +1229,12 @@
   .indicator-search-results .curriculum-indicator-row { grid-template-columns: 1fr auto; }
   .indicator-search-results .curriculum-indicator-code { grid-column: 1 / -1; }
   .score-indicator-list.indicator-mini-canvas { min-height: 720px; }
-  .indicator-map-group { gap: 0; width: min(252px,calc(100% - 12px)); }
+  .indicator-canvas-lanes { width: max(100%,760px); }
+  .indicator-canvas-lanes > span { padding-top: 12px; font-size: .68rem; }
+  .indicator-map-group { gap: 0; width: 204px; }
   .indicator-mini-block { width: min(204px,100%); }
-  .indicator-job-branches { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; width: 100%; padding-top: 20px; }
-  .indicator-job-branches::before { left: 50%; top: 0; width: 2px; height: 20px; transform: translateX(-50%); }
-  .indicator-job-branches::after { left: 25%; right: 25%; top: 20px; }
-  .indicator-branch-column > header { padding: 3px 5px; font-size: .52rem; }
+  .indicator-job-branches { gap: 5px; width: 100%; padding-top: 20px; }
+  .indicator-job-branches::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
   .indicator-job-node { min-width: 36px; max-width: 76px; padding: 4px 6px; font-size: .6rem; }
   .indicator-branch-empty { width: 140px; margin-top: 20px; }
   .indicator-branch-empty::before { left: 50%; bottom: 100%; top: auto; width: 2px; height: 20px; transform: translateX(-50%); }
