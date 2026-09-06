@@ -425,6 +425,42 @@ function indicatorLinkedItems(c, block) {
   return ensureScores(c).items.filter(item => selected.has(item.id));
 }
 
+function scoreItemShortLabel(item, index = 0) {
+  const name = String(item?.name || '').trim();
+  const fallbackNo = String(index + 1);
+  const no = (name.match(/(?:ที่\s*)?([0-9๐-๙]+)/) || [])[1] || fallbackNo;
+  if (/สอบ\s*กลาง|กลางภาค/.test(name)) return 'กลาง';
+  if (/สอบ\s*ปลาย|ปลายภาค/.test(name)) return 'ปลาย';
+  if (/แบบฝึก|แบบฝึกหัด/.test(name)) return `ฝึก${no}`;
+  if (/ใบงาน/.test(name)) return `ใบ${no}`;
+  if (/กิจกรรม/.test(name)) return `กิจ${no}`;
+  if (/โครงงาน|project/i.test(name)) return `ครง${no}`;
+  if (/quiz|ควิซ/i.test(name)) return `Q${no}`;
+  if (/งาน/.test(name)) return `ง${no}`;
+  const compact = name.replace(/\s+/g, '');
+  return compact ? Array.from(compact).slice(0, 5).join('') : `งาน${fallbackNo}`;
+}
+
+function scoreIndicatorBranchGroups(items) {
+  return {
+    before: items.filter(item => item.bucket !== 'after' && item.bucket !== 'final'),
+    after: items.filter(item => item.bucket === 'after' || item.bucket === 'final')
+  };
+}
+
+function scoreIndicatorBranchNode(item, index) {
+  const label = scoreItemShortLabel(item, index);
+  const title = `${item.name || 'งาน'} · ${scoreBucketLabel(item.bucket)} · เต็ม ${formatIndicatorScore(item.max)} คะแนน`;
+  return `<span class="indicator-job-node" title="${escapeScoreAttr(title)}" aria-label="${escapeScoreAttr(title)}">${escapeScore(label)}</span>`;
+}
+
+function scoreIndicatorBranchColumn(label, items) {
+  return `<section class="indicator-branch-column">
+    <header>${label}</header>
+    <div>${items.length ? items.map(scoreIndicatorBranchNode).join('') : '<span class="indicator-branch-none">—</span>'}</div>
+  </section>`;
+}
+
 function setIndicatorMaxScore(classId, indicatorId, value) {
   const c = appState.classes.find(x => x.id === classId);
   const block = c && getScoreIndicatorBoard(c).find(item => item.indicatorId === indicatorId);
@@ -467,14 +503,15 @@ function renderScoreIndicatorList(c) {
     if (!indicator) return '';
     const selected = new Set(block.itemIds || []);
     const linkedItems = indicatorLinkedItems(c, block);
-    const x = Number.isFinite(Number(block.x)) ? Number(block.x) : 18 + (index % 4) * 228;
-    const y = Number.isFinite(Number(block.y)) ? Number(block.y) : 18 + Math.floor(index / 4) * 146;
+    const branchGroups = scoreIndicatorBranchGroups(linkedItems);
+    const x = Number.isFinite(Number(block.x)) ? Number(block.x) : 18 + (index % 3) * 350;
+    const y = Number.isFinite(Number(block.y)) ? Number(block.y) : 18 + Math.floor(index / 3) * 250;
     return `<article class="indicator-map-group" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(0,x)}px;top:${Math.max(0,y)}px">
       <div class="indicator-mini-block">
         <header class="indicator-mini-drag" title="ลากเพื่อย้ายตำแหน่ง"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>${escapeScore(indicator.code)}</strong></header>
         <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนเต็มสำหรับ ปพ.5</small><strong>${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div><footer><b>${selected.size} งานที่เชื่อม</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button></footer></div>
       </div>
-      <div class="indicator-job-branches">${linkedItems.length ? linkedItems.map(item => `<div class="indicator-job-node"><span>${escapeScore(item.name)}</span><strong>${formatIndicatorScore(item.max)} คะแนน</strong><small>คะแนนเต็มชิ้นงาน</small></div>`).join('') : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เชื่อมโยงงาน</button>`}</div>
+      ${linkedItems.length ? `<div class="indicator-job-branches">${scoreIndicatorBranchColumn('ก่อนกลางภาค', branchGroups.before)}${scoreIndicatorBranchColumn('หลังกลางภาค', branchGroups.after)}</div>` : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เชื่อมโยงงาน</button>`}
     </article>`;
   }).join('');
   enableScoreIndicatorMiniDragging(c, holder);
