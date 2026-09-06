@@ -1111,7 +1111,11 @@
 .indicator-no-items { padding: 14px; color: var(--text-muted); font-size: .76rem; text-align: center; }
 .indicator-remove-btn { margin-top: 11px; padding: 5px 0; border: 0; background: transparent; color: var(--color-absent); font: inherit; font-size: .72rem; cursor: pointer; }
 .indicator-search-overlay { position: fixed; inset: 0; z-index: 9200; display: grid; place-items: center; padding: 18px; background: rgba(15,23,42,.42); backdrop-filter: blur(3px); }
-.indicator-search-panel { width: min(760px, 100%); max-height: min(780px, calc(100vh - 36px)); display: flex; flex-direction: column; padding: 18px; border-radius: 20px; background: var(--bg-card); box-shadow: var(--shadow-lg); }
+.indicator-search-panel { width: min(1120px, 100%); max-height: min(860px, calc(100vh - 36px)); display: flex; flex-direction: column; overflow: auto; padding: 18px; border-radius: 20px; background: var(--bg-card); box-shadow: var(--shadow-lg); }
+.indicator-search-panel > header,
+.indicator-search-panel > .curriculum-subject-rail,
+.indicator-search-panel > .curriculum-filter-bar { flex-shrink: 0; }
+.indicator-search-panel > .curriculum-filter-bar { margin-top: 12px; }
 .indicator-search-panel > header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
 .indicator-search-panel > header span { color: var(--primary); font-size: .7rem; font-weight: 800; }
 .indicator-search-panel > header h3 { margin-top: 2px; font-size: 1.08rem; }
@@ -1229,6 +1233,7 @@
   .indicator-list-detail { padding: 0 12px 12px 42px; }
   .indicator-search-overlay { align-items: end; padding: 0; }
   .indicator-search-panel { width: 100%; max-height: 92vh; border-radius: 20px 20px 0 0; padding-bottom: max(18px, env(safe-area-inset-bottom)); }
+  .indicator-search-panel .indicator-search-results { flex-shrink: 0; overflow: visible; }
   .indicator-search-filters .curriculum-filter-bar { grid-template-columns: 1fr; }
   .indicator-search-results .curriculum-indicator-row { grid-template-columns: 1fr auto; }
   .indicator-search-results .curriculum-indicator-code { grid-column: 1 / -1; }

@@ -324,14 +324,13 @@ function renderCurriculumCatalog(c) {
     ${scoreIndicatorSearchOpen && subject.available ? `<div class="indicator-search-overlay" onclick="if(event.target===this) closeScoreIndicatorSearch('${c.id}')">
       <section class="indicator-search-panel">
         <header><div><span>คลังหลักสูตร ClassKru</span><h3>เพิ่มตัวชี้วัด</h3></div><button type="button" onclick="closeScoreIndicatorSearch('${c.id}')" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button></header>
-        <label class="indicator-search-main"><i class="hgi-stroke hgi-search-01"></i><input type="search" value="${escapeScore(scoreCurriculumFilters.query).replace(/"/g, '&quot;')}" placeholder="ค้นหารหัสหรือคำสำคัญ เช่น เซลล์" oninput="setCurriculumCatalogQuery(this.value)" autofocus></label>
-        <details class="indicator-search-filters"><summary><i class="hgi-stroke hgi-filter"></i> ตัวกรองเพิ่มเติม</summary>
+        ${curriculumSubjectRailHtml(catalog)}
           <div class="curriculum-filter-bar">
             <label><span>ระดับชั้น</span><select onchange="setCurriculumCatalogFilter('grade',this.value)">${grades.map(value => `<option value="${value}"${value === grade ? ' selected' : ''}>${curriculumGradeLabel(value)}</option>`).join('')}</select></label>
             <label><span>หน่วย / สาระ</span><select onchange="setCurriculumCatalogFilter('unitId',this.value)"><option value="all">ทุกหน่วย</option>${units.map(unit => `<option value="${unit.id}"${unit.id === scoreCurriculumFilters.unitId ? ' selected' : ''}>${escapeScore(unit.title)} (${unit.indicatorCount})</option>`).join('')}</select></label>
             <label><span>มาตรฐาน</span><select onchange="setCurriculumCatalogFilter('standardId',this.value)"><option value="all">ทุกมาตรฐาน</option>${standards.map(standard => `<option value="${standard.id}"${standard.id === scoreCurriculumFilters.standardId ? ' selected' : ''}>${escapeScore(standard.code)} · ${escapeScore(standard.title)}</option>`).join('')}</select></label>
+            <label class="curriculum-search"><span>ค้นหา</span><div><i class="hgi-stroke hgi-search-01"></i><input type="search" value="${escapeScoreAttr(scoreCurriculumFilters.query)}" placeholder="รหัสหรือคำสำคัญ" oninput="setCurriculumCatalogQuery(this.value)"></div></label>
           </div>
-        </details>
         <div id="curriculum-catalog-results" class="indicator-search-results"></div>
       </section>
     </div>` : ''}
@@ -378,7 +377,7 @@ function openScoreIndicatorSearch(classId) {
     const grades = window.CKCurriculumCatalog?.getGrades(scoreCurriculumFilters.subjectId) || [];
     if (grades.includes(classGrade)) scoreCurriculumFilters.grade = classGrade;
     renderCurriculumCatalog(c);
-    setTimeout(() => document.querySelector('.indicator-search-main input')?.focus(), 0);
+    setTimeout(() => document.querySelector('.indicator-search-panel .curriculum-search input')?.focus(), 0);
   }
 }
 
