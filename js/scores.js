@@ -415,32 +415,14 @@ function formatIndicatorScore(value) {
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
 }
 
-function formatIndicatorDetail(value) {
-  const rounded = Math.round((Number(value) || 0) * 100) / 100;
-  return Number.isInteger(rounded) ? String(rounded) : String(rounded).replace(/0$/, '');
-}
-
 function indicatorConfiguredMax(block) {
   const value = Number(block.maxScore);
   return Number.isFinite(value) && value > 0 ? value : 10;
 }
 
-function indicatorItemAllocations(c, block) {
+function indicatorLinkedItems(c, block) {
   const selected = new Set(block.itemIds || []);
-  const items = ensureScores(c).items.filter(item => selected.has(item.id));
-  const linkedMax = items.reduce((sum, item) => sum + (Number(item.max) || 0), 0);
-  const targetMax = indicatorConfiguredMax(block);
-  let usedWeight = 0;
-  let usedPoints = 0;
-  return items.map((item, index) => {
-    const last = index === items.length - 1;
-    const ratio = linkedMax ? (Number(item.max) || 0) / linkedMax : 0;
-    const weight = last ? Math.max(0, Math.round((100 - usedWeight) * 10) / 10) : Math.round(ratio * 1000) / 10;
-    const points = last ? Math.max(0, Math.round((targetMax - usedPoints) * 100) / 100) : Math.round(ratio * targetMax * 100) / 100;
-    usedWeight += weight;
-    usedPoints += points;
-    return { item, weight, points };
-  });
+  return ensureScores(c).items.filter(item => selected.has(item.id));
 }
 
 function setIndicatorMaxScore(classId, indicatorId, value) {
@@ -466,7 +448,7 @@ function toggleIndicatorItem(classId, indicatorId, itemId, checked) {
   saveState();
   renderScoreIndicatorList(c);
   const editorTotal = document.querySelector('.indicator-editor-total');
-  if (editorTotal && scoreIndicatorEditingId === indicatorId) editorTotal.innerHTML = `<span>เลือกแล้ว ${block.itemIds.length} งาน</span><strong>ตัวชี้วัดเต็ม ${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong>`;
+  if (editorTotal && scoreIndicatorEditingId === indicatorId) editorTotal.innerHTML = `<span>เชื่อมโยงแล้ว ${block.itemIds.length} งาน</span><strong>ตัวชี้วัดเต็ม ${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong>`;
 }
 
 function renderScoreIndicatorList(c) {
@@ -475,7 +457,7 @@ function renderScoreIndicatorList(c) {
   if (!holder || !catalog) return;
   const board = getScoreIndicatorBoard(c);
   if (!board.length) {
-    holder.innerHTML = `<div class="indicator-list-empty"><i class="hgi-stroke hgi-book-open-01"></i><strong>ยังไม่ได้เลือกตัวชี้วัด</strong><span>เริ่มจากเพิ่มตัวชี้วัด แล้วเลือกงานที่ใช้ประเมิน</span><button class="btn btn-primary" type="button" onclick="openScoreIndicatorSearch('${c.id}')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มตัวชี้วัด</button></div>`;
+    holder.innerHTML = `<div class="indicator-list-empty"><i class="hgi-stroke hgi-book-open-01"></i><strong>ยังไม่ได้เลือกตัวชี้วัด</strong><span>เริ่มจากเพิ่มตัวชี้วัด แล้วเชื่อมโยงกับงานในรายวิชา</span><button class="btn btn-primary" type="button" onclick="openScoreIndicatorSearch('${c.id}')"><i class="hgi-stroke hgi-add-01"></i> เพิ่มตัวชี้วัด</button></div>`;
     return;
   }
   holder.classList.add('indicator-mini-canvas');
@@ -484,15 +466,15 @@ function renderScoreIndicatorList(c) {
     const indicator = subject.dataset?.indicators.find(item => item.id === block.indicatorId);
     if (!indicator) return '';
     const selected = new Set(block.itemIds || []);
-    const allocations = indicatorItemAllocations(c, block);
+    const linkedItems = indicatorLinkedItems(c, block);
     const x = Number.isFinite(Number(block.x)) ? Number(block.x) : 18 + (index % 4) * 228;
     const y = Number.isFinite(Number(block.y)) ? Number(block.y) : 18 + Math.floor(index / 4) * 146;
     return `<article class="indicator-map-group" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(0,x)}px;top:${Math.max(0,y)}px">
       <div class="indicator-mini-block">
         <header class="indicator-mini-drag" title="ลากเพื่อย้ายตำแหน่ง"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>${escapeScore(indicator.code)}</strong></header>
-        <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนเต็มสำหรับ ปพ.5</small><strong>${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div><footer><b>${selected.size} งาน</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button></footer></div>
+        <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนเต็มสำหรับ ปพ.5</small><strong>${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div><footer><b>${selected.size} งานที่เชื่อม</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button></footer></div>
       </div>
-      <div class="indicator-job-branches">${allocations.length ? allocations.map(({item,weight,points}) => `<div class="indicator-job-node"><span>${escapeScore(item.name)}</span><strong>เต็ม ${formatIndicatorScore(item.max)} คะแนน</strong><small>น้ำหนัก ${formatIndicatorDetail(weight)}% · คิดเป็น ${formatIndicatorDetail(points)} คะแนน</small></div>`).join('') : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เลือกงาน</button>`}</div>
+      <div class="indicator-job-branches">${linkedItems.length ? linkedItems.map(item => `<div class="indicator-job-node"><span>${escapeScore(item.name)}</span><strong>${formatIndicatorScore(item.max)} คะแนน</strong><small>คะแนนเต็มชิ้นงาน</small></div>`).join('') : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เชื่อมโยงงาน</button>`}</div>
     </article>`;
   }).join('');
   enableScoreIndicatorMiniDragging(c, holder);
@@ -534,12 +516,13 @@ function scoreIndicatorEditorHtml(c, indicatorId) {
   const indicator = subject.dataset?.indicators.find(item => item.id === indicatorId);
   if (!indicator) return '';
   const selected = new Set(block.itemIds || []);
+  const scoreItems = ensureScores(c).items;
   return `<div class="indicator-editor-overlay" onclick="if(event.target===this) closeScoreIndicatorEditor('${c.id}')"><section class="indicator-editor-panel">
-    <header><div><strong>${escapeScore(indicator.code)}</strong><h3>งานที่ใช้ประเมิน</h3></div><button type="button" onclick="closeScoreIndicatorEditor('${c.id}')" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button></header>
+    <header><div><strong>${escapeScore(indicator.code)}</strong><h3>งานที่เชื่อมโยง</h3></div><button type="button" onclick="closeScoreIndicatorEditor('${c.id}')" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button></header>
     <p>${escapeScore(indicator.text)}</p>
     <label class="indicator-max-field"><span>คะแนนเต็มของตัวชี้วัด</span><input type="number" min="0.5" step="0.5" value="${escapeScoreAttr(indicatorConfiguredMax(block))}" onchange="setIndicatorMaxScore('${c.id}','${block.indicatorId}',this.value)"></label>
-    <div class="indicator-editor-total"><span>เลือกแล้ว ${selected.size} งาน</span><strong>ตัวชี้วัดเต็ม ${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div>
-    <div class="indicator-linked-items">${c.scores.items.length ? c.scores.items.map(item => `<label><input type="checkbox"${selected.has(item.id) ? ' checked' : ''} onchange="toggleIndicatorItem('${c.id}','${block.indicatorId}','${item.id}',this.checked)"><span>${escapeScore(item.name)}</span><small>${item.max} คะแนน</small></label>`).join('') : '<div class="indicator-no-items">ยังไม่มีงานในรายวิชานี้ กรุณาเพิ่มงานในแท็บคะแนนก่อน</div>'}</div>
+    <div class="indicator-editor-total"><span>เชื่อมโยงแล้ว ${selected.size} งาน</span><strong>ตัวชี้วัดเต็ม ${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div>
+    <div class="indicator-linked-items">${scoreItems.length ? scoreItems.map(item => `<label><input type="checkbox"${selected.has(item.id) ? ' checked' : ''} onchange="toggleIndicatorItem('${c.id}','${block.indicatorId}','${item.id}',this.checked)"><span>${escapeScore(item.name)}</span><small>${item.max} คะแนน</small></label>`).join('') : '<div class="indicator-no-items">ยังไม่มีงานในรายวิชานี้ กรุณาเพิ่มงานในแท็บคะแนนก่อน</div>'}</div>
     <footer><button class="indicator-remove-btn" type="button" onclick="removeScoreIndicatorBlock('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-delete-02"></i> นำตัวชี้วัดออก</button><button class="btn btn-primary" type="button" onclick="closeScoreIndicatorEditor('${c.id}')">เสร็จแล้ว</button></footer>
   </section></div>`;
 }
