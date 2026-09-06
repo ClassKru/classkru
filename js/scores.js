@@ -500,15 +500,13 @@ function renderScoreIndicatorList(c) {
     const subject = catalog.getSubject(block.subjectId);
     const indicator = subject.dataset?.indicators.find(item => item.id === block.indicatorId);
     if (!indicator) return '';
-    const selected = new Set(block.itemIds || []);
     const linkedItems = indicatorLinkedItems(c, block);
     const defaultPosition = scoreIndicatorDefaultPosition(index);
     const x = Number.isFinite(Number(block.x)) ? Number(block.x) : defaultPosition.x;
     const y = Number.isFinite(Number(block.y)) ? Number(block.y) : defaultPosition.y;
     return `<article class="indicator-map-group" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(12,x)}px;top:${Math.max(80,y)}px">
       <div class="indicator-mini-block">
-        <header class="indicator-mini-drag" title="ลากเพื่อย้ายตำแหน่ง"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>${escapeScore(indicator.code)}</strong></header>
-        <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนเต็มสำหรับ ปพ.5</small><strong>${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div><footer><b>${selected.size} งานที่เชื่อม</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button></footer></div>
+        <header class="indicator-mini-drag" title="ลากที่จุดเพื่อย้ายตำแหน่ง"><i class="hgi-stroke hgi-drag-drop-vertical"></i><button type="button" class="indicator-code-button" title="${escapeScoreAttr(indicator.text)}" aria-label="แก้ไขตัวชี้วัด ${escapeScoreAttr(indicator.code)}" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')">${escapeScore(indicator.code)}</button></header>
       </div>
       ${linkedItems.length ? `<div class="indicator-job-branches">${linkedItems.map(scoreIndicatorBranchNode).join('')}</div>` : `<button class="indicator-branch-empty" type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-add-01"></i> เชื่อมโยงงาน</button>`}
     </article>`;
@@ -519,6 +517,7 @@ function renderScoreIndicatorList(c) {
 function enableScoreIndicatorMiniDragging(c, canvas) {
   canvas.querySelectorAll('.indicator-mini-drag').forEach(handle => {
     handle.onpointerdown = event => {
+      if (event.target.closest('button')) return;
       const el = handle.closest('.indicator-map-group');
       const block = getScoreIndicatorBoard(c).find(item => item.indicatorId === el.dataset.indicatorId);
       if (!block) return;
