@@ -450,7 +450,9 @@ function scoreIndicatorBranchNode(item, index) {
 
 function scoreIndicatorDefaultPosition(index) {
   const lane = index % 2;
-  return { x: 48 + lane * 380, y: 58 + Math.floor(index / 2) * 230 };
+  const canvas = document.getElementById('score-indicator-list');
+  const laneWidth = (canvas ? scoreIndicatorCanvasWidth(canvas) : SCORE_INDICATOR_BOARD_MIN_WIDTH) / 2;
+  return { x: (laneWidth - 204) / 2 + lane * laneWidth, y: 80 + Math.floor(index / 2) * 360 };
 }
 
 function scoreIndicatorCanvasWidth(canvas) {
@@ -503,7 +505,7 @@ function renderScoreIndicatorList(c) {
     const defaultPosition = scoreIndicatorDefaultPosition(index);
     const x = Number.isFinite(Number(block.x)) ? Number(block.x) : defaultPosition.x;
     const y = Number.isFinite(Number(block.y)) ? Number(block.y) : defaultPosition.y;
-    return `<article class="indicator-map-group" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(0,x)}px;top:${Math.max(0,y)}px">
+    return `<article class="indicator-map-group" data-indicator-id="${escapeScoreAttr(block.indicatorId)}" style="left:${Math.max(12,x)}px;top:${Math.max(80,y)}px">
       <div class="indicator-mini-block">
         <header class="indicator-mini-drag" title="ลากเพื่อย้ายตำแหน่ง"><i class="hgi-stroke hgi-drag-drop-vertical"></i><strong>${escapeScore(indicator.code)}</strong></header>
         <div class="indicator-mini-content"><span>${escapeScore(indicator.text)}</span><div class="indicator-live-score"><small>คะแนนเต็มสำหรับ ปพ.5</small><strong>${formatIndicatorScore(indicatorConfiguredMax(block))} คะแนน</strong></div><footer><b>${selected.size} งานที่เชื่อม</b><button type="button" onclick="openScoreIndicatorEditor('${c.id}','${block.indicatorId}')"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อมูล</button></footer></div>
@@ -527,7 +529,7 @@ function enableScoreIndicatorMiniDragging(c, canvas) {
       const originY = Number(el.style.top.replace('px','')) || 0;
       handle.onpointermove = move => {
         block.x = Math.max(0, Math.min(scoreIndicatorCanvasWidth(canvas) - el.offsetWidth, originX + move.clientX - startX));
-        block.y = Math.max(0, Math.min(canvas.clientHeight - el.offsetHeight, originY + move.clientY - startY));
+        block.y = Math.max(80, Math.min(Math.max(canvas.clientHeight, canvas.scrollHeight) - el.offsetHeight, originY + move.clientY - startY));
         el.style.left = `${block.x}px`;
         el.style.top = `${block.y}px`;
       };
