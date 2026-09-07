@@ -509,11 +509,6 @@ function renderOverallReport() {
   badge.style.background = health.bg;
   badge.style.color = health.fg;
 
-  const riskStudents = [];
-  c.students.forEach(s => { let ab=0; dates.forEach(d=>{if((c.attendance[d]||{})[s.id]==='absent')ab++;}); if(ab>=2) riskStudents.push({name:s.name,absent:ab}); });
-  document.getElementById('web-rep-overall-insights').innerHTML = riskStudents.length > 0
-    ? riskStudents.map(r => `<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><i class="hgi-stroke hgi-alert-02" style="color:var(--color-absent);"></i> ${r.name} ขาด ${r.absent} คาบ</div>`).join('')
-    : '<div style="display:flex;align-items:center;gap:6px;"><i class="hgi-stroke hgi-checkmark-circle-02" style="color:var(--color-present);"></i> ไม่มีนักเรียนกลุ่มเสี่ยง</div>';
 }
 
 // ==================== EXCEL EXPORT ====================
