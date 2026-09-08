@@ -217,23 +217,64 @@ function scoreReportRows(c) {
   });
 }
 
+let scoreReportSelectedItem = '';
+function selectScoreReportItem(value) {
+  scoreReportSelectedItem = value;
+  const c = appState.classes.find(item => item.id === scoreCurrentClassId);
+  if (c) renderScoreReport(c);
+}
+
+function scoreReportDistribution(c, item) {
+  const groups = [
+    { label: 'ต่ำกว่า 50%', count: 0, color: '#e46b68' },
+    { label: '50–ต่ำกว่า 60%', count: 0, color: '#e7a33e' },
+    { label: '60–ต่ำกว่า 70%', count: 0, color: '#8d79d6' },
+    { label: '70–ต่ำกว่า 80%', count: 0, color: '#4298cf' },
+    { label: '80–100%', count: 0, color: '#16a085' }
+  ];
+  if (!item || !Number.isFinite(Number(item.max)) || Number(item.max) <= 0) return groups;
+  const marks = ensureScores(c).marks[item.id] || {};
+  (c.students || []).forEach(student => {
+    const value = marks[student.id];
+    if (value == null || String(value).trim() === '' || !Number.isFinite(Number(value))) return;
+    const percent = clampMark(value, item.max) / Number(item.max) * 100;
+    groups[percent < 50 ? 0 : percent < 60 ? 1 : percent < 70 ? 2 : percent < 80 ? 3 : 4].count++;
+  });
+  return groups;
+}
+
 function renderScoreReport(c) {
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (!wrap) return;
   const rows = scoreReportRows(c);
   const total = (c.students || []).length;
   const number = value => value.toLocaleString('th-TH', { maximumFractionDigits: 1 });
+  const selected = rows.find(row => row.item.id === scoreReportSelectedItem) || rows[0];
+  const groups = scoreReportDistribution(c, selected?.item);
+  const recorded = groups.reduce((sum, group) => sum + group.count, 0);
+  let angle = 0;
+  const slices = groups.map(group => {
+    const start = angle;
+    angle += recorded ? group.count / recorded * 360 : 0;
+    return `${group.color} ${start}deg ${angle}deg`;
+  }).join(',');
   wrap.innerHTML = `<section class="score-report">
     <header><h3>ภาพรวมคะแนนชิ้นงาน</h3><p>หนึ่งแท่งแทนหนึ่งชิ้นงาน · คะแนนเฉลี่ยเทียบเป็นเปอร์เซ็นต์</p></header>
     <div class="score-report-summary"><span>ทั้งหมด <b>${rows.length}</b> ชิ้นงาน</span><span>นักเรียน <b>${total}</b> คน</span><span>มีคะแนนแล้ว <b>${rows.filter(row => row.percent !== null).length}</b> ชิ้นงาน</span></div>
     <p class="score-report-note">คำนวณจากนักเรียนที่มีคะแนนในแต่ละงานเท่านั้น รวมคะแนน 0 แต่ไม่นับช่องว่าง · งานที่กรอกไม่ครบเป็นผลชั่วคราว</p>
     ${!rows.length ? '<p class="score-report-empty">ยังไม่มีชิ้นงาน กรุณาเพิ่มรายการในแท็บคะแนนก่อน</p>' : !total ? '<p class="score-report-empty">ห้องนี้ยังไม่มีนักเรียน</p>' : `
-    <div class="score-report-axis" aria-hidden="true"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+    <div class="score-report-vertical"><div class="score-report-axis" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div><div class="score-report-scroll">
     <ol class="score-report-chart">${rows.map(row => `<li class="score-report-row">
       <div class="score-report-label"><strong>${escapeScore(row.item.name)}</strong><span>${row.percent === null ? 'ยังไม่มีผลคะแนน' : `${number(row.percent)}%`}</span></div>
-      <div class="score-report-track" role="img" aria-label="${escapeScoreAttr(row.item.name)}: ${row.percent === null ? 'ยังไม่มีผลคะแนน' : `คะแนนเฉลี่ย ${number(row.percent)} เปอร์เซ็นต์`}">${row.percent === null ? '' : `<div class="score-report-bar" style="width:${row.percent}%"></div>`}</div>
+      <div class="score-report-track" role="img" aria-label="${escapeScoreAttr(row.item.name)}: ${row.percent === null ? 'ยังไม่มีผลคะแนน' : `คะแนนเฉลี่ย ${number(row.percent)} เปอร์เซ็นต์`}">${row.percent === null ? '' : `<div class="score-report-bar" style="height:${row.percent}%"></div>`}</div>
       <div class="score-report-detail"><span>${row.average === null ? 'ยังคำนวณไม่ได้' : `เฉลี่ย ${number(row.average)} / ${number(Number(row.item.max))} คะแนน`}</span><span>มีคะแนน ${row.count}/${total} คน${row.count < total ? ' · ยังไม่ครบ' : ''}</span></div>
-    </li>`).join('')}</ol>`}
+    </li>`).join('')}</ol></div></div>
+    <section class="score-report-pie-section"><h3>สัดส่วนนักเรียนตามช่วงคะแนน</h3>
+      <label for="score-report-item">เลือกชิ้นงาน</label>
+      <select id="score-report-item" class="form-control" onchange="selectScoreReportItem(this.value)">${rows.map(row => `<option value="${escapeScoreAttr(row.item.id)}"${row === selected ? ' selected' : ''}>${escapeScore(row.item.name)}</option>`).join('')}</select>
+      <p class="score-report-note">ช่วงคะแนนคิดเป็นเปอร์เซ็นต์ของคะแนนเต็ม · มีคะแนน ${recorded}/${total} คน · ยังไม่มีคะแนน ${total - recorded} คน (ไม่นับในวงกลม)</p>
+      ${recorded ? `<div class="score-report-pie-layout"><div class="score-report-pie" role="img" aria-label="สัดส่วนช่วงคะแนน: ${groups.map(group => `${group.label} ${group.count} คน`).join(', ')}" style="background:conic-gradient(${slices})"></div><ul class="score-report-legend">${groups.map(group => `<li><span class="score-report-dot" style="background:${group.color}"></span><span>${group.label}</span><strong>${group.count} คน (${number(group.count / recorded * 100)}%)</strong></li>`).join('')}</ul></div>` : '<p class="score-report-empty">ยังไม่มีผลคะแนนสำหรับแสดงกราฟวงกลม</p>'}
+    </section>`}
   </section>`;
 }
 
