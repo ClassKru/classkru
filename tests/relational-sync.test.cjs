@@ -48,7 +48,7 @@ const seed = {
     students: [{ id: 'student-old-id', name: 'เด็กหญิงทดสอบ', no: 1, studentCode: '1001', nickname: 'เอ', comment: '', score: 0 }],
     attendance: { '2026-08-26': { 'student-old-id': 'present' } },
     scores: {
-      config: { ratio: { before: 40, after: 30, mid: 10, final: 20 }, attendanceMin: 60, gradeCut: [] },
+      config: { ratio: { before: 40, after: 30, mid: 10, final: 20 }, attendanceMin: 60, gradeCut: [], pp5: { school: 'โรงเรียนทดสอบ', assessments: { 'student-old-id': { traits: '0', reading: '3' } } } },
       items: [{ id: 'score-old-id', name: 'งาน 1', max: 10, type: 'assign', bucket: 'before', date: '2026-08-26', note: '' }],
       marks: { 'score-old-id': { 'student-old-id': 5 } },
       gradeOverride: {}
@@ -130,6 +130,8 @@ function operations(before, after) {
   assert.equal(restored.classes[0].students[0].id, 'student-old-id');
   assert.equal(restored.classes[0].scores.items[0].id, 'score-old-id');
   assert.equal(restored.classes[0].scores.marks['score-old-id']['student-old-id'], 5);
+  assert.equal(restored.classes[0].scores.config.pp5.school, 'โรงเรียนทดสอบ');
+  assert.equal(restored.classes[0].scores.config.pp5.assessments['student-old-id'].traits, '0');
   assert.equal(restored.classes[0].attendance['2026-08-26']['student-old-id'], 'present');
 }
 

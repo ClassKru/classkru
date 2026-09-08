@@ -173,7 +173,8 @@ function scoreWorkTabsHtml(c) {
   const tabs = [
     { key: 'overview', label: 'คะแนน', icon: 'hgi-table' },
     { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01' },
-    { key: 'report', label: 'รายงานผล', icon: 'hgi-table' }
+    { key: 'report', label: 'รายงานผล', icon: 'hgi-table' },
+    { key: 'pp5', label: 'ปพ.5', icon: 'hgi-book-open-01' }
   ];
   return `<div class="score-worktabs">${tabs.map(t => `
     <button class="score-worktab${scoreWorkspaceMode === t.key ? ' active' : ''}" onclick="setScoreWorkspaceMode('${t.key}','${c.id}')">
@@ -200,6 +201,7 @@ function renderScoreWorkspace(c) {
   if (scoreWorkspaceMode === 'overview') return renderScoreMatrix(c);
   if (scoreWorkspaceMode === 'quick') return renderQuickScoreEntry(c);
   if (scoreWorkspaceMode === 'report') return renderScoreReport(c);
+  if (scoreWorkspaceMode === 'pp5') return renderPp5(c);
   return renderCurriculumCatalog(c);
 }
 
