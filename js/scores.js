@@ -172,7 +172,8 @@ function viewClassScores(classId) {
 function scoreWorkTabsHtml(c) {
   const tabs = [
     { key: 'overview', label: 'คะแนน', icon: 'hgi-table' },
-    { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01' }
+    { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01' },
+    { key: 'report', label: 'รายงานผล', icon: 'hgi-table' }
   ];
   return `<div class="score-worktabs">${tabs.map(t => `
     <button class="score-worktab${scoreWorkspaceMode === t.key ? ' active' : ''}" onclick="setScoreWorkspaceMode('${t.key}','${c.id}')">
@@ -198,7 +199,42 @@ function renderScoreWorkspace(c) {
   if (scoreWorkspaceMode === 'items') return renderScoreItemsDashboard(c);
   if (scoreWorkspaceMode === 'overview') return renderScoreMatrix(c);
   if (scoreWorkspaceMode === 'quick') return renderQuickScoreEntry(c);
+  if (scoreWorkspaceMode === 'report') return renderScoreReport(c);
   return renderCurriculumCatalog(c);
+}
+
+// Average only recorded marks for students currently in this class; zero is a recorded mark.
+function scoreReportRows(c) {
+  const sc = ensureScores(c);
+  return sc.items.map(item => {
+    const max = Number(item.max);
+    const values = (c.students || []).map(student => (sc.marks[item.id] || {})[student.id])
+      .filter(value => value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value)))
+      .map(value => clampMark(value, max));
+    const valid = Number.isFinite(max) && max > 0;
+    const average = valid && values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+    return { item, count: values.length, average, percent: average === null ? null : average / max * 100 };
+  });
+}
+
+function renderScoreReport(c) {
+  const wrap = document.getElementById('web-scores-matrix-wrap');
+  if (!wrap) return;
+  const rows = scoreReportRows(c);
+  const total = (c.students || []).length;
+  const number = value => value.toLocaleString('th-TH', { maximumFractionDigits: 1 });
+  wrap.innerHTML = `<section class="score-report">
+    <header><h3>ภาพรวมคะแนนชิ้นงาน</h3><p>หนึ่งแท่งแทนหนึ่งชิ้นงาน · คะแนนเฉลี่ยเทียบเป็นเปอร์เซ็นต์</p></header>
+    <div class="score-report-summary"><span>ทั้งหมด <b>${rows.length}</b> ชิ้นงาน</span><span>นักเรียน <b>${total}</b> คน</span><span>มีคะแนนแล้ว <b>${rows.filter(row => row.percent !== null).length}</b> ชิ้นงาน</span></div>
+    <p class="score-report-note">คำนวณจากนักเรียนที่มีคะแนนในแต่ละงานเท่านั้น รวมคะแนน 0 แต่ไม่นับช่องว่าง · งานที่กรอกไม่ครบเป็นผลชั่วคราว</p>
+    ${!rows.length ? '<p class="score-report-empty">ยังไม่มีชิ้นงาน กรุณาเพิ่มรายการในแท็บคะแนนก่อน</p>' : !total ? '<p class="score-report-empty">ห้องนี้ยังไม่มีนักเรียน</p>' : `
+    <div class="score-report-axis" aria-hidden="true"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>
+    <ol class="score-report-chart">${rows.map(row => `<li class="score-report-row">
+      <div class="score-report-label"><strong>${escapeScore(row.item.name)}</strong><span>${row.percent === null ? 'ยังไม่มีผลคะแนน' : `${number(row.percent)}%`}</span></div>
+      <div class="score-report-track" role="img" aria-label="${escapeScoreAttr(row.item.name)}: ${row.percent === null ? 'ยังไม่มีผลคะแนน' : `คะแนนเฉลี่ย ${number(row.percent)} เปอร์เซ็นต์`}">${row.percent === null ? '' : `<div class="score-report-bar" style="width:${row.percent}%"></div>`}</div>
+      <div class="score-report-detail"><span>${row.average === null ? 'ยังคำนวณไม่ได้' : `เฉลี่ย ${number(row.average)} / ${number(Number(row.item.max))} คะแนน`}</span><span>มีคะแนน ${row.count}/${total} คน${row.count < total ? ' · ยังไม่ครบ' : ''}</span></div>
+    </li>`).join('')}</ol>`}
+  </section>`;
 }
 
 function curriculumGradeLabel(grade) {

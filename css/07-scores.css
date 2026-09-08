@@ -306,7 +306,7 @@
 /* ===  SCORE WORKSPACE TABS / QUICK ENTRY  === */
 /* ========================================== */
 .score-worktabs {
-  width: min(560px, 100%);
+  width: min(700px, 100%);
   display: flex;
   gap: 6px;
   margin: 0 auto 14px;
@@ -314,6 +314,27 @@
   border: 1px solid var(--border-color);
   border-radius: 16px;
   background: var(--bg-light);
+}
+
+.score-report { max-width: 1000px; margin: auto; padding: 16px; }
+.score-report h3 { margin: 0 0 8px; }
+.score-report header p, .score-report-note, .score-report-detail { color: var(--text-muted); font-size: 0.85rem; }
+.score-report-summary { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 16px; border-radius: 12px; background: var(--bg-light); }
+.score-report-note { margin: 16px 0 24px; line-height: 1.7; }
+.score-report-axis { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.75rem; }
+.score-report-chart { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 24px; }
+.score-report-label, .score-report-detail { display: flex; justify-content: space-between; gap: 12px; }
+.score-report-label { margin-bottom: 8px; }
+.score-report-label strong { overflow-wrap: anywhere; min-width: 0; }
+.score-report-label > span { flex-shrink: 0; font-weight: 700; color: var(--primary); }
+.score-report-track { height: 24px; border-radius: 6px; overflow: hidden; background: repeating-linear-gradient(to right, transparent 0, transparent calc(25% - 1px), var(--border-color) calc(25% - 1px), var(--border-color) 25%), var(--bg-light); }
+.score-report-bar { height: 100%; background: var(--primary); border-radius: 0 6px 6px 0; }
+.score-report-detail { margin-top: 6px; flex-wrap: wrap; font-size: 0.78rem; }
+.score-report-empty { text-align: center; padding: 40px 12px; color: var(--text-muted); }
+@media (max-width: 600px) {
+  .score-report { padding: 8px 2px; }
+  .score-worktab { gap: 4px; padding: 6px 4px; }
+  .score-worktab i { display: none; }
 }
 
 .score-worktab {
