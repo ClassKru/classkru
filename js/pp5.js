@@ -20,7 +20,7 @@ function pp5SaveMeta(form) {
   const data = new FormData(form);
   if (data.get('start') && data.get('end') && data.get('start') > data.get('end')) { showToast('วันเริ่มต้องไม่อยู่หลังวันสิ้นสุด', 'warning'); return false; }
   const cfg = pp5Config(c);
-  ['school','teacher','term','code','strand','hours','credits','start','end','description','reviewer','approver','approverTitle'].forEach(key => { cfg[key] = String(data.get(key) || '').trim(); });
+  ['school','district','province','advisor','weeklyHours','teacher','term','code','strand','hours','credits','start','end','description','reviewer','approver','approverTitle'].forEach(key => { cfg[key] = String(data.get(key) || '').trim(); });
   saveState(); renderPp5(c); showToast('บันทึกข้อมูล ปพ.5 แล้ว', 'success'); return false;
 }
 function pp5SaveAssessment(form) {
@@ -70,7 +70,8 @@ function pp5StudentResult(c, s) {
   const complete = sc.items.length > 0 && sc.items.every(i => Number.isFinite(Number(i.max)) && Number(i.max) > 0 && pp5HasMark((sc.marks[i.id] || {})[s.id]));
   const bucketsReady = SCORE_WK.every(b => !sc.config.ratio[b.key] || sc.items.some(i => i.bucket === b.key));
   const ratioReady = SCORE_WK.reduce((sum, b) => sum + Number(sc.config.ratio[b.key] || 0), 0) === 100;
-  return { ...calc, complete: complete && bucketsReady && ratioReady, grade: complete && bucketsReady && ratioReady ? effectiveGrade(c, s.id) : 'ยังไม่ครบ' };
+  const special=sc.gradeOverride[s.id];
+  return { ...calc, complete: complete && bucketsReady && ratioReady, grade: ['ร','มส','มผ','ผ'].includes(special) ? special : complete && bucketsReady && ratioReady ? effectiveGrade(c, s.id) : 'ยังไม่ครบ' };
 }
 function pp5Dates(c) {
   const cfg = pp5Config(c), today = getTodayString();
@@ -93,6 +94,32 @@ function pp5Warnings(c) {
   const missing = c.students.filter(s => !['0','1','2','3'].includes(cfg.assessments[s.id]?.traits) || !['0','1','2','3'].includes(cfg.assessments[s.id]?.reading)).length;
   if (missing) warnings.push(`ยังไม่สรุปผลประเมินเพิ่มเติม ${missing} คน`);
   return warnings;
+}
+function pp5Summary(c) {
+  const cfg=pp5Config(c), total=c.students.length;
+  const grades=[...SCORE_GRADES,'ร','มส','มผ','ผ','อื่น ๆ','ยังไม่ครบ'];
+  const students=c.students.map((student,index)=>{
+    const result=pp5StudentResult(c,student), assessment=cfg.assessments[student.id] || {};
+    const grade=result.grade;
+    const missing=[];
+    if(!result.complete)missing.push('คะแนนยังไม่ครบหรือโครงสร้างคะแนนไม่พร้อม');
+    if(!['0','1','2','3'].includes(String(assessment.traits ?? '')))missing.push('ผลสรุปคุณลักษณะฯ');
+    if(!['0','1','2','3'].includes(String(assessment.reading ?? '')))missing.push('อ่าน คิดวิเคราะห์ และเขียน');
+    return {student,index,grade:grades.includes(String(grade))?String(grade):'อื่น ๆ',assessment,missing};
+  });
+  const distribution=(title,labels,count)=>({section:'summary',title,headers:['รายการ',...labels],rows:[['จำนวน (คน)',...labels.map(count)],['ร้อยละ',...labels.map(label=>total?Number((count(label)*100/total).toFixed(2)):'—')]]});
+  const sheets=[distribution('สรุปผลการเรียน',grades,grade=>students.filter(s=>s.grade===grade).length)];
+  for(const [field,title] of [['traits','คุณลักษณะอันพึงประสงค์'],['reading','อ่าน คิดวิเคราะห์ และเขียน']]){
+    const labels=['ดีเยี่ยม','ดี','ผ่าน','ไม่ผ่าน','ยังไม่ประเมิน'];
+    sheets.push(distribution(title,labels,label=>students.filter(s=>(PP5_LEVELS[s.assessment[field]] || 'ยังไม่ประเมิน')===label).length));
+  }
+  const pending=students.filter(s=>s.missing.length);
+  return {total,completed:total-pending.length,pending,sheets};
+}
+function pp5SummaryDocument(c) {
+  const cfg=pp5Config(c), summary=pp5Summary(c);
+  const fields=[['โรงเรียน',cfg.school],['อำเภอ / เขต',cfg.district],['จังหวัด',cfg.province],['ชั้น / ห้อง',c.className],['รายวิชา',c.subject],['รหัสวิชา',cfg.code],['ภาคเรียน',cfg.term],['ปีการศึกษา',c.academicYear],['หน่วยกิต',cfg.credits],['เวลาเรียนตามหลักสูตร (ชั่วโมง)',cfg.hours],['ชั่วโมง / สัปดาห์',cfg.weeklyHours],['ครูผู้สอน',cfg.teacher],['ครูที่ปรึกษา',cfg.advisor]];
+  return `<article class="pp5-page pp5-summary-page"><header class="pp5-doc-head"><h2>แบบบันทึกผลการเรียนประจำรายวิชา</h2></header><dl class="pp5-summary-meta">${fields.map(([label,value])=>`<div><dt>${label}</dt><dd>${pp5Esc(value || '—')}</dd></div>`).join('')}</dl><p>นักเรียนทั้งหมด ${summary.total} คน · ผลครบ ${summary.completed} คน · ยังไม่ครบ ${summary.pending.length} คน</p><p>ร้อยละคิดจากนักเรียนทั้งหมด ${summary.total} คน · ผลที่ยังไม่ครบไม่ถือเป็น 0 หรือไม่ผ่าน</p>${summary.sheets.map(sheet=>`<section class="pp5-summary-section"><h3>${sheet.title}</h3>${pp5Table(sheet.headers,sheet.rows)}</section>`).join('')}${pp5Signatures(c)}<footer class="pp5-doc-foot">ClassKru · ตรวจสอบข้อมูลและลงนามก่อนรับรองผล</footer></article>`;
 }
 function pp5Table(headers, rows) {
   return `<table class="pp5-table"><thead><tr>${headers.map(h => `<th>${pp5Esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.length ? rows.map(row => `<tr>${row.map(v => `<td>${pp5Esc(v)}</td>`).join('')}</tr>`).join('') : `<tr><td colspan="${headers.length}">ยังไม่มีข้อมูล</td></tr>`}</tbody></table>`;
@@ -132,10 +159,11 @@ function pp5DataSheets(c) {
   }
   sheets.push({section:'assessment',title:'คุณลักษณะอันพึงประสงค์',headers:[...base,...PP5_TRAITS,'ผลสรุปโดยครู'],rows:c.students.map((s,i)=>[...identity(s,i),...PP5_TRAITS.map((_,n)=>assessment(s,`trait${n}`)),assessment(s,'traits')])});
   sheets.push({section:'assessment',title:'ผลประเมินเพิ่มเติม',headers:[...base,'คุณลักษณะอันพึงประสงค์','อ่าน คิดวิเคราะห์ และเขียน','หมายเหตุ'],rows:c.students.map((s,i)=>[...identity(s,i),assessment(s,'traits'),assessment(s,'reading'),cfg.assessments[s.id]?.remark||''])});
-  const results=c.students.map(s=>pp5StudentResult(c,s));
-  const grades=[...SCORE_GRADES,'ร','มส','มผ','ผ','ยังไม่ครบ'];
-  sheets.push({section:'summary',title:'สรุประดับผลการเรียน',headers:['ระดับผลการเรียน','จำนวน (คน)','ร้อยละของนักเรียนทั้งหมด'],rows:grades.map(g=>{const count=results.filter(r=>r.grade===g).length;return[g,count,c.students.length?pp5Num(count/c.students.length*100):'—'];})});
-  sheets.push({section:'summary',title:'สรุปผลประเมินเพิ่มเติม',headers:['ระดับ','คุณลักษณะฯ (คน)','อ่าน คิดวิเคราะห์ และเขียน (คน)'],rows:[...PP5_LEVELS,'—'].map(level=>[level,...['traits','reading'].map(k=>c.students.filter(s=>assessment(s,k)===level).length)])});
+  const summary=pp5Summary(c);
+  sheets.push({section:'summary',title:'ความครบถ้วนของผลทั้งห้อง',headers:['นักเรียนทั้งหมด','ผลครบ','ยังไม่ครบ','ฐานคำนวณร้อยละ'],rows:[[summary.total,summary.completed,summary.pending.length,'นักเรียนทั้งหมดในห้อง']]});
+  sheets.push(...summary.sheets);
+  if(summary.pending.length)sheets.push({section:'summary',title:'รายชื่อนักเรียนที่ข้อมูลยังไม่ครบ',headers:[...base,'ข้อมูลที่ขาด'],rows:summary.pending.map(({student,index,missing})=>[...identity(student,index),missing.join(' · ')])});
+  sheets.find(sheet => sheet.section === 'cover').rows.push(['อำเภอ / เขต',cfg.district || ''],['จังหวัด',cfg.province || ''],['ครูที่ปรึกษา',cfg.advisor || ''],['ชั่วโมง / สัปดาห์',cfg.weeklyHours || '']);
   sheets.find(sheet => sheet.section === 'cover').rows.push(['ผู้ตรวจ',cfg.reviewer],['ผู้อนุมัติ',cfg.approver],['ตำแหน่งผู้อนุมัติ',cfg.approverTitle]);
   return sheets;
 }
@@ -145,6 +173,12 @@ function pp5Document(c, section) {
   const sheets=pp5DataSheets(c);
   const footer='<footer class="pp5-doc-foot">ClassKru · แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน · ตรวจสอบและลงนามก่อนรับรองผล</footer>';
   return sections.map(key=>{
+    if(key==='summary'){
+      const pending=sheets.find(sheet=>sheet.title==='รายชื่อนักเรียนที่ข้อมูลยังไม่ครบ');
+      const details=[];
+      if(pending)for(let offset=0;offset<pending.rows.length;offset+=18)details.push(`<article class="pp5-page">${pp5Header(c,pending.title)}${pp5Table(pending.headers,pending.rows.slice(offset,offset+18))}${footer}</article>`);
+      return pp5SummaryDocument(c)+details.join('');
+    }
     if(key==='cover')return `<article class="pp5-page pp5-cover">${pp5Header(c,'แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน (ปพ.5)')}<p>กลุ่มสาระการเรียนรู้ ${pp5Esc(cfg.strand||'—')}</p><p>เวลาเรียนตามหลักสูตร ${pp5Esc(cfg.hours||'—')} ชั่วโมง · หน่วยกิต ${pp5Esc(cfg.credits||'—')}</p><p>ช่วงวันที่เช็กชื่อ ${pp5Esc(cfg.start||'ไม่กำหนด')} ถึง ${pp5Esc(cfg.end||'ไม่กำหนด')}</p><h3>คำอธิบายรายวิชา</h3><div class="pp5-description">${pp5Esc(cfg.description||'ยังไม่ระบุ')}</div>${warnings.length?`<div class="pp5-doc-warning">ข้อมูลที่ต้องตรวจสอบ<ul>${warnings.map(w=>`<li>${pp5Esc(w)}</li>`).join('')}</ul></div>`:''}${pp5Signatures(c)}${footer}</article>`;
     return sheets.filter(s=>s.section===key).map(sheet=>{
       const chunks=[]; for(let i=0;i<Math.max(1,sheet.rows.length);i+=18)chunks.push(sheet.rows.slice(i,i+18));
@@ -155,6 +189,7 @@ function pp5Document(c, section) {
 function pp5MetaForm(c) {
   const cfg=pp5Config(c);
   const fields=[['school','โรงเรียน','text'],['code','รหัสวิชา','text'],['teacher','ครูผู้สอน','text'],['strand','กลุ่มสาระการเรียนรู้','text'],['term','ภาคเรียน','text'],['hours','เวลาเรียนตามหลักสูตร (ชั่วโมง)','number'],['credits','หน่วยกิต','number'],['start','วันเริ่มภาคเรียน','date'],['end','วันสิ้นสุดภาคเรียน','date'],['reviewer','ชื่อผู้ตรวจ','text'],['approver','ชื่อผู้อนุมัติ','text'],['approverTitle','ตำแหน่งผู้อนุมัติ','text']];
+  fields.push(['district','อำเภอ / เขต','text'],['province','จังหวัด','text'],['advisor','ครูที่ปรึกษา','text'],['weeklyHours','ชั่วโมง / สัปดาห์','number']);
   return `<form class="pp5-editor" onsubmit="return pp5SaveMeta(this)"><h3>ข้อมูลเอกสาร</h3><div class="pp5-fields">${fields.map(([key,label,type])=>`<label>${label}<input class="form-control" name="${key}" type="${type}" ${type==='number'?'min="0" step="0.5"':''} value="${pp5Esc(cfg[key])}" maxlength="200"></label>`).join('')}</div><label>คำอธิบายรายวิชา<textarea class="form-control" name="description" rows="4" maxlength="10000">${pp5Esc(cfg.description)}</textarea></label><p>รายวิชา ชั้น และปีการศึกษา ใช้ข้อมูลจากห้องเรียน · บันทึกข้อมูลก่อนเปลี่ยนส่วนหรือพิมพ์</p><button class="btn btn-primary" type="submit">บันทึกข้อมูลเอกสาร</button></form>`;
 }
 function pp5AssessmentForm(c) {
@@ -187,7 +222,7 @@ function pp5AssessmentForm(c) {
 function renderPp5(c) {
   const wrap=document.getElementById('web-scores-matrix-wrap'); if(!wrap)return;
   const warnings=pp5Warnings(c);
-  const content=pp5Section==='assessment'?pp5AssessmentForm(c):`${pp5Section==='cover'?pp5MetaForm(c):''}<div class="pp5-preview" aria-label="ตัวอย่างเอกสาร">${pp5Document(c,pp5Section)}</div>`;
+  const content=pp5Section==='assessment'?pp5AssessmentForm(c):`${pp5Section==='cover'?pp5MetaForm(c):''}<div class="pp5-preview" aria-label="ตัวอย่างเอกสาร">${pp5Document(c,pp5Section)}</div>${pp5Section==='summary'?'<div class="pp5-summary-export"><button class="btn" onclick="pp5ExportExcel()">ส่งออก Excel ทั้งชุด</button><button class="btn" onclick="pp5Print(false)">พิมพ์สรุป / PDF</button><button class="btn btn-primary" onclick="pp5Print(true)">พิมพ์ ปพ.5 ทั้งชุด / PDF</button></div>':''}`;
   wrap.innerHTML=`<section class="pp5-workspace"><div class="pp5-toolbar"><div><h3>ปพ.5 · ${pp5Esc(c.subject)}</h3><p>ดึงคะแนนและรายชื่อจากห้องเรียนปัจจุบัน</p></div><div class="pp5-actions"><button class="btn" onclick="pp5ExportExcel()">ส่งออก Excel ทั้งชุด</button><button class="btn" onclick="pp5Print(false)">พิมพ์ส่วนนี้ / PDF</button><button class="btn btn-primary" onclick="pp5Print(true)">พิมพ์ทั้งชุด / PDF</button></div></div>${warnings.length?`<details class="pp5-warnings"><summary>มีข้อมูลที่ต้องตรวจสอบ ${warnings.length} รายการ</summary><ul>${warnings.map(w=>`<li>${pp5Esc(w)}</li>`).join('')}</ul></details>`:''}<nav class="pp5-nav" aria-label="ส่วนเอกสาร ปพ.5">${Object.entries(PP5_SECTIONS).map(([key,title])=>`<button type="button" aria-pressed="${pp5Section===key}" onclick="pp5Select('${key}')">${title}</button>`).join('')}</nav>${content}</section>`;
 }
 function pp5Print(all) {

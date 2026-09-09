@@ -13,3 +13,14 @@
 .pp5-document-editor .pp5-level-select:focus-visible,.pp5-document-editor .pp5-remark-input:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
 .pp5-document-editor .pp5-assessment-tools{border:0;border-radius:0;background:transparent;padding:0 0 12px}
 @media(max-width:600px){.pp5-document-editor .pp5-level-actions{grid-template-columns:repeat(4,minmax(0,1fr));width:100%}.pp5-document-editor .pp5-editable-document .pp5-level-select,.pp5-document-editor .pp5-editable-document .pp5-remark-input{height:40px}}
+.pp5-summary-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 18px;font-size:12px;margin:18px 0}
+.pp5-summary-meta>div{display:flex;gap:8px;border-bottom:1px solid var(--border-color)}
+.pp5-summary-meta dt{font-weight:600;flex-shrink:0}
+.pp5-summary-meta dd{margin:0;overflow-wrap:anywhere}
+.pp5-summary-section{margin-top:16px;break-inside:avoid}
+.pp5-summary-section h3{margin:0 0 6px}
+.pp5-summary-section .pp5-table td:nth-child(3){text-align:center;min-width:0}
+.pp5-summary-section .pp5-table{table-layout:fixed}
+.pp5-summary-section .pp5-table th:first-child{width:90px}
+.pp5-summary-export{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:16px}
+@media print{.pp5-summary-meta{font-size:10px;margin:10px 0}.pp5-summary-section{margin-top:10px}.pp5-summary-page .pp5-signatures{margin-top:20px}}
