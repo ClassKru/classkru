@@ -5,6 +5,7 @@ const PP5_TRAITS = ['รักชาติ ศาสน์ กษัตริย
 const PP5_LEVELS = ['ไม่ผ่าน', 'ผ่าน', 'ดี', 'ดีเยี่ยม'];
 const PP5_SECTIONS = { cover: 'ปกและข้อมูลรายวิชา', indicators: 'ตัวชี้วัดและโครงสร้างคะแนน', attendance: 'บันทึกเวลาเรียน', scores: 'บันทึกคะแนน', assessment: 'ผลประเมินเพิ่มเติม', summary: 'สรุปผลและลงนาม' };
 let pp5Section = 'cover';
+let pp5AssessmentSaveTimer = null;
 const pp5Esc = value => escapeScoreAttr(String(value ?? ''));
 const pp5Num = value => Number(value).toLocaleString('th-TH', { maximumFractionDigits: 2 });
 function pp5Config(c) {
@@ -14,7 +15,17 @@ function pp5Config(c) {
   return cfg.pp5;
 }
 function pp5Current() { return appState.classes.find(c => c.id === scoreCurrentClassId); }
-function pp5Select(value) { if (!PP5_SECTIONS[value]) return; pp5Section = value; const c = pp5Current(); if (c) renderPp5(c); }
+function pp5FlushAssessmentForm() {
+  if (typeof document === 'undefined') return false;
+  const form = document.querySelector?.('.pp5-assessment-editor');
+  return form ? pp5WriteAssessmentForm(form) : false;
+}
+function pp5Select(value) {
+  if (!PP5_SECTIONS[value]) return;
+  if (pp5Section === 'assessment') pp5FlushAssessmentForm();
+  pp5Section = value;
+  const c = pp5Current(); if (c) renderPp5(c);
+}
 function pp5SaveMeta(form) {
   const c = pp5Current(); if (!c || !form.reportValidity()) return false;
   const data = new FormData(form);
@@ -23,17 +34,37 @@ function pp5SaveMeta(form) {
   ['school','district','province','advisor','weeklyHours','teacher','term','code','strand','hours','credits','start','end','description','reviewer','approver','approverTitle'].forEach(key => { cfg[key] = String(data.get(key) || '').trim(); });
   saveState(); renderPp5(c); showToast('บันทึกข้อมูล ปพ.5 แล้ว', 'success'); return false;
 }
-function pp5SaveAssessment(form) {
+function pp5WriteAssessmentForm(form) {
   const c = pp5Current(); if (!c) return false;
   const cfg = pp5Config(c);
+  const validStudents = new Set(c.students.map(s => s.id));
+  let changed = false;
   form.querySelectorAll('[data-student]').forEach(el => {
     const sid = el.dataset.student, field = el.dataset.field;
-    if (!c.students.some(s => s.id === sid) || !/^(trait[0-7]|traits|reading|remark)$/.test(field)) return;
+    if (!validStudents.has(sid) || !/^(trait[0-7]|traits|reading|remark)$/.test(field)) return;
     if (field !== 'remark' && !['', '0','1','2','3'].includes(el.value)) return;
     if (!cfg.assessments[sid]) cfg.assessments[sid] = {};
-    cfg.assessments[sid][field] = el.value;
+    if (cfg.assessments[sid][field] !== el.value) {
+      cfg.assessments[sid][field] = el.value;
+      changed = true;
+    }
   });
-  saveState(); renderPp5(c); showToast('บันทึกผลประเมินแล้ว', 'success'); return false;
+  if (changed) saveState();
+  return changed;
+}
+function pp5ScheduleAssessmentAutosave(form, delay = 300) {
+  if (!form) return;
+  if (pp5AssessmentSaveTimer) clearTimeout(pp5AssessmentSaveTimer);
+  pp5AssessmentSaveTimer = setTimeout(() => {
+    pp5AssessmentSaveTimer = null;
+    pp5WriteAssessmentForm(form);
+  }, delay);
+}
+function pp5SaveAssessment(form) {
+  const c = pp5Current(); if (!c) return false;
+  if (pp5AssessmentSaveTimer) { clearTimeout(pp5AssessmentSaveTimer); pp5AssessmentSaveTimer = null; }
+  pp5WriteAssessmentForm(form);
+  renderPp5(c); showToast('บันทึกผลประเมินแล้ว', 'success'); return false;
 }
 function pp5AssessmentSelectChanged(select) {
   select.dataset.level = select.value;
@@ -55,13 +86,16 @@ function pp5AssessmentSelectChanged(select) {
   ).length;
   const status = form.querySelector('.pp5-assessment-status span');
   if (status) status.textContent = `${completed}/${students.size}`;
+  pp5ScheduleAssessmentAutosave(form);
 }
+function pp5AssessmentRemarkChanged(input) { pp5ScheduleAssessmentAutosave(input.form, 500); }
 function pp5ApplyAssessmentBulk(form, field, value) {
   if (!field || !['0', '1', '2', '3'].includes(String(value))) return;
   form.querySelectorAll(`[data-field="${field}"]`).forEach(input => {
     input.value = String(value);
     pp5AssessmentSelectChanged(input);
   });
+  pp5WriteAssessmentForm(form);
   showToast(`ตั้งค่า${field === 'traits' ? 'คุณลักษณะฯ' : field === 'reading' ? 'อ่าน คิดวิเคราะห์ และเขียน' : 'รายการประเมิน'} ทั้งห้องแล้ว`, 'success', 1500);
 }
 function pp5HasMark(value) { return value != null && String(value).trim() !== '' && Number.isFinite(Number(value)); }
@@ -205,7 +239,7 @@ function pp5AssessmentForm(c) {
         const fields=sheetIndex===0?[...PP5_TRAITS.map((_,n)=>`trait${n}`),'traits']:['traits','reading','remark'];
         const cells=fields.map(field=>{
           if(sheetIndex===1 && field==='traits')return `<td><output data-summary-student="${pp5Esc(s.id)}">${pp5Esc(PP5_LEVELS[cfg.assessments[s.id]?.traits] || '—')}</output></td>`;
-          if(field==='remark')return `<td><input class="pp5-remark-input" aria-label="หมายเหตุ ${pp5Esc(s.name)}" data-student="${pp5Esc(s.id)}" data-field="remark" maxlength="500" value="${pp5Esc(cfg.assessments[s.id]?.remark||'')}"></td>`;
+          if(field==='remark')return `<td><input class="pp5-remark-input" aria-label="หมายเหตุ ${pp5Esc(s.name)}" data-student="${pp5Esc(s.id)}" data-field="remark" maxlength="500" value="${pp5Esc(cfg.assessments[s.id]?.remark||'')}" oninput="pp5AssessmentRemarkChanged(this)"></td>`;
           return `<td>${select(s,field)}</td>`;
         }).join('');
         return `<tr>${identity}${cells}</tr>`;
@@ -227,6 +261,7 @@ function renderPp5(c) {
 }
 function pp5Print(all) {
   const c=pp5Current(); if(!c)return;
+  pp5FlushAssessmentForm();
   const popup=window.open('','_blank');
   if(!popup){showToast('โปรดอนุญาตหน้าต่างพิมพ์ในเบราว์เซอร์','warning');return;}
   const css=new URL('css/pp5.css?v=1',document.baseURI).href;
@@ -236,6 +271,7 @@ function pp5Print(all) {
 }
 function pp5ExportExcel() {
   const c=pp5Current(); if(!c)return;
+  pp5FlushAssessmentForm();
   if(typeof XLSX==='undefined'){showToast('ยังโหลดเครื่องมือ Excel ไม่สำเร็จ กรุณาลองใหม่','warning');return;}
   const wb=XLSX.utils.book_new();
   pp5DataSheets(c).forEach((sheet,i)=>{
