@@ -221,9 +221,17 @@ function scoreReportRows(c) {
 
 let scoreReportSelectedItem = '';
 function selectScoreReportItem(value) {
+  const scrollLeft = document.querySelector('.score-report-scroll')?.scrollLeft || 0;
+  const fromChart = document.activeElement?.classList.contains('score-report-track');
   scoreReportSelectedItem = value;
   const c = appState.classes.find(item => item.id === scoreCurrentClassId);
-  if (c) renderScoreReport(c);
+  if (c) {
+    renderScoreReport(c);
+    const scroll = document.querySelector('.score-report-scroll');
+    if (scroll) scroll.scrollLeft = scrollLeft;
+    const target = fromChart ? document.querySelector('.score-report-track[aria-pressed="true"]') : document.getElementById('score-report-item');
+    target?.focus({ preventScroll: true });
+  }
 }
 
 function scoreReportDistribution(c, item) {
@@ -261,21 +269,22 @@ function renderScoreReport(c) {
     return `${group.color} ${start}deg ${angle}deg`;
   }).join(',');
   wrap.innerHTML = `<section class="score-report">
-    <header><h3>ภาพรวมคะแนนชิ้นงาน</h3><p>หนึ่งแท่งแทนหนึ่งชิ้นงาน · คะแนนเฉลี่ยเทียบเป็นเปอร์เซ็นต์</p></header>
-    <div class="score-report-summary"><span>ทั้งหมด <b>${rows.length}</b> ชิ้นงาน</span><span>นักเรียน <b>${total}</b> คน</span><span>มีคะแนนแล้ว <b>${rows.filter(row => row.percent !== null).length}</b> ชิ้นงาน</span></div>
+    <header class="score-report-heading"><div><span class="score-report-eyebrow">รายงานผลการเรียนรู้</span><h3>ภาพรวมคะแนนชิ้นงาน</h3><p>เปรียบเทียบผลคะแนน และดูการกระจายคะแนนในแต่ละงาน</p></div><span class="score-report-badge">คะแนนเฉลี่ย / 100%</span></header>
+    <div class="score-report-summary"><span>ชิ้นงานทั้งหมด <b>${rows.length}<small> ชิ้นงาน</small></b></span><span>นักเรียนในห้อง <b>${total}<small> คน</small></b></span><span>ชิ้นงานที่มีคะแนน <b>${rows.filter(row => row.percent !== null).length}<small> / ${rows.length}</small></b></span></div>
     <p class="score-report-note">คำนวณจากนักเรียนที่มีคะแนนในแต่ละงานเท่านั้น รวมคะแนน 0 แต่ไม่นับช่องว่าง · งานที่กรอกไม่ครบเป็นผลชั่วคราว</p>
     ${!rows.length ? '<p class="score-report-empty">ยังไม่มีชิ้นงาน กรุณาเพิ่มรายการในแท็บคะแนนก่อน</p>' : !total ? '<p class="score-report-empty">ห้องนี้ยังไม่มีนักเรียน</p>' : `
-    <div class="score-report-vertical"><div class="score-report-axis" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div><div class="score-report-scroll">
+    <section class="score-report-bar-section"><div class="score-report-section-head"><h4>คะแนนเฉลี่ยรายชิ้นงาน</h4><span>เลือกแท่งเพื่อดูสัดส่วนคะแนนด้านล่าง</span></div>
+    <div class="score-report-vertical"><div class="score-report-axis" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div><div class="score-report-scroll" tabindex="0" role="region" aria-label="กราฟคะแนนเฉลี่ย เลื่อนแนวนอนเพื่อดูทุกชิ้นงาน">
     <ol class="score-report-chart">${rows.map(row => `<li class="score-report-row">
-      <div class="score-report-label"><strong>${escapeScore(row.item.name)}</strong><span>${row.percent === null ? 'ยังไม่มีผลคะแนน' : `${number(row.percent)}%`}</span></div>
-      <div class="score-report-track" role="img" aria-label="${escapeScoreAttr(row.item.name)}: ${row.percent === null ? 'ยังไม่มีผลคะแนน' : `คะแนนเฉลี่ย ${number(row.percent)} เปอร์เซ็นต์`}">${row.percent === null ? '' : `<div class="score-report-bar" style="height:${row.percent}%"></div>`}</div>
+      <div class="score-report-label"><strong>${escapeScore(row.item.name)}</strong></div>
+      <button type="button" class="score-report-track" data-item="${escapeScoreAttr(row.item.id)}" onclick="selectScoreReportItem(this.dataset.item)" aria-pressed="${row === selected}" aria-label="${escapeScoreAttr(row.item.name)}: ${row.percent === null ? 'ยังไม่มีผลคะแนน' : `คะแนนเฉลี่ย ${number(row.percent)} เปอร์เซ็นต์`} เลือกดูสัดส่วนคะแนน"><span class="score-report-bar${row.percent === null ? ' is-empty' : ''}" style="height:${row.percent ?? 0}%"><span class="score-report-value">${row.percent === null ? '—' : `${number(row.percent)}%`}</span></span></button>
       <div class="score-report-detail"><span>${row.average === null ? 'ยังคำนวณไม่ได้' : `เฉลี่ย ${number(row.average)} / ${number(Number(row.item.max))} คะแนน`}</span><span>มีคะแนน ${row.count}/${total} คน${row.count < total ? ' · ยังไม่ครบ' : ''}</span></div>
-    </li>`).join('')}</ol></div></div>
-    <section class="score-report-pie-section"><h3>สัดส่วนนักเรียนตามช่วงคะแนน</h3>
+    </li>`).join('')}</ol></div></div></section>
+    <section class="score-report-pie-section"><div class="score-report-section-head"><h4>สัดส่วนนักเรียนตามช่วงคะแนน</h4><span>หนึ่งวงกลม · หนึ่งชิ้นงาน</span></div>
       <label for="score-report-item">เลือกชิ้นงาน</label>
       <select id="score-report-item" class="form-control" onchange="selectScoreReportItem(this.value)">${rows.map(row => `<option value="${escapeScoreAttr(row.item.id)}"${row === selected ? ' selected' : ''}>${escapeScore(row.item.name)}</option>`).join('')}</select>
       <p class="score-report-note">ช่วงคะแนนคิดเป็นเปอร์เซ็นต์ของคะแนนเต็ม · มีคะแนน ${recorded}/${total} คน · ยังไม่มีคะแนน ${total - recorded} คน (ไม่นับในวงกลม)</p>
-      ${recorded ? `<div class="score-report-pie-layout"><div class="score-report-pie" role="img" aria-label="สัดส่วนช่วงคะแนน: ${groups.map(group => `${group.label} ${group.count} คน`).join(', ')}" style="background:conic-gradient(${slices})"></div><ul class="score-report-legend">${groups.map(group => `<li><span class="score-report-dot" style="background:${group.color}"></span><span>${group.label}</span><strong>${group.count} คน (${number(group.count / recorded * 100)}%)</strong></li>`).join('')}</ul></div>` : '<p class="score-report-empty">ยังไม่มีผลคะแนนสำหรับแสดงกราฟวงกลม</p>'}
+      ${recorded ? `<div class="score-report-pie-layout"><div class="score-report-pie" role="img" aria-label="สัดส่วนช่วงคะแนน: ${groups.map(group => `${group.label} ${group.count} คน`).join(', ')}" style="background:conic-gradient(${slices})"><div class="score-report-pie-center"><strong>${recorded}<small> คน</small></strong><span>มีคะแนนแล้ว</span></div></div><ul class="score-report-legend">${groups.map(group => `<li><span class="score-report-dot" style="background:${group.color}"></span><span>${group.label}</span><strong>${group.count} คน <small>${number(group.count / recorded * 100)}%</small></strong></li>`).join('')}</ul></div>` : '<p class="score-report-empty">ยังไม่มีผลคะแนนสำหรับแสดงกราฟวงกลม</p>'}
     </section>`}
   </section>`;
 }
