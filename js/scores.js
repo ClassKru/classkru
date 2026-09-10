@@ -273,10 +273,29 @@ function scoreReportCakeSvg(groups, recorded) {
 }
 
 let scoreReportChartMode = '2d';
+let scoreReportTab = 'overview';
 function toggleScoreReportChartMode() {
   scoreReportChartMode = scoreReportChartMode === '3d' ? '2d' : '3d';
   const c = appState.classes.find(item => item.id === scoreCurrentClassId);
   if (c) renderScoreReport(c);
+}
+function selectScoreReportTab(tab) {
+  scoreReportTab = ['overview', 'items', 'students'].includes(tab) ? tab : 'overview';
+  const report = document.querySelector('.score-report');
+  if (!report) return;
+  report.querySelectorAll('.score-report-tab').forEach(button => {
+    const active = button.dataset.tab === scoreReportTab;
+    button.setAttribute('aria-selected', String(active));
+  });
+  const sections = {
+    overview: ['.score-report-bar-section', '.score-report-pie-section'],
+    items: ['.score-report-bar-section'],
+    students: ['.score-report-student-section']
+  };
+  const visible = sections[scoreReportTab] || sections.overview;
+  report.querySelectorAll('.score-report-bar-section,.score-report-pie-section,.score-report-student-section').forEach(section => {
+    section.hidden = !visible.includes(`.${section.classList[0]}`);
+  });
 }
 
 function scoreReportStudentChart(c) {
@@ -400,7 +419,13 @@ function renderScoreReport(c) {
     cake.insertAdjacentHTML('afterbegin', scoreReportCakeSvg(groups, recorded));
   }
   const report = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report') : null;
-  if (report) report.insertAdjacentHTML('afterbegin', scoreReportStudentChart(c));
+  if (report) {
+    const barSection = report.querySelector('.score-report-bar-section');
+    if (barSection) barSection.insertAdjacentHTML('beforebegin', scoreReportStudentChart(c));
+    const heading = report.querySelector('.score-report-heading');
+    if (heading) heading.insertAdjacentHTML('afterend', `<nav class="score-report-tabs" role="tablist" aria-label="ประเภทกราฟ"><button type="button" class="score-report-tab" role="tab" data-tab="overview" aria-selected="false" onclick="selectScoreReportTab('overview')">ภาพรวม</button><button type="button" class="score-report-tab" role="tab" data-tab="items" aria-selected="false" onclick="selectScoreReportTab('items')">รายชิ้นงาน</button><button type="button" class="score-report-tab" role="tab" data-tab="students" aria-selected="false" onclick="selectScoreReportTab('students')">รายนักเรียน</button></nav>`);
+    selectScoreReportTab(scoreReportTab);
+  }
   const studentSection = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-student-section') : null;
   if (studentSection) {
     studentSection.classList.add(`mode-${scoreReportChartMode}`);

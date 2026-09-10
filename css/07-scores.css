@@ -438,6 +438,10 @@
 .score-report-student-section.mode-2d .score-report-student-track { transform: none; box-shadow: inset 0 1px 3px rgba(0,0,0,.1); border-radius: 3px; }
 .score-report-student-section.mode-2d .score-report-student-track::after { display: none; }
 .score-report-student-section.mode-2d .score-report-student-segment i { background: var(--segment-color); box-shadow: none; }
+.score-report-tabs { display: flex; gap: 8px; margin: 14px 0 20px; padding: 4px; border-radius: 12px; background: var(--bg-light); }
+.score-report-tab { flex: 1; border: 0; border-radius: 9px; padding: 9px 12px; background: transparent; color: var(--text-muted); cursor: pointer; font: inherit; font-size: .82rem; }
+.score-report-tab[aria-selected="true"] { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 4px 10px rgba(15,159,130,.18); }
+.score-report-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 @media (max-width: 600px) {
   .score-report { padding: 8px 2px; }
   .score-report-summary { gap: 6px; }
@@ -453,6 +457,8 @@
   .score-report-student-track { width: 52px; height: 180px; }
   .score-report-student-meta { font-size: .62rem; }
   .score-report-student-detail ul { grid-template-columns: 1fr; }
+  .score-report-tabs { gap: 4px; }
+  .score-report-tab { padding-inline: 6px; font-size: .72rem; }
   .score-report-matrix summary { align-items: flex-start; flex-direction: column; gap: 6px; }
   .score-report-matrix-scroll { margin-inline: -4px; }
   .score-worktab { gap: 4px; padding: 6px 4px; }
