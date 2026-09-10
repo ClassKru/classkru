@@ -407,9 +407,6 @@ function renderScoreReport(c) {
     const sectionHead = studentSection.querySelector('.score-report-section-head');
     if (sectionHead) sectionHead.insertAdjacentHTML('beforeend', `<div class="score-report-view-toggle" role="group" aria-label="มุมมองกราฟ"><button type="button" aria-pressed="${scoreReportChartMode === '2d'}" onclick="toggleScoreReportChartMode()">${scoreReportChartMode === '3d' ? 'ดูแบบ 2D' : 'ดูแบบ 3D'}</button></div>`);
   }
-  if (typeof wrap.querySelector === 'function') bindScoreReportStudentRows(c, wrap);
-  const matrixSection = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-student-section') : null;
-  if (matrixSection) matrixSection.insertAdjacentHTML('beforeend', scoreReportStudentMatrix(c));
 }
 
 function curriculumGradeLabel(grade) {
