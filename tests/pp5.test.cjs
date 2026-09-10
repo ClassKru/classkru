@@ -56,6 +56,8 @@ assert.equal(context.pp5DataSheets(c).filter(s=>s.section==='attendance').length
 context.renderPp5(c);assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5-workspace'));
 context.pp5Select('assessment');assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5SaveAssessment'));
 assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('กรอกเร็วหลายคน'));
+assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5-entry-table'));
+assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('data-field="trait0"'));
 assert.ok(!elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5-inline-tools'));
 assert.ok(!elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5-editable-document'));
 let summary=context.pp5Summary(c);
@@ -76,6 +78,7 @@ cfg.province='เชียงราย';
 html=context.pp5Document(c,'summary');
 assert.ok(html.includes('แบบบันทึกผลการเรียนประจำรายวิชา'));
 assert.ok(html.includes('เชียงราย'));
+assert.ok(!html.includes('ClassKru'));
 assert.ok(html.includes('รายชื่อนักเรียนที่ข้อมูลยังไม่ครบ'));
 assert.ok(!html.includes('<script>'));
 assert.equal(context.pp5DataSheets(c).find(s=>s.title==='สรุปผลการเรียน').rows[1][8],50,'Excel uses the same numeric percentages');
