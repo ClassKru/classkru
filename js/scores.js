@@ -294,7 +294,7 @@ function scoreReportStudentChart(c) {
     const rank = high !== null && record.earned === high ? 'สูงสุด' : low !== null && record.earned === low ? 'ต่ำสุด' : '';
     const segments = record.values.map(value => {
       const width = value.max / totalMax * 100, fill = value.max ? value.value / value.max * 100 : 0;
-      return `<span class="score-report-student-segment${value.has ? '' : ' missing'}" style="width:${width}%;--segment-color:${palette[value.itemIndex % palette.length]}" data-tooltip="${escapeScoreAttr(value.item.name)}: ${value.has ? `${value.value} / ${value.max} คะแนน` : 'ยังไม่ส่ง'}"><i style="width:${fill}%"></i></span>`;
+      return `<span class="score-report-student-segment${value.has ? '' : ' missing'}" style="height:${width}%;--segment-color:${palette[value.itemIndex % palette.length]}" data-tooltip="${escapeScoreAttr(value.item.name)}: ${value.has ? `${value.value} / ${value.max} คะแนน` : 'ยังไม่ส่ง'}"><i style="height:${fill}%"></i></span>`;
     }).join('');
     return `<article class="score-report-student-row${rank ? ` is-${rank === 'สูงสุด' ? 'highest' : 'lowest'}` : ''}"><div class="score-report-student-label"><span>${record.student.no || record.index + 1}. ${escapeScore(record.student.name)}</span><strong>${record.earned} / ${totalMax}</strong></div><div class="score-report-student-track" role="img" aria-label="${escapeScoreAttr(record.student.name)} ได้ ${record.earned} จาก ${totalMax} คะแนน ส่ง ${record.submitted} จาก ${items.length} งาน">${segments}</div><div class="score-report-student-meta"><span>ส่งแล้ว ${record.submitted}/${items.length} งาน${rank ? ` · ${rank}` : ''}</span></div></article>`;
   }).join('');
