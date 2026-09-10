@@ -253,6 +253,25 @@ function scoreReportDistribution(c, item) {
   return groups;
 }
 
+// Draw an exploded 3D pie from live score groups so every slice has a top face and visible thickness.
+function scoreReportCakeSvg(groups, recorded) {
+  const cx = 150, cy = 112, radius = 96, depth = 18, yScale = 0.62, gap = 0.028;
+  let angle = -Math.PI / 2;
+  const point = (a, shift, yOffset = 0) => [cx + Math.cos(a) * (radius + shift * Math.cos(a)), cy + Math.sin(a) * (radius + shift * Math.cos(a)) * yScale + yOffset];
+  const path = (a0, a1, shift, yOffset = 0) => {
+    const p0 = point(a0, shift, yOffset), p1 = point(a1, shift, yOffset), mid = (a0 + a1) / 2;
+    return `M ${cx + shift * Math.cos(mid)} ${cy + shift * Math.sin(mid) * yScale + yOffset} L ${p0[0]} ${p0[1]} A ${radius} ${radius * yScale} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${p1[0]} ${p1[1]} Z`;
+  };
+  const slices = groups.filter(group => group.count > 0).map(group => {
+    const span = group.count / recorded * Math.PI * 2, a0 = angle + gap, a1 = angle + span - gap, mid = angle + span / 2, shift = 9;
+    const p0 = point(a0, shift), p1 = point(a1, shift), q0 = point(a0, shift, depth), q1 = point(a1, shift, depth), large = a1 - a0 > Math.PI ? 1 : 0;
+    const side = `M ${p0[0]} ${p0[1]} A ${radius} ${radius * yScale} 0 ${large} 1 ${p1[0]} ${p1[1]} L ${q1[0]} ${q1[1]} A ${radius} ${radius * yScale} 0 ${large} 0 ${q0[0]} ${q0[1]} Z`;
+    angle += span;
+    return `<path class="score-report-cake-side" d="${side}" fill="${group.color}"/><path class="score-report-cake-bottom" d="${path(a0,a1,shift,depth)}" fill="${group.color}"/><path class="score-report-cake-top" d="${path(a0,a1,shift)}" fill="${group.color}" data-tooltip="${escapeScoreAttr(group.label)}: ${group.count} คน"/>`;
+  }).join('');
+  return `<svg class="score-report-cake-svg" viewBox="0 0 300 260" role="img" aria-label="กราฟวงกลมสามมิติแสดงสัดส่วนช่วงคะแนน">${slices}</svg>`;
+}
+
 function renderScoreReport(c) {
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (!wrap) return;
@@ -287,6 +306,11 @@ function renderScoreReport(c) {
       ${recorded ? `<div class="score-report-pie-layout"><div class="score-report-pie" role="img" aria-label="สัดส่วนช่วงคะแนน: ${groups.map(group => `${group.label} ${group.count} คน`).join(', ')}" style="background:conic-gradient(${slices})"><div class="score-report-pie-center"><strong>${recorded}<small> คน</small></strong><span>มีคะแนนแล้ว</span></div></div><ul class="score-report-legend">${groups.map(group => `<li><span class="score-report-dot" style="background:${group.color}"></span><span>${group.label}</span><strong>${group.count} คน <small>${number(group.count / recorded * 100)}%</small></strong></li>`).join('')}</ul></div>` : '<p class="score-report-empty">ยังไม่มีผลคะแนนสำหรับแสดงกราฟวงกลม</p>'}
     </section>`}
   </section>`;
+  const cake = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-pie') : null;
+  if (cake && recorded) {
+    cake.style.background = 'transparent';
+    cake.insertAdjacentHTML('afterbegin', scoreReportCakeSvg(groups, recorded));
+  }
 }
 
 function curriculumGradeLabel(grade) {
