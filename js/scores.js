@@ -272,6 +272,13 @@ function scoreReportCakeSvg(groups, recorded) {
   return `<svg class="score-report-cake-svg" viewBox="0 0 300 260" role="img" aria-label="กราฟวงกลมสามมิติแสดงสัดส่วนช่วงคะแนน">${slices}</svg>`;
 }
 
+let scoreReportChartMode = '3d';
+function toggleScoreReportChartMode() {
+  scoreReportChartMode = scoreReportChartMode === '3d' ? '2d' : '3d';
+  const c = appState.classes.find(item => item.id === scoreCurrentClassId);
+  if (c) renderScoreReport(c);
+}
+
 function scoreReportStudentChart(c) {
   const sc = ensureScores(c), items = sc.items || [];
   if (!items.length || !(c.students || []).length) return '';
@@ -342,6 +349,12 @@ function renderScoreReport(c) {
   }
   const report = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report') : null;
   if (report) report.insertAdjacentHTML('afterbegin', scoreReportStudentChart(c));
+  const studentSection = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-student-section') : null;
+  if (studentSection) {
+    studentSection.classList.add(`mode-${scoreReportChartMode}`);
+    const sectionHead = studentSection.querySelector('.score-report-section-head');
+    if (sectionHead) sectionHead.insertAdjacentHTML('beforeend', `<div class="score-report-view-toggle" role="group" aria-label="มุมมองกราฟ"><button type="button" aria-pressed="${scoreReportChartMode === '2d'}" onclick="toggleScoreReportChartMode()">${scoreReportChartMode === '3d' ? 'ดูแบบ 2D' : 'ดูแบบ 3D'}</button></div>`);
+  }
 }
 
 function curriculumGradeLabel(grade) {
