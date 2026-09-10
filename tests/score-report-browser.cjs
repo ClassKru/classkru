@@ -14,7 +14,7 @@ const assert = require('node:assert/strict');
     for (const file of ['css/01-base-layout.css','css/07-scores.css']) await page.addStyleTag({ content: fs.readFileSync(path.join(__dirname,'..',file),'utf8') });
     await page.evaluate(() => {
       window.appState = { classes: [{ id: 'demo', students: Array.from({length:10},(_,i)=>({id:String(i)})), scores: {
-        items: ['ใบงานที่ 1','แบบทดสอบเรื่องสารรอบตัว','กิจกรรมกลุ่ม','โครงงานวิทยาศาสตร์','สอบกลางภาค'].map((name,i)=>({id:String(i),name,max:10})),
+        items: ['งานที่ 1','แบบทดสอบเรื่องสารรอบตัว','กิจกรรมกลุ่ม','โครงงานวิทยาศาสตร์','สอบกลางภาค'].map((name,i)=>({id:String(i),name,max:10})),
         marks: Object.fromEntries([0,1,2,3].map(i=>[String(i),Object.fromEntries(Array.from({length:10},(_,j)=>[String(j),(i+j)%11]))]))
       } }] };
     });
@@ -23,14 +23,11 @@ const assert = require('node:assert/strict');
     assert.equal(await page.locator('.score-report-student-detail').count(),0);
     assert.equal(await page.locator('.score-report-matrix').count(),0);
     assert.equal(await page.locator('.score-report-student-section.mode-2d').count(),1);
-    await page.getByRole('button',{name:'ดูแบบ XYZ',exact:true}).click();
-    assert.equal(await page.locator('.score-report-student-section.mode-xyz').count(),1);
-    assert.ok(await page.locator('.score-report-xyz-layer').count() > 0);
-    await page.getByRole('button',{name:'กลับกราฟแท่ง',exact:true}).click();
-    await page.getByRole('button',{name:'ดูแบบ 3D',exact:true}).click();
+    await page.locator('.score-report-view-toggle button').first().click();
     assert.equal(await page.locator('.score-report-student-section.mode-3d').count(),1);
-    await page.getByRole('button',{name:'ดูแบบ 2D',exact:true}).click();
+    await page.locator('.score-report-view-toggle button').first().click();
     assert.equal(await page.locator('.score-report-student-section.mode-2d').count(),1);
+    assert.equal(await page.locator('.score-report-student-section.mode-xyz').count(),0);
     await page.locator('.score-report-track[data-item="2"]').click();
     assert.equal(await page.locator('#score-report-item').inputValue(),'2');
     assert.equal(await page.locator('.score-report-track[data-item="2"]').getAttribute('aria-pressed'),'true');

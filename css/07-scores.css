@@ -438,21 +438,6 @@
 .score-report-student-section.mode-2d .score-report-student-track { transform: none; box-shadow: inset 0 1px 3px rgba(0,0,0,.1); border-radius: 3px; }
 .score-report-student-section.mode-2d .score-report-student-track::after { display: none; }
 .score-report-student-section.mode-2d .score-report-student-segment i { background: var(--segment-color); box-shadow: none; }
-.score-report-xyz { position: relative; min-height: 330px; margin-top: 16px; padding: 24px 18px 34px 54px; overflow: hidden; border-radius: 14px; background: linear-gradient(145deg, #182d49, #243c5b 60%, #13253d); color: #fff; }
-.score-report-xyz-scene { position: relative; height: 250px; display: flex; flex-direction: column; justify-content: flex-end; gap: 7px; perspective: 900px; transform: rotateX(8deg); }
-.score-report-xyz-layer { position: relative; display: flex; align-items: flex-end; gap: 8px; height: 44px; padding: 4px 8px 3px; border-bottom: 1px solid rgba(255,255,255,.18); transform: translateX(calc(var(--layer) * 12px)); opacity: calc(1 - var(--layer) * .035); }
-.score-report-xyz-layer > strong { position: absolute; left: -8px; top: -1px; transform: translateX(-100%); width: 105px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255,255,255,.78); font-size: .66rem; font-weight: 500; }
-.score-report-xyz-bars { display: flex; align-items: flex-end; gap: 12px; width: 100%; height: 100%; }
-.score-report-xyz-bar { position: relative; flex: 1 1 0; min-width: 10px; max-width: 42px; background: linear-gradient(105deg, color-mix(in srgb, var(--bar-color) 74%, white), var(--bar-color) 56%, color-mix(in srgb, var(--bar-color) 68%, black)); box-shadow: 7px 5px 0 rgba(4,16,31,.35); }
-.score-report-xyz-bar span { position: absolute; left: 50%; top: -15px; transform: translateX(-50%); color: #fff; font-size: .62rem; font-variant-numeric: tabular-nums; }
-.score-report-xyz-bar.is-missing { background: repeating-linear-gradient(135deg, rgba(255,255,255,.18) 0, rgba(255,255,255,.18) 4px, rgba(255,255,255,.06) 4px, rgba(255,255,255,.06) 8px); }
-.score-report-xyz-x-label, .score-report-xyz-z-label, .score-report-xyz-y-label { position: absolute; color: rgba(255,255,255,.82); font-size: .72rem; }
-.score-report-xyz-x-label { left: 58px; right: 18px; bottom: 9px; display: flex; justify-content: space-around; }
-.score-report-xyz-z-label { right: 18px; top: 10px; }
-.score-report-xyz-y-label { left: 12px; top: 50%; transform: rotate(-90deg); transform-origin: left top; }
-.score-report-xyz-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 12px; color: var(--text-muted); font-size: .72rem; }
-.score-report-xyz-legend span { display: inline-flex; align-items: center; gap: 5px; }
-.score-report-xyz-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 @media (max-width: 600px) {
   .score-report { padding: 8px 2px; }
   .score-report-summary { gap: 6px; }
@@ -470,10 +455,6 @@
   .score-report-student-detail ul { grid-template-columns: 1fr; }
   .score-report-matrix summary { align-items: flex-start; flex-direction: column; gap: 6px; }
   .score-report-matrix-scroll { margin-inline: -4px; }
-  .score-report-xyz { min-height: 300px; padding-left: 42px; }
-  .score-report-xyz-layer { gap: 5px; }
-  .score-report-xyz-bars { gap: 5px; }
-  .score-report-xyz-x-label { left: 46px; font-size: .62rem; }
   .score-worktab { gap: 4px; padding: 6px 4px; }
   .score-worktab i { display: none; }
 }
