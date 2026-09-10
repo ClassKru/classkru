@@ -308,6 +308,39 @@ function scoreReportStudentChart(c) {
   return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>คะแนนรายนักเรียน</h4><span>แท่งหนึ่งแทนนักเรียนหนึ่งคน · ช่องลายเส้นคือยังไม่ได้ส่ง</span></div><div class="score-report-student-legend">${itemLegend}</div><div class="score-report-student-chart">${chartRows}</div></section>`;
 }
 
+function scoreReportStudentDetail(c, studentId) {
+  const student = (c.students || []).find(item => item.id === studentId);
+  if (!student) return '<div class="score-report-student-detail-empty">เลือกแท่งนักเรียนเพื่อดูรายละเอียดคะแนน</div>';
+  const sc = ensureScores(c), result = computeStudentScore(c, student.id);
+  const items = sc.items.map(item => {
+    const value = (sc.marks[item.id] || {})[student.id], has = value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value));
+    return `<li><span>${escapeScore(item.name)}</span><strong>${has ? `${clampMark(value, item.max)} / ${item.max}` : 'ยังไม่ส่ง'}</strong></li>`;
+  }).join('');
+  const submitted = sc.items.filter(item => { const value = (sc.marks[item.id] || {})[student.id]; return value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value)); }).length;
+  return `<div class="score-report-student-detail-head"><div><strong>${escapeScore(student.name)}</strong><span>ส่งแล้ว ${submitted}/${sc.items.length} งาน</span></div><b>${result.total} / 100</b></div><ul>${items || '<li>ยังไม่มีรายการคะแนน</li>'}</ul>`;
+}
+
+function bindScoreReportStudentRows(c, wrap) {
+  const section = wrap.querySelector('.score-report-student-section');
+  if (!section) return;
+  section.insertAdjacentHTML('beforeend', `<div id="score-report-student-detail" class="score-report-student-detail">${scoreReportStudentDetail(c, c.students[0]?.id)}</div>`);
+  section.querySelectorAll('.score-report-student-row').forEach(row => {
+    const no = Number((row.querySelector('.score-report-student-label span')?.textContent || '').match(/^\s*(\d+)/)?.[1]);
+    const student = c.students.find(item => Number(item.no || c.students.indexOf(item) + 1) === no);
+    if (!student) return;
+    row.dataset.student = student.id;
+    row.tabIndex = 0;
+    row.setAttribute('role', 'button');
+    const open = () => {
+      const detail = section.querySelector('#score-report-student-detail');
+      if (detail) detail.innerHTML = scoreReportStudentDetail(c, student.id);
+      section.querySelectorAll('.score-report-student-row').forEach(item => item.classList.toggle('is-selected', item === row));
+    };
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
+  });
+}
+
 function renderScoreReport(c) {
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (!wrap) return;
@@ -355,6 +388,7 @@ function renderScoreReport(c) {
     const sectionHead = studentSection.querySelector('.score-report-section-head');
     if (sectionHead) sectionHead.insertAdjacentHTML('beforeend', `<div class="score-report-view-toggle" role="group" aria-label="มุมมองกราฟ"><button type="button" aria-pressed="${scoreReportChartMode === '2d'}" onclick="toggleScoreReportChartMode()">${scoreReportChartMode === '3d' ? 'ดูแบบ 2D' : 'ดูแบบ 3D'}</button></div>`);
   }
+  if (typeof wrap.querySelector === 'function') bindScoreReportStudentRows(c, wrap);
 }
 
 function curriculumGradeLabel(grade) {
