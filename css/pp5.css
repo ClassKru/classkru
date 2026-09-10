@@ -23,8 +23,8 @@
 .pp5-entry-table thead tr:nth-child(2) th{top:42px}
 .pp5-entry-table td:nth-child(1),.pp5-entry-table td:nth-child(2){text-align:center;white-space:nowrap}
 .pp5-assessment-name{text-align:left!important;min-width:210px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pp5-entry-table .pp5-level-select{height:38px;padding:0 18px 0 4px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card)}
-.pp5-entry-table .pp5-remark-input{height:38px;border:1px solid var(--border-color);border-radius:8px}
+.pp5-entry-table .pp5-level-select{height:100%;padding:0 4px;border:0;border-radius:0;background:transparent}
+.pp5-entry-table .pp5-remark-input{height:100%;border:0;border-radius:0;background:transparent}
 .pp5-report-label{display:flex;align-items:baseline;gap:10px;margin:18px 0 8px}
 .pp5-report-label span{font-size:.78rem;color:var(--text-muted)}
 @media print{.pp5-summary-meta{font-size:10px;margin:10px 0}.pp5-summary-section{margin-top:10px}.pp5-summary-page .pp5-signatures{margin-top:20px}}
