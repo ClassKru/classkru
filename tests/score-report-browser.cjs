@@ -22,6 +22,8 @@ const assert = require('node:assert/strict');
     await page.evaluate(() => { scoreCurrentClassId='demo';renderScoreReport(appState.classes[0]); });
     await page.locator('.score-report-student-row').first().click();
     assert.equal(await page.locator('.score-report-student-detail-head').count(),1);
+    assert.equal(await page.locator('.score-report-matrix').count(),1);
+    assert.ok(await page.locator('.score-report-matrix tbody tr').count() > 0);
     await page.getByRole('button',{name:'ดูแบบ 2D',exact:true}).click();
     assert.equal(await page.locator('.score-report-student-section.mode-2d').count(),1);
     await page.getByRole('button',{name:'ดูแบบ 3D',exact:true}).click();

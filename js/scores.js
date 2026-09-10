@@ -341,6 +341,25 @@ function bindScoreReportStudentRows(c, wrap) {
   });
 }
 
+function scoreReportStudentMatrix(c) {
+  const sc = ensureScores(c), items = sc.items || [], students = c.students || [];
+  if (!items.length || !students.length) return '';
+  const headers = items.map(item => `<th scope="col"><span>${escapeScore(item.name)}</span><small>เต็ม ${item.max}</small></th>`).join('');
+  const rows = students.map((student, index) => {
+    let earned = 0, max = 0, submitted = 0;
+    const cells = items.map(item => {
+      const raw = (sc.marks[item.id] || {})[student.id];
+      const itemMax = Math.max(0, Number(item.max) || 0), has = raw !== null && raw !== undefined && String(raw).trim() !== '' && Number.isFinite(Number(raw));
+      const value = has ? clampMark(raw, itemMax) : 0, percent = itemMax ? value / itemMax * 100 : 0;
+      earned += value; max += itemMax; if (has) submitted++;
+      const level = !has ? 'is-missing' : percent < 50 ? 'is-low' : percent < 80 ? 'is-mid' : 'is-high';
+      return `<td class="score-report-matrix-cell ${level}" data-tooltip="${escapeScoreAttr(item.name)}: ${has ? `${value} / ${itemMax} คะแนน` : 'ยังไม่ส่ง'}"><span>${has ? value : '—'}</span><small>${has ? `${Math.round(percent)}%` : 'ยังไม่ส่ง'}</small></td>`;
+    }).join('');
+    return `<tr><th scope="row"><span>${student.no || index + 1}. ${escapeScore(student.name)}</span><small>ส่ง ${submitted}/${items.length} งาน</small></th>${cells}<td class="score-report-matrix-total"><strong>${earned} / ${max}</strong><small>${max ? Math.round(earned / max * 100) : 0}%</small></td></tr>`;
+  }).join('');
+  return `<details class="score-report-matrix" open><summary><span><strong>รายละเอียดคะแนนครบทุกคนและทุกงาน</strong><small>ดูคะแนนจริง, งานที่ยังไม่ส่ง และสัดส่วนคะแนนในมุมมองเดียว</small></span><b>${students.length} คน · ${items.length} งาน</b></summary><div class="score-report-matrix-scroll"><table><thead><tr><th scope="col">นักเรียน</th>${headers}<th scope="col">รวม</th></tr></thead><tbody>${rows}</tbody></table></div><div class="score-report-matrix-legend"><span><i class="is-high"></i>80–100%</span><span><i class="is-mid"></i>50–79%</span><span><i class="is-low"></i>ต่ำกว่า 50%</span><span><i class="is-missing"></i>ยังไม่ส่ง</span></div></details>`;
+}
+
 function renderScoreReport(c) {
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (!wrap) return;
@@ -389,6 +408,8 @@ function renderScoreReport(c) {
     if (sectionHead) sectionHead.insertAdjacentHTML('beforeend', `<div class="score-report-view-toggle" role="group" aria-label="มุมมองกราฟ"><button type="button" aria-pressed="${scoreReportChartMode === '2d'}" onclick="toggleScoreReportChartMode()">${scoreReportChartMode === '3d' ? 'ดูแบบ 2D' : 'ดูแบบ 3D'}</button></div>`);
   }
   if (typeof wrap.querySelector === 'function') bindScoreReportStudentRows(c, wrap);
+  const matrixSection = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-student-section') : null;
+  if (matrixSection) matrixSection.insertAdjacentHTML('beforeend', scoreReportStudentMatrix(c));
 }
 
 function curriculumGradeLabel(grade) {
