@@ -118,14 +118,16 @@ function pp5AssessmentSelectChanged(select) {
   pp5ScheduleAssessmentAutosave(form);
 }
 function pp5AssessmentRemarkChanged(input) { pp5ScheduleAssessmentAutosave(input.form, 500); }
-function pp5ApplyAssessmentBulk(form, field, value) {
+function pp5BulkMode(form) { return form?.elements?.pp5BulkMode?.value === 'blank' ? 'blank' : 'all'; }
+function pp5ApplyAssessmentBulk(form, field, value, mode = pp5BulkMode(form)) {
   if (!field || !['0', '1', '2', '3'].includes(String(value))) return;
   form.querySelectorAll(`[data-field="${field}"]`).forEach(input => {
+    if (mode === 'blank' && input.value !== '') return;
     input.value = String(value);
     pp5AssessmentSelectChanged(input);
   });
   pp5WriteAssessmentForm(form);
-  showToast(`ตั้งค่า${field === 'traits' ? 'คุณลักษณะฯ' : field === 'reading' ? 'อ่าน คิดวิเคราะห์ และเขียน' : 'รายการประเมิน'} ทั้งห้องแล้ว`, 'success', 1500);
+  showToast(`ตั้งค่า${field === 'reading' ? 'อ่าน คิดวิเคราะห์ และเขียน' : 'รายการประเมิน'}${mode === 'blank' ? 'เฉพาะช่องว่าง' : 'ทั้งห้อง'}แล้ว`, 'success', 1500);
 }
 function pp5HasMark(value) { return value != null && String(value).trim() !== '' && Number.isFinite(Number(value)); }
 function pp5StudentResult(c, s) {
@@ -261,6 +263,10 @@ function pp5AssessmentForm(c) {
   const students=c.students || [];
   const completed=students.filter(s => pp5AssessmentValue(pp5TraitSummary(cfg.assessments[s.id])) && pp5AssessmentValue(cfg.assessments[s.id]?.reading)).length;
   const select=(s,k)=>{ const value=String(cfg.assessments[s.id]?.[k] ?? ''); const levelClass=value===''?'is-level-unset':`is-level-${value}`; return `<select class="pp5-level-select ${levelClass}" aria-label="${pp5Esc(s.name)} ${pp5Esc(k.startsWith('trait')&&k!=='traits'?PP5_TRAITS[Number(k.slice(5))]:k==='traits'?'สรุปคุณลักษณะ':'อ่าน คิดวิเคราะห์ และเขียน')}" data-student="${pp5Esc(s.id)}" data-field="${k}" data-level="${pp5Esc(value)}" onchange="pp5AssessmentSelectChanged(this)"><option value="">—</option>${PP5_LEVELS.map((v,i)=>`<option value="${i}"${value===String(i)?' selected':''}>${v}</option>`).join('')}</select>`; };
+  const inlineButtons=fieldExpr=>PP5_LEVELS.map((level,value)=>`<button type="button" class="pp5-level-action pp5-level-action-${value}" onclick="pp5ApplyAssessmentBulk(this.form,${fieldExpr},'${value}')">${level}</button>`).join('');
+  const traitInlineOptions=PP5_TRAITS.map((t,n)=>`<option value="trait${n}">${n+1}. ${pp5Esc(t)}</option>`).join('');
+  const traitInlineTools=`<div class="pp5-inline-tools"><span>กรอกเร็วคุณลักษณะฯ หลายคน</span><select aria-label="เลือกคุณลักษณะที่จะกรอกเร็ว">${traitInlineOptions}</select><div class="pp5-level-actions">${inlineButtons("this.closest('.pp5-inline-tools').querySelector('select').value")}</div></div>`;
+  const readingInlineTools=`<div class="pp5-inline-tools"><span>กรอกเร็วอ่าน คิดวิเคราะห์ และเขียน</span><div class="pp5-level-actions">${inlineButtons("'reading'")}</div></div>`;
   const documents=pp5DataSheets(c).filter(sheet=>sheet.section==='assessment').map((sheet,sheetIndex)=>{
     const pages=[];
     for(let offset=0;offset<Math.max(1,students.length);offset+=18){
@@ -274,14 +280,15 @@ function pp5AssessmentForm(c) {
         }).join('');
         return `<tr>${identity}${cells}</tr>`;
       }).join('');
-      pages.push(`<article class="pp5-page">${pp5Header(c,sheet.title)}${students.length>18?`<p>ส่วนที่ ${Math.floor(offset/18)+1} / ${Math.ceil(students.length/18)}</p>`:''}<table class="pp5-table pp5-editable-document"><thead><tr>${sheet.headers.map(title=>`<th>${pp5Esc(title)}</th>`).join('')}</tr></thead><tbody>${rows || `<tr><td colspan="${sheet.headers.length}">ยังไม่มีรายชื่อนักเรียน</td></tr>`}</tbody></table><footer class="pp5-doc-foot">ClassKru · แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน · ตรวจสอบและลงนามก่อนรับรองผล</footer></article>`);
+      const pageTools=sheetIndex===0?traitInlineTools:readingInlineTools;
+      pages.push(`<article class="pp5-page">${pp5Header(c,sheet.title)}${students.length>18?`<p>ส่วนที่ ${Math.floor(offset/18)+1} / ${Math.ceil(students.length/18)}</p>`:''}${pageTools}<table class="pp5-table pp5-editable-document"><thead><tr>${sheet.headers.map(title=>`<th>${pp5Esc(title)}</th>`).join('')}</tr></thead><tbody>${rows || `<tr><td colspan="${sheet.headers.length}">ยังไม่มีรายชื่อนักเรียน</td></tr>`}</tbody></table><footer class="pp5-doc-foot">ClassKru · แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน · ตรวจสอบและลงนามก่อนรับรองผล</footer></article>`);
     }
     return pages.join('');
   }).join('');
   const bulkFields=[...PP5_TRAITS.map((t,n)=>[`trait${n}`,t]),['reading','อ่าน คิดวิเคราะห์ และเขียน']];
   const bulkOptions=bulkFields.map(([value,label])=>`<option value="${value}">${label}</option>`).join('');
-  const bulkButtons=PP5_LEVELS.map((label,value)=>`<button type="button" class="pp5-level-action pp5-level-action-${value}" onclick="pp5ApplyAssessmentBulk(this.form,this.form.elements.pp5BulkField.value,'${value}')">${label}</button>`).join('');
-  return `<form class="pp5-assessment-editor pp5-document-editor" onsubmit="return pp5SaveAssessment(this)"><div class="pp5-editor-head"><h3>บันทึกผลประเมินเพิ่มเติม</h3><div class="pp5-assessment-head-actions"><div class="pp5-assessment-status"><span>${completed}/${students.length}</span><small>สรุปครบ</small></div><button class="btn btn-primary pp5-save-assessment" type="submit">บันทึกผลประเมิน</button></div></div><div class="pp5-assessment-tools"><div><strong>กรอกเร็วทั้งห้อง</strong></div><select class="pp5-bulk-field" name="pp5BulkField" aria-label="หัวข้อที่จะกรอกเร็ว">${bulkOptions}</select><div class="pp5-level-actions">${bulkButtons}</div></div><div class="pp5-preview" aria-label="เอกสารบันทึกผลประเมิน">${documents}</div></form>`;
+  const toolbarButtons=PP5_LEVELS.map((label,value)=>`<button type="button" class="pp5-level-action pp5-level-action-${value}" onclick="pp5ApplyAssessmentBulk(this.form,this.form.elements.pp5BulkField.value,'${value}')">${label}</button>`).join('');
+  return `<form class="pp5-assessment-editor pp5-document-editor" onsubmit="return pp5SaveAssessment(this)"><div class="pp5-editor-head"><h3>บันทึกผลประเมินเพิ่มเติม</h3><div class="pp5-assessment-head-actions"><div class="pp5-assessment-status"><span>${completed}/${students.length}</span><small>สรุปครบ</small></div><button class="btn btn-primary pp5-save-assessment" type="submit">บันทึกผลประเมิน</button></div></div><div class="pp5-assessment-tools"><div><strong>กรอกเร็วหลายคน</strong></div><select class="pp5-bulk-field" name="pp5BulkField" aria-label="หัวข้อที่จะกรอกเร็ว">${bulkOptions}</select><div class="pp5-bulk-scope" role="radiogroup" aria-label="ขอบเขตการกรอกเร็ว"><label><input type="radio" name="pp5BulkMode" value="all" checked> ทั้งห้อง</label><label><input type="radio" name="pp5BulkMode" value="blank"> เฉพาะช่องว่าง</label></div><div class="pp5-level-actions">${toolbarButtons}</div></div><div class="pp5-preview" aria-label="เอกสารบันทึกผลประเมิน">${documents}</div></form>`;
 }
 function renderPp5(c) {
   const wrap=document.getElementById('web-scores-matrix-wrap'); if(!wrap)return;

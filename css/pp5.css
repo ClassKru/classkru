@@ -9,11 +9,20 @@
 .pp5-editable-document th:nth-child(3){width:15%}
 .pp5-document-editor .pp5-editable-document td{position:relative;height:32px;padding:0 5px}
 .pp5-document-editor .pp5-editable-document td:has(select),.pp5-document-editor .pp5-editable-document td:has(input){padding:0}
-.pp5-document-editor .pp5-editable-document .pp5-level-select,.pp5-document-editor .pp5-editable-document .pp5-remark-input{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;height:32px;padding:0 3px;font:inherit;color:inherit;cursor:pointer}
+.pp5-bulk-scope{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.78rem;color:var(--text-muted)}
+.pp5-bulk-scope label{display:inline-flex;align-items:center;gap:4px;font-weight:700;cursor:pointer}
+.pp5-inline-tools{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin:0 0 8px;font-size:11px;color:var(--text-main)}
+.pp5-inline-tools>span{font-weight:700;color:var(--primary)}
+.pp5-inline-tools select{height:30px;max-width:220px;padding:0 8px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-card);font:inherit;color:var(--text-main)}
+.pp5-inline-tools .pp5-level-action{padding:5px 8px;font-size:11px}
+.pp5-document-editor .pp5-editable-document .pp5-level-select,.pp5-document-editor .pp5-editable-document .pp5-remark-input{display:block;box-sizing:border-box;width:100%;min-width:0;max-width:100%;height:30px;padding:0 6px;font:inherit;color:inherit;cursor:pointer;border:1px solid var(--pbd,var(--border-color));border-radius:6px;background:var(--pbg,var(--bg-light))}
+.pp5-document-editor .pp5-editable-document .pp5-level-select{padding-right:18px;color:var(--primary);font-weight:700;appearance:auto;-webkit-appearance:auto}
+.pp5-document-editor .pp5-editable-document .pp5-level-select.is-level-unset{color:var(--text-muted);background:var(--bg-card);border-color:var(--border-color);font-weight:600}
+.pp5-document-editor .pp5-editable-document .pp5-remark-input{background:var(--bg-card);border-color:var(--border-color)}
 .pp5-document-editor .pp5-summary-output{display:flex;align-items:center;justify-content:center;min-height:32px;font-weight:700;color:var(--text-main)}
 .pp5-document-editor .pp5-level-select:focus-visible,.pp5-document-editor .pp5-remark-input:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
 .pp5-document-editor .pp5-assessment-tools{border:0;border-radius:0;background:transparent;padding:0 0 12px}
-@media(max-width:600px){.pp5-document-editor .pp5-level-actions{grid-template-columns:repeat(4,minmax(0,1fr));width:100%}.pp5-document-editor .pp5-editable-document .pp5-level-select,.pp5-document-editor .pp5-editable-document .pp5-remark-input{height:40px}}
+@media(max-width:600px){.pp5-document-editor .pp5-level-actions{grid-template-columns:repeat(4,minmax(0,1fr));width:100%}.pp5-inline-tools{justify-content:flex-start}.pp5-inline-tools select{max-width:none;width:100%}.pp5-document-editor .pp5-editable-document .pp5-level-select,.pp5-document-editor .pp5-editable-document .pp5-remark-input{height:40px}}
 .pp5-summary-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 18px;font-size:12px;margin:18px 0}
 .pp5-summary-meta>div{display:flex;gap:8px;border-bottom:1px solid var(--border-color)}
 .pp5-summary-meta dt{font-weight:600;flex-shrink:0}
