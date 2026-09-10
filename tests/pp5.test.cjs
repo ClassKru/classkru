@@ -54,12 +54,14 @@ assert.ok(html.includes('ไม่ผ่าน'));assert.ok(html.includes('ย�
 assert.ok(html.includes('&quot;&lt;img'));assert.ok(!html.includes('<script>'));
 assert.equal(context.pp5DataSheets(c).filter(s=>s.section==='attendance').length,2);
 context.renderPp5(c);assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5-workspace'));
-context.pp5Select('assessment');assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5SaveAssessment'));
+context.pp5Select('assessment');context.pp5SetAssessmentView('edit');assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5SaveAssessment'));
 assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('กรอกเร็วหลายคน'));
 assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5-entry-table'));
 assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('data-field="trait0"'));
 assert.ok(!elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5-inline-tools'));
 assert.ok(!elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5-editable-document'));
+context.pp5SetAssessmentView('report');assert.ok(elements.get('web-scores-matrix-wrap').innerHTML.includes('รายงานผลตามรูปแบบตารางเดิม'));
+assert.ok(!elements.get('web-scores-matrix-wrap').innerHTML.includes('pp5-entry-table'));
 let summary=context.pp5Summary(c);
 assert.equal(summary.total,2);
 assert.equal(summary.completed,1);

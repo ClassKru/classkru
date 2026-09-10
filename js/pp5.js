@@ -5,6 +5,7 @@ const PP5_TRAITS = ['รักชาติ ศาสน์ กษัตริย
 const PP5_LEVELS = ['ไม่ผ่าน', 'ผ่าน', 'ดี', 'ดีเยี่ยม'];
 const PP5_SECTIONS = { cover: 'ปกและข้อมูลรายวิชา', indicators: 'ตัวชี้วัดและโครงสร้างคะแนน', attendance: 'บันทึกเวลาเรียน', scores: 'บันทึกคะแนน', assessment: 'ผลประเมินเพิ่มเติม', summary: 'สรุปผลและลงนาม' };
 let pp5Section = 'cover';
+let pp5AssessmentView = 'report';
 let pp5AssessmentSaveTimer = null;
 const pp5Esc = value => escapeScoreAttr(String(value ?? ''));
 const pp5Num = value => Number(value).toLocaleString('th-TH', { maximumFractionDigits: 2 });
@@ -51,6 +52,10 @@ function pp5Select(value) {
   if (!PP5_SECTIONS[value]) return;
   if (pp5Section === 'assessment') pp5FlushAssessmentForm();
   pp5Section = value;
+  const c = pp5Current(); if (c) renderPp5(c);
+}
+function pp5SetAssessmentView(view) {
+  pp5AssessmentView = view === 'edit' ? 'edit' : 'report';
   const c = pp5Current(); if (c) renderPp5(c);
 }
 function pp5SaveMeta(form) {
@@ -278,6 +283,8 @@ function pp5AssessmentForm(c) {
   const bulkFields=[...PP5_TRAITS.map((t,n)=>[`trait${n}`,t]),['reading','อ่าน คิดวิเคราะห์ และเขียน']];
   const bulkOptions=bulkFields.map(([value,label])=>`<option value="${value}">${label}</option>`).join('');
   const toolbarButtons=PP5_LEVELS.map((label,value)=>`<button type="button" class="pp5-level-action pp5-level-action-${value}" onclick="pp5ApplyAssessmentBulk(this.form,this.form.elements.pp5BulkField.value,'${value}')">${label}</button>`).join('');
+  const viewSwitch=`<div class="pp5-assessment-view-switch" role="tablist" aria-label="มุมมองผลประเมิน"><button type="button" class="${pp5AssessmentView==='report'?'is-active':''}" aria-selected="${pp5AssessmentView==='report'}" onclick="pp5SetAssessmentView('report')">รายงาน</button><button type="button" class="${pp5AssessmentView==='edit'?'is-active':''}" aria-selected="${pp5AssessmentView==='edit'}" onclick="pp5SetAssessmentView('edit')">กรอกข้อมูล</button></div>`;
+  if (pp5AssessmentView === 'report') return `<section class="pp5-assessment-report-view"><div class="pp5-editor-head"><div><h3>ผลประเมินเพิ่มเติม</h3><p>รายงานผลตามรูปแบบตารางเดิม</p></div>${viewSwitch}</div><div class="pp5-preview" aria-label="รายงานผลประเมินเพิ่มเติม">${pp5Document(c,'assessment')}</div></section>`;
   const levelOptions=value=>`<option value="">—</option>${PP5_LEVELS.map((label,n)=>`<option value="${n}"${String(value ?? '')===String(n)?' selected':''}>${label}</option>`).join('')}`;
   const rows=students.map((s,index)=>{
     const assessment=cfg.assessments[s.id] || {};
@@ -285,7 +292,7 @@ function pp5AssessmentForm(c) {
     return `<tr><td>${s.no || index+1}</td><td>${pp5Esc(s.studentCode || '—')}</td><td class="pp5-assessment-name">${pp5Esc(s.name)}</td>${traitCells}<td><select class="pp5-level-select" name="reading" data-student="${pp5Esc(s.id)}" data-field="reading" aria-label="อ่าน คิดวิเคราะห์ และเขียน ของ ${pp5Esc(s.name)}" onchange="pp5AssessmentSelectChanged(this)">${levelOptions(assessment.reading)}</select></td><td><input class="pp5-remark-input" name="remark" value="${pp5Esc(assessment.remark || '')}" data-student="${pp5Esc(s.id)}" data-field="remark" aria-label="หมายเหตุของ ${pp5Esc(s.name)}" onchange="pp5AssessmentRemarkChanged(this)"></td></tr>`;
   }).join('');
   const editorTable=`<div class="pp5-assessment-scroll pp5-entry-scroll"><table class="pp5-assessment-table pp5-entry-table"><thead><tr><th rowspan="2">เลขที่</th><th rowspan="2">เลขประจำตัว</th><th rowspan="2">ชื่อ–สกุล</th><th colspan="8">คุณลักษณะอันพึงประสงค์</th><th rowspan="2">อ่าน คิดวิเคราะห์ และเขียน</th><th rowspan="2">หมายเหตุ</th></tr><tr>${PP5_TRAITS.map(t=>`<th>${pp5Esc(t)}</th>`).join('')}</tr></thead><tbody>${rows || `<tr><td colspan="14">ยังไม่มีนักเรียน</td></tr>`}</tbody></table></div>`;
-  return `<form class="pp5-assessment-editor pp5-document-editor" onsubmit="return pp5SaveAssessment(this)"><div class="pp5-editor-head"><div><h3>กรอกผลประเมินเพิ่มเติม</h3><p>แก้เฉพาะนักเรียนหรือหัวข้อที่ต้องการได้ทันที</p></div><div class="pp5-assessment-head-actions"><div class="pp5-assessment-status"><span>${completed}/${students.length}</span><small>สรุปครบ</small></div></div></div><div class="pp5-assessment-tools"><div><strong>กรอกเร็วหลายคน</strong><small>เลือกหัวข้อและระดับก่อนกด</small></div><select class="pp5-bulk-field" name="pp5BulkField" aria-label="หัวข้อที่จะกรอกเร็ว">${bulkOptions}</select><div class="pp5-bulk-scope" role="radiogroup" aria-label="ขอบเขตการกรอกเร็ว"><label><input type="radio" name="pp5BulkMode" value="all" checked> ทั้งห้อง</label><label><input type="radio" name="pp5BulkMode" value="blank"> เฉพาะช่องว่าง</label></div><div class="pp5-level-actions">${toolbarButtons}</div></div>${editorTable}<div class="pp5-report-label"><strong>ตัวอย่างรายงานผล</strong><span>ตารางด้านล่างเป็นรูปแบบสำหรับตรวจสอบและพิมพ์</span></div><div class="pp5-preview" aria-label="รายงานผลประเมินเพิ่มเติม">${pp5Document(c,'assessment')}</div></form>`;
+  return `<form class="pp5-assessment-editor pp5-document-editor" onsubmit="return pp5SaveAssessment(this)"><div class="pp5-editor-head"><div><h3>กรอกผลประเมินเพิ่มเติม</h3><p>แก้เฉพาะนักเรียนหรือหัวข้อที่ต้องการได้ทันที</p></div><div class="pp5-assessment-head-actions">${viewSwitch}<div class="pp5-assessment-status"><span>${completed}/${students.length}</span><small>สรุปครบ</small></div></div></div><div class="pp5-assessment-tools"><div><strong>กรอกเร็วหลายคน</strong><small>เลือกหัวข้อและระดับก่อนกด</small></div><select class="pp5-bulk-field" name="pp5BulkField" aria-label="หัวข้อที่จะกรอกเร็ว">${bulkOptions}</select><div class="pp5-bulk-scope" role="radiogroup" aria-label="ขอบเขตการกรอกเร็ว"><label><input type="radio" name="pp5BulkMode" value="all" checked> ทั้งห้อง</label><label><input type="radio" name="pp5BulkMode" value="blank"> เฉพาะช่องว่าง</label></div><div class="pp5-level-actions">${toolbarButtons}</div></div>${editorTable}</form>`;
 }
 function renderPp5(c) {
   const wrap=document.getElementById('web-scores-matrix-wrap'); if(!wrap)return;
