@@ -280,7 +280,7 @@ function toggleScoreReportChartMode() {
   if (c) renderScoreReport(c);
 }
 function selectScoreReportTab(tab) {
-  scoreReportTab = ['overview', 'items', 'students'].includes(tab) ? tab : 'overview';
+  scoreReportTab = ['overview', 'items', 'students', 'submission'].includes(tab) ? tab : 'overview';
   const report = document.querySelector('.score-report');
   if (!report) return;
   report.querySelectorAll('.score-report-tab').forEach(button => {
@@ -290,7 +290,8 @@ function selectScoreReportTab(tab) {
   const sections = {
     overview: ['.score-report-bar-section', '.score-report-pie-section'],
     items: ['.score-report-bar-section'],
-    students: ['.score-report-student-section']
+    students: ['.score-report-student-section'],
+    submission: ['.score-report-submission-section']
   };
   const visible = sections[scoreReportTab] || sections.overview;
   report.querySelectorAll('.score-report-bar-section,.score-report-pie-section,.score-report-student-section').forEach(section => {
@@ -325,6 +326,20 @@ function scoreReportStudentChart(c) {
     return `<article class="score-report-student-row${rank ? ` is-${rank === 'สูงสุด' ? 'highest' : 'lowest'}` : ''}"><div class="score-report-student-label"><span>${record.student.no || record.index + 1}. ${escapeScore(record.student.name)}</span><strong>${record.earned} / ${totalMax}</strong></div><div class="score-report-student-track" role="img" aria-label="${escapeScoreAttr(record.student.name)} ได้ ${record.earned} จาก ${totalMax} คะแนน ส่ง ${record.submitted} จาก ${items.length} งาน">${segments}</div><div class="score-report-student-meta"><span>ส่งแล้ว ${record.submitted}/${items.length} งาน${rank ? ` · ${rank}` : ''}</span></div></article>`;
   }).join('');
   return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>คะแนนรายนักเรียน</h4><span>แท่งหนึ่งแทนนักเรียนหนึ่งคน · ช่องลายเส้นคือยังไม่ได้ส่ง</span></div><div class="score-report-student-legend">${itemLegend}</div><div class="score-report-student-chart">${chartRows}</div></section>`;
+}
+
+function scoreReportSubmissionChart(c) {
+  const sc = ensureScores(c), items = sc.items || [], students = c.students || [];
+  if (!items.length || !students.length) return '';
+  const rows = items.map(item => {
+    const submitted = students.filter(student => {
+      const value = (sc.marks[item.id] || {})[student.id];
+      return value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value));
+    }).length;
+    const missing = students.length - submitted, submittedPct = submitted / students.length * 100;
+    return `<li class="score-report-submission-row"><div class="score-report-submission-label"><strong>${escapeScore(item.name)}</strong><span>${submitted}/${students.length} คนส่งแล้ว</span></div><div class="score-report-submission-track" role="img" aria-label="${escapeScoreAttr(item.name)} ส่งแล้ว ${submitted} คน ยังไม่ส่ง ${missing} คน"><span class="is-submitted" style="width:${submittedPct}%"></span><span class="is-missing" style="width:${100 - submittedPct}%"></span></div><div class="score-report-submission-detail"><span>ส่งแล้ว ${submitted} คน</span><span>ยังไม่ส่ง ${missing} คน</span></div></li>`;
+  }).join('');
+  return `<section class="score-report-submission-section"><div class="score-report-section-head"><h4>สถานะการส่งงาน</h4><span>เปรียบเทียบจำนวนผู้ส่งและผู้ที่ยังไม่ส่งในแต่ละชิ้นงาน</span></div><div class="score-report-submission-legend"><span><i class="is-submitted"></i>ส่งแล้ว</span><span><i class="is-missing"></i>ยังไม่ส่ง</span></div><ol class="score-report-submission-list">${rows}</ol></section>`;
 }
 
 function scoreReportStudentDetail(c, studentId) {
@@ -421,9 +436,12 @@ function renderScoreReport(c) {
   const report = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report') : null;
   if (report) {
     const barSection = report.querySelector('.score-report-bar-section');
-    if (barSection) barSection.insertAdjacentHTML('beforebegin', scoreReportStudentChart(c));
+    if (barSection) {
+      barSection.insertAdjacentHTML('beforebegin', scoreReportStudentChart(c));
+      barSection.insertAdjacentHTML('beforebegin', scoreReportSubmissionChart(c));
+    }
     const heading = report.querySelector('.score-report-heading');
-    if (heading) heading.insertAdjacentHTML('afterend', `<nav class="score-report-tabs" role="tablist" aria-label="ประเภทกราฟ"><button type="button" class="score-report-tab" role="tab" data-tab="overview" aria-selected="false" onclick="selectScoreReportTab('overview')">ภาพรวม</button><button type="button" class="score-report-tab" role="tab" data-tab="items" aria-selected="false" onclick="selectScoreReportTab('items')">รายชิ้นงาน</button><button type="button" class="score-report-tab" role="tab" data-tab="students" aria-selected="false" onclick="selectScoreReportTab('students')">รายนักเรียน</button></nav>`);
+    if (heading) heading.insertAdjacentHTML('afterend', `<nav class="score-report-tabs" role="tablist" aria-label="ประเภทกราฟ"><button type="button" class="score-report-tab" role="tab" data-tab="overview" aria-selected="false" onclick="selectScoreReportTab('overview')">ภาพรวม</button><button type="button" class="score-report-tab" role="tab" data-tab="items" aria-selected="false" onclick="selectScoreReportTab('items')">รายชิ้นงาน</button><button type="button" class="score-report-tab" role="tab" data-tab="students" aria-selected="false" onclick="selectScoreReportTab('students')">รายนักเรียน</button><button type="button" class="score-report-tab" role="tab" data-tab="submission" aria-selected="false" onclick="selectScoreReportTab('submission')">การส่งงาน</button></nav>`);
     selectScoreReportTab(scoreReportTab);
   }
   const studentSection = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-student-section') : null;

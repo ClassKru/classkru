@@ -442,6 +442,22 @@
 .score-report-tab { flex: 1; border: 0; border-radius: 9px; padding: 9px 12px; background: transparent; color: var(--text-muted); cursor: pointer; font: inherit; font-size: .82rem; }
 .score-report-tab[aria-selected="true"] { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 4px 10px rgba(15,159,130,.18); }
 .score-report-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.score-report-submission-section { margin: 20px 0; padding: 22px 24px; border: 1px solid var(--border-color); border-radius: 18px; background: linear-gradient(145deg, var(--bg-card), var(--bg-light)); }
+.score-report-submission-legend { display: flex; gap: 16px; margin: 4px 0 18px; color: var(--text-muted); font-size: .75rem; }
+.score-report-submission-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.score-report-submission-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.score-report-submission-legend i.is-submitted { background: var(--color-present); }
+.score-report-submission-legend i.is-missing { background: var(--color-absent); }
+.score-report-submission-list { display: grid; gap: 15px; margin: 0; padding: 0; list-style: none; }
+.score-report-submission-row { display: grid; grid-template-columns: minmax(150px, 1.2fr) 2fr minmax(145px, .8fr); align-items: center; gap: 14px; }
+.score-report-submission-label { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.score-report-submission-label strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; }
+.score-report-submission-label span, .score-report-submission-detail { color: var(--text-muted); font-size: .7rem; }
+.score-report-submission-track { display: flex; height: 22px; overflow: hidden; border-radius: 6px; background: var(--bg-light); box-shadow: inset 0 1px 3px rgba(0,0,0,.12); }
+.score-report-submission-track span { display: block; min-width: 2px; }
+.score-report-submission-track .is-submitted { background: var(--color-present); }
+.score-report-submission-track .is-missing { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--color-absent) 58%, var(--bg-card)) 0, color-mix(in srgb, var(--color-absent) 58%, var(--bg-card)) 5px, color-mix(in srgb, var(--color-absent) 28%, var(--bg-card)) 5px, color-mix(in srgb, var(--color-absent) 28%, var(--bg-card)) 9px); }
+.score-report-submission-detail { display: flex; justify-content: space-between; gap: 8px; white-space: nowrap; }
 @media (max-width: 600px) {
   .score-report { padding: 8px 2px; }
   .score-report-summary { gap: 6px; }
@@ -459,6 +475,9 @@
   .score-report-student-detail ul { grid-template-columns: 1fr; }
   .score-report-tabs { gap: 4px; }
   .score-report-tab { padding-inline: 6px; font-size: .72rem; }
+  .score-report-submission-section { padding: 18px 12px; }
+  .score-report-submission-row { grid-template-columns: 1fr; gap: 6px; }
+  .score-report-submission-track { height: 18px; }
   .score-report-matrix summary { align-items: flex-start; flex-direction: column; gap: 6px; }
   .score-report-matrix-scroll { margin-inline: -4px; }
   .score-worktab { gap: 4px; padding: 6px 4px; }
