@@ -272,7 +272,7 @@ function scoreReportCakeSvg(groups, recorded) {
   return `<svg class="score-report-cake-svg" viewBox="0 0 300 260" role="img" aria-label="กราฟวงกลมสามมิติแสดงสัดส่วนช่วงคะแนน">${slices}</svg>`;
 }
 
-let scoreReportChartMode = '3d';
+let scoreReportChartMode = '2d';
 let scoreReportXYZMode = false;
 function toggleScoreReportChartMode() {
   scoreReportChartMode = scoreReportChartMode === '3d' ? '2d' : '3d';
