@@ -273,13 +273,20 @@ function scoreReportCakeSvg(groups, recorded) {
 }
 
 let scoreReportChartMode = '3d';
+let scoreReportXYZMode = false;
 function toggleScoreReportChartMode() {
   scoreReportChartMode = scoreReportChartMode === '3d' ? '2d' : '3d';
   const c = appState.classes.find(item => item.id === scoreCurrentClassId);
   if (c) renderScoreReport(c);
 }
+function toggleScoreReportXYZMode() {
+  scoreReportXYZMode = !scoreReportXYZMode;
+  const c = appState.classes.find(item => item.id === scoreCurrentClassId);
+  if (c) renderScoreReport(c);
+}
 
 function scoreReportStudentChart(c) {
+  if (scoreReportXYZMode) return scoreReportStudentXYZChart(c);
   const sc = ensureScores(c), items = sc.items || [];
   if (!items.length || !(c.students || []).length) return '';
   const palette = ['#0f9f82', '#3f98cf', '#8a74d6', '#e69f36', '#e46b68', '#5b8def', '#2aa889', '#cc6f9a'];
@@ -306,6 +313,22 @@ function scoreReportStudentChart(c) {
     return `<article class="score-report-student-row${rank ? ` is-${rank === 'สูงสุด' ? 'highest' : 'lowest'}` : ''}"><div class="score-report-student-label"><span>${record.student.no || record.index + 1}. ${escapeScore(record.student.name)}</span><strong>${record.earned} / ${totalMax}</strong></div><div class="score-report-student-track" role="img" aria-label="${escapeScoreAttr(record.student.name)} ได้ ${record.earned} จาก ${totalMax} คะแนน ส่ง ${record.submitted} จาก ${items.length} งาน">${segments}</div><div class="score-report-student-meta"><span>ส่งแล้ว ${record.submitted}/${items.length} งาน${rank ? ` · ${rank}` : ''}</span></div></article>`;
   }).join('');
   return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>คะแนนรายนักเรียน</h4><span>แท่งหนึ่งแทนนักเรียนหนึ่งคน · ช่องลายเส้นคือยังไม่ได้ส่ง</span></div><div class="score-report-student-legend">${itemLegend}</div><div class="score-report-student-chart">${chartRows}</div></section>`;
+}
+
+function scoreReportStudentXYZChart(c) {
+  const sc = ensureScores(c), items = sc.items || [], students = c.students || [];
+  if (!items.length || !students.length) return '';
+  const palette = ['#0f9f82', '#3f98cf', '#8a74d6', '#e69f36', '#e46b68', '#5b8def', '#2aa889', '#cc6f9a'];
+  const layers = items.map((item, itemIndex) => {
+    const bars = students.map((student, index) => {
+      const raw = (sc.marks[item.id] || {})[student.id], max = Math.max(0, Number(item.max) || 0), has = raw !== null && raw !== undefined && String(raw).trim() !== '' && Number.isFinite(Number(raw));
+      const value = has ? clampMark(raw, max) : 0, percent = max ? value / max * 100 : 0;
+      return `<div class="score-report-xyz-bar${has ? '' : ' is-missing'}" style="height:${Math.max(2, percent)}%;--bar-color:${palette[itemIndex % palette.length]}" data-tooltip="${escapeScoreAttr(student.name)} · ${escapeScoreAttr(item.name)}: ${has ? `${value} / ${max} คะแนน` : 'ยังไม่ส่ง'}"><span>${has ? value : '—'}</span></div>`;
+    }).join('');
+    return `<div class="score-report-xyz-layer" style="--layer:${itemIndex};--layer-color:${palette[itemIndex % palette.length]}"><strong>${escapeScore(item.name)}</strong><div class="score-report-xyz-bars">${bars}</div></div>`;
+  }).join('');
+  const labels = students.map((student, index) => `<span>${student.no || index + 1}</span>`).join('');
+  return `<section class="score-report-student-section mode-xyz"><div class="score-report-section-head"><h4>คะแนนนักเรียนแบบ XYZ</h4><span>X = นักเรียน · Y = คะแนน · Z = ชิ้นงาน</span><div class="score-report-view-toggle" role="group" aria-label="มุมมองกราฟ"><button type="button" onclick="toggleScoreReportXYZMode()">กลับกราฟแท่ง</button></div></div><div class="score-report-xyz-legend">${items.map((item, index) => `<span><i style="background:${palette[index % palette.length]}"></i>${escapeScore(item.name)}</span>`).join('')}</div><div class="score-report-xyz"><div class="score-report-xyz-y-label">Y คะแนน</div><div class="score-report-xyz-scene" role="img" aria-label="กราฟสามมิติแสดงคะแนนนักเรียนตามชิ้นงาน">${layers}</div><div class="score-report-xyz-x-label">X นักเรียน: ${labels}</div><div class="score-report-xyz-z-label">Z ชิ้นงาน →</div></div></section>`;
 }
 
 function scoreReportStudentDetail(c, studentId) {
@@ -405,7 +428,7 @@ function renderScoreReport(c) {
   if (studentSection) {
     studentSection.classList.add(`mode-${scoreReportChartMode}`);
     const sectionHead = studentSection.querySelector('.score-report-section-head');
-    if (sectionHead) sectionHead.insertAdjacentHTML('beforeend', `<div class="score-report-view-toggle" role="group" aria-label="มุมมองกราฟ"><button type="button" aria-pressed="${scoreReportChartMode === '2d'}" onclick="toggleScoreReportChartMode()">${scoreReportChartMode === '3d' ? 'ดูแบบ 2D' : 'ดูแบบ 3D'}</button></div>`);
+    if (sectionHead && !scoreReportXYZMode) sectionHead.insertAdjacentHTML('beforeend', `<div class="score-report-view-toggle" role="group" aria-label="มุมมองกราฟ"><button type="button" aria-pressed="${scoreReportChartMode === '2d'}" onclick="toggleScoreReportChartMode()">${scoreReportChartMode === '3d' ? 'ดูแบบ 2D' : 'ดูแบบ 3D'}</button><button type="button" onclick="toggleScoreReportXYZMode()">ดูแบบ XYZ</button></div>`);
   }
 }
 
