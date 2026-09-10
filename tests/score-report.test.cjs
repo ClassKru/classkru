@@ -24,6 +24,8 @@ assert.match(context.scoreReportCakeSvg(context.scoreReportDistribution(c, c.sco
 assert.equal(context.scoreReportDistribution(c, c.scores.items[0])[0].count, 1);
 assert.equal(context.scoreReportDistribution(c, c.scores.items[0])[4].count, 1);
 assert.equal(context.scoreReportDistribution(c, c.scores.items[1])[1].count, 1);
+assert.match(context.scoreReportStudentChart(c), /score-report-student-chart/);
+assert.match(context.scoreReportStudentChart(c), /ยังไม่ส่ง/);
 c.scores.marks.x.b = 0;
 assert.equal(context.scoreReportRows(c)[0].percent, 0);
 c.scores.items[0].max = 0;

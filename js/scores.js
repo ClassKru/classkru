@@ -272,6 +272,35 @@ function scoreReportCakeSvg(groups, recorded) {
   return `<svg class="score-report-cake-svg" viewBox="0 0 300 260" role="img" aria-label="กราฟวงกลมสามมิติแสดงสัดส่วนช่วงคะแนน">${slices}</svg>`;
 }
 
+function scoreReportStudentChart(c) {
+  const sc = ensureScores(c), items = sc.items || [];
+  if (!items.length || !(c.students || []).length) return '';
+  const palette = ['#0f9f82', '#3f98cf', '#8a74d6', '#e69f36', '#e46b68', '#5b8def', '#2aa889', '#cc6f9a'];
+  const totalMax = items.reduce((sum, item) => sum + Math.max(0, Number(item.max) || 0), 0);
+  if (!totalMax) return '';
+  const records = c.students.map((student, index) => {
+    const values = items.map((item, itemIndex) => {
+      const raw = (sc.marks[item.id] || {})[student.id], has = raw !== null && raw !== undefined && String(raw).trim() !== '' && Number.isFinite(Number(raw));
+      const max = Math.max(0, Number(item.max) || 0), value = has ? clampMark(raw, max) : 0;
+      return { item, itemIndex, max, value, has };
+    });
+    return { student, index, values, earned: values.reduce((sum, value) => sum + value.value, 0), submitted: values.filter(value => value.has).length };
+  }).sort((a, b) => b.earned - a.earned || a.index - b.index);
+  const complete = records.filter(record => record.submitted > 0);
+  const high = complete.length ? Math.max(...complete.map(record => record.earned)) : null;
+  const low = complete.length ? Math.min(...complete.map(record => record.earned)) : null;
+  const itemLegend = items.map((item, index) => `<span><i style="background:${palette[index % palette.length]}"></i>${escapeScore(item.name)}</span>`).join('');
+  const chartRows = records.map(record => {
+    const rank = high !== null && record.earned === high ? 'สูงสุด' : low !== null && record.earned === low ? 'ต่ำสุด' : '';
+    const segments = record.values.map(value => {
+      const width = value.max / totalMax * 100, fill = value.max ? value.value / value.max * 100 : 0;
+      return `<span class="score-report-student-segment${value.has ? '' : ' missing'}" style="width:${width}%;--segment-color:${palette[value.itemIndex % palette.length]}" data-tooltip="${escapeScoreAttr(value.item.name)}: ${value.has ? `${value.value} / ${value.max} คะแนน` : 'ยังไม่ส่ง'}"><i style="width:${fill}%"></i></span>`;
+    }).join('');
+    return `<article class="score-report-student-row${rank ? ` is-${rank === 'สูงสุด' ? 'highest' : 'lowest'}` : ''}"><div class="score-report-student-label"><span>${record.student.no || record.index + 1}. ${escapeScore(record.student.name)}</span><strong>${record.earned} / ${totalMax}</strong></div><div class="score-report-student-track" role="img" aria-label="${escapeScoreAttr(record.student.name)} ได้ ${record.earned} จาก ${totalMax} คะแนน ส่ง ${record.submitted} จาก ${items.length} งาน">${segments}</div><div class="score-report-student-meta"><span>ส่งแล้ว ${record.submitted}/${items.length} งาน${rank ? ` · ${rank}` : ''}</span></div></article>`;
+  }).join('');
+  return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>คะแนนรายนักเรียน</h4><span>แท่งหนึ่งแทนนักเรียนหนึ่งคน · ช่องลายเส้นคือยังไม่ได้ส่ง</span></div><div class="score-report-student-legend">${itemLegend}</div><div class="score-report-student-chart">${chartRows}</div></section>`;
+}
+
 function renderScoreReport(c) {
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (!wrap) return;
@@ -311,6 +340,8 @@ function renderScoreReport(c) {
     cake.style.background = 'transparent';
     cake.insertAdjacentHTML('afterbegin', scoreReportCakeSvg(groups, recorded));
   }
+  const report = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report') : null;
+  if (report) report.insertAdjacentHTML('afterbegin', scoreReportStudentChart(c));
 }
 
 function curriculumGradeLabel(grade) {

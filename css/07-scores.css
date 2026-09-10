@@ -370,6 +370,23 @@
 .score-report-legend small { display: inline-block; min-width: 48px; text-align: right; color: var(--text-muted); font-weight: 400; }
 .score-report-dot { width: 12px; height: 12px; border-radius: 50%; }
 .score-report-empty { text-align: center; padding: 40px 12px; color: var(--text-muted); }
+.score-report-student-section { border: 1px solid var(--border-color); border-radius: 18px; padding: 24px; margin-bottom: 20px; background: linear-gradient(145deg, var(--bg-card), var(--bg-light)); box-shadow: 0 12px 28px rgba(24,75,60,.07), inset 0 1px 0 rgba(255,255,255,.7); }
+.score-report-student-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 0 0 18px; color: var(--text-muted); font-size: .74rem; }
+.score-report-student-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.score-report-student-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.score-report-student-chart { display: grid; gap: 12px; max-height: 620px; overflow-y: auto; padding: 2px 8px 4px 0; }
+.score-report-student-row { display: grid; grid-template-columns: minmax(150px, 210px) minmax(240px, 1fr) 105px; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 12px; }
+.score-report-student-row:hover { background: var(--primary-light); }
+.score-report-student-row.is-highest { box-shadow: inset 3px 0 var(--color-present); }
+.score-report-student-row.is-lowest { box-shadow: inset 3px 0 var(--color-absent); }
+.score-report-student-label { display: flex; justify-content: space-between; gap: 8px; min-width: 0; font-size: .78rem; }
+.score-report-student-label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score-report-student-label strong { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.score-report-student-track { min-width: 0; height: 28px; display: flex; overflow: hidden; border-radius: 8px; background: var(--bg-light); box-shadow: inset 0 1px 3px rgba(0,0,0,.1); }
+.score-report-student-segment { position: relative; display: block; height: 100%; border-right: 1px solid rgba(255,255,255,.55); background: repeating-linear-gradient(135deg, transparent 0, transparent 5px, rgba(120,130,128,.22) 5px, rgba(120,130,128,.22) 8px), color-mix(in srgb, var(--segment-color) 13%, var(--bg-light)); }
+.score-report-student-segment i { display: block; height: 100%; background: var(--segment-color); box-shadow: inset 2px 0 3px rgba(255,255,255,.25); }
+.score-report-student-segment.missing i { display: none; }
+.score-report-student-meta { color: var(--text-muted); font-size: .72rem; white-space: nowrap; }
 @media (max-width: 600px) {
   .score-report { padding: 8px 2px; }
   .score-report-summary { gap: 6px; }
@@ -379,6 +396,9 @@
   .score-report-bar-section,.score-report-pie-section { padding: 18px 12px; }
   .score-report-pie-layout { gap: 24px; }
   .score-report-legend { min-width: 0; flex-basis: 100%; }
+  .score-report-student-section { padding: 18px 12px; }
+  .score-report-student-row { grid-template-columns: minmax(118px, 1fr) minmax(160px, 1.2fr); gap: 7px; padding: 8px 4px; }
+  .score-report-student-meta { grid-column: 1 / -1; padding-left: 2px; }
   .score-worktab { gap: 4px; padding: 6px 4px; }
   .score-worktab i { display: none; }
 }
