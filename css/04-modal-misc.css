@@ -22,6 +22,9 @@
 
 .modal-overlay.show { display: flex; }
 
+/* โมดัลต้องอยู่เหนือปุ่มช่วยเหลือ/ปุ่มลอย เพื่อไม่ให้การแตะในฟอร์มทะลุไปโดนด้านหลัง */
+#modal-class { z-index: 9000; }
+
 /* modal กลางจอ (ชื่อเดิม bottom-sheet คงไว้ ใช้ร่วมกันทั้ง 7 modal) */
 .bottom-sheet {
   background-color: var(--bg-card);
