@@ -15,6 +15,14 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
 .tour-mask { position: fixed; background: rgba(17,24,39,0.58); z-index: 12000; transition: all 0.2s ease; }
 .tour-ring { position: fixed; z-index: 12001; border: 3px solid var(--primary); border-radius: 14px; box-shadow: 0 0 0 5px rgba(255,255,255,0.86), 0 0 0 10px rgba(29,158,117,0.26), 0 18px 44px rgba(0,0,0,0.24); pointer-events: none; transition: all 0.2s ease; }
 .tour-bubble { position: fixed; z-index: 12002; width: 300px; max-width: calc(100vw - 24px); background: var(--bg-card); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.28); padding: 16px 18px; }
+@media (max-width: 768px) {
+  .tour-bubble {
+    width: min(300px, calc(100vw - 24px));
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
 .tour-action-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
 .tour-action-chips span { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 999px; background: var(--primary-light); color: var(--primary-deep); font-size: 0.78rem; font-weight: 800; }
 .tour-action-chips i { font-size: 0.9rem; }

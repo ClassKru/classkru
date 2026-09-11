@@ -223,6 +223,18 @@ const Tour = {
     this._reposition = () => { if (this.active) this._place(); };
     window.addEventListener('resize', this._reposition);
     window.addEventListener('scroll', this._reposition, true);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this._reposition);
+      window.visualViewport.addEventListener('scroll', this._reposition);
+    }
+  },
+
+  _viewport() {
+    const vv = window.visualViewport;
+    return {
+      width: vv ? vv.width : window.innerWidth,
+      height: vv ? vv.height : window.innerHeight
+    };
   },
 
   _show() { const r = document.getElementById('tour-root'); if (r) r.style.display = ''; },
@@ -299,12 +311,13 @@ const Tour = {
       this._hide();
       return;
     }
-    if (el && (el.getBoundingClientRect().top < 0 || el.getBoundingClientRect().bottom > window.innerHeight)) {
+    const viewport = this._viewport();
+    if (el && (el.getBoundingClientRect().top < 0 || el.getBoundingClientRect().bottom > viewport.height)) {
       el.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
     let r = el ? el.getBoundingClientRect() : null;
     if (r && r.width === 0 && r.height === 0) r = null;
-    const W = window.innerWidth, H = window.innerHeight, pad = 6;
+    const W = viewport.width, H = viewport.height, pad = 6;
     if (r) {
       const x = r.left - pad, y = r.top - pad, w = r.width + pad * 2, h = r.height + pad * 2;
       if (step.noMask) {
@@ -348,7 +361,8 @@ const Tour = {
       (hint ? `<div style="margin-top:12px;">${hint}</div>` : '') +
       `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;">${backBtn}<div style="margin-left:auto;">${advBtn}</div></div>`;
     bubble.style.display = 'block';
-    const bw = bubble.offsetWidth, bh = bubble.offsetHeight, W = window.innerWidth, H = window.innerHeight, m = 12;
+    const viewport = this._viewport();
+    const bw = bubble.offsetWidth, bh = bubble.offsetHeight, W = viewport.width, H = viewport.height, m = 12;
     let bx, by;
     if (r) {
       if (r.bottom + bh + m < H) by = r.bottom + m;
@@ -414,6 +428,10 @@ const Tour = {
     if (this._reposition) {
       window.removeEventListener('resize', this._reposition);
       window.removeEventListener('scroll', this._reposition, true);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', this._reposition);
+        window.visualViewport.removeEventListener('scroll', this._reposition);
+      }
     }
     if (this.opts.onEnd) this.opts.onEnd(completed);
   }
