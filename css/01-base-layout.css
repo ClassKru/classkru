@@ -16,6 +16,7 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
 .tour-ring { position: fixed; z-index: 12001; border: 3px solid var(--primary); border-radius: 14px; box-shadow: 0 0 0 5px rgba(255,255,255,0.86), 0 0 0 10px rgba(29,158,117,0.26), 0 18px 44px rgba(0,0,0,0.24); pointer-events: none; transition: all 0.2s ease; }
 .tour-bubble { position: fixed; z-index: 12002; width: 300px; max-width: calc(100vw - 24px); background: var(--bg-card); border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.28); padding: 16px 18px; }
 @media (max-width: 768px) {
+  .tour-ring { display: none !important; }
   .tour-bubble {
     width: min(300px, calc(100vw - 24px));
     max-height: calc(100dvh - 24px);
