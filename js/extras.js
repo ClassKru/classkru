@@ -523,19 +523,7 @@ const GUIDE_STEPS = {
     { target: '#ck-class-menu button:first-child', title: 'เลือกเพิ่มนักเรียน',
       body: 'แตะ “เพิ่มนักเรียน” เพื่อเปิดฟอร์มเพิ่มรายชื่อทีละคน',
       mobileOnly: true,
-      advance: 'action:student-modal-opened' },
-    { target: '#modal-student .bottom-sheet', title: 'ฟอร์มเพิ่มนักเรียน',
-      body: 'เลขที่จะเติมให้ถัดจากคนล่าสุดโดยอัตโนมัติ ส่วนช่องที่สำคัญที่สุดคือชื่อ-นามสกุล',
-      blockTarget: true },
-    { target: '#input-student-name', title: 'กรอกชื่อ-นามสกุล',
-      body: 'ช่องนี้จำเป็นต้องกรอกก่อนบันทึก ส่วนรหัส ชื่อเล่น และหมายเหตุเป็นข้อมูลเสริม ใส่ภายหลังได้',
-      allowInteraction: true },
-    { target: '#btn-student-submit', title: 'บันทึกรายชื่อ',
-      body: 'เมื่อกรอกชื่อแล้ว กด “เพิ่ม” เพื่อบันทึกนักเรียนเข้าห้องนี้ ระบบจะนำไปใช้ต่อในเช็คชื่อ คะแนน และรายงาน',
-      advance: 'action:student-added', hideOnClick: false },
-    { target: '.student-roster-card', title: 'เพิ่มแล้วจะอยู่ตรงนี้', before: prepareStudentGuideResult,
-      body: 'รายชื่อที่เพิ่มจะแสดงในพื้นที่นี้ ถ้ามีนักเรียนหลายคน ใช้นำเข้า Excel ได้จากปุ่มด้านบนบนจอใหญ่',
-      blockTarget: true }
+      advance: 'action:student-modal-opened' }
   ],
   checkin: [
     { before: ensureCheckinOpen, target: '#swipe-card', title: 'การ์ดเช็คชื่อ',
