@@ -625,7 +625,7 @@ const GUIDE_STEPS = {
   ],
   reports: [
     { target: '#web-rep-detail-class-title, #web-reports-class-list', title: 'รายงานของห้อง',
-      body: 'ดูสรุปวันนี้ รายคาบ รายภาค และส่งออกข้อมูลสำหรับงานเอกสาร',
+      body: 'ดูสรุปวันนี้ ภาพรวมการเข้าเรียน รายภาค และส่งออกข้อมูลสำหรับงานเอกสาร',
       blockTarget: true },
     { target: '.report-tabs', title: 'เลือกมุมมองรายงาน',
       body: 'สลับแท็บเพื่อดูรายงานแบบที่ต้องการ โดยไม่ต้องเปลี่ยนเมนูหลัก',

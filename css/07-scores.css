@@ -376,6 +376,21 @@
   box-shadow: var(--shadow-sm);
 }
 
+.score-worktab.is-locked {
+  cursor: not-allowed;
+  color: var(--text-muted);
+  opacity: 0.58;
+}
+
+.score-worktab.is-locked:hover {
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.score-worktab-lock {
+  font-size: 0.82rem;
+}
+
 .score-quick-shell,
 .score-items-shell {
   display: grid;

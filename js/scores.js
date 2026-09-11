@@ -172,17 +172,25 @@ function viewClassScores(classId) {
 function scoreWorkTabsHtml(c) {
   const tabs = [
     { key: 'overview', label: 'คะแนน', icon: 'hgi-table' },
-    { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01' },
-    { key: 'report', label: 'รายงานผล', icon: 'hgi-table' },
-    { key: 'pp5', label: 'ปพ.5', icon: 'hgi-book-open-01' }
+    { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01', locked: true },
+    { key: 'report', label: 'รายงานผล', icon: 'hgi-table', locked: true },
+    { key: 'pp5', label: 'ปพ.5', icon: 'hgi-book-open-01', locked: true }
   ];
   return `<div class="score-worktabs">${tabs.map(t => `
-    <button class="score-worktab${scoreWorkspaceMode === t.key ? ' active' : ''}" onclick="setScoreWorkspaceMode('${t.key}','${c.id}')">
+    <button class="score-worktab${scoreWorkspaceMode === t.key ? ' active' : ''}${t.locked ? ' is-locked' : ''}" ${t.locked ? 'type="button" disabled aria-disabled="true" title="เตรียมเปิดใช้งานเร็ว ๆ นี้"' : `onclick="setScoreWorkspaceMode('${t.key}','${c.id}')"`}>
       <i class="hgi-stroke ${t.icon}"></i><span>${t.label}</span>
+      ${t.locked ? '<i class="hgi-stroke hgi-lock-01 score-worktab-lock" aria-hidden="true"></i>' : ''}
     </button>`).join('')}</div>`;
 }
 
 function setScoreWorkspaceMode(mode, classId) {
+  if (['curriculum', 'report', 'pp5'].includes(mode)) {
+    scoreWorkspaceMode = 'overview';
+    showToast('เตรียมเปิดใช้งานเร็ว ๆ นี้ ใช้หน้าคะแนนหลักได้ตามปกติ', 'info');
+    const c = appState.classes.find(x => x.id === classId);
+    if (c) renderScoreWorkspace(c);
+    return;
+  }
   scoreWorkspaceMode = mode;
   if (mode !== 'curriculum') {
     scoreIndicatorSearchOpen = false;
@@ -193,6 +201,7 @@ function setScoreWorkspaceMode(mode, classId) {
 }
 
 function renderScoreWorkspace(c) {
+  if (['curriculum', 'report', 'pp5'].includes(scoreWorkspaceMode)) scoreWorkspaceMode = 'overview';
   const holder = document.getElementById('score-worktab-holder');
   if (holder) holder.innerHTML = scoreWorkTabsHtml(c);
   const wrap = document.getElementById('web-scores-matrix-wrap');

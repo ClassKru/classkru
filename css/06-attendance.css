@@ -728,6 +728,7 @@
   touch-action: manipulation;
 }
 .student-detail-photo-source-actions i { color: var(--primary); font-size: 1.25rem; }
+
   .swipe-mobile-edit-sheet.show {
     display: flex;
   }
@@ -870,6 +871,11 @@
   .swipe-edit-status-btn.late.active { border-color: var(--color-late); background: var(--color-late-bg); color: var(--color-late-text); }
   .swipe-edit-status-btn.absent.active { border-color: var(--color-absent); background: var(--color-absent-bg); color: var(--color-absent); }
   .swipe-edit-status-btn.leave.active { border-color: var(--color-leave); background: var(--color-leave-bg); color: var(--color-leave); }
+}
+
+/* ตัวเลือกแบบ bottom sheet ใช้เฉพาะมือถือ; desktop เปิด file picker โดยตรง */
+@media (min-width: 769px) {
+  .student-detail-photo-source-sheet { display: none !important; }
 }
 
 /* ========================================== */

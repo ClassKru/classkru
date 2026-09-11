@@ -647,6 +647,14 @@ function handleSwipeStudentPhoto(event) {
 function openStudentDetailPhoto(event) {
   if (event) event.stopPropagation();
   if (!ensureStudentPhotoPermission()) return;
+  // ตัวเลือกแบบ bottom sheet ใช้เฉพาะมือถือ; desktop เปิด file picker โดยตรง
+  const sidebar = document.getElementById('app-sidebar');
+  const isMobileLayout = window.matchMedia('(max-width: 768px)').matches
+    || (sidebar && getComputedStyle(sidebar).display === 'none');
+  if (!isMobileLayout) {
+    document.getElementById('student-detail-photo-input')?.click();
+    return;
+  }
   const sheet = document.getElementById('student-detail-photo-source-sheet');
   if (!sheet) {
     document.getElementById('student-detail-photo-input')?.click();

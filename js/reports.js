@@ -1,3 +1,12 @@
+function escapeReportHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function loadWebAttendanceMatrix() {
   const select = document.getElementById('web-attendance-class-select');
   if (!select) return;
@@ -39,16 +48,20 @@ function goBackToWebReportsSelection() {
 }
 
 function switchWebReportTab(tab) {
+  // รายคาบถูกรวมไว้ในภาพรวมแล้ว แต่รองรับลิงก์เก่าให้เปิดหน้าใหม่ได้ตามปกติ
+  if (tab === 'weekly') tab = 'overall';
   currentWebReportTab = tab;
   document.querySelectorAll('.report-tab-item').forEach(b => b.classList.toggle('active', b.getAttribute('data-tab') === tab));
-  ['today','weekly','term','overall'].forEach(t => {
+  ['today','term','overall'].forEach(t => {
     const el = document.getElementById(`web-rep-content-${t}`);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
   if (tab === 'today') renderTodayReport();
-  else if (tab === 'weekly') requestAnimationFrame(() => renderWeeklyReport());
   else if (tab === 'term') renderTermReport();
-  else if (tab === 'overall') renderOverallReport();
+  else if (tab === 'overall') {
+    renderOverallReport();
+    requestAnimationFrame(() => renderWeeklyReport());
+  }
 }
 
 function renderTodayReport() {
@@ -457,6 +470,36 @@ function openAttendanceDateFromReport(event, classId, dateKey) {
   });
 }
 
+function renderFrequentAbsentees(c, dates) {
+  const container = document.getElementById('web-rep-frequent-absentees');
+  if (!container) return;
+  if (!dates.length || !c.students?.length) {
+    container.innerHTML = '<span class="report-empty-note">ยังไม่มีข้อมูลการขาดเรียน</span>';
+    return;
+  }
+
+  const rows = c.students.map(student => {
+    const absent = dates.reduce((count, date) => count + ((c.attendance?.[date]?.[student.id] === 'absent') ? 1 : 0), 0);
+    return { student, absent };
+  }).filter(row => row.absent > 0).sort((a, b) => b.absent - a.absent || String(a.student.name || '').localeCompare(String(b.student.name || ''), 'th')).slice(0, 8);
+
+  if (!rows.length) {
+    container.innerHTML = '<span class="report-empty-note">ยังไม่มีนักเรียนที่ขาดเรียน</span>';
+    return;
+  }
+
+  container.innerHTML = rows.map(({ student, absent }) => {
+    const label = `${student.no ? `${student.no}. ` : ''}${student.name || 'ไม่ระบุชื่อ'}`;
+    const ratio = Math.round(absent / dates.length * 100);
+    return `<button type="button" class="report-absent-row" onclick="openStudentSummaryModal('${escapeReportHtml(student.id)}','${escapeReportHtml(c.id)}')">
+      <span class="report-absent-rank">${rows.findIndex(row => row.student.id === student.id) + 1}</span>
+      <span class="report-absent-name">${escapeReportHtml(label)}</span>
+      <span class="report-absent-count"><strong>${absent}</strong> ครั้ง <small>${ratio}% ของคาบ</small></span>
+      <i class="hgi-stroke hgi-arrow-right-01 report-absent-arrow"></i>
+    </button>`;
+  }).join('');
+}
+
 function renderOverallReport() {
   const c = appState.classes.find(x => x.id === currentClassId);
   if (!c) return;
@@ -466,10 +509,10 @@ function renderOverallReport() {
 
   // ไล่สีตามคะแนน: เขียว(ดี) → ส้ม(ต้องติดตาม) → แดง(วิกฤต)
   const health = pct >= 90
-    ? { color: 'var(--color-present)',    icon: 'hgi-checkmark-circle-02', msg: 'สุขภาพห้องเรียนดีเยี่ยม', bg: 'var(--color-present-bg)', fg: 'var(--color-present)' }
+    ? { color: 'var(--color-present)',    icon: 'hgi-checkmark-circle-02', msg: 'เข้าเรียนสม่ำเสมอ', bg: 'var(--color-present-bg)', fg: 'var(--color-present)' }
     : pct >= 75
-    ? { color: '#f59e0b',                 icon: 'hgi-alert-circle',        msg: 'ต้องติดตาม',            bg: 'var(--color-late-bg)',    fg: 'var(--color-late-text)' }
-    : { color: 'var(--color-absent)',     icon: 'hgi-alert-02',            msg: 'วิกฤต',                 bg: 'var(--color-absent-bg)',  fg: 'var(--color-absent)' };
+    ? { color: '#f59e0b',                 icon: 'hgi-alert-circle',        msg: 'ควรติดตามการเข้าเรียน',  bg: 'var(--color-late-bg)',    fg: 'var(--color-late-text)' }
+    : { color: 'var(--color-absent)',     icon: 'hgi-alert-02',            msg: 'ต้องติดตามเร่งด่วน',     bg: 'var(--color-absent-bg)',  fg: 'var(--color-absent)' };
   if (circle) circle.style.stroke = health.color;
   if (pctEl) pctEl.style.color = health.color;
 
@@ -497,7 +540,7 @@ function renderOverallReport() {
   }
   
   let totalPresent=0, totalAbsent=0, totalLate=0, totalLeave=0;
-  const dates = Object.keys(c.attendance||{});
+  const dates = Object.keys(c.attendance || {}).filter(d => d <= getTodayString()).sort();
   dates.forEach(d => { c.students.forEach(s => { const st=(c.attendance[d]||{})[s.id]; if(st==='present')totalPresent++; if(st==='absent')totalAbsent++; if(st==='late')totalLate++; if(st==='leave')totalLeave++; }); });
   document.getElementById('web-rep-overall-present').innerText = totalPresent;
   document.getElementById('web-rep-overall-absent').innerText = totalAbsent;
@@ -508,6 +551,7 @@ function renderOverallReport() {
   badge.innerHTML = `<i class="hgi-stroke ${health.icon}"></i> ${health.msg}`;
   badge.style.background = health.bg;
   badge.style.color = health.fg;
+  renderFrequentAbsentees(c, dates);
 
 }
 
@@ -740,19 +784,19 @@ function handleExcelStudentsUpload(event) {
 
 function showStudentMappingUI() {
   document.getElementById('excel-students-mapping-area').style.display = 'block';
-  const opts = '<option value="">-- เลือก --</option>' + parsedExcelHeaders.map((h,i) => `<option value="${i}">${h}</option>`).join('');
+  const opts = '<option value="">-- เลือก --</option>' + parsedExcelHeaders.map((h,i) => `<option value="${i}">${escapeReportHtml(h)}</option>`).join('');
   ['map-student-no','map-student-code','map-student-name','map-student-lastname','map-student-class'].forEach(id => { document.getElementById(id).innerHTML = opts; });
   autoGuessMapping('students');
   
   // Target class dropdown
   const target = document.getElementById('map-student-target-class');
   target.innerHTML = '<option value="">-- สร้างอัตโนมัติ --</option>';
-  appState.classes.forEach(c => { target.innerHTML += `<option value="${c.id}">${c.subject} (${c.className})</option>`; });
+  appState.classes.forEach(c => { target.innerHTML += `<option value="${escapeReportHtml(c.id)}">${escapeReportHtml(c.subject)} (${escapeReportHtml(c.className)})</option>`; });
 
   // Preview
   const preview = document.getElementById('excel-students-preview-table');
-  let html = '<thead><tr>' + parsedExcelHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
-  parsedExcelRows.slice(0, 5).forEach(r => { html += '<tr>' + parsedExcelHeaders.map((_,i) => `<td>${r[i]||''}</td>`).join('') + '</tr>'; });
+  let html = '<thead><tr>' + parsedExcelHeaders.map(h => `<th>${escapeReportHtml(h)}</th>`).join('') + '</tr></thead><tbody>';
+  parsedExcelRows.slice(0, 5).forEach(r => { html += '<tr>' + parsedExcelHeaders.map((_,i) => `<td>${escapeReportHtml(r[i])}</td>`).join('') + '</tr>'; });
   html += '</tbody>';
   preview.innerHTML = html;
 }
@@ -839,12 +883,12 @@ function handleExcelTimetableUpload(event) {
 
 function showTimetableMappingUI() {
   document.getElementById('excel-timetable-mapping-area').style.display = 'block';
-  const opts = '<option value="">-- เลือก --</option>' + parsedExcelHeaders.map((h,i) => `<option value="${i}">${h}</option>`).join('');
+  const opts = '<option value="">-- เลือก --</option>' + parsedExcelHeaders.map((h,i) => `<option value="${i}">${escapeReportHtml(h)}</option>`).join('');
   ['map-table-day','map-table-period','map-table-class','map-table-subject'].forEach(id => { document.getElementById(id).innerHTML = opts; });
   
   const preview = document.getElementById('excel-timetable-preview-table');
-  let html = '<thead><tr>' + parsedExcelHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
-  parsedExcelRows.slice(0, 5).forEach(r => { html += '<tr>' + parsedExcelHeaders.map((_,i) => `<td>${r[i]||''}</td>`).join('') + '</tr>'; });
+  let html = '<thead><tr>' + parsedExcelHeaders.map(h => `<th>${escapeReportHtml(h)}</th>`).join('') + '</tr></thead><tbody>';
+  parsedExcelRows.slice(0, 5).forEach(r => { html += '<tr>' + parsedExcelHeaders.map((_,i) => `<td>${escapeReportHtml(r[i])}</td>`).join('') + '</tr>'; });
   html += '</tbody>';
   preview.innerHTML = html;
 }

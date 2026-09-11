@@ -176,7 +176,7 @@ function toggleStudentsActionMenu(ev) {
   menu.innerHTML = `
     <button onclick="closeClassMenu();openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียน</span></button>
     <button onclick="closeClassMenu();openStudentQrCardsFromRoster()"><i class="hgi-stroke hgi-qr-code"></i><span>พิมพ์ QR นักเรียน</span></button>
-    <button onclick="closeClassMenu();openClassJoinActivity()"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียนผ่านกิจกรรม</span></button>
+    <button disabled title="ฟีเจอร์นี้อยู่ระหว่างปรับปรุง"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียนผ่านกิจกรรม (พักไว้ชั่วคราว)</span></button>
     <button onclick="closeClassMenu();triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i><span>นำเข้า Excel</span></button>
     <button class="danger" onclick="closeClassMenu();deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i><span>ลบทั้งหมด</span></button>`;
   document.body.appendChild(menu);
@@ -188,6 +188,7 @@ function toggleStudentsActionMenu(ev) {
 
 // Local working prototype: เปิดรับนักเรียนผ่านกิจกรรมเพิ่มนักเรียนในเครื่องนี้
 const JOIN_ACTIVITY_STORAGE_KEY = 'classkru_join_activity_sessions_v2';
+const JOIN_ACTIVITY_ENABLED = false;
 let activeJoinSessionCode = null;
 let joinActivityRefreshTimer = null;
 const JOIN_ACTIVITY_SAMPLE = [
@@ -198,6 +199,12 @@ const JOIN_ACTIVITY_SAMPLE = [
 ];
 
 function openClassJoinActivity() {
+  if (!JOIN_ACTIVITY_ENABLED) {
+    if (typeof showToast === 'function') {
+      showToast('ฟีเจอร์เพิ่มนักเรียนผ่านกิจกรรมอยู่ระหว่างปรับปรุง กรุณาใช้การเพิ่มนักเรียนหรือนำเข้า Excel', 'info');
+    }
+    return;
+  }
   if (!currentClassId) {
     alert('กรุณาเลือกห้องเรียนก่อนเปิดกิจกรรมเพิ่มนักเรียน');
     return;
