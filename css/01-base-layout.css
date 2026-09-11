@@ -23,6 +23,14 @@ html:not(.icons-ready) i.hgi-stroke { visibility: hidden !important; }
     overflow-y: auto;
     overscroll-behavior: contain;
   }
+
+  /* iOS Safari จะซูมหน้าอัตโนมัติเมื่อแตะ control ที่เล็กกว่า 16px
+     ป้องกันเฉพาะ auto-zoom นี้ แต่ยังเปิดให้ผู้ใช้ pinch-zoom ตารางได้ตามปกติ */
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }
 .tour-action-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
 .tour-action-chips span { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 999px; background: var(--primary-light); color: var(--primary-deep); font-size: 0.78rem; font-weight: 800; }
