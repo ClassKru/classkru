@@ -26,6 +26,7 @@ function openClassModal(classId) {
   selectClassStage(classStageFromClass(selectedClass));
   renderClassColorPicker();
   document.getElementById('modal-class').classList.add('show');
+  document.body.classList.add('modal-open');
   if (!classId) notifyTourAction('class-modal-opened');
 }
 
@@ -45,6 +46,7 @@ function renderClassColorPicker() {
 
 function closeClassModal() {
   document.getElementById('modal-class').classList.remove('show');
+  document.body.classList.remove('modal-open');
   editingClassId = null;
 }
 
