@@ -106,6 +106,16 @@ function operations(before, after) {
 }
 
 {
+  const before = { ...structuredClone(seed), classes: [] };
+  const after = structuredClone(before);
+  after.classes.push(structuredClone(seed.classes[0]));
+  context.beforeSync = before;
+  context.afterSync = after;
+  const result = run("relationalOperationsDuringSync(beforeSync, afterSync, '00000000-0000-0000-0000-000000000001', 'teacher@example.com')");
+  assert.ok(result.some(operation => operation.table === 'classrooms' && operation.type === 'upsert'), 'a classroom created while cloud sync is running is retained');
+}
+
+{
   const next = structuredClone(seed);
   next.classes[0].students = [];
   const result = operations(seed, next);

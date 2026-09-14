@@ -265,6 +265,13 @@ function relationalDiff(beforeState, afterState, teacherId, email = relationalTe
   return operations;
 }
 
+// sync เริ่มแบบ background ได้ ขณะที่ครูเริ่มสร้างห้องหรือเพิ่มรายชื่อแล้ว
+// จึงต้องเก็บเฉพาะความต่างที่เกิดระหว่างรอ Cloud ไม่ให้ state เก่าจาก Cloud เขียนทับหน้าจอ
+function relationalOperationsDuringSync(beforeState, afterState, teacherId, email = relationalTeacherEmail) {
+  if (relationalSame(beforeState, afterState)) return [];
+  return relationalDiff(beforeState, afterState, teacherId, email);
+}
+
 async function relationalApplyOperation(operation) {
   if (!supabaseClient) throw new Error('Supabase client unavailable');
   if (!RELATIONAL_TABLES.includes(operation.table)) throw new Error('Unknown relational table');
@@ -631,6 +638,21 @@ async function trySyncRelationalState(email) {
         await persistRelationalOperations(pendingOperations);
         state = await loadRelationalState();
       }
+
+    }
+
+    // ระหว่าง detect/load อาจมีการสร้างห้อง เพิ่มนักเรียน หรือบันทึกข้อมูลแล้ว
+    // การเช็ก snapshot เดิมอย่างเดียวจะพลาดการแก้เหล่านี้ และ appState ด้านล่างจะถูก state
+    // ว่างจาก Cloud เขียนทับ จึง diff กับ state ปัจจุบันก่อนนำผลจาก Cloud มาใช้
+    // ต้องครอบคลุมทั้งบัญชีที่มีข้อมูลเดิมและบัญชีใหม่ที่เพิ่ง seed profile ครั้งแรก
+    const localStateAfterSync = relationalClone(appState);
+    const operationsDuringSync = relationalOperationsDuringSync(
+      localStateBeforeSync, localStateAfterSync,
+      relationalTeacherIdValue, relationalTeacherEmail
+    );
+    if (operationsDuringSync.length) {
+      await persistRelationalOperations(operationsDuringSync);
+      state = await loadRelationalState();
     }
     appState = state;
     appState.classes = Array.isArray(appState.classes) ? appState.classes : [];
