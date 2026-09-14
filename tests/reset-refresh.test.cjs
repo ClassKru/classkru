@@ -56,7 +56,7 @@ function reload() {
     },
     window: { addEventListener() {}, location: { reload() {} } },
     document: { getElementById() { return null; } },
-    appState: {}, STORAGE_KEY: 'state', supabaseClient: client,
+    appState: {}, STORAGE_KEY: 'state', setStateStorageKey() {}, supabaseClient: client,
     pendingDeepLink: null, pendingDeepLinkParam: null,
     normalizeTimetableEntries: entries => entries || [],
     updateProfileImages() {}, navigateToWebScreen() {}, showToast() {}

@@ -15,7 +15,16 @@ let appState = {
   holidays: []
 };
 
-const STORAGE_KEY = 'classkru_mobile_v4';
+const STORAGE_KEY_PREFIX = 'classkru_mobile_v4';
+let STORAGE_KEY = `${STORAGE_KEY_PREFIX}_guest`;
+
+function setStateStorageKey(email) {
+  const normalized = String(email || '').trim().toLowerCase();
+  STORAGE_KEY = normalized
+    ? `${STORAGE_KEY_PREFIX}_${encodeURIComponent(normalized)}`
+    : `${STORAGE_KEY_PREFIX}_guest`;
+  return STORAGE_KEY;
+}
 let currentClassId = null;
 let currentWebReportTab = 'today';
 let currentExcelImportTab = 'students';
@@ -192,4 +201,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     showLoginOverlay();
   }
 });
-

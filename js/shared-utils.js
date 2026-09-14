@@ -432,7 +432,8 @@ function deleteAllStudentsInClass(classId) {
 }
 
 // ==================== STATE MANAGEMENT ====================
-function initAppState() {
+function initAppState(email) {
+  if (typeof setStateStorageKey === 'function' && email) setStateStorageKey(email);
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     appState = JSON.parse(saved);
