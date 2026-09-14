@@ -593,6 +593,8 @@ async function trySyncRelationalState(email) {
   if (!supabaseClient) return false;
   const localStateBeforeSync = relationalClone(appState);
   const localBaselineBeforeSync = relationalClone(relationalBaseline);
+  const initialSyncKey = `classkru_relational_initial_sync_v1_${relationalTeacherIdValue || String(email || '').trim().toLowerCase()}`;
+  const isInitialRelationalSync = localStorage.getItem(initialSyncKey) !== '1';
   // If the relational baseline is not ready yet, edits can happen while the
   // first pull is awaiting several network requests. Keep those edits and
   // replay them after the remote snapshot has been read instead of allowing
@@ -618,6 +620,19 @@ async function trySyncRelationalState(email) {
       localStateAtSeed = relationalClone(appState);
       state = await seedRelationalState(source || {});
     } else {
+      // The onboarding flow creates a teacher profile before any classroom
+      // exists. On the first relational sync, that empty profile must not
+      // overwrite classrooms which were just created in this browser.
+      if (isInitialRelationalSync
+        && (localStateBeforeSync.classes || []).length
+        && !(state.classes || []).length) {
+        const initialLocalOperations = relationalDiff(
+          null, localStateBeforeSync,
+          relationalTeacherIdValue, relationalTeacherEmail
+        );
+        await persistRelationalOperations(initialLocalOperations);
+        state = await loadRelationalState();
+      }
       const cutoverKey = `classkru_relational_cutover_v1_${relationalTeacherIdValue}`;
       if (localStorage.getItem(cutoverKey) !== '1') {
         const { data: legacy, error } = await supabaseClient.from('classmanager_profiles')
@@ -664,6 +679,7 @@ async function trySyncRelationalState(email) {
     saveStateLocalOnly(false);
     updateProfileImages();
     navigateToWebScreen(pendingDeepLink || appState.activeWebScreen || 'dashboard', pendingDeepLinkParam);
+    localStorage.setItem(initialSyncKey, '1');
     updateCloudStatus('online', 'ข้อมูลเป็นปัจจุบัน');
     return true;
   } catch (error) {

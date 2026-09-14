@@ -76,6 +76,14 @@ function operations(before, after) {
 }
 
 {
+  const firstLocalClassroom = operations(null, seed);
+  assert.ok(firstLocalClassroom.some(operation => operation.table === 'classrooms' && operation.type === 'upsert'),
+    'first sync must be able to persist a classroom created before the relational baseline exists');
+  assert.ok(firstLocalClassroom.some(operation => operation.table === 'students' && operation.type === 'upsert'),
+    'first sync must preserve the students inside that classroom');
+}
+
+{
   const next = structuredClone(seed);
   next.classes[0].attendance['2026-08-27'] = { 'student-old-id': 'late' };
   next.lastModified = 201;
