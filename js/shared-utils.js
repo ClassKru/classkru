@@ -73,11 +73,10 @@ function saveClass() {
   } else {
     appState.classes.push({ id: 'c_' + Date.now(), subject, className, academicYear, gradeLevel, colorIndex: selectedClassColorIndex, students: [], attendance: {}, notes: {} });
   }
-  // Let the guide advance after the queued write has completed.
-  const saveResult = saveState();
+  saveState();
   closeClassModal();
   renderWebClassrooms();
-  if (isNew) notifyTourActionAfterSaved('class-created', saveResult);
+  if (isNew) notifyTourAction('class-created');
 }
 
 function openStudentModal(studentId) {
@@ -126,35 +125,11 @@ function saveStudent() {
   } else {
     c.students.push({ id: 's_' + Date.now(), name, no: no || (c.students.length + 1), studentCode, nickname, comment, score: 0 });
   }
-  const saveResult = saveState();
+  saveState();
   closeStudentModal();
   renderWebStudents();
   refreshSwipeIfOpen();
-  if (!editingStudentId) notifyTourActionAfterSaved('student-added', saveResult);
-}
-
-function notifyTourActionAfterSaved(actionName, saveResult) {
-  const tourStep = typeof Tour !== 'undefined' && Tour.active ? Tour.steps[Tour.i] : null;
-  const awaitingAction = () => tourStep && Tour.active && Tour.steps[Tour.i] === tourStep
-    && tourStep.advance === 'action:' + actionName;
-  const failed = () => {
-    // Local-first data is already rendered. Let the guide continue while the
-    // relational queue retries the cloud write in the background.
-    if (awaitingAction()) notifyTourAction(actionName);
-    showToast('บันทึกออนไลน์ไม่สำเร็จ ข้อมูลยังอยู่ในเครื่องนี้ กรุณาลองบันทึกอีกครั้งเมื่อเชื่อมต่อได้', 'warning', 5000);
-  };
-  // saveState แบบ legacy ไม่มี promise จึงคงพฤติกรรมเดิมไว้ทันที
-  if (!saveResult || typeof saveResult.then !== 'function') {
-    notifyTourAction(actionName);
-    return;
-  }
-  saveResult.then(saved => {
-    if (saved !== false) {
-      if (awaitingAction()) notifyTourAction(actionName);
-      return;
-    }
-    failed();
-  }).catch(failed);
+  if (!editingStudentId) notifyTourAction('student-added');
 }
 
 function openPeriodModal(dow, period) {
@@ -432,8 +407,7 @@ function deleteAllStudentsInClass(classId) {
 }
 
 // ==================== STATE MANAGEMENT ====================
-function initAppState(email) {
-  if (typeof setStateStorageKey === 'function' && email) setStateStorageKey(email);
+function initAppState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
     appState = JSON.parse(saved);
@@ -469,18 +443,11 @@ function pruneEmptyAttendance() {
 }
 
 function initAppStateDefault() {
-  // Replace the object, rather than only clearing classes. This matters when a
-  // teacher logs out and another account logs in without closing the tab:
-  // onboarding.done and other fields must never leak between accounts.
-  appState = {
-    classes: [],
-    timetable: [],
-    timetableWeek: 'A',
-    activeWebScreen: 'dashboard',
-    holidays: [],
-    periodSettings: { startTime: '08:30', duration: 50, breakTime: 0, count: 7 },
-    lastModified: 0 // Extremely old so it ALWAYS pulls from cloud if exists
-  };
+  appState.classes = [];
+  appState.timetable = [];
+  appState.timetableWeek = 'A';
+  appState.periodSettings = { startTime: '08:30', duration: 50, breakTime: 0, count: 7 };
+  appState.lastModified = 0; // Extremely old so it ALWAYS pulls from cloud if exists
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
 
@@ -525,11 +492,12 @@ function saveState() {
   saveStateLocalOnly();
   if (typeof relationalMode !== 'undefined') {
     if (relationalMode === 'ready') {
-      return persistRelationalState(appState);
+      persistRelationalState(appState);
+      return;
     }
     // Keep edits local while the table capability check is temporarily unavailable.
     // A deployment known to be legacy still uses the whole-document fallback below.
-    if (relationalMode === 'unknown') return Promise.resolve(true);
+    if (relationalMode === 'unknown') return;
   }
   clearTimeout(_cloudPushTimer);
   _cloudPushTimer = setTimeout(() => {
@@ -539,14 +507,14 @@ function saveState() {
       if (typeof probeRelationalAfterLegacySave === 'function') probeRelationalAfterLegacySave(email);
     }
   }, 500);
-  return Promise.resolve(true);
 }
 
 async function syncBackgroundCloud(email) {
   if (!supabaseClient) { updateCloudStatus('offline', 'ยังบันทึกออนไลน์ไม่ได้'); return; }
-  // Retire the old reset marker. Skipping here bypassed teacher authentication,
-  // leaving cached relationalMode='ready' with no teacher ID or write queue entry.
-  localStorage.removeItem('classkru_skip_sync');
+  if (localStorage.getItem('classkru_skip_sync')) {
+    updateCloudStatus('online', 'ล้างข้อมูลแล้ว');
+    return;
+  }
   try {
     updateCloudStatus('syncing', 'กำลังตรวจข้อมูลล่าสุด...');
     if (typeof trySyncRelationalState === 'function' && await trySyncRelationalState(email)) {
@@ -693,9 +661,7 @@ async function forcePullFromCloud() {
 function resetApplicationData() {
   showConfirm('ข้อมูลในบัญชีจะไม่หาย ระบบจะล้างเฉพาะข้อมูลที่เก็บไว้ในเครื่องนี้', () => {
     localStorage.removeItem(STORAGE_KEY);
-    // เปิด welcome guide หลัง reload เพื่อทดสอบประสบการณ์ครูใหม่ โดยไม่ลบข้อมูล Cloud
-    localStorage.setItem('classkru_onboarding_preview', '1');
-    localStorage.removeItem('classkru_skip_sync');
+    localStorage.setItem('classkru_skip_sync', '1');
     showToast('ล้างข้อมูลในเครื่องแล้ว', 'success', 1200);
     setTimeout(() => window.location.reload(), 800);
   }, { title: 'ล้างข้อมูลในเครื่อง?', icon: '🔄', okText: 'ล้างข้อมูล', okSafe: true });
@@ -718,7 +684,7 @@ function deleteAllDataEverywhere() {
         throw new Error('ยังตรวจสอบระบบตารางไม่สำเร็จ');
       }
       appState = emptyState;
-      localStorage.removeItem('classkru_skip_sync');
+      localStorage.setItem('classkru_skip_sync', '1');
       localStorage.removeItem(STORAGE_KEY);
     } catch (e) {
       console.warn('Delete cloud error:', e);

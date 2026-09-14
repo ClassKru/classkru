@@ -514,8 +514,7 @@ const GUIDE_STEPS = {
     body: 'กดปุ่มนี้เพื่อเปิดฟอร์มสร้างวิชา/ห้องเรียนแรกของคุณ',
     advance: 'action:class-modal-opened', skipIf: hasAnyClass },
   { target: '#modal-class .bottom-sheet',
-    advance: 'action:class-created', waitForActionOnly: true, bubble: false, allowInteraction: true, noMask: true,
-    skipIf: hasAnyClass }
+    advance: 'action:class-created', waitForActionOnly: true, bubble: false, allowInteraction: true, noMask: true }
   ],
   dashboard: [
     { nav: 'dashboard', target: '#home-date-card', title: 'หน้าแรกคือภาพรวมวันนี้',
@@ -839,28 +838,17 @@ function maybeStartScreenGuide(screenId) {
 }
 
 let onboardingChecked = false;
-function resetOnboardingCheck() {
-  onboardingChecked = false;
-  if (typeof Tour !== 'undefined' && Tour.active) Tour.end(false);
-  document.getElementById('modal-welcome')?.classList.remove('show');
-  document.getElementById('modal-onboarding-next')?.classList.remove('show');
-}
-
 function maybeStartOnboarding() {
   if (onboardingChecked) return;
   onboardingChecked = true;
-  const onboarding = appState.onboarding || {};
-  const preview = localStorage.getItem('classkru_onboarding_preview') === '1';
-  // A teacher who has not completed onboarding must see the first-use guide,
-  // even when rooms were restored from Cloud or already exist locally.
-  if (preview || !onboarding.done) {
+  const done = appState.onboarding && appState.onboarding.done;
+  if (!done && (appState.classes || []).length === 0) {
     document.getElementById('modal-welcome').classList.add('show');
   }
 }
 
 function startMainTour() {
   document.getElementById('modal-welcome').classList.remove('show');
-  localStorage.removeItem('classkru_onboarding_preview');
   appState.onboarding = { ...(appState.onboarding || {}), setupActive: true, setupStep: 'classroom' };
   saveStateLocalOnly(false);
   startGuide('classrooms', { onEnd: finishClassroomSetup });
@@ -974,7 +962,6 @@ function finishOnboarding(completed) {
 
 function skipOnboarding() {
   document.getElementById('modal-welcome').classList.remove('show');
-  localStorage.removeItem('classkru_onboarding_preview');
   appState.onboarding = { ...(appState.onboarding || {}), done: true };
   saveState();
 }

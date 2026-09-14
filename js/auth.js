@@ -9,11 +9,7 @@ function onLoginSuccess(email) {
   lo.classList.remove('show');
   lo.style.display = 'none';
   document.getElementById('main-app').style.display = 'flex';
-  if (typeof resetOnboardingCheck === 'function') resetOnboardingCheck();
-  // Each account gets its own local working copy. A shared key could expose the
-  // previous teacher's rooms before the cloud sync finishes.
-  setStateStorageKey(email);
-  initAppState(email);
+  initAppState();
   updateUIProfileLabels(email);
   // เช็ค onboarding หลัง sync cloud เสร็จ (กันเข้าใจผิดว่าไม่มีห้องทั้งที่ cloud มีข้อมูล)
   syncBackgroundCloud(email).finally(() => maybeStartOnboarding());
