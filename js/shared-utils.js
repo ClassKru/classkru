@@ -73,9 +73,7 @@ function saveClass() {
   } else {
     appState.classes.push({ id: 'c_' + Date.now(), subject, className, academicYear, gradeLevel, colorIndex: selectedClassColorIndex, students: [], attendance: {}, notes: {} });
   }
-  // การบันทึกบน relational storage ทำงานผ่านคิวแบบ async. เก็บ promise ไว้เพื่อให้
-  // onboarding รอข้อมูลห้องแรกขึ้น Cloud ก่อนพาไปขั้นเพิ่มนักเรียน มิฉะนั้น sync
-  // ชุดแรกอาจดึง state ว่างกลับมาทับจอระหว่างเปลี่ยนขั้นได้
+  // Let the guide advance after the queued write has completed.
   const saveResult = saveState();
   closeClassModal();
   renderWebClassrooms();
@@ -136,6 +134,14 @@ function saveStudent() {
 }
 
 function notifyTourActionAfterSaved(actionName, saveResult) {
+  const tourStep = typeof Tour !== 'undefined' && Tour.active ? Tour.steps[Tour.i] : null;
+  const awaitingAction = () => tourStep && Tour.active && Tour.steps[Tour.i] === tourStep
+    && tourStep.advance === 'action:' + actionName;
+  const failed = () => {
+    // The form has closed: remove its stale highlight and allow normal navigation.
+    if (awaitingAction()) Tour.end(false);
+    showToast('บันทึกออนไลน์ไม่สำเร็จ ข้อมูลยังอยู่ในเครื่องนี้ กรุณาลองบันทึกอีกครั้งเมื่อเชื่อมต่อได้', 'warning', 5000);
+  };
   // saveState แบบ legacy ไม่มี promise จึงคงพฤติกรรมเดิมไว้ทันที
   if (!saveResult || typeof saveResult.then !== 'function') {
     notifyTourAction(actionName);
@@ -143,13 +149,11 @@ function notifyTourActionAfterSaved(actionName, saveResult) {
   }
   saveResult.then(saved => {
     if (saved !== false) {
-      notifyTourAction(actionName);
+      if (awaitingAction()) notifyTourAction(actionName);
       return;
     }
-    showToast('ยังบันทึกข้อมูลขึ้น Cloud ไม่สำเร็จ กรุณารอให้สถานะกลับมาออนไลน์ก่อนทำขั้นต่อไป', 'warning', 5000);
-  }).catch(() => {
-    showToast('ยังบันทึกข้อมูลขึ้น Cloud ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'warning', 5000);
-  });
+    failed();
+  }).catch(failed);
 }
 
 function openPeriodModal(dow, period) {
@@ -531,10 +535,9 @@ function saveState() {
 
 async function syncBackgroundCloud(email) {
   if (!supabaseClient) { updateCloudStatus('offline', 'ยังบันทึกออนไลน์ไม่ได้'); return; }
-  if (localStorage.getItem('classkru_skip_sync')) {
-    updateCloudStatus('online', 'ล้างข้อมูลแล้ว');
-    return;
-  }
+  // Retire the old reset marker. Skipping here bypassed teacher authentication,
+  // leaving cached relationalMode='ready' with no teacher ID or write queue entry.
+  localStorage.removeItem('classkru_skip_sync');
   try {
     updateCloudStatus('syncing', 'กำลังตรวจข้อมูลล่าสุด...');
     if (typeof trySyncRelationalState === 'function' && await trySyncRelationalState(email)) {
@@ -681,7 +684,7 @@ async function forcePullFromCloud() {
 function resetApplicationData() {
   showConfirm('ข้อมูลในบัญชีจะไม่หาย ระบบจะล้างเฉพาะข้อมูลที่เก็บไว้ในเครื่องนี้', () => {
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.setItem('classkru_skip_sync', '1');
+    localStorage.removeItem('classkru_skip_sync');
     showToast('ล้างข้อมูลในเครื่องแล้ว', 'success', 1200);
     setTimeout(() => window.location.reload(), 800);
   }, { title: 'ล้างข้อมูลในเครื่อง?', icon: '🔄', okText: 'ล้างข้อมูล', okSafe: true });
@@ -704,7 +707,7 @@ function deleteAllDataEverywhere() {
         throw new Error('ยังตรวจสอบระบบตารางไม่สำเร็จ');
       }
       appState = emptyState;
-      localStorage.setItem('classkru_skip_sync', '1');
+      localStorage.removeItem('classkru_skip_sync');
       localStorage.removeItem(STORAGE_KEY);
     } catch (e) {
       console.warn('Delete cloud error:', e);
