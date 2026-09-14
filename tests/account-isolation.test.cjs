@@ -18,4 +18,5 @@ const setKey = Function('localStorage', `const STORAGE_KEY_PREFIX = 'classkru_mo
 assert.equal(setKey('Teacher.One@example.com'), 'classkru_mobile_v4_teacher.one%40example.com');
 assert.equal(setKey('second@example.com'), 'classkru_mobile_v4_second%40example.com');
 assert.notEqual('classkru_mobile_v4_teacher.one%40example.com', 'classkru_mobile_v4_second%40example.com');
+assert.match(fs.readFileSync(path.join(__dirname, '..', 'js', 'shared-utils.js'), 'utf8'), /function initAppStateDefault\(\) \{[\s\S]*?appState = \{[\s\S]*?activeWebScreen: 'dashboard'/);
 console.log('account isolation tests passed');

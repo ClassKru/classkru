@@ -469,11 +469,18 @@ function pruneEmptyAttendance() {
 }
 
 function initAppStateDefault() {
-  appState.classes = [];
-  appState.timetable = [];
-  appState.timetableWeek = 'A';
-  appState.periodSettings = { startTime: '08:30', duration: 50, breakTime: 0, count: 7 };
-  appState.lastModified = 0; // Extremely old so it ALWAYS pulls from cloud if exists
+  // Replace the object, rather than only clearing classes. This matters when a
+  // teacher logs out and another account logs in without closing the tab:
+  // onboarding.done and other fields must never leak between accounts.
+  appState = {
+    classes: [],
+    timetable: [],
+    timetableWeek: 'A',
+    activeWebScreen: 'dashboard',
+    holidays: [],
+    periodSettings: { startTime: '08:30', duration: 50, breakTime: 0, count: 7 },
+    lastModified: 0 // Extremely old so it ALWAYS pulls from cloud if exists
+  };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
 }
 
