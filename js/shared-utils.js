@@ -685,6 +685,8 @@ async function forcePullFromCloud() {
 function resetApplicationData() {
   showConfirm('ข้อมูลในบัญชีจะไม่หาย ระบบจะล้างเฉพาะข้อมูลที่เก็บไว้ในเครื่องนี้', () => {
     localStorage.removeItem(STORAGE_KEY);
+    // เปิด welcome guide หลัง reload เพื่อทดสอบประสบการณ์ครูใหม่ โดยไม่ลบข้อมูล Cloud
+    localStorage.setItem('classkru_onboarding_preview', '1');
     localStorage.removeItem('classkru_skip_sync');
     showToast('ล้างข้อมูลในเครื่องแล้ว', 'success', 1200);
     setTimeout(() => window.location.reload(), 800);

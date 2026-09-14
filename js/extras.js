@@ -514,7 +514,8 @@ const GUIDE_STEPS = {
     body: 'กดปุ่มนี้เพื่อเปิดฟอร์มสร้างวิชา/ห้องเรียนแรกของคุณ',
     advance: 'action:class-modal-opened', skipIf: hasAnyClass },
   { target: '#modal-class .bottom-sheet',
-    advance: 'action:class-created', waitForActionOnly: true, bubble: false, allowInteraction: true, noMask: true }
+    advance: 'action:class-created', waitForActionOnly: true, bubble: false, allowInteraction: true, noMask: true,
+    skipIf: hasAnyClass }
   ],
   dashboard: [
     { nav: 'dashboard', target: '#home-date-card', title: 'หน้าแรกคือภาพรวมวันนี้',
@@ -841,14 +842,17 @@ let onboardingChecked = false;
 function maybeStartOnboarding() {
   if (onboardingChecked) return;
   onboardingChecked = true;
-  const done = appState.onboarding && appState.onboarding.done;
-  if (!done && (appState.classes || []).length === 0) {
+  const onboarding = appState.onboarding || {};
+  const preview = localStorage.getItem('classkru_onboarding_preview') === '1';
+  const needsResume = onboarding.setupActive && !onboarding.done;
+  if (preview || (!onboarding.done && ((appState.classes || []).length === 0 || needsResume))) {
     document.getElementById('modal-welcome').classList.add('show');
   }
 }
 
 function startMainTour() {
   document.getElementById('modal-welcome').classList.remove('show');
+  localStorage.removeItem('classkru_onboarding_preview');
   appState.onboarding = { ...(appState.onboarding || {}), setupActive: true, setupStep: 'classroom' };
   saveStateLocalOnly(false);
   startGuide('classrooms', { onEnd: finishClassroomSetup });
@@ -962,6 +966,7 @@ function finishOnboarding(completed) {
 
 function skipOnboarding() {
   document.getElementById('modal-welcome').classList.remove('show');
+  localStorage.removeItem('classkru_onboarding_preview');
   appState.onboarding = { ...(appState.onboarding || {}), done: true };
   saveState();
 }
