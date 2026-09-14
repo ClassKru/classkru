@@ -593,6 +593,13 @@ async function trySyncRelationalState(email) {
   if (!supabaseClient) return false;
   const localStateBeforeSync = relationalClone(appState);
   const localBaselineBeforeSync = relationalClone(relationalBaseline);
+  // If the relational baseline is not ready yet, edits can happen while the
+  // first pull is awaiting several network requests. Keep those edits and
+  // replay them after the remote snapshot has been read instead of allowing
+  // that snapshot to overwrite the current tab state.
+  const replayLocalChangesAfterSync = !localBaselineBeforeSync;
+  let localStateAtSeed = null;
+  let seedSourceWasLocal = false;
   await detectRelationalMode(email);
   if (relationalMode !== 'ready') return false;
   try {
@@ -607,6 +614,8 @@ async function trySyncRelationalState(email) {
       const source = legacyState && ((legacyState.lastModified || 0) >= (localState.lastModified || 0)
         || ((legacyState.classes || []).length && !(localState.classes || []).length))
         ? legacyState : localState;
+      seedSourceWasLocal = source === localState;
+      localStateAtSeed = relationalClone(appState);
       state = await seedRelationalState(source || {});
     } else {
       const cutoverKey = `classkru_relational_cutover_v1_${relationalTeacherIdValue}`;
@@ -629,6 +638,21 @@ async function trySyncRelationalState(email) {
           relationalTeacherIdValue, relationalTeacherEmail
         );
         await persistRelationalOperations(pendingOperations);
+        state = await loadRelationalState();
+      }
+    }
+
+    if (replayLocalChangesAfterSync) {
+      const replayBase = seedSourceWasLocal && localStateAtSeed
+        ? localStateAtSeed
+        : localStateBeforeSync;
+      const localStateAfterSync = relationalClone(appState);
+      const operationsDuringSync = relationalDiff(
+        replayBase, localStateAfterSync,
+        relationalTeacherIdValue, relationalTeacherEmail
+      );
+      if (operationsDuringSync.length) {
+        await persistRelationalOperations(operationsDuringSync);
         state = await loadRelationalState();
       }
     }
