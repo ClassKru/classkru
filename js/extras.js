@@ -535,7 +535,13 @@ const GUIDE_STEPS = {
       advance: 'action:student-added', hideOnClick: false, allowInteraction: true, noMask: true },
     { target: '.student-roster-card', title: 'เพิ่มแล้วจะอยู่ตรงนี้', before: prepareStudentGuideResult,
       body: 'รายชื่อที่เพิ่มจะแสดงในพื้นที่นี้ ถ้ามีนักเรียนหลายคน ใช้ “นำเข้า Excel” จากปุ่มด้านบนบนจอใหญ่ หรือเปิดเมนูจัดการบนมือถือเพื่อเพิ่มแบบรวดเร็ว',
-      blockTarget: true }
+      blockTarget: true },
+    { target: '#btn-students-import-excel', title: 'มีรายชื่อหลายคน? นำเข้าได้เลย',
+      body: 'ถ้ามีรายชื่อนักเรียนอยู่ในไฟล์แล้ว กด “นำเข้า Excel” เพื่อเพิ่มหลายคนพร้อมกันได้ทันที รองรับไฟล์ .xlsx และ .csv',
+      desktopOnly: true },
+    { target: '#btn-students-actions-mobile', title: 'ทางเลือกเพิ่มรายชื่อแบบเร็ว',
+      body: 'บนมือถือ เปิดเมนูจัดการรายชื่อ แล้วเลือก “นำเข้า Excel” เพื่อเพิ่มนักเรียนหลายคนพร้อมกัน',
+      mobileOnly: true }
   ],
   checkin: [
     { before: ensureCheckinOpen, target: '#swipe-card', title: 'การ์ดเช็คชื่อ',

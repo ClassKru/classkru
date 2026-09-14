@@ -14,5 +14,7 @@ assert.match(addStudentGuide, /target: '#modal-student \.bottom-sheet'/, 'guide 
 assert.match(addStudentGuide, /target: '#input-student-name'[\s\S]*allowInteraction: true/, 'teacher can type into the guided name field');
 assert.match(addStudentGuide, /target: '#btn-student-submit'[\s\S]*advance: 'action:student-added'/, 'guide waits for a successful student save');
 assert.match(addStudentGuide, /target: '\.student-roster-card'[\s\S]*before: prepareStudentGuideResult/, 'guide resumes on the saved student roster');
+assert.match(addStudentGuide, /target: '#btn-students-import-excel'[\s\S]*desktopOnly: true/, 'desktop guide points to the fast Excel import option');
+assert.match(addStudentGuide, /target: '#btn-students-actions-mobile'[\s\S]*mobileOnly: true/, 'mobile guide points to the fast import menu');
 
 console.log('guide flow tests passed');
