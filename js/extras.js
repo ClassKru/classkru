@@ -839,6 +839,13 @@ function maybeStartScreenGuide(screenId) {
 }
 
 let onboardingChecked = false;
+function resetOnboardingCheck() {
+  onboardingChecked = false;
+  if (typeof Tour !== 'undefined' && Tour.active) Tour.end(false);
+  document.getElementById('modal-welcome')?.classList.remove('show');
+  document.getElementById('modal-onboarding-next')?.classList.remove('show');
+}
+
 function maybeStartOnboarding() {
   if (onboardingChecked) return;
   onboardingChecked = true;

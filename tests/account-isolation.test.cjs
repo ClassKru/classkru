@@ -8,6 +8,8 @@ assert.match(core, /const STORAGE_KEY_PREFIX = 'classkru_mobile_v4'/);
 assert.match(core, /`\$\{STORAGE_KEY_PREFIX\}_\$\{encodeURIComponent\(normalized\)\}`/);
 assert.match(auth, /setStateStorageKey\(email\);\s*initAppState\(email\);/);
 assert.doesNotMatch(auth, /initAppState\(\);/);
+assert.match(auth, /resetOnboardingCheck\(\);/);
+assert.match(fs.readFileSync(path.join(__dirname, '..', 'js', 'extras.js'), 'utf8'), /function resetOnboardingCheck\(\)/);
 
 const storage = new Map();
 const context = { encodeURIComponent, localStorage: {
