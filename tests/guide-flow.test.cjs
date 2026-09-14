@@ -20,6 +20,7 @@ assert.match(addStudentGuide, /target: '#btn-students-actions-mobile'[\s\S]*mobi
 const classroomGuide = js.match(/classrooms: \[([\s\S]*?)\n  \],\n  dashboard:/)?.[1];
 assert.ok(classroomGuide, 'classroom guide definition exists');
 assert.match(classroomGuide, /advance: 'action:class-created'[\s\S]*skipIf: hasAnyClass/, 'classroom completion step is skipped when a room already exists');
+assert.match(js, /if \(preview \|\| !onboarding\.done\)/, 'first login guide does not depend on room count');
 assert.match(js, /suspend\(\)[\s\S]*this\.suspended = true/, 'tour can be paused while another modal is active');
 assert.match(js, /resume\(\)[\s\S]*this\.suspended = false/, 'tour can resume after the modal closes');
 assert.match(reportsJs, /Tour\.suspend\(\)/, 'opening the direct Excel import pauses an active tour');

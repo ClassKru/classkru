@@ -851,8 +851,9 @@ function maybeStartOnboarding() {
   onboardingChecked = true;
   const onboarding = appState.onboarding || {};
   const preview = localStorage.getItem('classkru_onboarding_preview') === '1';
-  const needsResume = onboarding.setupActive && !onboarding.done;
-  if (preview || (!onboarding.done && ((appState.classes || []).length === 0 || needsResume))) {
+  // A teacher who has not completed onboarding must see the first-use guide,
+  // even when rooms were restored from Cloud or already exist locally.
+  if (preview || !onboarding.done) {
     document.getElementById('modal-welcome').classList.add('show');
   }
 }
