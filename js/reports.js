@@ -678,14 +678,22 @@ function switchExcelImportTab(tab) {
 }
 
 let directImportTargetClassId = null;
+let directExcelTourSuspended = false;
 
 function triggerDirectClassExcelImport(classId) {
   directImportTargetClassId = classId;
+  directExcelTourSuspended = typeof Tour !== 'undefined' && Tour && typeof Tour.suspend === 'function'
+    ? Tour.suspend()
+    : false;
   document.getElementById('modal-direct-excel').classList.add('show');
 }
 
 function closeDirectExcelModal() {
   document.getElementById('modal-direct-excel').classList.remove('show');
+  if (directExcelTourSuspended && typeof Tour !== 'undefined' && Tour && typeof Tour.resume === 'function') {
+    directExcelTourSuspended = false;
+    setTimeout(() => Tour.resume(), 60);
+  }
 }
 
 function handleDragOver(event) {

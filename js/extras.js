@@ -193,7 +193,7 @@ function isMobileView() { return window.matchMedia('(max-width: 768px)').matches
 
 const Tour = {
   steps: [], i: -1, active: false, opts: {},
-  _clickEl: null, _clickHandler: null, _reposition: null,
+  suspended: false, _clickEl: null, _clickHandler: null, _reposition: null,
 
   start(steps, opts = {}) {
     // กรอง step ตาม device (มือถือ/คอม เช็คชื่อคนละแบบ)
@@ -203,7 +203,7 @@ const Tour = {
       if (s.desktopOnly && isMobileView()) return false;
       return true;
     });
-    this.opts = opts; this.i = -1; this.active = true;
+    this.opts = opts; this.i = -1; this.active = true; this.suspended = false;
     this._buildDom();
     this.next();
   },
@@ -237,8 +237,23 @@ const Tour = {
     };
   },
 
-  _show() { const r = document.getElementById('tour-root'); if (r) r.style.display = ''; },
+  _show() { const r = document.getElementById('tour-root'); if (r && !this.suspended) r.style.display = ''; },
   _hide() { const r = document.getElementById('tour-root'); if (r) r.style.display = 'none'; },
+
+  // Modal ที่เปิดจากระหว่างทัวร์ต้องอยู่เหนือและใช้งานได้ โดยไม่ทำให้ไกด์จบกลางทาง
+  suspend() {
+    if (!this.active) return false;
+    this.suspended = true;
+    this._hide();
+    return true;
+  },
+
+  resume() {
+    if (!this.active || !this.suspended) return;
+    this.suspended = false;
+    this._show();
+    this._place();
+  },
 
   next() {
     this._detachAdvance();
@@ -423,6 +438,7 @@ const Tour = {
 
   end(completed) {
     this.active = false;
+    this.suspended = false;
     this._detachAdvance();
     const root = document.getElementById('tour-root'); if (root) root.remove();
     if (this._reposition) {

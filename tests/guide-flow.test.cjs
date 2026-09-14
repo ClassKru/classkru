@@ -4,6 +4,7 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const js = fs.readFileSync(path.join(root, 'js', 'extras.js'), 'utf8');
+const reportsJs = fs.readFileSync(path.join(root, 'js', 'reports.js'), 'utf8');
 
 const addStudentGuide = js.match(/'add-student': \[([\s\S]*?)\n  \],\n  checkin:/)?.[1];
 assert.ok(addStudentGuide, 'add-student guide definition exists');
@@ -16,5 +17,9 @@ assert.match(addStudentGuide, /target: '#btn-student-submit'[\s\S]*advance: 'act
 assert.match(addStudentGuide, /target: '\.student-roster-card'[\s\S]*before: prepareStudentGuideResult/, 'guide resumes on the saved student roster');
 assert.match(addStudentGuide, /target: '#btn-students-import-excel'[\s\S]*desktopOnly: true/, 'desktop guide points to the fast Excel import option');
 assert.match(addStudentGuide, /target: '#btn-students-actions-mobile'[\s\S]*mobileOnly: true/, 'mobile guide points to the fast import menu');
+assert.match(js, /suspend\(\)[\s\S]*this\.suspended = true/, 'tour can be paused while another modal is active');
+assert.match(js, /resume\(\)[\s\S]*this\.suspended = false/, 'tour can resume after the modal closes');
+assert.match(reportsJs, /Tour\.suspend\(\)/, 'opening the direct Excel import pauses an active tour');
+assert.match(reportsJs, /Tour\.resume\(\)/, 'closing the direct Excel import resumes the paused tour');
 
 console.log('guide flow tests passed');
