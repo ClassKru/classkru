@@ -513,15 +513,15 @@ const GUIDE_STEPS = {
   ],
   'add-student': [
     { nav: 'students', target: '#btn-add-student-roster', title: 'เริ่มเพิ่มนักเรียน',
-      body: 'กดปุ่มนี้เพื่อเพิ่มนักเรียนทีละคน เหมาะกับเริ่มต้นหรือเพิ่มเด็กใหม่ระหว่างเทอม',
+      body: 'กดปุ่มนี้เพื่อเพิ่มนักเรียนทีละคน เหมาะกับเริ่มต้นหรือเพิ่มเด็กใหม่ระหว่างเทอม ถ้ามีรายชื่อหลายคน ใช้ปุ่ม “นำเข้า Excel” เพื่อเพิ่มแบบรวดเร็วได้เลย',
       desktopOnly: true,
       advance: 'action:student-modal-opened' },
     { target: '#btn-students-actions-mobile', title: 'เปิดเมนูจัดการรายชื่อ',
-      body: 'บนมือถือปุ่มเพิ่มนักเรียนจะอยู่ในเมนูนี้ เพื่อให้หัวจอไม่รกเกินไป',
+      body: 'บนมือถือปุ่มเพิ่มนักเรียนและตัวเลือก “นำเข้า Excel” จะอยู่ในเมนูนี้ เพื่อเพิ่มรายชื่อจำนวนมากได้เร็วขึ้น',
       mobileOnly: true,
       advance: 'action:student-menu-opened' },
     { target: '#ck-class-menu button:first-child', title: 'เลือกเพิ่มนักเรียน',
-      body: 'แตะ “เพิ่มนักเรียน” เพื่อเปิดฟอร์มเพิ่มรายชื่อทีละคน',
+      body: 'แตะ “เพิ่มนักเรียน” เพื่อเปิดฟอร์มเพิ่มรายชื่อทีละคน หรือเลือก “นำเข้า Excel” ถ้ามีรายชื่อพร้อมอยู่แล้ว',
       mobileOnly: true,
       advance: 'action:student-modal-opened' },
     { target: '#modal-student .bottom-sheet', title: 'ฟอร์มเพิ่มนักเรียน',
@@ -534,7 +534,7 @@ const GUIDE_STEPS = {
       body: 'เมื่อกรอกชื่อแล้ว กด “เพิ่ม” เพื่อบันทึกนักเรียนเข้าห้องนี้ ระบบจะนำไปใช้ต่อในเช็คชื่อ คะแนน และรายงาน',
       advance: 'action:student-added', hideOnClick: false, allowInteraction: true, noMask: true },
     { target: '.student-roster-card', title: 'เพิ่มแล้วจะอยู่ตรงนี้', before: prepareStudentGuideResult,
-      body: 'รายชื่อที่เพิ่มจะแสดงในพื้นที่นี้ ถ้ามีนักเรียนหลายคน ใช้นำเข้า Excel ได้จากปุ่มด้านบนบนจอใหญ่',
+      body: 'รายชื่อที่เพิ่มจะแสดงในพื้นที่นี้ ถ้ามีนักเรียนหลายคน ใช้ “นำเข้า Excel” จากปุ่มด้านบนบนจอใหญ่ หรือเปิดเมนูจัดการบนมือถือเพื่อเพิ่มแบบรวดเร็ว',
       blockTarget: true }
   ],
   checkin: [

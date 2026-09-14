@@ -8,6 +8,8 @@ const js = fs.readFileSync(path.join(root, 'js', 'extras.js'), 'utf8');
 const addStudentGuide = js.match(/'add-student': \[([\s\S]*?)\n  \],\n  checkin:/)?.[1];
 assert.ok(addStudentGuide, 'add-student guide definition exists');
 assert.match(addStudentGuide, /advance: 'action:student-modal-opened'/, 'guide waits for the student form to open');
+assert.match(addStudentGuide, /นำเข้า Excel/, 'guide presents Excel import as a fast alternative');
+assert.match(addStudentGuide, /นำเข้า Excel[^\n]*ถ้ามีรายชื่อพร้อมอยู่แล้ว/, 'mobile guide explains when to choose Excel import');
 assert.match(addStudentGuide, /target: '#modal-student \.bottom-sheet'/, 'guide explains the student form');
 assert.match(addStudentGuide, /target: '#input-student-name'[\s\S]*allowInteraction: true/, 'teacher can type into the guided name field');
 assert.match(addStudentGuide, /target: '#btn-student-submit'[\s\S]*advance: 'action:student-added'/, 'guide waits for a successful student save');
