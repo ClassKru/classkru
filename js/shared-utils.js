@@ -73,10 +73,13 @@ function saveClass() {
   } else {
     appState.classes.push({ id: 'c_' + Date.now(), subject, className, academicYear, gradeLevel, colorIndex: selectedClassColorIndex, students: [], attendance: {}, notes: {} });
   }
-  saveState();
+  // การบันทึกบน relational storage ทำงานผ่านคิวแบบ async. เก็บ promise ไว้เพื่อให้
+  // onboarding รอข้อมูลห้องแรกขึ้น Cloud ก่อนพาไปขั้นเพิ่มนักเรียน มิฉะนั้น sync
+  // ชุดแรกอาจดึง state ว่างกลับมาทับจอระหว่างเปลี่ยนขั้นได้
+  const saveResult = saveState();
   closeClassModal();
   renderWebClassrooms();
-  if (isNew) notifyTourAction('class-created');
+  if (isNew) notifyTourActionAfterSaved('class-created', saveResult);
 }
 
 function openStudentModal(studentId) {
@@ -125,11 +128,28 @@ function saveStudent() {
   } else {
     c.students.push({ id: 's_' + Date.now(), name, no: no || (c.students.length + 1), studentCode, nickname, comment, score: 0 });
   }
-  saveState();
+  const saveResult = saveState();
   closeStudentModal();
   renderWebStudents();
   refreshSwipeIfOpen();
-  if (!editingStudentId) notifyTourAction('student-added');
+  if (!editingStudentId) notifyTourActionAfterSaved('student-added', saveResult);
+}
+
+function notifyTourActionAfterSaved(actionName, saveResult) {
+  // saveState แบบ legacy ไม่มี promise จึงคงพฤติกรรมเดิมไว้ทันที
+  if (!saveResult || typeof saveResult.then !== 'function') {
+    notifyTourAction(actionName);
+    return;
+  }
+  saveResult.then(saved => {
+    if (saved !== false) {
+      notifyTourAction(actionName);
+      return;
+    }
+    showToast('ยังบันทึกข้อมูลขึ้น Cloud ไม่สำเร็จ กรุณารอให้สถานะกลับมาออนไลน์ก่อนทำขั้นต่อไป', 'warning', 5000);
+  }).catch(() => {
+    showToast('ยังบันทึกข้อมูลขึ้น Cloud ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'warning', 5000);
+  });
 }
 
 function openPeriodModal(dow, period) {
@@ -492,12 +512,11 @@ function saveState() {
   saveStateLocalOnly();
   if (typeof relationalMode !== 'undefined') {
     if (relationalMode === 'ready') {
-      persistRelationalState(appState);
-      return;
+      return persistRelationalState(appState);
     }
     // Keep edits local while the table capability check is temporarily unavailable.
     // A deployment known to be legacy still uses the whole-document fallback below.
-    if (relationalMode === 'unknown') return;
+    if (relationalMode === 'unknown') return Promise.resolve(true);
   }
   clearTimeout(_cloudPushTimer);
   _cloudPushTimer = setTimeout(() => {
@@ -507,6 +526,7 @@ function saveState() {
       if (typeof probeRelationalAfterLegacySave === 'function') probeRelationalAfterLegacySave(email);
     }
   }, 500);
+  return Promise.resolve(true);
 }
 
 async function syncBackgroundCloud(email) {
