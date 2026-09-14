@@ -138,8 +138,9 @@ function notifyTourActionAfterSaved(actionName, saveResult) {
   const awaitingAction = () => tourStep && Tour.active && Tour.steps[Tour.i] === tourStep
     && tourStep.advance === 'action:' + actionName;
   const failed = () => {
-    // The form has closed: remove its stale highlight and allow normal navigation.
-    if (awaitingAction()) Tour.end(false);
+    // Local-first data is already rendered. Let the guide continue while the
+    // relational queue retries the cloud write in the background.
+    if (awaitingAction()) notifyTourAction(actionName);
     showToast('บันทึกออนไลน์ไม่สำเร็จ ข้อมูลยังอยู่ในเครื่องนี้ กรุณาลองบันทึกอีกครั้งเมื่อเชื่อมต่อได้', 'warning', 5000);
   };
   // saveState แบบ legacy ไม่มี promise จึงคงพฤติกรรมเดิมไว้ทันที
