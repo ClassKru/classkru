@@ -180,6 +180,15 @@ body.modal-open {
 /* ========================================== */
 .empty-state { text-align: center; padding: 36px 12px; color: var(--text-muted); font-weight: 600; }
 .empty-state i { font-size: 2.2rem; margin-bottom: 12px; color: var(--border-color); }
+.ck-classroom-empty { min-height: 360px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 48px 20px; }
+.ck-classroom-empty-icon { width: 68px; height: 68px; display: grid; place-items: center; border-radius: 22px; background: var(--primary-light); color: var(--primary); box-shadow: var(--shadow-sm); }
+.ck-classroom-empty-icon i { margin: 0; color: currentColor; font-size: 2.25rem; }
+.ck-classroom-empty p { margin: 0; color: var(--text-main); font-size: 1rem; font-weight: 700; }
+.ck-empty-classroom-cta { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-width: 190px; margin-top: 4px; padding: 12px 22px; border-radius: 14px; box-shadow: var(--shadow-md); transition: var(--transition-normal); }
+.ck-empty-classroom-cta i { margin: 0; color: currentColor; font-size: 1.25rem; }
+.ck-empty-classroom-cta:hover { background: var(--primary-hover); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.ck-empty-classroom-cta:active { transform: translateY(0); }
+@media (max-width: 640px) { .ck-classroom-empty { min-height: 300px; padding: 36px 16px; } .ck-classroom-empty p { text-align: center; font-size: .92rem; } .ck-empty-classroom-cta { width: min(100%, 240px); } }
 .text-center { text-align: center; }
 .login-card { display: flex; flex-direction: column; align-items: center; }
 .heatmap-grid-container { display: flex; flex-direction: column; gap: 0; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; min-width: 0; width: 100%; }
