@@ -166,7 +166,7 @@ function renderWebClassrooms() {
   const allClasses = appState.classes || [];
   renderClassroomFilters(allClasses);
   if (allClasses.length === 0) {
-    container.innerHTML = '<div class="empty-state ck-classroom-empty" style="grid-column:1/-1;"><div class="ck-classroom-empty-icon"><i class="hgi-stroke hgi-school"></i></div><p>ยังไม่มีห้องเรียน เริ่มสร้างวิชาสอนแรกของคุณได้เลย</p><button class="btn btn-primary ck-empty-classroom-cta" onclick="openClassModal()"><i class="hgi-stroke hgi-add-01"></i><span>เพิ่มห้องเรียน</span></button></div>';
+    container.innerHTML = '<div class="empty-state ck-classroom-empty" style="grid-column:1/-1;"><div class="ck-classroom-empty-icon"><i class="hgi-stroke hgi-school"></i></div><p>ยังไม่มีห้องเรียน เริ่มสร้างวิชาสอนแรกของคุณได้เลย</p><button class="btn btn-primary ck-empty-classroom-cta" onclick="openClassModal()"><span class="ck-empty-classroom-plus" aria-hidden="true"></span><span>เพิ่มห้องเรียน</span></button></div>';
     return;
   }
   const filteredClasses = allClasses.filter(c => {
