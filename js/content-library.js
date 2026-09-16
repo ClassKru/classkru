@@ -44,7 +44,7 @@
     initContext();
     const root = document.getElementById('content-library-root');
     if (!root) return;
-    root.innerHTML = state.view === 'quiz' ? quizWizardHtml() : state.view === 'review' ? reviewHtml() : homeHtml();
+    root.innerHTML = state.view === 'quiz' ? quizWizardHtml() : state.view === 'review' ? reviewHtml() : state.view === 'detail' ? detailHtml() : homeHtml();
   }
   window.renderContentLibrary = render;
 
@@ -59,11 +59,17 @@
       <section><div class="cl-section-head"><div><h3>ข้อสอบของฉัน</h3><p>${saved.length ? `บันทึกไว้ ${saved.length} ชุด` : 'ข้อสอบที่บันทึกไว้จะแสดงที่นี่'}</p></div></div>${saved.length ? `<div class="cl-saved-grid">${saved.map(savedQuizHtml).join('')}</div>` : `<div class="cl-empty-library"><i class="hgi-stroke hgi-folder-01"></i><strong>ยังไม่มีข้อสอบในคลัง</strong><div>เริ่มจากเลือก “สร้างข้อสอบ” แล้ว AI จะช่วยสร้างฉบับร่างให้คุณตรวจสอบ</div></div>`}</section>`;
   }
   function savedQuizHtml(item) {
-    return `<article class="cl-saved-card"><span class="cl-saved-type"><i class="hgi-stroke hgi-task-02"></i> ข้อสอบ</span><h4>${escapeHtml(item.title || 'ข้อสอบไม่มีชื่อ')}</h4><p>${escapeHtml(item.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')}</p><div class="cl-saved-meta"><span>${Number(item.questions?.length || 0)} ข้อ</span><span>${item.mode === 'practice' ? 'โหมดฝึกฝน' : 'แบบทดสอบ'}</span><span>ร่าง</span></div></article>`;
+    return `<button class="cl-saved-card" type="button" onclick="openQuizDetail('${escapeHtml(item.id)}')" aria-label="เปิดข้อสอบ ${escapeHtml(item.title || '')}"><span class="cl-saved-type"><i class="hgi-stroke hgi-task-02"></i> ข้อสอบ</span><h4>${escapeHtml(item.title || 'ข้อสอบไม่มีชื่อ')}</h4><p>${escapeHtml(item.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')}</p><div class="cl-saved-meta"><span>${Number(item.questions?.length || 0)} ข้อ</span><span>${item.mode === 'practice' ? 'โหมดฝึกฝน' : 'แบบทดสอบ'}</span><span>ร่าง</span></div><span class="cl-saved-open">เปิดข้อสอบ <i class="hgi-stroke hgi-arrow-right-01"></i></span></button>`;
   }
 
   window.openQuizCreator = function () { state.view = 'quiz'; state.draft = null; render(); };
   window.closeQuizCreator = function () { state.view = 'home'; render(); };
+  window.openQuizDetail = function (id) {
+    const quiz = library().find(item => item.id === id && item.type === 'quiz');
+    if (!quiz) { showToast('ไม่พบข้อสอบชุดนี้', 'warning'); return; }
+    state.draft = typeof structuredClone === 'function' ? structuredClone(quiz) : JSON.parse(JSON.stringify(quiz));
+    state.view = 'detail'; render();
+  };
   window.setQuizClass = function (value) {
     state.selectedClassId = value;
     const room = selectedClass();
@@ -167,5 +173,45 @@
     saveState();
     state.view = 'home'; state.draft = null; render();
     showToast('บันทึกข้อสอบเข้าคลังแล้ว');
+  };
+
+  function detailQuestionHtml(question, index) {
+    const answer = question.type === 'multiple_choice'
+      ? question.options?.[Number(question.answerIndex)] || 'ไม่ระบุ'
+      : question.answer || 'ไม่ระบุ';
+    return `<article class="card cl-detail-question"><div class="cl-question-head"><span class="cl-question-no"><b>${index + 1}</b> ${question.type === 'true_false' ? 'ถูก / ผิด' : question.type === 'short_answer' ? 'คำตอบสั้น' : 'ปรนัย'}</span></div><p class="cl-detail-prompt">${escapeHtml(question.prompt || '')}</p>${question.type === 'multiple_choice' ? `<ol class="cl-detail-options">${(question.options || []).map((option, optionIndex) => `<li class="${Number(question.answerIndex) === optionIndex ? 'correct' : ''}">${escapeHtml(option)}</li>`).join('')}</ol>` : ''}<div class="cl-detail-answer"><strong>เฉลย:</strong> ${escapeHtml(answer)}</div>${question.explanation ? `<p class="cl-detail-explanation">${escapeHtml(question.explanation)}</p>` : ''}</article>`;
+  }
+  function detailHtml() {
+    const quiz = state.draft;
+    if (!quiz) { state.view = 'home'; return homeHtml(); }
+    const selected = Array.isArray(quiz.indicators) ? quiz.indicators : [];
+    return `<div class="cl-wizard cl-detail"><div class="cl-wizard-top"><div class="cl-wizard-title"><span class="cl-create-icon"><i class="hgi-stroke hgi-task-02"></i></span><div><h2>รายละเอียดข้อสอบ</h2><p>ตรวจแก้หรือส่งออกเอกสารได้จากหน้านี้</p></div></div><button class="btn" type="button" onclick="closeQuizCreator()"><i class="hgi-stroke hgi-arrow-left-01"></i> <span>กลับคลัง</span></button></div><section class="card cl-detail-head"><div><span class="cl-saved-type"><i class="hgi-stroke hgi-task-02"></i> ข้อสอบ · ร่าง</span><h2>${escapeHtml(quiz.title || 'ข้อสอบไม่มีชื่อ')}</h2><p>${escapeHtml(quiz.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')} · ${quiz.questions?.length || 0} ข้อ · ${quiz.mode === 'practice' ? 'โหมดฝึกฝน' : 'โหมดแบบทดสอบ'}</p>${selected.length ? `<div class="cl-detail-indicators">${selected.map(item => `<span>${escapeHtml(item.code)}</span>`).join('')}</div>` : ''}</div><div class="cl-detail-actions"><button class="btn" type="button" onclick="exportQuizDocx()"><i class="hgi-stroke hgi-file-download"></i> ส่งออก Word</button><button class="btn btn-primary" type="button" onclick="editSavedQuiz()"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อสอบ</button></div></section><div class="cl-detail-list">${(quiz.questions || []).map(detailQuestionHtml).join('') || '<div class="cl-empty-library">ข้อสอบนี้ยังไม่มีคำถาม</div>'}</div><div class="cl-detail-danger"><button class="btn" type="button" onclick="deleteSavedQuiz()"><i class="hgi-stroke hgi-delete-02"></i> ลบข้อสอบชุดนี้</button></div></div>`;
+  }
+  window.editSavedQuiz = function () { state.view = 'review'; render(); };
+  window.deleteSavedQuiz = function () {
+    if (!state.draft || !confirm(`ลบข้อสอบ “${state.draft.title || ''}” ออกจากคลังใช่หรือไม่?`)) return;
+    appState.mediaLibrary = library().filter(item => item.id !== state.draft.id);
+    saveState(); state.draft = null; state.view = 'home'; render(); showToast('ลบข้อสอบออกจากคลังแล้ว');
+  };
+  window.exportQuizDocx = async function () {
+    const quiz = state.draft;
+    if (!quiz?.questions?.length) { showToast('ข้อสอบนี้ยังไม่มีคำถามสำหรับส่งออก', 'warning'); return; }
+    const button = document.querySelector('.cl-detail-actions .btn');
+    const oldHtml = button?.innerHTML;
+    if (button) { button.disabled = true; button.innerHTML = '<i class="hgi-stroke hgi-loading-03"></i> กำลังสร้าง Word...'; }
+    try {
+      const session = await supabaseClient?.auth?.getSession();
+      const token = session?.data?.session?.access_token;
+      const response = await fetch('/api/exports/quiz-docx', { method:'POST', headers:{ 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) }, body:JSON.stringify({ quiz }) });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.message || 'ไม่สามารถสร้างไฟล์ Word ได้');
+      }
+      const blob = await response.blob();
+      const safeName = String(quiz.title || 'ข้อสอบ').replace(/[\\/:*?"<>|]/g, '_').slice(0, 80);
+      const anchor = document.createElement('a'); anchor.href = URL.createObjectURL(blob); anchor.download = `${safeName}.docx`; document.body.appendChild(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(anchor.href), 1000);
+      showToast('ดาวน์โหลดไฟล์ Word แล้ว');
+    } catch (error) { showToast(`ส่งออก Word ไม่สำเร็จ: ${error.message || 'กรุณาลองใหม่'}`, 'warning', 7000); }
+    finally { if (button) { button.disabled = false; button.innerHTML = oldHtml; } }
   };
 })();
