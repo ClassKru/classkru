@@ -517,7 +517,6 @@ function relationalStateFromRows(data) {
         id: classId,
         subject: classroom.subject || '',
         className: classroom.class_name || '',
-        classType: classroom.notes?._classType === 'activity' ? 'activity' : 'teaching',
         academicYear: classroom.academic_year,
         gradeLevel: classroom.grade_level,
         colorIndex: classroom.color_index,

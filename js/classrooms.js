@@ -66,11 +66,6 @@ function inferClassGrade(c) {
   return 'other';
 }
 
-function isActivityClassroom(c) {
-  return String(c?.classType || '').toLowerCase() === 'activity'
-    || String(c?.notes?._classType || '').toLowerCase() === 'activity';
-}
-
 function renderClassroomFilters(classes) {
   const bar = document.getElementById('classroom-filterbar');
   const yearSelect = document.getElementById('classroom-filter-year');
@@ -201,7 +196,7 @@ function renderWebClassrooms() {
       <div style="padding:16px 18px;display:flex;align-items:flex-start;gap:8px;">
         <div style="flex:1;min-width:0;">
           <strong style="font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:9px;line-height:1.2;"><span class="ck-class-dot" style="width:11px;height:11px;border-radius:50%;background:${col.text};flex-shrink:0;"></span>${c.subject}</strong>
-          <span class="subtitle ck-class-sub" style="display:block;">${isActivityClassroom(c) ? `กิจกรรม · ${c.className}` : c.className} · <span style="font-weight:700;color:var(--text-main);">${c.students.length}</span> คน</span>
+          <span class="subtitle ck-class-sub" style="display:block;">${c.className} · <span style="font-weight:700;color:var(--text-main);">${c.students.length}</span> คน</span>
           <div class="progress-container" style="margin-top:12px;">
             <div class="progress-label-row"><span>เข้าเรียน</span><span style="font-weight:800;color:${pctColor};">${pct}%</span></div>
             <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%;background:${col.text};"></div></div>
