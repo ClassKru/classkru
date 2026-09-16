@@ -953,14 +953,14 @@
   </div>
 
   <!-- สร้างห้องเรียนจากข้อมูลตารางด้วย OpenRouter ผ่าน backend -->
-  <div class="modal-overlay" id="modal-ai-classroom-import" onclick="if(event.target===this) closeAiClassroomImport()" style="z-index:9200;">
-    <div class="bottom-sheet ai-classroom-modal">
+  <div class="modal-overlay" id="modal-ai-classroom-import" onclick="if(event.target===this && !aiClassroomBusy) closeAiClassroomImport()" style="z-index:9200;">
+    <div class="bottom-sheet ai-classroom-modal" style="position:relative;">
       <div class="modal-header">
         <div>
           <h3><i class="hgi-stroke hgi-ai-magic" style="color:var(--primary);"></i> สร้างห้องเรียนด้วย AI</h3>
           <p class="ai-classroom-subtitle">เตรียมรายวิชา/กลุ่มเรียนจากตาราง แล้วให้ครูยืนยันห้องจริงก่อนสร้าง</p>
         </div>
-        <button class="btn btn-text" onclick="closeAiClassroomImport()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+        <button class="btn btn-text" id="ai-classroom-close-btn" onclick="if(!aiClassroomBusy) closeAiClassroomImport()"><i class="hgi-stroke hgi-cancel-01"></i></button>
       </div>
       <div class="ai-classroom-notice"><i class="hgi-stroke hgi-information-circle"></i><span>AI จะช่วยอ่านและจัดกลุ่มข้อมูล แต่จะไม่เดาห้องย่อย เช่น ม.3/1 เอง เพื่อป้องกันการเชื่อมรายชื่อนักเรียนผิดห้อง</span></div>
       <div id="ai-classroom-source-step" class="ai-classroom-source-step">
@@ -972,6 +972,9 @@
         <textarea id="ai-classroom-raw-text" class="form-control" rows="7" placeholder="ค23102 | คณิตศาสตร์ | ม.3\nค33126 | คณิตศาสตร์เพิ่มเติม | ม.6 SMET/กีฬา"></textarea>
         <div id="ai-classroom-ocr-status" class="ai-classroom-ocr-status" style="display:none;" role="status" aria-live="polite"></div>
         <div class="ai-classroom-source-footer"><span>รูปที่อัปโหลดจะถูกส่งให้ OpenRouter วิเคราะห์ และต้องตรวจสอบผลก่อนสร้างห้อง</span><button type="button" class="btn btn-primary" onclick="prepareAiClassroomCandidates()"><i class="hgi-stroke hgi-ai-magic"></i> วิเคราะห์รายวิชา/กลุ่ม</button></div>
+      </div>
+      <div id="ai-classroom-processing-overlay" class="ai-classroom-processing-overlay" style="display:none;" role="status" aria-live="polite">
+        <div class="ai-classroom-processing-card"><div class="ai-classroom-processing-icon"><i class="hgi-stroke hgi-ai-magic"></i></div><strong id="ai-classroom-processing-title">AI กำลังประมวลผล</strong><span id="ai-classroom-processing-detail">กรุณารอสักครู่ ระบบกำลังอ่านข้อมูลจากรูปภาพ</span></div>
       </div>
       <div id="ai-classroom-review-step" style="display:none;">
         <div class="ai-classroom-review-head"><div><strong>ตรวจสอบห้องเรียนที่จะสร้าง</strong><span id="ai-classroom-review-summary">—</span></div><button type="button" class="btn" onclick="resetAiClassroomImport()"><i class="hgi-stroke hgi-refresh"></i> เริ่มใหม่</button></div>

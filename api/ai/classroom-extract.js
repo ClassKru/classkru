@@ -51,7 +51,7 @@ function normalizeEntries(payload) {
       sourceGroup: String(entry.group || entry.grade || entry.className || '').trim().slice(0, 160),
       type: String(entry.type || 'teaching').trim().slice(0, 40),
       confidence: String(entry.confidence || 'review').trim().slice(0, 20),
-      rawText: String(entry.rawText || '').trim().slice(0, 500)
+      rawText: String(entry.rawText || entry.raw_text || '').trim().slice(0, 500)
     };
   }).filter(entry => entry.dow >= 1 && entry.dow <= 5 && entry.period && entry.subject);
 }
