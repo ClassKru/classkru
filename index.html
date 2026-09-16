@@ -32,7 +32,6 @@
   <link rel="stylesheet" href="css/10-help.css?v=445">
   <link rel="stylesheet" href="css/11-public-help.css?v=445">
   <link rel="stylesheet" href="css/12-qr-scores.css?v=445">
-  <link rel="stylesheet" href="css/13-ai-timetable.css?v=446">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -455,9 +454,6 @@
                   <span id="timetable-period-count" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);"></span>
                   <button class="btn timetable-import-btn" onclick="openTimetableImport()">
                     <i class="hgi-stroke hgi-google-sheet"></i> นำเข้าตารางสอน
-                  </button>
-                  <button class="btn timetable-ai-import-btn" onclick="openAiTimetableImport()">
-                    <i class="hgi-stroke hgi-ai-magic"></i> นำเข้าด้วย AI
                   </button>
                   <button class="btn btn-primary timetable-manage-btn" onclick="openPeriodSettings()">
                     <i class="hgi-stroke hgi-clock-01"></i> จัดการคาบ
@@ -989,73 +985,6 @@
     </div>
   </div>
 
-  <!-- ต้นแบบนำเข้าตารางสอนด้วย AI/OCR (ทำงานในเครื่อง ยังไม่เรียก OpenRouter) -->
-  <div class="modal-overlay" id="modal-ai-timetable-import" onclick="if(event.target===this) closeAiTimetableImport()" style="z-index:9100;">
-    <div class="bottom-sheet ai-timetable-modal">
-      <div class="modal-header">
-        <div>
-          <h3><i class="hgi-stroke hgi-ai-magic" style="color:var(--primary);"></i> นำเข้าตารางสอนด้วย AI</h3>
-          <p class="ai-timetable-subtitle">ต้นแบบ local: อ่านรูปด้วย OCR ในเครื่อง แล้วให้ครูตรวจสอบก่อนบันทึก</p>
-        </div>
-        <button class="btn btn-text" onclick="closeAiTimetableImport()"><i class="hgi-stroke hgi-cancel-01"></i></button>
-      </div>
-
-      <div class="ai-timetable-notice">
-        <i class="hgi-stroke hgi-information-circle"></i>
-        <span>ตอนนี้ยังไม่ส่งข้อมูลออกไปที่ OpenRouter รูปภาพจะถูกประมวลผลในเบราว์เซอร์ของเครื่องนี้</span>
-      </div>
-
-      <div id="ai-timetable-upload-step" class="ai-timetable-step">
-        <div class="ai-timetable-upload-grid">
-          <label class="ai-timetable-upload-card" for="ai-timetable-image-input">
-            <i class="hgi-stroke hgi-camera-01"></i>
-            <strong>อัปโหลดรูปตาราง</strong>
-            <span>JPG, PNG หรือภาพจากกล้อง</span>
-            <input id="ai-timetable-image-input" type="file" accept="image/*" capture="environment" onchange="handleAiTimetableImage(event)">
-          </label>
-          <button type="button" class="ai-timetable-upload-card" onclick="loadAiTimetableSample()">
-            <i class="hgi-stroke hgi-flask"></i>
-            <strong>ลองข้อมูลตัวอย่าง</strong>
-            <span>ทดสอบหน้าตรวจสอบโดยไม่ใช้รูป</span>
-          </button>
-        </div>
-        <div class="ai-timetable-text-input">
-          <label for="ai-timetable-raw-text">หรือวางข้อความจากตารางที่คัดลอกมา</label>
-          <textarea id="ai-timetable-raw-text" class="form-control" rows="4" placeholder="จันทร์ | 1 | วิทยาศาสตร์ | ม.3/1\nอังคาร | 2 | คณิตศาสตร์ | ม.2/2"></textarea>
-          <button type="button" class="btn btn-primary" onclick="parseAiTimetableText()"><i class="hgi-stroke hgi-ai-magic"></i> แปลงเป็นตาราง</button>
-        </div>
-      </div>
-
-      <div id="ai-timetable-processing-step" class="ai-timetable-processing" style="display:none;">
-        <div class="ai-timetable-spinner"><i class="hgi-stroke hgi-ai-magic"></i></div>
-        <strong id="ai-timetable-processing-title">กำลังอ่านข้อความจากภาพ…</strong>
-        <span id="ai-timetable-processing-status">เตรียม OCR ภาษาไทย</span>
-        <div class="ai-timetable-progress"><span id="ai-timetable-progress-bar"></span></div>
-      </div>
-
-      <div id="ai-timetable-review-step" class="ai-timetable-review" style="display:none;">
-        <div class="ai-timetable-review-head">
-          <div>
-            <strong>ตรวจสอบข้อมูลก่อนบันทึก</strong>
-            <span id="ai-timetable-review-summary">—</span>
-          </div>
-          <button type="button" class="btn" onclick="resetAiTimetableImport()"><i class="hgi-stroke hgi-refresh"></i> เริ่มใหม่</button>
-        </div>
-        <div id="ai-timetable-review-warnings" class="ai-timetable-warnings" style="display:none;"></div>
-        <div class="ai-timetable-review-table-wrap">
-          <table class="web-table ai-timetable-review-table">
-            <thead><tr><th>วัน</th><th>คาบ</th><th>วิชา</th><th>ห้องเรียน</th><th aria-label="ลบ"></th></tr></thead>
-            <tbody id="ai-timetable-review-body"></tbody>
-          </table>
-        </div>
-        <div class="ai-timetable-review-actions">
-          <button type="button" class="btn" onclick="closeAiTimetableImport()">ยกเลิก</button>
-          <button type="button" class="btn btn-primary" onclick="confirmAiTimetableImport()"><i class="hgi-stroke hgi-tick-02"></i> ยืนยันและบันทึกตาราง</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- นำเข้าตารางสอนจาก Excel (ย้ายมาจากเมนู Excel Import เดิม) -->
   <div class="modal-overlay" id="modal-timetable-import" onclick="if(event.target===this) closeTimetableImport()" style="z-index:9000;">
     <div class="bottom-sheet" style="width:640px;max-width:95vw;max-height:90vh;overflow-y:auto;">
@@ -1550,7 +1479,6 @@
   <script defer src="js/students.js?v=445"></script>
   <script defer src="js/timetable.js?v=445"></script>
   <script defer src="js/reports.js?v=445"></script>
-  <script defer src="js/ai-timetable-import.js?v=446"></script>
   <script defer src="js/attendance.js?v=445"></script>
   <script defer src="js/curriculum-thai-2551.js?v=445"></script>
   <script defer src="js/curriculum-math-2560.js?v=445"></script>
