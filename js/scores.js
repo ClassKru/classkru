@@ -262,32 +262,7 @@ function scoreReportDistribution(c, item) {
   return groups;
 }
 
-// Draw an exploded 3D pie from live score groups so every slice has a top face and visible thickness.
-function scoreReportCakeSvg(groups, recorded) {
-  const cx = 150, cy = 112, radius = 96, depth = 18, yScale = 0.62, gap = 0.028;
-  let angle = -Math.PI / 2;
-  const point = (a, shift, yOffset = 0) => [cx + Math.cos(a) * (radius + shift * Math.cos(a)), cy + Math.sin(a) * (radius + shift * Math.cos(a)) * yScale + yOffset];
-  const path = (a0, a1, shift, yOffset = 0) => {
-    const p0 = point(a0, shift, yOffset), p1 = point(a1, shift, yOffset), mid = (a0 + a1) / 2;
-    return `M ${cx + shift * Math.cos(mid)} ${cy + shift * Math.sin(mid) * yScale + yOffset} L ${p0[0]} ${p0[1]} A ${radius} ${radius * yScale} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${p1[0]} ${p1[1]} Z`;
-  };
-  const slices = groups.filter(group => group.count > 0).map(group => {
-    const span = group.count / recorded * Math.PI * 2, a0 = angle + gap, a1 = angle + span - gap, mid = angle + span / 2, shift = 9;
-    const p0 = point(a0, shift), p1 = point(a1, shift), q0 = point(a0, shift, depth), q1 = point(a1, shift, depth), large = a1 - a0 > Math.PI ? 1 : 0;
-    const side = `M ${p0[0]} ${p0[1]} A ${radius} ${radius * yScale} 0 ${large} 1 ${p1[0]} ${p1[1]} L ${q1[0]} ${q1[1]} A ${radius} ${radius * yScale} 0 ${large} 0 ${q0[0]} ${q0[1]} Z`;
-    angle += span;
-    return `<path class="score-report-cake-side" d="${side}" fill="${group.color}"/><path class="score-report-cake-bottom" d="${path(a0,a1,shift,depth)}" fill="${group.color}"/><path class="score-report-cake-top" d="${path(a0,a1,shift)}" fill="${group.color}" data-tooltip="${escapeScoreAttr(group.label)}: ${group.count} คน"/>`;
-  }).join('');
-  return `<svg class="score-report-cake-svg" viewBox="0 0 300 260" role="img" aria-label="กราฟวงกลมสามมิติแสดงสัดส่วนช่วงคะแนน">${slices}</svg>`;
-}
-
-let scoreReportChartMode = '2d';
 let scoreReportTab = 'overview';
-function toggleScoreReportChartMode() {
-  scoreReportChartMode = scoreReportChartMode === '3d' ? '2d' : '3d';
-  const c = appState.classes.find(item => item.id === scoreCurrentClassId);
-  if (c) renderScoreReport(c);
-}
 function selectScoreReportTab(tab) {
   scoreReportTab = ['overview', 'items', 'students', 'submission'].includes(tab) ? tab : 'overview';
   const report = document.querySelector('.score-report');
@@ -311,30 +286,49 @@ function selectScoreReportTab(tab) {
 function scoreReportStudentChart(c) {
   const sc = ensureScores(c), items = sc.items || [];
   if (!items.length || !(c.students || []).length) return '';
-  const palette = ['#0f9f82', '#3f98cf', '#8a74d6', '#e69f36', '#e46b68', '#5b8def', '#2aa889', '#cc6f9a'];
   const totalMax = items.reduce((sum, item) => sum + Math.max(0, Number(item.max) || 0), 0);
   if (!totalMax) return '';
   const records = c.students.map((student, index) => {
-    const values = items.map((item, itemIndex) => {
+    const values = items.map(item => {
       const raw = (sc.marks[item.id] || {})[student.id], has = raw !== null && raw !== undefined && String(raw).trim() !== '' && Number.isFinite(Number(raw));
       const max = Math.max(0, Number(item.max) || 0), value = has ? clampMark(raw, max) : 0;
-      return { item, itemIndex, max, value, has };
+      return { item, max, value, has };
     });
     return { student, index, values, earned: values.reduce((sum, value) => sum + value.value, 0), submitted: values.filter(value => value.has).length };
   }).sort((a, b) => b.earned - a.earned || a.index - b.index);
   const complete = records.filter(record => record.submitted > 0);
   const high = complete.length ? Math.max(...complete.map(record => record.earned)) : null;
   const low = complete.length ? Math.min(...complete.map(record => record.earned)) : null;
-  const itemLegend = items.map((item, index) => `<span><i style="background:${palette[index % palette.length]}"></i>${escapeScore(item.name)}</span>`).join('');
   const chartRows = records.map(record => {
     const rank = high !== null && record.earned === high ? 'สูงสุด' : low !== null && record.earned === low ? 'ต่ำสุด' : '';
-    const segments = record.values.map(value => {
-      const width = value.max / totalMax * 100, fill = value.max ? value.value / value.max * 100 : 0;
-      return `<span class="score-report-student-segment${value.has ? '' : ' missing'}" style="height:${width}%;--segment-color:${palette[value.itemIndex % palette.length]}" data-tooltip="${escapeScoreAttr(value.item.name)}: ${value.has ? `${value.value} / ${value.max} คะแนน` : 'ยังไม่ส่ง'}"><i style="height:${fill}%"></i></span>`;
-    }).join('');
-    return `<article class="score-report-student-row${rank ? ` is-${rank === 'สูงสุด' ? 'highest' : 'lowest'}` : ''}"><div class="score-report-student-label"><span>${record.student.no || record.index + 1}. ${escapeScore(record.student.name)}</span><strong>${record.earned} / ${totalMax}</strong></div><div class="score-report-student-track" role="img" aria-label="${escapeScoreAttr(record.student.name)} ได้ ${record.earned} จาก ${totalMax} คะแนน ส่ง ${record.submitted} จาก ${items.length} งาน">${segments}</div><div class="score-report-student-meta"><span>ส่งแล้ว ${record.submitted}/${items.length} งาน${rank ? ` · ${rank}` : ''}</span></div></article>`;
+    const percent = totalMax ? record.earned / totalMax * 100 : 0;
+    const incomplete = record.submitted < items.length;
+    return `<article class="score-report-student-row${rank ? ` is-${rank === 'สูงสุด' ? 'highest' : 'lowest'}` : ''}"><div class="score-report-student-label"><span>${record.student.no || record.index + 1}. ${escapeScore(record.student.name)}</span><strong>${record.earned} / ${totalMax}</strong></div><div class="score-report-student-track${incomplete ? ' is-incomplete' : ''}" role="img" aria-label="${escapeScoreAttr(record.student.name)} ได้ ${record.earned} จาก ${totalMax} คะแนน ส่ง ${record.submitted} จาก ${items.length} งาน"><i class="score-report-student-bar" style="height:${percent}%"></i></div><div class="score-report-student-meta"><span>ส่งแล้ว ${record.submitted}/${items.length} งาน${incomplete ? ' · ยังไม่ครบ' : ''}${rank ? ` · ${rank}` : ''}</span></div></article>`;
   }).join('');
-  return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>คะแนนรายนักเรียน</h4><span>แท่งหนึ่งแทนนักเรียนหนึ่งคน · ช่องลายเส้นคือยังไม่ได้ส่ง</span></div><div class="score-report-student-legend">${itemLegend}</div><div class="score-report-student-chart">${chartRows}</div></section>`;
+  return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>คะแนนสะสมรายนักเรียน</h4><span>แท่งหนึ่งแทนนักเรียนหนึ่งคน · ลายเส้นหมายถึงยังมีงานที่ไม่ส่ง</span></div><div class="score-report-student-chart">${chartRows}</div></section>`;
+}
+
+function scoreReportClassSummary(c) {
+  const sc = ensureScores(c), items = sc.items || [], students = c.students || [];
+  const totalMax = items.reduce((sum, item) => sum + Math.max(0, Number(item.max) || 0), 0);
+  let earned = 0, possible = 0, studentsWithScores = 0, passed = 0, incomplete = 0;
+  students.forEach(student => {
+    let studentEarned = 0, studentPossible = 0, submitted = 0;
+    items.forEach(item => {
+      const raw = (sc.marks[item.id] || {})[student.id];
+      const has = raw !== null && raw !== undefined && String(raw).trim() !== '' && Number.isFinite(Number(raw));
+      if (!has) return;
+      const max = Math.max(0, Number(item.max) || 0);
+      studentEarned += clampMark(raw, max); studentPossible += max; submitted++;
+    });
+    earned += studentEarned; possible += studentPossible;
+    if (submitted) {
+      studentsWithScores++;
+      if (studentPossible && studentEarned / studentPossible * 100 >= 50) passed++;
+    }
+    if (items.length && submitted < items.length) incomplete++;
+  });
+  return { totalMax, average: possible ? earned / possible * 100 : null, studentsWithScores, passed, incomplete };
 }
 
 function scoreReportSubmissionChart(c) {
@@ -408,6 +402,7 @@ function renderScoreReport(c) {
   if (!wrap) return;
   const rows = scoreReportRows(c);
   const total = (c.students || []).length;
+  const summary = scoreReportClassSummary(c);
   const number = value => value.toLocaleString('th-TH', { maximumFractionDigits: 1 });
   const selected = rows.find(row => row.item.id === scoreReportSelectedItem) || rows[0];
   const groups = scoreReportDistribution(c, selected?.item);
@@ -420,8 +415,8 @@ function renderScoreReport(c) {
   }).join(',');
   wrap.innerHTML = `<section class="score-report">
     <header class="score-report-heading"><div><span class="score-report-eyebrow">รายงานผลการเรียนรู้</span><h3>ภาพรวมคะแนนชิ้นงาน</h3><p>เปรียบเทียบผลคะแนน และดูการกระจายคะแนนในแต่ละงาน</p></div><span class="score-report-badge">คะแนนเฉลี่ย / 100%</span></header>
-    <div class="score-report-summary"><span>ชิ้นงานทั้งหมด <b>${rows.length}<small> ชิ้นงาน</small></b></span><span>นักเรียนในห้อง <b>${total}<small> คน</small></b></span><span>ชิ้นงานที่มีคะแนน <b>${rows.filter(row => row.percent !== null).length}<small> / ${rows.length}</small></b></span></div>
-    <p class="score-report-note">คำนวณจากนักเรียนที่มีคะแนนในแต่ละงานเท่านั้น รวมคะแนน 0 แต่ไม่นับช่องว่าง · งานที่กรอกไม่ครบเป็นผลชั่วคราว</p>
+    <div class="score-report-summary"><span>ค่าเฉลี่ยห้อง <b>${summary.average === null ? '—' : `${number(summary.average)}%`}<small> จากข้อมูลที่บันทึก</small></b></span><span>ผ่านเกณฑ์ 50% <b>${summary.passed}<small> / ${summary.studentsWithScores} คนที่มีคะแนน</small></b></span><span>ต้องติดตามงาน <b>${summary.incomplete}<small> คนยังส่งไม่ครบ</small></b></span><span>ชิ้นงานที่มีคะแนน <b>${rows.filter(row => row.percent !== null).length}<small> / ${rows.length} ชิ้นงาน</small></b></span></div>
+    <p class="score-report-note">ภาพรวมคำนวณจากคะแนนที่บันทึกแล้วเท่านั้น: คะแนน 0 นับรวม แต่ช่องว่างไม่ถูกนับเป็นศูนย์ · ใช้ตารางรายละเอียดเพื่อตรวจสอบข้อมูล ปพ.5 รายคนก่อนตัดสินผล</p>
     ${!rows.length ? '<p class="score-report-empty">ยังไม่มีชิ้นงาน กรุณาเพิ่มรายการในแท็บคะแนนก่อน</p>' : !total ? '<p class="score-report-empty">ห้องนี้ยังไม่มีนักเรียน</p>' : `
     <section class="score-report-bar-section"><div class="score-report-section-head"><h4>คะแนนเฉลี่ยรายชิ้นงาน</h4><span>เลือกแท่งเพื่อดูสัดส่วนคะแนนด้านล่าง</span></div>
     <div class="score-report-vertical"><div class="score-report-axis" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div><div class="score-report-scroll" tabindex="0" role="region" aria-label="กราฟคะแนนเฉลี่ย เลื่อนแนวนอนเพื่อดูทุกชิ้นงาน">
@@ -437,11 +432,6 @@ function renderScoreReport(c) {
       ${recorded ? `<div class="score-report-pie-layout"><div class="score-report-pie" role="img" aria-label="สัดส่วนช่วงคะแนน: ${groups.map(group => `${group.label} ${group.count} คน`).join(', ')}" style="background:conic-gradient(${slices})"><div class="score-report-pie-center"><strong>${recorded}<small> คน</small></strong><span>มีคะแนนแล้ว</span></div></div><ul class="score-report-legend">${groups.map(group => `<li><span class="score-report-dot" style="background:${group.color}"></span><span>${group.label}</span><strong>${group.count} คน <small>${number(group.count / recorded * 100)}%</small></strong></li>`).join('')}</ul></div>` : '<p class="score-report-empty">ยังไม่มีผลคะแนนสำหรับแสดงกราฟวงกลม</p>'}
     </section>`}
   </section>`;
-  const cake = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-pie') : null;
-  if (cake && recorded) {
-    cake.style.background = 'transparent';
-    cake.insertAdjacentHTML('afterbegin', scoreReportCakeSvg(groups, recorded));
-  }
   const report = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report') : null;
   if (report) {
     const barSection = report.querySelector('.score-report-bar-section');
@@ -455,9 +445,7 @@ function renderScoreReport(c) {
   }
   const studentSection = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-student-section') : null;
   if (studentSection) {
-    studentSection.classList.add(`mode-${scoreReportChartMode}`);
-    const sectionHead = studentSection.querySelector('.score-report-section-head');
-    if (sectionHead) sectionHead.insertAdjacentHTML('beforeend', `<div class="score-report-view-toggle" role="group" aria-label="มุมมองกราฟ"><button type="button" aria-pressed="${scoreReportChartMode === '2d'}" onclick="toggleScoreReportChartMode()">${scoreReportChartMode === '3d' ? 'ดูแบบ 2D' : 'ดูแบบ 3D'}</button></div>`);
+    studentSection.classList.add('mode-2d');
   }
 }
 
