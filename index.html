@@ -32,6 +32,8 @@
   <link rel="stylesheet" href="css/10-help.css?v=445">
   <link rel="stylesheet" href="css/11-public-help.css?v=445">
   <link rel="stylesheet" href="css/12-qr-scores.css?v=445">
+  <link rel="stylesheet" href="css/13-ai-timetable.css?v=446">
+  <link rel="stylesheet" href="css/14-ai-classroom.css?v=447">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -379,7 +381,10 @@
         <div id="web-screen-classrooms" class="fade-in" style="display:none;">
           <div class="card" style="margin-bottom:20px;flex-direction:row;justify-content:space-between;align-items:center;padding:20px 24px;flex-wrap:wrap;gap:12px;">
             <div><div class="card-title" style="font-size:1.25rem;"><i class="hgi-stroke hgi-school" style="color:var(--primary)"></i> ห้องเรียนของฉัน</div><p class="subtitle" style="margin-top:4px;">สร้างรายวิชาและจัดการห้องเรียน</p></div>
-            <button class="btn btn-primary" id="btn-add-class-header" onclick="openClassModal()"><i class="hgi-stroke hgi-add-01"></i> เพิ่มห้องเรียน</button>
+            <div class="ck-classroom-header-actions">
+              <button class="btn ck-ai-classroom-btn" id="btn-ai-class-header" onclick="openAiClassroomImport()"><i class="hgi-stroke hgi-ai-magic"></i> สร้างห้องด้วย AI</button>
+              <button class="btn btn-primary" id="btn-add-class-header" onclick="openClassModal()"><i class="hgi-stroke hgi-add-01"></i> เพิ่มห้องเรียน</button>
+            </div>
           </div>
           <div class="ck-classroom-filterbar" id="classroom-filterbar">
             <div class="ck-classroom-filter-summary">
@@ -454,6 +459,9 @@
                   <span id="timetable-period-count" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);"></span>
                   <button class="btn timetable-import-btn" onclick="openTimetableImport()">
                     <i class="hgi-stroke hgi-google-sheet"></i> นำเข้าตารางสอน
+                  </button>
+                  <button class="btn timetable-ai-import-btn" onclick="openAiTimetableImport()">
+                    <i class="hgi-stroke hgi-ai-magic"></i> นำเข้าด้วย AI
                   </button>
                   <button class="btn btn-primary timetable-manage-btn" onclick="openPeriodSettings()">
                     <i class="hgi-stroke hgi-clock-01"></i> จัดการคาบ
@@ -944,6 +952,36 @@
     </div>
   </div>
 
+  <!-- สร้างห้องเรียนจากข้อมูลตารางด้วย OpenRouter ผ่าน backend -->
+  <div class="modal-overlay" id="modal-ai-classroom-import" onclick="if(event.target===this) closeAiClassroomImport()" style="z-index:9200;">
+    <div class="bottom-sheet ai-classroom-modal">
+      <div class="modal-header">
+        <div>
+          <h3><i class="hgi-stroke hgi-ai-magic" style="color:var(--primary);"></i> สร้างห้องเรียนด้วย AI</h3>
+          <p class="ai-classroom-subtitle">เตรียมรายวิชา/กลุ่มเรียนจากตาราง แล้วให้ครูยืนยันห้องจริงก่อนสร้าง</p>
+        </div>
+        <button class="btn btn-text" onclick="closeAiClassroomImport()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+      <div class="ai-classroom-notice"><i class="hgi-stroke hgi-information-circle"></i><span>AI จะช่วยอ่านและจัดกลุ่มข้อมูล แต่จะไม่เดาห้องย่อย เช่น ม.3/1 เอง เพื่อป้องกันการเชื่อมรายชื่อนักเรียนผิดห้อง</span></div>
+      <div id="ai-classroom-source-step" class="ai-classroom-source-step">
+        <div class="ai-classroom-source-actions">
+          <button type="button" class="ai-classroom-source-card" onclick="loadAiClassroomScheduleSample()"><i class="hgi-stroke hgi-flask"></i><strong>ลองจากตารางตัวอย่าง</strong><span>ชุดข้อมูลจากตารางสอนจริง</span></button>
+          <label class="ai-classroom-source-card" for="ai-classroom-image-input"><i class="hgi-stroke hgi-camera-01"></i><strong>อัปโหลดรูปตาราง</strong><span>JPG หรือ PNG · ให้ AI วิเคราะห์</span><input id="ai-classroom-image-input" type="file" accept="image/*" capture="environment" onchange="handleAiClassroomImage(event)"></label>
+        </div>
+        <div class="ai-classroom-paste-label"><i class="hgi-stroke hgi-file-01"></i><span>หรือวางข้อมูลจาก AI/OCR</span><small>รหัสวิชา | ชื่อวิชา | ระดับ/กลุ่ม</small></div>
+        <textarea id="ai-classroom-raw-text" class="form-control" rows="7" placeholder="ค23102 | คณิตศาสตร์ | ม.3\nค33126 | คณิตศาสตร์เพิ่มเติม | ม.6 SMET/กีฬา"></textarea>
+        <div id="ai-classroom-ocr-status" class="ai-classroom-ocr-status" style="display:none;" role="status" aria-live="polite"></div>
+        <div class="ai-classroom-source-footer"><span>รูปที่อัปโหลดจะถูกส่งให้ OpenRouter วิเคราะห์ และต้องตรวจสอบผลก่อนสร้างห้อง</span><button type="button" class="btn btn-primary" onclick="prepareAiClassroomCandidates()"><i class="hgi-stroke hgi-ai-magic"></i> วิเคราะห์รายวิชา/กลุ่ม</button></div>
+      </div>
+      <div id="ai-classroom-review-step" style="display:none;">
+        <div class="ai-classroom-review-head"><div><strong>ตรวจสอบห้องเรียนที่จะสร้าง</strong><span id="ai-classroom-review-summary">—</span></div><button type="button" class="btn" onclick="resetAiClassroomImport()"><i class="hgi-stroke hgi-refresh"></i> เริ่มใหม่</button></div>
+        <div id="ai-classroom-warnings" class="ai-classroom-warnings" style="display:none;"></div>
+        <div class="ai-classroom-table-wrap"><table class="web-table ai-classroom-table"><thead><tr><th><input type="checkbox" checked onchange="toggleAllAiClassroomRows(this.checked)" aria-label="เลือกทั้งหมด"></th><th>รหัส</th><th>วิชา</th><th>ข้อมูลจากตาราง</th><th>ห้องใน ClassKru</th><th>ปีการศึกษา</th></tr></thead><tbody id="ai-classroom-review-body"></tbody></table></div>
+        <div class="ai-classroom-review-actions"><button type="button" class="btn" onclick="closeAiClassroomImport()">ยกเลิก</button><button type="button" class="btn btn-primary" onclick="confirmAiClassroomImport()"><i class="hgi-stroke hgi-school"></i> สร้างห้องเรียนที่เลือก</button></div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modal-student" onclick="if(event.target===this) closeStudentModal()" style="z-index:9000;">
     <div class="bottom-sheet" style="width:480px;max-width:95vw;">
       <div class="modal-header"><h3 id="modal-student-title">เพิ่มนักเรียน</h3><button class="btn btn-text" onclick="closeStudentModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
@@ -981,6 +1019,73 @@
       
       <div style="display:flex;gap:10px;margin-top:24px;">
         <button class="btn" onclick="closeDirectExcelModal()" style="width:100%;">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ต้นแบบนำเข้าตารางสอนด้วย AI/OCR (ทำงานในเครื่อง ยังไม่เรียก OpenRouter) -->
+  <div class="modal-overlay" id="modal-ai-timetable-import" onclick="if(event.target===this) closeAiTimetableImport()" style="z-index:9100;">
+    <div class="bottom-sheet ai-timetable-modal">
+      <div class="modal-header">
+        <div>
+          <h3><i class="hgi-stroke hgi-ai-magic" style="color:var(--primary);"></i> นำเข้าตารางสอนด้วย AI</h3>
+          <p class="ai-timetable-subtitle">ต้นแบบ local: อ่านรูปด้วย OCR ในเครื่อง แล้วให้ครูตรวจสอบก่อนบันทึก</p>
+        </div>
+        <button class="btn btn-text" onclick="closeAiTimetableImport()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+      </div>
+
+      <div class="ai-timetable-notice">
+        <i class="hgi-stroke hgi-information-circle"></i>
+        <span>ตอนนี้ยังไม่ส่งข้อมูลออกไปที่ OpenRouter รูปภาพจะถูกประมวลผลในเบราว์เซอร์ของเครื่องนี้</span>
+      </div>
+
+      <div id="ai-timetable-upload-step" class="ai-timetable-step">
+        <div class="ai-timetable-upload-grid">
+          <label class="ai-timetable-upload-card" for="ai-timetable-image-input">
+            <i class="hgi-stroke hgi-camera-01"></i>
+            <strong>อัปโหลดรูปตาราง</strong>
+            <span>JPG, PNG หรือภาพจากกล้อง</span>
+            <input id="ai-timetable-image-input" type="file" accept="image/*" capture="environment" onchange="handleAiTimetableImage(event)">
+          </label>
+          <button type="button" class="ai-timetable-upload-card" onclick="loadAiTimetableSample()">
+            <i class="hgi-stroke hgi-flask"></i>
+            <strong>ลองข้อมูลตัวอย่าง</strong>
+            <span>ทดสอบหน้าตรวจสอบโดยไม่ใช้รูป</span>
+          </button>
+        </div>
+        <div class="ai-timetable-text-input">
+          <label for="ai-timetable-raw-text">หรือวางข้อความจากตารางที่คัดลอกมา</label>
+          <textarea id="ai-timetable-raw-text" class="form-control" rows="4" placeholder="จันทร์ | 1 | วิทยาศาสตร์ | ม.3/1\nอังคาร | 2 | คณิตศาสตร์ | ม.2/2"></textarea>
+          <button type="button" class="btn btn-primary" onclick="parseAiTimetableText()"><i class="hgi-stroke hgi-ai-magic"></i> แปลงเป็นตาราง</button>
+        </div>
+      </div>
+
+      <div id="ai-timetable-processing-step" class="ai-timetable-processing" style="display:none;">
+        <div class="ai-timetable-spinner"><i class="hgi-stroke hgi-ai-magic"></i></div>
+        <strong id="ai-timetable-processing-title">กำลังอ่านข้อความจากภาพ…</strong>
+        <span id="ai-timetable-processing-status">เตรียม OCR ภาษาไทย</span>
+        <div class="ai-timetable-progress"><span id="ai-timetable-progress-bar"></span></div>
+      </div>
+
+      <div id="ai-timetable-review-step" class="ai-timetable-review" style="display:none;">
+        <div class="ai-timetable-review-head">
+          <div>
+            <strong>ตรวจสอบข้อมูลก่อนบันทึก</strong>
+            <span id="ai-timetable-review-summary">—</span>
+          </div>
+          <button type="button" class="btn" onclick="resetAiTimetableImport()"><i class="hgi-stroke hgi-refresh"></i> เริ่มใหม่</button>
+        </div>
+        <div id="ai-timetable-review-warnings" class="ai-timetable-warnings" style="display:none;"></div>
+        <div class="ai-timetable-review-table-wrap">
+          <table class="web-table ai-timetable-review-table">
+            <thead><tr><th>วัน</th><th>คาบ</th><th>วิชา</th><th>ห้องเรียน</th><th aria-label="ลบ"></th></tr></thead>
+            <tbody id="ai-timetable-review-body"></tbody>
+          </table>
+        </div>
+        <div class="ai-timetable-review-actions">
+          <button type="button" class="btn" onclick="closeAiTimetableImport()">ยกเลิก</button>
+          <button type="button" class="btn btn-primary" onclick="confirmAiTimetableImport()"><i class="hgi-stroke hgi-tick-02"></i> ยืนยันและบันทึกตาราง</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1479,6 +1584,8 @@
   <script defer src="js/students.js?v=445"></script>
   <script defer src="js/timetable.js?v=445"></script>
   <script defer src="js/reports.js?v=445"></script>
+  <script defer src="js/ai-timetable-import.js?v=446"></script>
+  <script defer src="js/ai-classroom-import.js?v=447"></script>
   <script defer src="js/attendance.js?v=445"></script>
   <script defer src="js/curriculum-thai-2551.js?v=445"></script>
   <script defer src="js/curriculum-math-2560.js?v=445"></script>
