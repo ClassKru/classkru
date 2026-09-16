@@ -88,12 +88,16 @@ function applyAiClassroomEntries(entries) {
     const sourceGroup = String(entry.sourceGroup || '').trim();
     if (!subject) return;
     const key = `${entry.subjectCode || ''}|${subject}|${sourceGroup}`.toLowerCase();
-    if (!unique.has(key)) unique.set(key, {
-      code: String(entry.subjectCode || '').trim(), subject, sourceGroup,
-      rawText: String(entry.rawText || '').trim(),
-      className: inferAiClassName(sourceGroup), academicYear: getCurrentThaiAcademicYear(),
-      selected: true, existingId: findAiMatchingClass(subject, sourceGroup)?.id || ''
-    });
+    if (!unique.has(key)) {
+      const type = isAiActivityEntry(entry) ? 'activity' : 'teaching';
+      unique.set(key, {
+        code: String(entry.subjectCode || '').trim(), subject, sourceGroup, type,
+        roomRequired: type !== 'activity',
+        rawText: String(entry.rawText || '').trim(),
+        className: inferAiClassName(sourceGroup, type), academicYear: getCurrentThaiAcademicYear(),
+        selected: true, existingId: findAiMatchingClass(subject, sourceGroup)?.id || ''
+      });
+    }
   });
   aiClassroomCandidates = [...unique.values()];
   renderAiClassroomCandidates();
@@ -165,15 +169,24 @@ function parseAiClassroomCandidates(raw) {
     if (seen.has(key)) return;
     seen.add(key);
     const existing = findAiMatchingClass(subject, sourceGroup);
-    rows.push({ code, subject, sourceGroup, rawText: line, className: inferAiClassName(sourceGroup), academicYear: getCurrentThaiAcademicYear(), selected: !existing, existingId: existing?.id || '' });
+    const type = isAiActivityEntry({ subject, sourceGroup }) ? 'activity' : 'teaching';
+    rows.push({ code, subject, sourceGroup, type, roomRequired: type !== 'activity', rawText: line, className: inferAiClassName(sourceGroup, type), academicYear: getCurrentThaiAcademicYear(), selected: !existing, existingId: existing?.id || '' });
   });
   return rows;
 }
 
-function inferAiClassName(sourceGroup) {
+function isAiActivityEntry(entry) {
+  const type = String(entry?.type || '').trim().toLowerCase();
+  const text = `${entry?.subject || ''} ${entry?.sourceGroup || entry?.group || ''}`;
+  return type === 'activity' || /(สวดมนต์|ลูกเสือ|เนตรนารี|ชุมนุม|แนะแนว|กิจกรรม)/i.test(text);
+}
+
+function inferAiClassName(sourceGroup, type = 'teaching') {
   const value = String(sourceGroup || '').trim();
   const exactRoom = value.match(/((?:ม\.|ป\.)\s*[1-6]\s*\/\s*\d{1,2})/);
-  return exactRoom ? exactRoom[1].replace(/\s+/g, '') : '';
+  if (exactRoom) return exactRoom[1].replace(/\s+/g, '');
+  if (type === 'activity') return value && !/^ไม่ระบุห้อง$/i.test(value) ? value : 'กิจกรรมรวม';
+  return '';
 }
 
 function findAiMatchingClass(subject, sourceGroup) {
@@ -202,15 +215,16 @@ function renderAiClassroomCandidates() {
   const body = document.getElementById('ai-classroom-review-body');
   if (!body) return;
   body.innerHTML = aiClassroomCandidates.map((row, index) => {
-    const valid = /^((ม|ป)\.)[1-6]\/\d{1,2}$/.test(row.className);
-    const existing = row.existingId ? '<span class="is-existing">จับคู่กับห้องแล้ว</span>' : (!valid ? '<span class="is-blocked">ต้องระบุห้องจริง เช่น ม.3/1</span>' : '<span class="is-ready">พร้อมสร้างห้องใหม่</span>');
+    const valid = !row.roomRequired || /^((ม|ป)\.)[1-6]\/\d{1,2}$/.test(row.className);
+    const typeLabel = row.roomRequired ? 'วิชาสอน' : 'กิจกรรม · ไม่บังคับห้อง';
+    const existing = row.existingId ? '<span class="is-existing">จับคู่กับห้องแล้ว</span>' : (!valid ? '<span class="is-blocked">ต้องระบุห้องจริง เช่น ม.3/1</span>' : '<span class="is-ready">พร้อมสร้าง</span>');
     const rawText = row.rawText ? `<small class="ai-classroom-raw-text">ต้นฉบับ: ${aiClassroomEscape(row.rawText)}</small>` : '';
     return `<tr data-ai-class-row="${index}">
       <td><input type="checkbox" ${row.selected ? 'checked' : ''} onchange="toggleAiClassroomRow(${index}, this.checked)" aria-label="เลือก ${aiClassroomEscape(row.subject)}"></td>
       <td>${aiClassroomEscape(row.code || '—')}</td>
       <td><input type="text" value="${aiClassroomEscape(row.subject)}" onchange="updateAiClassroomRow(${index}, 'subject', this.value)"></td>
-      <td>${aiClassroomEscape(row.sourceGroup)} ${rawText} ${existing}</td>
-      <td><select onchange="mapAiClassroomRow(${index}, this.value)" aria-label="จับคู่ห้องเดิม">${getAiClassroomOptions(row.existingId)}</select><input type="text" value="${aiClassroomEscape(row.className)}" placeholder="หรือกรอกห้องใหม่ เช่น ม.3/1" onchange="updateAiClassroomRow(${index}, 'className', this.value)"></td>
+      <td>${aiClassroomEscape(row.sourceGroup)} <span class="ai-classroom-type-badge ${row.roomRequired ? '' : 'is-activity'}">${typeLabel}</span> ${rawText} ${existing}</td>
+      <td><select onchange="mapAiClassroomRow(${index}, this.value)" aria-label="จับคู่ห้องเดิม">${getAiClassroomOptions(row.existingId)}</select><input type="text" value="${aiClassroomEscape(row.className)}" placeholder="${row.roomRequired ? 'หรือกรอกห้องใหม่ เช่น ม.3/1' : 'ไม่ต้องกรอก หากเป็นกิจกรรมรวม'}" onchange="updateAiClassroomRow(${index}, 'className', this.value)"></td>
       <td><input type="number" min="2500" max="2700" value="${row.academicYear}" onchange="updateAiClassroomRow(${index}, 'academicYear', this.value)"></td>
     </tr>`;
   }).join('');
@@ -234,7 +248,7 @@ function renderAiClassroomWarnings() {
   const warnings = [];
   aiClassroomCandidates.forEach((row, index) => {
     if (!row.selected || row.existingId) return;
-    if (!/^((ม|ป)\.)[1-6]\/\d{1,2}$/.test(row.className)) warnings.push(`แถว ${index + 1} “${row.subject}” ยังไม่ระบุห้องจริง เช่น ม.3/1`);
+    if (row.roomRequired && !/^((ม|ป)\.)[1-6]\/\d{1,2}$/.test(row.className)) warnings.push(`แถว ${index + 1} “${row.subject}” ยังไม่ระบุห้องจริง เช่น ม.3/1`);
   });
   const box = document.getElementById('ai-classroom-warnings');
   if (!box) return;
@@ -247,15 +261,18 @@ function confirmAiClassroomImport() {
   const toCreate = selected.filter(row => !row.existingId);
   const mapped = selected.length - toCreate.length;
   if (!selected.length) { showToast('ยังไม่มีรายการที่เลือกดำเนินการ', 'warning'); return; }
-  const invalid = toCreate.find(row => !/^((ม|ป)\.)[1-6]\/\d{1,2}$/.test(row.className));
+  const invalid = toCreate.find(row => row.roomRequired && !/^((ม|ป)\.)[1-6]\/\d{1,2}$/.test(row.className));
   if (invalid) { showToast(`กรุณาระบุห้องจริงให้ “${invalid.subject}” เช่น ม.3/1`, 'warning'); return; }
   let created = 0;
   toCreate.forEach(row => {
     const duplicate = (appState.classes || []).some(c => c.subject === row.subject && c.className === row.className && Number(c.academicYear) === Number(row.academicYear));
     if (duplicate) return;
-    const gradeNumber = row.className.replace(/^\D+/, '').split('/')[0];
+    const gradeNumber = row.className.match(/(?:ม\.|ป\.)\s*([1-6])/i)?.[1] || '';
     const stage = row.className.startsWith('ป.') ? 'primary' : 'secondary';
-    appState.classes.push({ id: `c_${Date.now()}_${created}`, subject: row.subject, subjectCode: row.code, className: row.className, academicYear: row.academicYear, gradeLevel: `${stage === 'primary' ? 'p' : 'm'}${gradeNumber}`, colorIndex: (appState.classes.length + created) % 8, students: [], attendance: {}, notes: {} });
+    const notes = row.type === 'activity'
+      ? { _classType: 'activity', _activityScope: row.sourceGroup || row.className }
+      : {};
+    appState.classes.push({ id: `c_${Date.now()}_${created}`, subject: row.subject, subjectCode: row.code, className: row.className || 'กิจกรรมรวม', classType: row.type || 'teaching', academicYear: row.academicYear, gradeLevel: gradeNumber ? `${stage === 'primary' ? 'p' : 'm'}${gradeNumber}` : 'other', colorIndex: (appState.classes.length + created) % 8, students: [], attendance: {}, notes });
     created++;
   });
   saveState();
