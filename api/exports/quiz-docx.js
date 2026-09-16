@@ -6,6 +6,8 @@ const { sendJson, parseBody, requestOriginIsValid } = require('../_lib/http');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
 const clean = (value, max = 3000) => String(value || '').trim().slice(0, max);
+const BODY_FONT_SIZE = 28; // 14 pt
+const TITLE_FONT_SIZE = 36; // 18 pt
 
 async function authenticatedUser(req) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -14,7 +16,7 @@ async function authenticatedUser(req) {
   return response.ok ? response.json() : null;
 }
 function paragraph(text, options = {}) {
-  return new Paragraph({ ...options, children: [new TextRun({ text: clean(text), font: 'TH SarabunPSK', size: options.size || 24, bold: Boolean(options.bold) })] });
+  return new Paragraph({ ...options, children: [new TextRun({ text: clean(text), font: 'TH SarabunPSK', size: options.size || BODY_FONT_SIZE, bold: Boolean(options.bold) })] });
 }
 function answerText(question) {
   if (question.type === 'multiple_choice') return question.options?.[Number(question.answerIndex)] || 'ไม่ระบุ';
@@ -30,8 +32,8 @@ function questionBlocks(questions, withAnswers) {
       blocks.push(paragraph('........................................................................................................', { spacing: { after: 50 } }));
     }
     if (withAnswers) {
-      blocks.push(paragraph(`เฉลย: ${answerText(question)}`, { size: 22, bold: true, spacing: { before: 50, after: 25 } }));
-      if (question.explanation) blocks.push(paragraph(`คำอธิบาย: ${clean(question.explanation, 1200)}`, { size: 21, spacing: { after: 60 } }));
+      blocks.push(paragraph(`เฉลย: ${answerText(question)}`, { bold: true, spacing: { before: 50, after: 25 } }));
+      if (question.explanation) blocks.push(paragraph(`คำอธิบาย: ${clean(question.explanation, 1200)}`, { spacing: { after: 60 } }));
     }
     return blocks;
   });
@@ -49,17 +51,17 @@ module.exports = async function handler(req, res) {
     if (!title || !questions.length) return sendJson(res, 400, { error: 'invalid_quiz', message: 'ไม่พบข้อมูลข้อสอบสำหรับส่งออก' });
     const indicators = Array.isArray(quiz.indicators) ? quiz.indicators.slice(0, 18).map(item => clean(item.code, 100)).filter(Boolean) : [];
     const header = [
-      paragraph(title, { size: 34, bold: true, alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
-      paragraph(clean(quiz.classLabel, 220), { size: 22, alignment: AlignmentType.CENTER, spacing: { after: 150 } }),
-      paragraph('ชื่อ-สกุล ............................................................................... ชั้น ............... เลขที่ ...............', { size: 22, spacing: { after: 180 } }),
-      paragraph(`คำชี้แจง: ${quiz.mode === 'practice' ? 'ทำแบบฝึกหัดให้ครบทุกข้อ' : 'ทำแบบทดสอบให้ครบทุกข้อ'}`, { size: 22, spacing: { after: 60 } }),
-      ...(indicators.length ? [paragraph(`ตัวชี้วัดที่เกี่ยวข้อง: ${indicators.join(', ')}`, { size: 19, spacing: { after: 100 } })] : [])
+      paragraph(title, { size: TITLE_FONT_SIZE, bold: true, alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
+      paragraph(clean(quiz.classLabel, 220), { alignment: AlignmentType.CENTER, spacing: { after: 150 } }),
+      paragraph('ชื่อ-สกุล ............................................................................... ชั้น ............... เลขที่ ...............', { spacing: { after: 180 } }),
+      paragraph(`คำชี้แจง: ${quiz.mode === 'practice' ? 'ทำแบบฝึกหัดให้ครบทุกข้อ' : 'ทำแบบทดสอบให้ครบทุกข้อ'}`, { spacing: { after: 60 } }),
+      ...(indicators.length ? [paragraph(`ตัวชี้วัดที่เกี่ยวข้อง: ${indicators.join(', ')}`, { spacing: { after: 100 } })] : [])
     ];
     const document = new Document({
-      styles: { default: { document: { run: { font: 'TH SarabunPSK', size: 24 } } } },
+      styles: { default: { document: { run: { font: 'TH SarabunPSK', size: BODY_FONT_SIZE } } } },
       sections: [{
         properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1134, right: 1134, bottom: 1134, left: 1134 } } },
-        children: [...header, ...questionBlocks(questions, false), new Paragraph({ children: [new PageBreak()] }), paragraph('เฉลย', { size: 30, bold: true, alignment: AlignmentType.CENTER, spacing: { after: 160 } }), ...questionBlocks(questions, true)]
+        children: [...header, ...questionBlocks(questions, false), new Paragraph({ children: [new PageBreak()] }), paragraph('เฉลย', { size: TITLE_FONT_SIZE, bold: true, alignment: AlignmentType.CENTER, spacing: { after: 160 } }), ...questionBlocks(questions, true)]
       }]
     });
     const buffer = await Packer.toBuffer(document);
