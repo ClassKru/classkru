@@ -426,7 +426,7 @@
               <div class="students-action-btns" style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn" id="btn-add-student-roster" style="background-color:var(--primary-light);color:var(--primary);border:1px solid var(--primary-light-border);" onclick="openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียน</button>
                 <button class="btn desktop-only-flex" onclick="openStudentQrCardsFromRoster()"><i class="hgi-stroke hgi-qr-code"></i> พิมพ์ QR นักเรียน</button>
-                <button class="btn ck-checkin-activity-btn desktop-only-flex" disabled title="ฟีเจอร์นี้อยู่ระหว่างปรับปรุง"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียนผ่านกิจกรรม (พักไว้ชั่วคราว)</button>
+                <button class="btn ck-checkin-activity-btn desktop-only-flex" type="button" onclick="openClassJoinActivity()" title="เปิดกิจกรรมเพื่อรับข้อมูลนักเรียนผ่าน QR หรือรหัสเข้าร่วม"><i class="hgi-stroke hgi-user-add-01"></i> เพิ่มนักเรียนผ่านกิจกรรม</button>
                 <button class="btn desktop-only-flex" id="btn-students-import-excel" style="background-color:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9;" onclick="triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i> นำเข้า Excel</button>
                 <button class="btn btn-danger desktop-only-flex" onclick="deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i> ลบทั้งหมด</button>
                 <button class="ck-class-menu-btn mobile-only-flex" aria-label="จัดการรายชื่อนักเรียน" title="จัดการรายชื่อนักเรียน" style="align-items:center;" onclick="toggleStudentsActionMenu(event)"><i class="hgi-stroke hgi-settings-01"></i></button>
@@ -1482,7 +1482,7 @@
   <script defer src="js/shell.js?v=445"></script>
   <script defer src="js/dashboard.js?v=445"></script>
   <script defer src="js/classrooms.js?v=445"></script>
-  <script defer src="js/students.js?v=445"></script>
+  <script defer src="js/students.js?v=451"></script>
   <script defer src="js/timetable.js?v=445"></script>
   <script defer src="js/reports.js?v=445"></script>
   <script defer src="js/attendance.js?v=445"></script>

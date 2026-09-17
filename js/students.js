@@ -188,7 +188,7 @@ function toggleStudentsActionMenu(ev) {
 
 // Local working prototype: เปิดรับนักเรียนผ่านกิจกรรมเพิ่มนักเรียนในเครื่องนี้
 const JOIN_ACTIVITY_STORAGE_KEY = 'classkru_join_activity_sessions_v2';
-const JOIN_ACTIVITY_ENABLED = false;
+const JOIN_ACTIVITY_ENABLED = true;
 let activeJoinSessionCode = null;
 let joinActivityRefreshTimer = null;
 const JOIN_ACTIVITY_SAMPLE = [
