@@ -45,7 +45,7 @@
     initContext();
     const root = document.getElementById('content-library-root');
     if (!root) return;
-    root.innerHTML = state.view === 'quiz' ? quizWizardHtml() : state.view === 'review' ? reviewHtml() : state.view === 'detail' ? detailHtml() : homeHtml();
+    root.innerHTML = state.view === 'quiz' ? quizWizardHtml() : state.view === 'review' ? reviewHtml() : state.view === 'edit' ? editHtml() : state.view === 'detail' ? detailHtml() : homeHtml();
     if (state.view === 'detail') renderDetailMetaControls(root);
   }
   window.renderContentLibrary = render;
@@ -163,6 +163,11 @@
     const options = question.type === 'multiple_choice' ? `<div class="cl-option-list">${(question.options || []).map((option, optionIndex) => `<label class="cl-option"><input type="radio" name="answer-${index}" ${Number(question.answerIndex) === optionIndex ? 'checked' : ''} onchange="setQuizAnswer(${index},${optionIndex})"><input type="text" class="form-control" value="${escapeHtml(option)}" onchange="setQuizOption(${index},${optionIndex},this.value)"></label>`).join('')}</div>` : question.type === 'true_false' ? `<div class="cl-option-list"><label class="cl-option"><input type="radio" name="answer-${index}" ${question.answer === 'ถูก' ? 'checked' : ''} onchange="setQuizAnswerText(${index},'ถูก')"> ถูก</label><label class="cl-option"><input type="radio" name="answer-${index}" ${question.answer === 'ผิด' ? 'checked' : ''} onchange="setQuizAnswerText(${index},'ผิด')"> ผิด</label></div>` : `<label class="cl-field" style="margin-top:12px"><span>แนวคำตอบที่ยอมรับได้</span><input class="form-control" value="${escapeHtml(question.answer || '')}" onchange="setQuizAnswerText(${index},this.value)"></label>`;
     return `<article class="card cl-question-card"><div class="cl-question-head"><span class="cl-question-no"><b>${index + 1}</b> ${typeName}</span><div class="cl-question-tools"><button class="cl-icon-btn" type="button" onclick="deleteQuizQuestion(${index})" title="ลบข้อนี้" aria-label="ลบข้อนี้"><i class="hgi-stroke hgi-delete-02"></i></button></div></div><textarea class="form-control" onchange="setQuizPrompt(${index},this.value)">${escapeHtml(question.prompt || '')}</textarea>${options}${question.explanation ? `<div class="cl-explanation"><strong>คำอธิบายจาก AI:</strong> ${escapeHtml(question.explanation)}</div>` : ''}</article>`;
   }
+  function editHtml() {
+    const quiz = state.draft;
+    if (!quiz) { state.view = 'home'; return homeHtml(); }
+    return `<div class="cl-wizard cl-edit-view"><div class="cl-wizard-top"><div class="cl-wizard-title"><span class="cl-create-icon"><i class="hgi-stroke hgi-edit-02"></i></span><div><h2>แก้ไขข้อสอบ</h2><p>แก้ไขรายละเอียด คำถาม ตัวเลือก และเฉลยของข้อสอบชุดนี้</p></div></div><button class="btn" type="button" onclick="cancelSavedQuizEdit()"><i class="hgi-stroke hgi-arrow-left-01"></i> <span>กลับไปยังรายละเอียด</span></button></div><div class="cl-edit-toolbar"><span><i class="hgi-stroke hgi-information-circle"></i> การแก้ไขจะบันทึกทับข้อสอบชุดเดิมในคลัง</span><button class="btn btn-primary" type="button" onclick="saveSavedQuizEdits()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกการแก้ไข</button></div><section class="card cl-edit-intro"><div class="cl-edit-section-heading"><div><span class="cl-saved-type"><i class="hgi-stroke hgi-task-02"></i> Quiz introduction</span><h3>ข้อมูลข้อสอบ</h3></div><span class="cl-edit-section-note">แก้ไขได้</span></div><div class="cl-edit-meta-grid"><label class="cl-field"><span>หัวข้อข้อสอบ</span><input id="edit-quiz-title" class="form-control" maxlength="160" value="${escapeHtml(quiz.title || '')}"></label><label class="cl-field"><span>คำอธิบาย</span><textarea id="edit-quiz-description" class="form-control" maxlength="1200" placeholder="อธิบายจุดประสงค์หรือเนื้อหาของข้อสอบ">${escapeHtml(quiz.description || '')}</textarea></label></div><p class="cl-edit-context">${escapeHtml(quiz.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')} · ${quiz.questions?.length || 0} ข้อ · ${quiz.mode === 'practice' ? 'โหมดฝึกฝน' : 'แบบทดสอบ'}</p></section><div class="cl-edit-questions-head"><div><h3>คำถาม</h3><p>ตรวจคำถาม ตัวเลือก และเฉลยให้ถูกต้องก่อนบันทึก</p></div><span>${quiz.questions?.length || 0} ข้อ</span></div><div class="cl-review-list">${(quiz.questions || []).map(questionHtml).join('') || '<div class="cl-empty-library">ข้อสอบนี้ยังไม่มีคำถาม</div>'}</div><div class="cl-edit-bottom"><button class="btn" type="button" onclick="cancelSavedQuizEdit()">ยกเลิก</button><button class="btn btn-primary" type="button" onclick="saveSavedQuizEdits()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกการแก้ไข</button></div></div>`;
+  }
   window.backToQuizSettings = function () { state.view = 'quiz'; render(); };
   window.setQuizPrompt = (index, value) => { state.draft.questions[index].prompt = value; };
   window.setQuizOption = (index, optionIndex, value) => { state.draft.questions[index].options[optionIndex] = value; };
@@ -231,7 +236,17 @@
     appState.mediaLibrary = library().map(item => item.id === state.draft.id ? { ...item, title:state.draft.title, description:state.draft.description } : item);
     saveState(); state.detailEditing = false; render(); showToast('บันทึกข้อมูลข้อสอบแล้ว');
   };
-  window.editSavedQuiz = function () { state.view = 'review'; render(); };
+  window.editSavedQuiz = function () { state.detailEditing = false; state.view = 'edit'; render(); };
+  window.cancelSavedQuizEdit = function () { state.detailEditing = false; state.view = 'detail'; render(); };
+  window.saveSavedQuizEdits = function () {
+    if (!state.draft?.questions?.length) { showToast('ข้อสอบต้องมีอย่างน้อย 1 ข้อ', 'warning'); return; }
+    const title = document.getElementById('edit-quiz-title')?.value.trim();
+    if (!title) { showToast('กรุณาระบุหัวข้อข้อสอบ', 'warning'); return; }
+    state.draft.title = title;
+    state.draft.description = document.getElementById('edit-quiz-description')?.value.trim() || '';
+    appState.mediaLibrary = library().map(item => item.id === state.draft.id ? { ...state.draft, status:'draft', type:'quiz' } : item);
+    saveState(); state.view = 'detail'; state.detailEditing = false; render(); showToast('บันทึกการแก้ไขข้อสอบแล้ว');
+  };
   window.deleteSavedQuiz = function () {
     if (!state.draft || !confirm(`ลบข้อสอบ “${state.draft.title || ''}” ออกจากคลังใช่หรือไม่?`)) return;
     appState.mediaLibrary = library().filter(item => item.id !== state.draft.id);

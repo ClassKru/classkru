@@ -120,6 +120,21 @@
 .cl-explanation strong { color:var(--primary-deep); }
 .cl-review-bottom { position:sticky; bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:18px; padding:12px 14px; border:1px solid var(--border-color); border-radius:14px; background:rgba(255,255,255,.94); box-shadow:var(--shadow-md); backdrop-filter:blur(8px); }
 .cl-review-bottom span { color:var(--text-muted); font-size:.82rem; font-weight:700; }
+.cl-edit-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 14px; margin:0 0 16px; border:1px solid #cdeee0; border-radius:13px; color:#316655; background:#f4fcf8; font-size:.82rem; font-weight:700; }
+.cl-edit-toolbar span { display:inline-flex; align-items:center; gap:7px; }
+.cl-edit-toolbar span i { color:var(--primary); font-size:1.05rem; }
+.cl-edit-intro { padding:20px 22px; margin-bottom:20px; }
+.cl-edit-section-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:17px; }
+.cl-edit-section-heading h3 { margin:9px 0 0; font-size:1.08rem; }
+.cl-edit-section-note { color:var(--primary-deep); font-size:.78rem; font-weight:800; }
+.cl-edit-meta-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.45fr); gap:15px; }
+.cl-edit-meta-grid textarea { min-height:92px; resize:vertical; }
+.cl-edit-context { margin:14px 0 0; color:var(--text-muted); font-size:.84rem; }
+.cl-edit-questions-head { display:flex; align-items:end; justify-content:space-between; gap:12px; margin:0 0 12px; }
+.cl-edit-questions-head h3 { margin:0 0 3px; font-size:1.12rem; }
+.cl-edit-questions-head p { margin:0; color:var(--text-muted); font-size:.83rem; }
+.cl-edit-questions-head > span { padding:5px 9px; border-radius:99px; color:var(--primary-deep); background:var(--primary-light); font-size:.78rem; font-weight:800; }
+.cl-edit-bottom { display:flex; justify-content:flex-end; gap:9px; margin-top:18px; padding:12px 0; }
 .cl-detail-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:22px; margin-bottom:16px; }
 .cl-detail-head h2 { margin:10px 0 4px; font-size:1.38rem; }
 .cl-detail-head p { margin:0; color:var(--text-muted); }
@@ -167,6 +182,12 @@
   .cl-review-bottom { align-items:flex-start; flex-direction:column; }
   .cl-review-bottom .cl-actions { width:100%; margin:0; }
   .cl-review-bottom .btn { flex:1; justify-content:center; }
+  .cl-edit-toolbar { align-items:flex-start; flex-direction:column; }
+  .cl-edit-toolbar .btn { width:100%; justify-content:center; }
+  .cl-edit-intro { padding:18px; }
+  .cl-edit-meta-grid { grid-template-columns:1fr; }
+  .cl-edit-bottom { position:sticky; bottom:8px; z-index:2; padding:10px; margin:14px -2px 0; border:1px solid var(--border-color); border-radius:13px; background:rgba(255,255,255,.94); box-shadow:var(--shadow-md); backdrop-filter:blur(8px); }
+  .cl-edit-bottom .btn { flex:1; justify-content:center; }
   .cl-detail-head { flex-direction:column; padding:18px; }
   .cl-detail-actions { width:100%; }
   .cl-detail-actions .btn { flex:1; justify-content:center; }
