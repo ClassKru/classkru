@@ -108,7 +108,7 @@ const APP_NAVIGATION = [
   { id: 'subscription', label: 'สมาชิกและการใช้งาน', mobileLabel: 'สมาชิก', icon: 'hgi-wallet-01', screens: ['subscription'], desktopOrder: 12, moreOrder: 7 },
   { id: 'curriculum', label: 'คลังตัวชี้วัด', mobileLabel: 'ตัวชี้วัด', icon: 'hgi-book-open-01', screens: ['curriculum'], desktopOrder: 9, moreOrder: 5 },
   { id: 'help', label: 'ศูนย์ช่วยเหลือ', mobileLabel: 'ช่วยเหลือ', icon: 'hgi-customer-service-01', screens: ['help'], desktopOrder: 10, moreOrder: 6 },
-  { id: 'settings', label: 'ตั้งค่าระบบ', mobileLabel: 'ตั้งค่า', icon: 'hgi-settings-01', screens: ['settings'], desktopOrder: 11, moreOrder: 8 }
+  { id: 'settings', label: 'ตั้งค่าระบบ', mobileLabel: 'ตั้งค่า', icon: 'hgi-settings-01', screens: ['settings'], desktopOrder: 99, moreOrder: 99 }
 ];
 
 function navigationAction(item) {

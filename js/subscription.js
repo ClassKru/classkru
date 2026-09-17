@@ -20,7 +20,7 @@ function renderSubscriptionPage() {
   if (emailEl) emailEl.textContent = email || 'บัญชีที่เข้าสู่ระบบ';
   if (modeEl) modeEl.textContent = 'สิทธิ์การใช้งานปัจจุบัน';
   if (daysEl) daysEl.textContent = CK_BILLING_MODE === 'test' ? 'ใช้งานได้' : String(subscriptionDaysLeft());
-  if (expiryEl) expiryEl.textContent = CK_BILLING_MODE === 'test' ? 'ยังไม่จำกัด' : 'รอข้อมูลการสมัครสมาชิก';
+  if (expiryEl) expiryEl.textContent = CK_BILLING_MODE === 'test' ? 'วันหมดอายุ -' : 'รอข้อมูลการสมัครสมาชิก';
 }
 
 function startSubscriptionCheckout() {

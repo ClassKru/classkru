@@ -19,21 +19,21 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=468">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=468">
-  <link rel="stylesheet" href="css/03-reports.css?v=468">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=468">
-  <link rel="stylesheet" href="css/05-home.css?v=468">
-  <link rel="stylesheet" href="css/06-attendance.css?v=468">
-  <link rel="stylesheet" href="css/07-scores.css?v=468">
-  <link rel="stylesheet" href="css/pp5.css?v=468">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=468">
-    <link rel="stylesheet" href="css/09-games.css?v=468">
-  <link rel="stylesheet" href="css/10-help.css?v=468">
-  <link rel="stylesheet" href="css/11-public-help.css?v=468">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=468">
-  <link rel="stylesheet" href="css/13-content-library.css?v=468">
-  <link rel="stylesheet" href="css/15-subscription.css?v=468">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=469">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=469">
+  <link rel="stylesheet" href="css/03-reports.css?v=469">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=469">
+  <link rel="stylesheet" href="css/05-home.css?v=469">
+  <link rel="stylesheet" href="css/06-attendance.css?v=469">
+  <link rel="stylesheet" href="css/07-scores.css?v=469">
+  <link rel="stylesheet" href="css/pp5.css?v=469">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=469">
+    <link rel="stylesheet" href="css/09-games.css?v=469">
+  <link rel="stylesheet" href="css/10-help.css?v=469">
+  <link rel="stylesheet" href="css/11-public-help.css?v=469">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=469">
+  <link rel="stylesheet" href="css/13-content-library.css?v=469">
+  <link rel="stylesheet" href="css/15-subscription.css?v=469">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -593,7 +593,7 @@
             <div class="subscription-grid">
               <article class="subscription-stat"><span class="subscription-stat-icon"><i class="hgi-stroke hgi-checkmark-circle-02"></i></span><div><span class="subscription-stat-label">สถานะบัญชี</span><strong class="subscription-stat-value">ใช้งานได้</strong><small class="subscription-stat-note" id="subscription-mode-label">สิทธิ์การใช้งานปัจจุบัน</small></div></article>
               <article class="subscription-stat"><span class="subscription-stat-icon"><i class="hgi-stroke hgi-time-02"></i></span><div><span class="subscription-stat-label">เหลือเวลาใช้งาน</span><strong class="subscription-stat-value" id="subscription-days-left">ใช้งานได้</strong><small class="subscription-stat-note">ใช้งาน ClassKru ได้เต็มรูปแบบ</small></div></article>
-              <article class="subscription-stat"><span class="subscription-stat-icon"><i class="hgi-stroke hgi-calendar-03"></i></span><div><span class="subscription-stat-label">วันหมดอายุ</span><strong class="subscription-stat-value" id="subscription-expiry">ยังไม่จำกัด</strong><small class="subscription-stat-note">ไม่มีวันหมดอายุในขณะนี้</small></div></article>
+              <article class="subscription-stat"><span class="subscription-stat-icon"><i class="hgi-stroke hgi-calendar-03"></i></span><div><span class="subscription-stat-label">วันหมดอายุ</span><strong class="subscription-stat-value" id="subscription-expiry">วันหมดอายุ -</strong><small class="subscription-stat-note">ไม่มีวันหมดอายุในขณะนี้</small></div></article>
             </div>
             <section class="subscription-section subscription-access-section"><div class="subscription-section-heading"><div><span class="subscription-section-kicker">สำหรับครู</span><h3>การใช้งานของคุณ</h3></div><span class="subscription-ready-badge"><i class="hgi-stroke hgi-checkmark-circle-02"></i> พร้อมใช้งาน</span></div><p>คุณสามารถใช้ ClassKru ได้เต็มรูปแบบ เพื่อจัดการห้องเรียน เช็กชื่อ และเตรียมการสอนได้สะดวกในที่เดียว</p><div class="subscription-plan-placeholder"><span class="subscription-plan-icon"><i class="hgi-stroke hgi-wallet-01"></i></span><div><strong>ClassKru สำหรับครู</strong><small>เปิดใช้งานฟีเจอร์หลักครบถ้วน</small></div><span class="subscription-coming-soon">ใช้งานได้</span></div><div class="subscription-actions"><button class="btn btn-primary" type="button" onclick="navigateToWebScreen('dashboard')">เริ่มใช้งาน ClassKru</button><button class="btn" type="button" onclick="navigateToWebScreen('settings')">จัดการบัญชี</button></div><p id="subscription-action-status" class="subscription-action-status" role="status"></p></section>
             <section class="subscription-section"><div class="subscription-section-heading"><div><span class="subscription-section-kicker">สถานะบัญชี</span><h3>บัญชีของคุณพร้อมใช้งาน</h3></div><span class="subscription-ready-badge"><i class="hgi-stroke hgi-checkmark-circle-02"></i> เปิดใช้งานแล้ว</span></div><p>ข้อมูลการใช้งานของคุณจะอัปเดตให้อัตโนมัติเมื่อมีการเปลี่ยนแปลง</p></section>
@@ -1493,33 +1493,33 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=468"></script>
-  <script defer src="js/relational-sync.js?v=468"></script>
-  <script defer src="js/auth.js?v=468"></script>
-  <script defer src="js/shell.js?v=468"></script>
-  <script defer src="js/dashboard.js?v=468"></script>
-  <script defer src="js/classrooms.js?v=468"></script>
-  <script defer src="js/students.js?v=468"></script>
-  <script defer src="js/timetable.js?v=468"></script>
-  <script defer src="js/reports.js?v=468"></script>
-  <script defer src="js/attendance.js?v=468"></script>
-  <script defer src="js/curriculum-thai-2551.js?v=468"></script>
-  <script defer src="js/curriculum-math-2560.js?v=468"></script>
-  <script defer src="js/curriculum-science-2560.js?v=468"></script>
-  <script defer src="js/curriculum-social-2560.js?v=468"></script>
-  <script defer src="js/curriculum-health-2551.js?v=468"></script>
-  <script defer src="js/curriculum-art-2551.js?v=468"></script>
-  <script defer src="js/curriculum-career-2551.js?v=468"></script>
-  <script defer src="js/curriculum-foreign-2551.js?v=468"></script>
-  <script defer src="js/curriculum-catalog.js?v=468"></script>
-  <script defer src="js/content-library.js?v=468"></script>
-  <script defer src="js/subscription.js?v=468"></script>
-  <script defer src="js/scores.js?v=468"></script>
-  <script defer src="js/pp5.js?v=468"></script>
-  <script defer src="js/qr-scores.js?v=468"></script>
-  <script defer src="js/tools.js?v=468"></script>
-  <script defer src="js/shared-utils.js?v=468"></script>
-  <script defer src="js/extras.js?v=468"></script>
-  <script defer src="js/help.js?v=468"></script>
+  <script defer src="js/core.js?v=469"></script>
+  <script defer src="js/relational-sync.js?v=469"></script>
+  <script defer src="js/auth.js?v=469"></script>
+  <script defer src="js/shell.js?v=469"></script>
+  <script defer src="js/dashboard.js?v=469"></script>
+  <script defer src="js/classrooms.js?v=469"></script>
+  <script defer src="js/students.js?v=469"></script>
+  <script defer src="js/timetable.js?v=469"></script>
+  <script defer src="js/reports.js?v=469"></script>
+  <script defer src="js/attendance.js?v=469"></script>
+  <script defer src="js/curriculum-thai-2551.js?v=469"></script>
+  <script defer src="js/curriculum-math-2560.js?v=469"></script>
+  <script defer src="js/curriculum-science-2560.js?v=469"></script>
+  <script defer src="js/curriculum-social-2560.js?v=469"></script>
+  <script defer src="js/curriculum-health-2551.js?v=469"></script>
+  <script defer src="js/curriculum-art-2551.js?v=469"></script>
+  <script defer src="js/curriculum-career-2551.js?v=469"></script>
+  <script defer src="js/curriculum-foreign-2551.js?v=469"></script>
+  <script defer src="js/curriculum-catalog.js?v=469"></script>
+  <script defer src="js/content-library.js?v=469"></script>
+  <script defer src="js/subscription.js?v=469"></script>
+  <script defer src="js/scores.js?v=469"></script>
+  <script defer src="js/pp5.js?v=469"></script>
+  <script defer src="js/qr-scores.js?v=469"></script>
+  <script defer src="js/tools.js?v=469"></script>
+  <script defer src="js/shared-utils.js?v=469"></script>
+  <script defer src="js/extras.js?v=469"></script>
+  <script defer src="js/help.js?v=469"></script>
 </body>
 </html>
