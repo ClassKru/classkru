@@ -140,7 +140,7 @@
       const response = await fetch('/api/ai/generate-quiz', { method:'POST', headers:{ 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) }, body:JSON.stringify(payload) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.message || result.error || 'ไม่สามารถสร้างข้อสอบได้');
-      state.draft = { ...payload, id:uid(), createdAt:new Date().toISOString(), questions:Array.isArray(result.questions) ? result.questions : [] };
+      state.draft = { ...payload, id:uid(), createdAt:new Date().toISOString(), questions:Array.isArray(result.questions) ? result.questions : [], qualityWarnings:Array.isArray(result.warnings) ? result.warnings : [] };
       if (!state.draft.questions.length) throw new Error('AI ไม่ได้ส่งคำถามกลับมา กรุณาลองใหม่');
       state.view = 'review'; render();
     } catch (error) {
@@ -153,12 +153,12 @@
     const draft = state.draft;
     if (!draft) { state.view = 'quiz'; return quizWizardHtml(); }
     return `<div class="cl-wizard"><div class="cl-wizard-top"><div class="cl-wizard-title"><span class="cl-create-icon"><i class="hgi-stroke hgi-task-02"></i></span><div><h2>ตรวจร่างข้อสอบ</h2><p>ตรวจคำถาม คำตอบ และเฉลยก่อนบันทึก</p></div></div><button class="btn" type="button" onclick="backToQuizSettings()"><i class="hgi-stroke hgi-arrow-left-01"></i> <span>แก้การตั้งค่า</span></button></div><div class="cl-stepper"><span class="cl-step"><b>1</b> ตั้งค่าข้อสอบ</span><span class="cl-step active"><b>2</b> ตรวจร่าง</span><span class="cl-step"><b>3</b> บันทึก/มอบหมาย</span></div>
-      <section class="card cl-review-head"><div><h3>${escapeHtml(draft.title)}</h3><p>${escapeHtml(draft.classLabel)} · ${draft.questions.length} ข้อ · ${draft.mode === 'practice' ? 'โหมดฝึกฝน' : 'โหมดแบบทดสอบ'}</p></div><span class="cl-saved-type"><i class="hgi-stroke hgi-ai-magic"></i> ร่างโดย AI</span></section><div class="cl-review-list">${draft.questions.map(questionHtml).join('')}</div><div class="cl-review-bottom"><span>ครูควรตรวจทานความถูกต้องและความเหมาะสมของทุกข้อก่อนบันทึก</span><div class="cl-actions"><button class="btn" type="button" onclick="backToQuizSettings()">สร้างใหม่</button><button class="btn btn-primary" type="button" onclick="saveQuizDraft()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกเข้าคลัง</button></div></div></div>`;
+      <section class="card cl-review-head"><div><h3>${escapeHtml(draft.title)}</h3><p>${escapeHtml(draft.classLabel)} · ${draft.questions.length} ข้อ · ${draft.mode === 'practice' ? 'โหมดฝึกฝน' : 'แบบทดสอบ'}</p></div><span class="cl-saved-type"><i class="hgi-stroke hgi-ai-magic"></i> ร่างโดย AI</span></section>${draft.qualityWarnings?.length ? `<div class="cl-quality-warning"><i class="hgi-stroke hgi-alert-02"></i><div><strong>ระบบตัดกรองเบื้องต้นแล้ว</strong><p>${draft.qualityWarnings.map(escapeHtml).join('<br>')}</p><small>ยังต้องตรวจความถูกต้องของเนื้อหา เฉลย และความเหมาะสมกับชั้นเรียนก่อนบันทึก</small></div></div>` : ''}<div class="cl-review-list">${draft.questions.map(questionHtml).join('')}</div><div class="cl-review-bottom"><span>ครูควรตรวจทานความถูกต้องและความเหมาะสมของทุกข้อก่อนบันทึก</span><div class="cl-actions"><button class="btn" type="button" onclick="backToQuizSettings()">สร้างใหม่</button><button class="btn btn-primary" type="button" onclick="saveQuizDraft()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกเข้าคลัง</button></div></div></div>`;
   }
   function questionHtml(question, index) {
     const typeName = question.type === 'true_false' ? 'ถูก / ผิด' : question.type === 'short_answer' ? 'คำตอบสั้น' : 'ปรนัย';
     const options = question.type === 'multiple_choice' ? `<div class="cl-option-list">${(question.options || []).map((option, optionIndex) => `<label class="cl-option"><input type="radio" name="answer-${index}" ${Number(question.answerIndex) === optionIndex ? 'checked' : ''} onchange="setQuizAnswer(${index},${optionIndex})"><input type="text" class="form-control" value="${escapeHtml(option)}" onchange="setQuizOption(${index},${optionIndex},this.value)"></label>`).join('')}</div>` : question.type === 'true_false' ? `<div class="cl-option-list"><label class="cl-option"><input type="radio" name="answer-${index}" ${question.answer === 'ถูก' ? 'checked' : ''} onchange="setQuizAnswerText(${index},'ถูก')"> ถูก</label><label class="cl-option"><input type="radio" name="answer-${index}" ${question.answer === 'ผิด' ? 'checked' : ''} onchange="setQuizAnswerText(${index},'ผิด')"> ผิด</label></div>` : `<label class="cl-field" style="margin-top:12px"><span>แนวคำตอบที่ยอมรับได้</span><input class="form-control" value="${escapeHtml(question.answer || '')}" onchange="setQuizAnswerText(${index},this.value)"></label>`;
-    return `<article class="card cl-question-card"><div class="cl-question-head"><span class="cl-question-no"><b>${index + 1}</b> ${typeName}</span><div class="cl-question-tools"><button class="cl-icon-btn" type="button" onclick="deleteQuizQuestion(${index})" title="ลบข้อนี้" aria-label="ลบข้อนี้"><i class="hgi-stroke hgi-delete-02"></i></button></div></div><textarea class="form-control" onchange="setQuizPrompt(${index},this.value)">${escapeHtml(question.prompt || '')}</textarea>${options}${question.explanation ? `<div class="cl-explanation"><strong>เฉลย:</strong> ${escapeHtml(question.explanation)}</div>` : ''}</article>`;
+    return `<article class="card cl-question-card"><div class="cl-question-head"><span class="cl-question-no"><b>${index + 1}</b> ${typeName}</span><div class="cl-question-tools"><button class="cl-icon-btn" type="button" onclick="deleteQuizQuestion(${index})" title="ลบข้อนี้" aria-label="ลบข้อนี้"><i class="hgi-stroke hgi-delete-02"></i></button></div></div><textarea class="form-control" onchange="setQuizPrompt(${index},this.value)">${escapeHtml(question.prompt || '')}</textarea>${options}${question.explanation ? `<div class="cl-explanation"><strong>คำอธิบายจาก AI:</strong> ${escapeHtml(question.explanation)}</div>` : ''}</article>`;
   }
   window.backToQuizSettings = function () { state.view = 'quiz'; render(); };
   window.setQuizPrompt = (index, value) => { state.draft.questions[index].prompt = value; };
@@ -193,28 +193,25 @@
     appState.mediaLibrary = library().filter(item => item.id !== state.draft.id);
     saveState(); state.draft = null; state.view = 'home'; render(); showToast('ลบข้อสอบออกจากคลังแล้ว');
   };
-  async function exportQuizFile(format) {
+  window.exportQuizDocx = async function () {
     const quiz = state.draft;
     if (!quiz?.questions?.length) { showToast('ข้อสอบนี้ยังไม่มีคำถามสำหรับส่งออก', 'warning'); return; }
-    const label = format === 'pdf' ? 'PDF' : 'Word';
-    const button = document.querySelector(`.cl-detail-actions [data-export-type="${format}"]`);
+    const button = document.querySelector('.cl-detail-actions [data-export-type="word"]');
     const oldHtml = button?.innerHTML;
-    if (button) { button.disabled = true; button.innerHTML = `<i class="hgi-stroke hgi-loading-03"></i> กำลังสร้าง ${label}...`; }
+    if (button) { button.disabled = true; button.innerHTML = '<i class="hgi-stroke hgi-loading-03"></i> กำลังสร้าง Word...'; }
     try {
       const session = await supabaseClient?.auth?.getSession();
       const token = session?.data?.session?.access_token;
-      const response = await fetch(`/api/exports/quiz-${format === 'pdf' ? 'pdf' : 'docx'}`, { method:'POST', headers:{ 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) }, body:JSON.stringify({ quiz }) });
+      const response = await fetch('/api/exports/quiz-docx', { method:'POST', headers:{ 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) }, body:JSON.stringify({ quiz }) });
       if (!response.ok) {
         const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || `ไม่สามารถสร้างไฟล์ ${label} ได้`);
+        throw new Error(error.message || 'ไม่สามารถสร้างไฟล์ Word ได้');
       }
       const blob = await response.blob();
       const safeName = String(quiz.title || 'ข้อสอบ').replace(/[\\/:*?"<>|]/g, '_').slice(0, 80);
-      const anchor = document.createElement('a'); anchor.href = URL.createObjectURL(blob); anchor.download = `${safeName}.${format === 'pdf' ? 'pdf' : 'docx'}`; document.body.appendChild(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(anchor.href), 1000);
-      showToast(`ดาวน์โหลดไฟล์ ${label} แล้ว`);
-    } catch (error) { showToast(`ส่งออก ${label} ไม่สำเร็จ: ${error.message || 'กรุณาลองใหม่'}`, 'warning', 7000); }
+      const anchor = document.createElement('a'); anchor.href = URL.createObjectURL(blob); anchor.download = `${safeName}.docx`; document.body.appendChild(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(anchor.href), 1000);
+      showToast('ดาวน์โหลดไฟล์ Word แล้ว');
+    } catch (error) { showToast(`ส่งออก Word ไม่สำเร็จ: ${error.message || 'กรุณาลองใหม่'}`, 'warning', 7000); }
     finally { if (button) { button.disabled = false; button.innerHTML = oldHtml; } }
-  }
-  window.exportQuizDocx = function () { return exportQuizFile('docx'); };
-  window.exportQuizPdf = function () { return exportQuizFile('pdf'); };
+  };
 })();

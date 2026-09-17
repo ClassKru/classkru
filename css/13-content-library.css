@@ -2,7 +2,7 @@
    CONTENT LIBRARY — สร้างสื่อการสอน
    Desktop = สร้าง/ตรวจร่าง, Mobile = เลือกและสร้างให้จบทีละขั้น
    ========================================== */
-:root { --export-word:#2563eb; --export-word-bg:#eff6ff; --export-word-border:#bfdbfe; --export-pdf:#dc2626; --export-pdf-bg:#fef2f2; --export-pdf-border:#fecaca; --library-quiz:#3b82f6; --library-quiz-bg:#eff6ff; --library-quiz-border:#bfdbfe; --library-worksheet:#f59e0b; --library-worksheet-bg:#fffbeb; --library-worksheet-border:#fde68a; --library-plan:#8b5cf6; --library-plan-bg:#f5f3ff; --library-plan-border:#ddd6fe; }
+:root { --export-word:#2563eb; --export-word-bg:#eff6ff; --export-word-border:#bfdbfe; --library-quiz:#3b82f6; --library-quiz-bg:#eff6ff; --library-quiz-border:#bfdbfe; --library-worksheet:#f59e0b; --library-worksheet-bg:#fffbeb; --library-worksheet-border:#fde68a; --library-plan:#8b5cf6; --library-plan-bg:#f5f3ff; --library-plan-border:#ddd6fe; }
 .cl-hero { position:relative; overflow:hidden; display:flex; align-items:center; justify-content:space-between; gap:22px; padding:28px 30px; margin-bottom:18px; border-color:#cceee0; background:linear-gradient(125deg,#fff 0%,#f0fdf7 58%,#effbf7 100%); }
 .cl-hero::after { content:''; position:absolute; right:-62px; top:-88px; width:240px; height:240px; border:34px solid rgba(29,158,117,.08); border-radius:50%; }
 .cl-hero-copy { position:relative; z-index:1; }
@@ -98,6 +98,11 @@
 .cl-review-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding:20px 22px; margin-bottom:16px; }
 .cl-review-head h3 { margin:0 0 4px; }
 .cl-review-head p { margin:0; color:var(--text-muted); font-size:.84rem; }
+.cl-quality-warning { display:flex; align-items:flex-start; gap:11px; padding:13px 15px; margin:0 0 16px; border:1px solid #f4c978; border-radius:12px; color:#7a5413; background:#fffaf0; line-height:1.55; }
+.cl-quality-warning > i { margin-top:3px; color:#d58b14; font-size:1.2rem; }
+.cl-quality-warning strong { display:block; }
+.cl-quality-warning p { margin:2px 0 3px; font-size:.84rem; }
+.cl-quality-warning small { color:#946b25; }
 .cl-review-list { display:grid; gap:14px; }
 .cl-question-card { padding:20px; }
 .cl-question-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
@@ -122,8 +127,7 @@
 .cl-export-btn { min-height:42px; font-weight:800; }
 .cl-export-btn.word { color:var(--export-word); border-color:var(--export-word-border); background:var(--export-word-bg); }
 .cl-export-btn.word:hover { color:#fff; border-color:var(--export-word); background:var(--export-word); }
-.cl-export-btn.pdf { color:var(--export-pdf); border-color:var(--export-pdf-border); background:var(--export-pdf-bg); }
-.cl-export-btn.pdf:hover { color:#fff; border-color:var(--export-pdf); background:var(--export-pdf); }
+.cl-export-btn.pdf { display:none; }
 .cl-export-btn:disabled { opacity:.7; cursor:wait; }
 .cl-detail-indicators { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
 .cl-detail-indicators span { padding:3px 8px; border-radius:99px; color:var(--primary-deep); background:var(--primary-light); font-size:.73rem; font-weight:800; }
