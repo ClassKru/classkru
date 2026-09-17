@@ -12,7 +12,7 @@ const ui = {
   reportsCards: byId('reports-cards'), reportsEmpty: byId('reports-empty'), tableSelect: byId('table-select'),
   loadTable: byId('load-table-button'), databaseTable: byId('database-table'), modal: byId('detail-modal'),
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
-  ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table')
+  ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table'), billingSalesTable: byId('billing-sales-table')
 };
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
@@ -363,11 +363,30 @@ async function loadDatabase() {
 function renderBilling(data) {
   state.billing = data;
   ui.billingSummary.replaceChildren();
-  [['บัญชีครูทั้งหมด', data.totalTeachers], ['ใช้งานได้', data.activeTeachers], ['หมดอายุ', data.expiredTeachers], ['ยอดชำระสำเร็จ', data.paidOrders]].forEach(([label, value]) => {
+  const paidAmount = (Number(data.paidAmountSatang || 0) / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+  [['บัญชีครูทั้งหมด', data.totalTeachers], ['ใช้งานได้', data.activeTeachers], ['หมดอายุ', data.expiredTeachers], ['รายการชำระสำเร็จ', data.paidOrders], ['ยอดขายรวม', `${paidAmount} บาท`]].forEach(([label, value]) => {
     const card = element('article', 'summary-card');
     card.append(element('span', 'summary-card-label', label), element('strong', 'summary-card-value', value || 0));
     ui.billingSummary.append(card);
   });
+  ui.billingSalesTable.replaceChildren();
+  const teachersById = new Map((data.rows || []).map(item => [item.teacher_id, item.email]));
+  if (!data.orders?.length) ui.billingSalesTable.append(element('div', 'empty-state', 'ยังไม่มีรายการชำระเงิน'));
+  else {
+    const salesTable = document.createElement('table');
+    const salesHead = document.createElement('thead');
+    const salesHeader = document.createElement('tr');
+    ['วันที่', 'อีเมลครู', 'แพ็กเกจ', 'จำนวนเงิน', 'สถานะ', 'ช่องทาง'].forEach(label => salesHeader.append(element('th', '', label)));
+    salesHead.append(salesHeader);
+    const salesBody = document.createElement('tbody');
+    data.orders.forEach(item => {
+      const tr = document.createElement('tr');
+      const amount = (Number(item.amount_satang || 0) / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+      [formatDate(item.created_at, true), teachersById.get(item.teacher_id) || item.teacher_id || '—', item.plan_id || '—', `${amount} บาท`, item.status || '—', item.gateway || '—'].forEach(value => tr.append(element('td', '', value)));
+      salesBody.append(tr);
+    });
+    salesTable.append(salesHead, salesBody); ui.billingSalesTable.append(salesTable);
+  }
   ui.billingTable.replaceChildren();
   if (!data.rows?.length) { ui.billingTable.append(element('div', 'empty-state', 'ยังไม่มีข้อมูลสมาชิก')); return; }
   const table = document.createElement('table');

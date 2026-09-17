@@ -87,15 +87,18 @@ async function handler(req, res) {
     }
 
     if (resource === 'billing') {
-      const teachers = await selectRows('teacher_profiles', { select: 'email,subscription_status,paid_until,updated_at', order: 'updated_at.desc', limit: 2000 });
-      const orders = await selectRows('payment_orders', { select: 'id,status', limit: 2000 });
+      const teachers = await selectRows('teacher_profiles', { select: 'teacher_id,email,subscription_status,paid_until,updated_at', order: 'updated_at.desc', limit: 2000 });
+      const orders = await selectRows('payment_orders', { select: 'id,teacher_id,plan_id,amount_satang,status,gateway,gateway_charge_id,paid_at,created_at', order: 'created_at.desc', limit: 2000 });
       const now = Date.now();
+      const paidOrders = orders.filter(row => row.status === 'paid');
       return sendJson(res, 200, {
         totalTeachers: teachers.length,
         activeTeachers: teachers.filter(row => row.subscription_status !== 'expired' && (!row.paid_until || new Date(row.paid_until).getTime() >= now)).length,
         expiredTeachers: teachers.filter(row => row.subscription_status === 'expired' || (row.paid_until && new Date(row.paid_until).getTime() < now)).length,
-        paidOrders: orders.filter(row => row.status === 'paid').length,
-        rows: teachers
+        paidOrders: paidOrders.length,
+        paidAmountSatang: paidOrders.reduce((total, row) => total + Number(row.amount_satang || 0), 0),
+        rows: teachers,
+        orders
       });
     }
 
