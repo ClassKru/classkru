@@ -2,7 +2,7 @@
    CONTENT LIBRARY — สร้างสื่อการสอน
    Desktop = สร้าง/ตรวจร่าง, Mobile = เลือกและสร้างให้จบทีละขั้น
    ========================================== */
-:root { --export-word:#2563eb; --export-word-bg:#eff6ff; --export-word-border:#bfdbfe; --export-pdf:#dc2626; --export-pdf-bg:#fef2f2; --export-pdf-border:#fecaca; }
+:root { --export-word:#2563eb; --export-word-bg:#eff6ff; --export-word-border:#bfdbfe; --export-pdf:#dc2626; --export-pdf-bg:#fef2f2; --export-pdf-border:#fecaca; --library-quiz:#3b82f6; --library-quiz-bg:#eff6ff; --library-quiz-border:#bfdbfe; --library-worksheet:#f59e0b; --library-worksheet-bg:#fffbeb; --library-worksheet-border:#fde68a; --library-plan:#8b5cf6; --library-plan-bg:#f5f3ff; --library-plan-border:#ddd6fe; }
 .cl-hero { position:relative; overflow:hidden; display:flex; align-items:center; justify-content:space-between; gap:22px; padding:28px 30px; margin-bottom:18px; border-color:#cceee0; background:linear-gradient(125deg,#fff 0%,#f0fdf7 58%,#effbf7 100%); }
 .cl-hero::after { content:''; position:absolute; right:-62px; top:-88px; width:240px; height:240px; border:34px solid rgba(29,158,117,.08); border-radius:50%; }
 .cl-hero-copy { position:relative; z-index:1; }
@@ -15,18 +15,29 @@
 .cl-section-head p { margin:3px 0 0; color:var(--text-muted); font-size:.86rem; }
 .cl-create-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
 .cl-create-card { position:relative; min-height:178px; padding:20px; overflow:hidden; text-align:left; border:1px solid var(--border-color); border-radius:18px; background:var(--bg-card); box-shadow:var(--shadow-sm); cursor:pointer; transition:var(--transition-normal); }
-.cl-create-card:hover { border-color:#89d7bb; transform:translateY(-3px); box-shadow:var(--shadow-md); }
+.cl-create-card::before,.cl-saved-card::before { position:absolute; inset:0 0 auto; height:5px; content:''; }
+.cl-create-card.quiz::before,.cl-saved-card.quiz::before { background:var(--library-quiz); }
+.cl-create-card.worksheet::before { background:var(--library-worksheet); }
+.cl-create-card.lesson-plan::before { background:var(--library-plan); }
+.cl-create-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); }
+.cl-create-card.quiz:hover { border-color:var(--library-quiz-border); }
+.cl-create-card.worksheet:hover { border-color:var(--library-worksheet-border); }
+.cl-create-card.lesson-plan:hover { border-color:var(--library-plan-border); }
 .cl-create-card:focus-visible { outline:3px solid rgba(29,158,117,.25); outline-offset:2px; }
 .cl-create-card.coming { cursor:default; opacity:.72; }
 .cl-create-card.coming:hover { border-color:var(--border-color); transform:none; box-shadow:var(--shadow-sm); }
 .cl-create-icon { display:grid; width:48px; height:48px; place-items:center; margin-bottom:17px; border-radius:15px; color:var(--primary); background:var(--primary-light); font-size:1.35rem; }
+.cl-create-card.quiz .cl-create-icon { color:var(--library-quiz); background:var(--library-quiz-bg); }
+.cl-create-card.worksheet .cl-create-icon { color:var(--library-worksheet); background:var(--library-worksheet-bg); }
+.cl-create-card.lesson-plan .cl-create-icon { color:var(--library-plan); background:var(--library-plan-bg); }
+.cl-function-label { display:block; margin:-4px 0 4px; color:var(--text-muted); font-size:.7rem; font-weight:800; letter-spacing:.02em; text-transform:uppercase; }
 .cl-create-card h4 { margin:0 0 5px; color:var(--text-main); font-size:1.03rem; }
 .cl-create-card p { margin:0; color:var(--text-muted); font-size:.84rem; line-height:1.55; }
 .cl-coming { position:absolute; top:14px; right:14px; padding:3px 8px; border-radius:99px; color:var(--text-muted); background:#f1f5f9; font-size:.7rem; font-weight:800; }
 .cl-saved-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
 .cl-saved-card { position:relative; width:100%; padding:18px; border:1px solid var(--border-color); border-radius:16px; color:inherit; background:var(--bg-card); box-shadow:var(--shadow-sm); cursor:pointer; text-align:left; font:inherit; transition:var(--transition-normal); }
-.cl-saved-card:hover { border-color:#99d9c1; transform:translateY(-2px); box-shadow:var(--shadow-md); }
-.cl-saved-type { display:inline-flex; align-items:center; gap:5px; padding:4px 8px; border-radius:99px; color:var(--primary-deep); background:var(--primary-light); font-size:.72rem; font-weight:800; }
+.cl-saved-card:hover { border-color:var(--library-quiz-border); transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.cl-saved-type { display:inline-flex; align-items:center; gap:5px; padding:4px 8px; border-radius:99px; color:var(--library-quiz); background:var(--library-quiz-bg); font-size:.72rem; font-weight:800; }
 .cl-saved-card h4 { margin:10px 0 4px; font-size:1.03rem; }
 .cl-saved-card p { margin:0; color:var(--text-muted); font-size:.83rem; }
 .cl-saved-meta { display:flex; flex-wrap:wrap; gap:6px; margin-top:13px; }
