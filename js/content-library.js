@@ -218,11 +218,11 @@
     const meta = info?.querySelector('p');
     const actions = head?.querySelector('.cl-detail-actions');
     if (!quiz || !info || !meta || !actions) return;
-    head.classList.toggle('is-meta-editing', state.detailEditing);
     root.querySelector('.cl-export-btn.pdf')?.remove();
     const oldDescription = info.querySelector('.cl-detail-description');
     oldDescription?.remove();
     info.querySelector('.cl-detail-edit-fields')?.remove();
+    root.querySelector('.cl-detail-edit-modal')?.remove();
     const description = document.createElement('p');
     description.className = 'cl-detail-description';
     description.textContent = quiz.description || 'ยังไม่มีคำอธิบายสำหรับข้อสอบชุดนี้';
@@ -234,13 +234,8 @@
       actions.insertAdjacentHTML('afterbegin', '<button class="btn cl-detail-edit-btn" type="button" data-detail-edit onclick="editQuizDetails()"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขรายละเอียด</button>');
       return;
     }
-    info.querySelector('h2').style.display = 'none';
-    description.style.display = 'none';
-    const fields = document.createElement('div');
-    fields.className = 'cl-detail-edit-fields';
-    fields.innerHTML = `<label>หัวข้อข้อสอบ<input id="detail-title" class="form-control" maxlength="160" value="${escapeHtml(quiz.title || '')}"></label><label>คำอธิบาย<textarea id="detail-description" class="form-control" maxlength="1200" placeholder="เช่น แบบทดสอบทบทวนเรื่องแรงและการเคลื่อนที่">${escapeHtml(quiz.description || '')}</textarea></label>`;
-    info.insertBefore(fields, meta);
-    actions.insertAdjacentHTML('afterbegin', '<button class="btn btn-primary" type="button" data-detail-save onclick="saveQuizDetails()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกข้อมูล</button><button class="btn" type="button" data-detail-cancel onclick="cancelQuizDetails()">ยกเลิก</button>');
+    root.insertAdjacentHTML('beforeend', `<div class="cl-detail-edit-modal" role="dialog" aria-modal="true" aria-labelledby="detail-edit-title"><div class="cl-detail-edit-dialog"><div class="cl-detail-edit-dialog-head"><div><span class="cl-saved-type"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อสอบ</span><h3 id="detail-edit-title">แก้ไขรายละเอียด</h3></div><button class="cl-modal-close" type="button" onclick="cancelQuizDetails()" aria-label="ปิดหน้าต่างแก้ไข"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div class="cl-detail-edit-form"><label>หัวข้อข้อสอบ<input id="detail-title" class="form-control" maxlength="160" value="${escapeHtml(quiz.title || '')}"></label><label>คำอธิบาย<textarea id="detail-description" class="form-control" maxlength="1200" placeholder="เช่น แบบทดสอบทบทวนเรื่องแรงและการเคลื่อนที่">${escapeHtml(quiz.description || '')}</textarea></label></div><div class="cl-detail-edit-dialog-actions"><button class="btn" type="button" onclick="cancelQuizDetails()">ยกเลิก</button><button class="btn btn-primary" type="button" onclick="saveQuizDetails()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกข้อมูล</button></div></div></div>`);
+    document.getElementById('detail-title')?.focus();
   }
   window.editQuizDetails = function () { state.detailEditing = true; render(); document.getElementById('detail-title')?.focus(); };
   window.cancelQuizDetails = function () { state.detailEditing = false; render(); };
