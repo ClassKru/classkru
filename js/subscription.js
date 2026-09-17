@@ -18,16 +18,16 @@ function renderSubscriptionPage() {
   const daysEl = document.getElementById('subscription-days-left');
   const expiryEl = document.getElementById('subscription-expiry');
   if (emailEl) emailEl.textContent = email || 'บัญชีที่เข้าสู่ระบบ';
-  if (modeEl) modeEl.textContent = CK_BILLING_MODE === 'test' ? 'โหมดทดลองระบบสมาชิก' : 'ระบบสมาชิก';
+  if (modeEl) modeEl.textContent = 'สิทธิ์การใช้งานปัจจุบัน';
   if (daysEl) daysEl.textContent = CK_BILLING_MODE === 'test' ? 'ใช้งานได้' : String(subscriptionDaysLeft());
-  if (expiryEl) expiryEl.textContent = CK_BILLING_MODE === 'test' ? 'ยังไม่จำกัดในช่วงทดสอบ' : 'รอข้อมูลการสมัครสมาชิก';
+  if (expiryEl) expiryEl.textContent = CK_BILLING_MODE === 'test' ? 'ยังไม่จำกัด' : 'รอข้อมูลการสมัครสมาชิก';
 }
 
 function startSubscriptionCheckout() {
   const status = document.getElementById('subscription-action-status');
   if (!status) return;
   status.textContent = CK_BILLING_MODE === 'test'
-    ? 'โหมดทดสอบ: ยังไม่เชื่อมต่อการรับเงินจริง ระบบจะเปิดใช้งานบัญชีนี้ให้โดยอัตโนมัติ'
+    ? 'บัญชีของคุณพร้อมใช้งาน ระบบจะอัปเดตสิทธิ์การใช้งานให้อัตโนมัติ'
     : 'กำลังเตรียมรายการชำระเงิน…';
 }
 
