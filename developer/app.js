@@ -1,6 +1,6 @@
 'use strict';
 
-const state = { view: 'overview', overview: null, reports: [], ideas: { biggy: [], petchpetch: [] } };
+const state = { view: 'overview', overview: null, reports: [], billing: null, ideas: { biggy: [], petchpetch: [] } };
 const byId = id => document.getElementById(id);
 const ui = {
   loginView: byId('login-view'), consoleView: byId('console-view'), loginForm: byId('login-form'),
@@ -12,6 +12,7 @@ const ui = {
   reportsCards: byId('reports-cards'), reportsEmpty: byId('reports-empty'), tableSelect: byId('table-select'),
   loadTable: byId('load-table-button'), databaseTable: byId('database-table'), modal: byId('detail-modal'),
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
+  ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table')
 };
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
@@ -359,6 +360,36 @@ async function loadDatabase() {
   }
 }
 
+function renderBilling(data) {
+  state.billing = data;
+  ui.billingSummary.replaceChildren();
+  [['บัญชีครูทั้งหมด', data.totalTeachers], ['ใช้งานได้', data.activeTeachers], ['หมดอายุ', data.expiredTeachers], ['ยอดชำระสำเร็จ', data.paidOrders]].forEach(([label, value]) => {
+    const card = element('article', 'summary-card');
+    card.append(element('span', 'summary-card-label', label), element('strong', 'summary-card-value', value || 0));
+    ui.billingSummary.append(card);
+  });
+  ui.billingTable.replaceChildren();
+  if (!data.rows?.length) { ui.billingTable.append(element('div', 'empty-state', 'ยังไม่มีข้อมูลสมาชิก')); return; }
+  const table = document.createElement('table');
+  const head = document.createElement('thead');
+  const row = document.createElement('tr');
+  ['อีเมล', 'สถานะ', 'วันหมดอายุ', 'อัปเดตล่าสุด'].forEach(label => row.append(element('th', '', label)));
+  head.append(row);
+  const body = document.createElement('tbody');
+  data.rows.forEach(item => {
+    const tr = document.createElement('tr');
+    [item.email, item.subscription_status, formatDate(item.paid_until), formatDate(item.updated_at, true)].forEach(value => tr.append(element('td', '', value || '—')));
+    body.append(tr);
+  });
+  table.append(head, body); ui.billingTable.append(table);
+}
+
+async function loadBilling() {
+  ui.globalStatus.textContent = 'กำลังโหลดข้อมูลสมาชิก…';
+  try { renderBilling(await request('/api/dev/data?resource=billing')); ui.globalStatus.textContent = ''; }
+  catch (error) { handleDataError(error); }
+}
+
 function handleDataError(error) {
   if (error.status === 401) {
     showLogin('Session หมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง');
@@ -382,6 +413,7 @@ function switchView(view) {
   if (view === 'ideas-biggy') loadIdeas('biggy');
   if (view === 'ideas-petchpetch') loadIdeas('petchpetch');
   if (view === 'database') loadDatabase();
+  if (view === 'billing') loadBilling();
 }
 
 ui.loginForm.addEventListener('submit', async event => {

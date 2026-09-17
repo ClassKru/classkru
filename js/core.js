@@ -12,7 +12,9 @@ let appState = {
   timetable: [],
   timetableWeek: 'A',
   activeWebScreen: 'dashboard',
-  holidays: []
+  holidays: [],
+  // Optional evidence layer: normal classroom work remains unchanged.
+  developmentProjects: []
 };
 
 const STORAGE_KEY = 'classkru_mobile_v4';

@@ -19,20 +19,22 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=460">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=460">
-  <link rel="stylesheet" href="css/03-reports.css?v=460">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=460">
-  <link rel="stylesheet" href="css/05-home.css?v=460">
-  <link rel="stylesheet" href="css/06-attendance.css?v=460">
-  <link rel="stylesheet" href="css/07-scores.css?v=460">
-  <link rel="stylesheet" href="css/pp5.css?v=460">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=460">
-    <link rel="stylesheet" href="css/09-games.css?v=460">
-  <link rel="stylesheet" href="css/10-help.css?v=460">
-  <link rel="stylesheet" href="css/11-public-help.css?v=460">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=460">
-  <link rel="stylesheet" href="css/13-content-library.css?v=460">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=462">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=462">
+  <link rel="stylesheet" href="css/03-reports.css?v=462">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=462">
+  <link rel="stylesheet" href="css/05-home.css?v=462">
+  <link rel="stylesheet" href="css/06-attendance.css?v=462">
+  <link rel="stylesheet" href="css/07-scores.css?v=462">
+  <link rel="stylesheet" href="css/pp5.css?v=462">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=462">
+    <link rel="stylesheet" href="css/09-games.css?v=462">
+  <link rel="stylesheet" href="css/10-help.css?v=462">
+  <link rel="stylesheet" href="css/11-public-help.css?v=462">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=462">
+  <link rel="stylesheet" href="css/13-content-library.css?v=462">
+  <link rel="stylesheet" href="css/14-development.css?v=462">
+  <link rel="stylesheet" href="css/15-subscription.css?v=462">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -301,6 +303,8 @@
             <button class="btn btn-primary" type="button" onclick="startMainTour()"><i class="hgi-stroke hgi-arrow-right-01"></i> เริ่มตั้งค่า</button>
           </section>
 
+          <section id="home-development-card" class="home-development-card" style="display:none;"></section>
+
           <!-- legacy warning target kept for existing scripts; desktop summary now lives in the right panel -->
           <div id="home-unchecked-card" style="display:none;"></div>
         </div>
@@ -399,6 +403,11 @@
             </div>
           </div>
           <div id="web-classrooms-grid" class="class-cards-grid"></div>
+        </div>
+
+        <!-- DEVELOPMENT PROJECTS: optional evidence layer over normal classroom work -->
+        <div id="web-screen-development" class="fade-in" style="display:none;">
+          <div id="development-root"></div>
         </div>
 
         <!-- STUDENTS -->
@@ -641,6 +650,20 @@
               </article>
             </div>
           </section>
+        </div>
+
+        <!-- MEMBERSHIP -->
+        <div id="web-screen-subscription" class="fade-in" style="display:none;">
+          <div class="subscription-shell">
+            <section class="subscription-hero"><div><p class="subscription-eyebrow">CLASSKRU MEMBERSHIP</p><h2>สมาชิกและการใช้งาน</h2><p id="subscription-account-email">บัญชีที่เข้าสู่ระบบ</p></div><span class="subscription-status">ใช้งานได้</span></section>
+            <div class="subscription-grid">
+              <article class="subscription-stat"><span class="subscription-stat-label">สถานะบัญชี</span><strong class="subscription-stat-value">ใช้งานได้</strong><small class="subscription-stat-note" id="subscription-mode-label">โหมดทดลองระบบสมาชิก</small></article>
+              <article class="subscription-stat"><span class="subscription-stat-label">เหลือเวลาใช้งาน</span><strong class="subscription-stat-value" id="subscription-days-left">ใช้งานได้</strong><small class="subscription-stat-note">ระบบจะคำนวณจากวันหมดอายุ</small></article>
+              <article class="subscription-stat"><span class="subscription-stat-label">วันหมดอายุ</span><strong class="subscription-stat-value" id="subscription-expiry">ยังไม่จำกัด</strong><small class="subscription-stat-note">อัปเดตจากรายการชำระเงิน</small></article>
+            </div>
+            <section class="subscription-section"><h3>แพ็กเกจและการต่ออายุ</h3><p>ในช่วงทดสอบ บัญชีที่เข้าสู่ระบบแล้วสามารถใช้งาน ClassKru ได้เต็มรูปแบบ เมื่อเปิดขายจริง หน้านี้จะแสดงแพ็กเกจและ QR สำหรับชำระเงิน</p><span class="subscription-test-badge">โหมดทดสอบ — ยังไม่รับเงินจริง</span><div class="subscription-actions"><button class="btn btn-primary" type="button" onclick="startSubscriptionCheckout()">ดูแพ็กเกจและต่ออายุ</button><button class="btn" type="button" onclick="navigateToWebScreen('settings')">จัดการบัญชี</button></div><p id="subscription-action-status" role="status" style="margin-top:12px;color:var(--primary);font-weight:700;"></p></section>
+            <section class="subscription-section"><h3>ประวัติการชำระเงิน</h3><p>ยังไม่มีรายการชำระเงินจริงในโหมดทดสอบ</p><table class="subscription-history" aria-label="ประวัติการชำระเงิน"><thead><tr><th>รายการ</th><th>สถานะ</th><th>จำนวนเงิน</th></tr></thead><tbody><tr><td>ทดลองใช้งาน ClassKru</td><td>เปิดใช้งาน</td><td>—</td></tr></tbody></table></section>
+          </div>
         </div>
 
         <!-- SETTINGS -->
@@ -1476,32 +1499,34 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=460"></script>
-  <script defer src="js/relational-sync.js?v=460"></script>
-  <script defer src="js/auth.js?v=460"></script>
-  <script defer src="js/shell.js?v=460"></script>
-  <script defer src="js/dashboard.js?v=460"></script>
-  <script defer src="js/classrooms.js?v=460"></script>
-  <script defer src="js/students.js?v=460"></script>
-  <script defer src="js/timetable.js?v=460"></script>
-  <script defer src="js/reports.js?v=460"></script>
-  <script defer src="js/attendance.js?v=460"></script>
-  <script defer src="js/curriculum-thai-2551.js?v=460"></script>
-  <script defer src="js/curriculum-math-2560.js?v=460"></script>
-  <script defer src="js/curriculum-science-2560.js?v=460"></script>
-  <script defer src="js/curriculum-social-2560.js?v=460"></script>
-  <script defer src="js/curriculum-health-2551.js?v=460"></script>
-  <script defer src="js/curriculum-art-2551.js?v=460"></script>
-  <script defer src="js/curriculum-career-2551.js?v=460"></script>
-  <script defer src="js/curriculum-foreign-2551.js?v=460"></script>
-  <script defer src="js/curriculum-catalog.js?v=460"></script>
-  <script defer src="js/content-library.js?v=460"></script>
-  <script defer src="js/scores.js?v=460"></script>
-  <script defer src="js/pp5.js?v=460"></script>
-  <script defer src="js/qr-scores.js?v=460"></script>
-  <script defer src="js/tools.js?v=460"></script>
-  <script defer src="js/shared-utils.js?v=460"></script>
-  <script defer src="js/extras.js?v=460"></script>
-  <script defer src="js/help.js?v=460"></script>
+  <script defer src="js/core.js?v=462"></script>
+  <script defer src="js/relational-sync.js?v=462"></script>
+  <script defer src="js/auth.js?v=462"></script>
+  <script defer src="js/shell.js?v=462"></script>
+  <script defer src="js/dashboard.js?v=462"></script>
+  <script defer src="js/classrooms.js?v=462"></script>
+  <script defer src="js/students.js?v=462"></script>
+  <script defer src="js/timetable.js?v=462"></script>
+  <script defer src="js/reports.js?v=462"></script>
+  <script defer src="js/attendance.js?v=462"></script>
+  <script defer src="js/curriculum-thai-2551.js?v=462"></script>
+  <script defer src="js/curriculum-math-2560.js?v=462"></script>
+  <script defer src="js/curriculum-science-2560.js?v=462"></script>
+  <script defer src="js/curriculum-social-2560.js?v=462"></script>
+  <script defer src="js/curriculum-health-2551.js?v=462"></script>
+  <script defer src="js/curriculum-art-2551.js?v=462"></script>
+  <script defer src="js/curriculum-career-2551.js?v=462"></script>
+  <script defer src="js/curriculum-foreign-2551.js?v=462"></script>
+  <script defer src="js/curriculum-catalog.js?v=462"></script>
+  <script defer src="js/content-library.js?v=462"></script>
+  <script defer src="js/development.js?v=462"></script>
+  <script defer src="js/subscription.js?v=462"></script>
+  <script defer src="js/scores.js?v=462"></script>
+  <script defer src="js/pp5.js?v=462"></script>
+  <script defer src="js/qr-scores.js?v=462"></script>
+  <script defer src="js/tools.js?v=462"></script>
+  <script defer src="js/shared-utils.js?v=462"></script>
+  <script defer src="js/extras.js?v=462"></script>
+  <script defer src="js/help.js?v=462"></script>
 </body>
 </html>

@@ -86,6 +86,19 @@ async function handler(req, res) {
       });
     }
 
+    if (resource === 'billing') {
+      const teachers = await selectRows('teacher_profiles', { select: 'email,subscription_status,paid_until,updated_at', order: 'updated_at.desc', limit: 2000 });
+      const orders = await selectRows('payment_orders', { select: 'id,status', limit: 2000 });
+      const now = Date.now();
+      return sendJson(res, 200, {
+        totalTeachers: teachers.length,
+        activeTeachers: teachers.filter(row => row.subscription_status !== 'expired' && (!row.paid_until || new Date(row.paid_until).getTime() >= now)).length,
+        expiredTeachers: teachers.filter(row => row.subscription_status === 'expired' || (row.paid_until && new Date(row.paid_until).getTime() < now)).length,
+        paidOrders: orders.filter(row => row.status === 'paid').length,
+        rows: teachers
+      });
+    }
+
     return sendJson(res, 400, { error: 'unknown_resource' });
   } catch (error) {
     const status = error.code === 'SUPABASE_NOT_CONFIGURED' ? 503 : 502;
