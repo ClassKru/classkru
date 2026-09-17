@@ -128,7 +128,7 @@
 .cl-edit-section-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:17px; }
 .cl-edit-section-heading h3 { margin:9px 0 0; font-size:1.08rem; }
 .cl-edit-section-note { color:var(--primary-deep); font-size:.78rem; font-weight:800; }
-.cl-edit-meta-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.45fr); gap:15px; }
+.cl-edit-meta-grid { display:grid; grid-template-columns:1fr; gap:15px; }
 .cl-edit-meta-grid textarea { min-height:92px; resize:vertical; }
 .cl-edit-context { margin:14px 0 0; color:var(--text-muted); font-size:.84rem; }
 .cl-edit-questions-head { display:flex; align-items:end; justify-content:space-between; gap:12px; margin:0 0 12px; }
