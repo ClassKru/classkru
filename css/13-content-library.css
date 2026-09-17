@@ -2,6 +2,7 @@
    CONTENT LIBRARY — สร้างสื่อการสอน
    Desktop = สร้าง/ตรวจร่าง, Mobile = เลือกและสร้างให้จบทีละขั้น
    ========================================== */
+:root { --export-word:#2563eb; --export-word-bg:#eff6ff; --export-word-border:#bfdbfe; --export-pdf:#dc2626; --export-pdf-bg:#fef2f2; --export-pdf-border:#fecaca; }
 .cl-hero { position:relative; overflow:hidden; display:flex; align-items:center; justify-content:space-between; gap:22px; padding:28px 30px; margin-bottom:18px; border-color:#cceee0; background:linear-gradient(125deg,#fff 0%,#f0fdf7 58%,#effbf7 100%); }
 .cl-hero::after { content:''; position:absolute; right:-62px; top:-88px; width:240px; height:240px; border:34px solid rgba(29,158,117,.08); border-radius:50%; }
 .cl-hero-copy { position:relative; z-index:1; }
@@ -107,6 +108,12 @@
 .cl-detail-head h2 { margin:10px 0 4px; font-size:1.38rem; }
 .cl-detail-head p { margin:0; color:var(--text-muted); }
 .cl-detail-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+.cl-export-btn { min-height:42px; font-weight:800; }
+.cl-export-btn.word { color:var(--export-word); border-color:var(--export-word-border); background:var(--export-word-bg); }
+.cl-export-btn.word:hover { color:#fff; border-color:var(--export-word); background:var(--export-word); }
+.cl-export-btn.pdf { color:var(--export-pdf); border-color:var(--export-pdf-border); background:var(--export-pdf-bg); }
+.cl-export-btn.pdf:hover { color:#fff; border-color:var(--export-pdf); background:var(--export-pdf); }
+.cl-export-btn:disabled { opacity:.7; cursor:wait; }
 .cl-detail-indicators { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
 .cl-detail-indicators span { padding:3px 8px; border-radius:99px; color:var(--primary-deep); background:var(--primary-light); font-size:.73rem; font-weight:800; }
 .cl-detail-list { display:grid; gap:13px; }
