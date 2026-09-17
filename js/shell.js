@@ -1,7 +1,7 @@
 // ==================== URL ROUTING (#hash) — รองรับ LINE OA ลิงก์เข้าหน้าตรงๆ ====================
 // หน้าที่ลิงก์เข้าได้จาก URL เช่น classkru-kohl.vercel.app/#reports
 // 'checkin' คือหน้าเช็คชื่อ (เดิมเป็น overlay ที่ไม่มี URL ของตัวเอง) — ต้องมี param บอกห้อง
-const ROUTABLE_SCREENS = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','development','library','games','subscription','settings','checkin'];
+const ROUTABLE_SCREENS = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','library','games','subscription','settings','checkin'];
 
 // รูปแบบ hash: "#reports" หรือแบบมีพารามิเตอร์ "#checkin:c_1712345678"
 // คืน { screen, param } — screen เป็น null ถ้า hash ไม่ถูกต้อง
@@ -101,15 +101,14 @@ const APP_NAVIGATION = [
   { id: 'classrooms', label: 'ห้องเรียนของฉัน', mobileLabel: 'ห้องเรียน', icon: 'hgi-school', screens: ['classrooms', 'students', 'scores', 'reports'], desktopScreens: ['classrooms', 'students', 'scores', 'reports', 'checkin'], desktopOrder: 2, mobileOrder: 5 },
   { id: 'timetable', label: 'ตารางสอน', mobileLabel: 'ตารางสอน', icon: 'hgi-calendar-03', screens: ['timetable'], desktopOrder: 3, mobileOrder: 2 },
   { id: 'library', label: 'คลังสื่อการสอน', mobileLabel: 'คลังสื่อ', icon: 'hgi-book-02', screens: ['library'], desktopOrder: 4, moreOrder: 1 },
-  { id: 'development', label: 'พัฒนาผู้เรียน', mobileLabel: 'พัฒนาผู้เรียน', icon: 'hgi-chart-up-02', screens: ['development'], desktopOrder: 5, moreOrder: 2 },
   { id: 'checkin', label: 'เช็คชื่อ', mobileLabel: 'เช็คชื่อ', icon: 'hgi-task-done-01', screens: ['checkin'], mobileOrder: 3, className: 'checkin-btn', action: 'mobileCheckinTap()' },
   { id: 'tools', label: 'เครื่องมือช่วยสอน', mobileLabel: 'เครื่องมือ', icon: 'hgi-magic-wand-01', screens: ['tools'], desktopOrder: 7, moreOrder: 3 },
   { id: 'qr-score', label: 'กรอกคะแนนด้วย QR', mobileLabel: 'QR คะแนน', icon: 'hgi-qr-code', screens: [], desktopOrder: 6, mobileOrder: 4, className: 'qr-score-mobile-nav', action: 'openQrScoreScanner()' },
   { id: 'games', label: 'เกมการศึกษา', mobileLabel: 'เกม', icon: 'hgi-rocket-01', screens: ['games'], desktopOrder: 8, moreOrder: 4 },
-  { id: 'subscription', label: 'สมาชิกและการใช้งาน', mobileLabel: 'สมาชิก', icon: 'hgi-wallet-01', screens: ['subscription'], desktopOrder: 12, moreOrder: 8 },
+  { id: 'subscription', label: 'สมาชิกและการใช้งาน', mobileLabel: 'สมาชิก', icon: 'hgi-wallet-01', screens: ['subscription'], desktopOrder: 12, moreOrder: 7 },
   { id: 'curriculum', label: 'คลังตัวชี้วัด', mobileLabel: 'ตัวชี้วัด', icon: 'hgi-book-open-01', screens: ['curriculum'], desktopOrder: 9, moreOrder: 5 },
-  { id: 'help', label: 'ศูนย์ช่วยเหลือ', mobileLabel: 'ช่วยเหลือ', icon: 'hgi-customer-service-01', screens: ['help'], desktopOrder: 10, moreOrder: 7 },
-  { id: 'settings', label: 'ตั้งค่าระบบ', mobileLabel: 'ตั้งค่า', icon: 'hgi-settings-01', screens: ['settings'], desktopOrder: 11, moreOrder: 6 }
+  { id: 'help', label: 'ศูนย์ช่วยเหลือ', mobileLabel: 'ช่วยเหลือ', icon: 'hgi-customer-service-01', screens: ['help'], desktopOrder: 10, moreOrder: 6 },
+  { id: 'settings', label: 'ตั้งค่าระบบ', mobileLabel: 'ตั้งค่า', icon: 'hgi-settings-01', screens: ['settings'], desktopOrder: 11, moreOrder: 8 }
 ];
 
 function navigationAction(item) {
@@ -251,7 +250,7 @@ function navigateToWebScreen(screenId, param) {
   // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
   setRouteHash(detailClassId ? `#${screenId}:${detailClassId}` : '#' + screenId);
 
-  const screens = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','development','curriculum','library','tools','games','subscription','settings'];
+  const screens = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','curriculum','library','tools','games','subscription','settings'];
   screens.forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = s === screenId ? 'block' : 'none';
@@ -273,7 +272,6 @@ function navigateToWebScreen(screenId, param) {
     curriculum: ['คลังตัวชี้วัด', 'ค้นหาและอ่านรายละเอียดตัวชี้วัดตามหลักสูตร'],
     library: ['คลังสื่อการสอน', 'สร้างและเก็บข้อสอบที่เชื่อมกับห้องเรียนและตัวชี้วัด'],
     reports: ['รายงานวิเคราะห์ผล', 'สถิติเชิงลึกรายห้องเรียน'],
-    development: ['พัฒนาผู้เรียน', 'รวบรวมหลักฐานจากงานสอนจริง'],
     tools: ['เครื่องมือช่วยสอน', 'เลือกห้องเรียนและเปิดเครื่องมือหน้าชั้นเรียน'],
     games: ['เกมการศึกษา', 'เลือกกิจกรรมสนุก ๆ สำหรับนักเรียน'],
     subscription: ['สมาชิกและการใช้งาน', 'ดูสถานะบัญชี แพ็กเกจ และวันหมดอายุ'],
@@ -292,7 +290,6 @@ function navigateToWebScreen(screenId, param) {
   else if (screenId === 'attendance') loadWebAttendanceMatrix();
   else if (screenId === 'scores') viewClassScores(detailClassId);
   else if (screenId === 'reports') showWebClassReport(detailClassId);
-  else if (screenId === 'development') renderDevelopmentPage();
   else if (screenId === 'curriculum') renderMainCurriculumCatalog();
   else if (screenId === 'library') renderContentLibrary();
   else if (screenId === 'tools') renderTeachingToolsPage();
@@ -343,7 +340,7 @@ function applyCheckinRoute(classId) {
   setRouteHash('#checkin:' + classId);   // เข้าจากการ์ดห้อง = push (ปุ่ม back ปิดหน้านี้ได้) · สลับแท็บ = replace
 
   // ซ่อนหน้าอื่นทั้งหมด (overlay ทับอยู่แล้ว แต่ต้องให้ state ตรงกัน)
-  ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','development','curriculum','library','tools','games','subscription','settings'].forEach(s => {
+  ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','curriculum','library','tools','games','subscription','settings'].forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = 'none';
   });
