@@ -6,6 +6,7 @@
 .subscription-hero-aside{display:grid;justify-items:end;gap:6px}.subscription-hero-aside small{color:var(--muted);font-size:.78rem}
 .subscription-status{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;padding:9px 13px;border-radius:999px;color:var(--pk);background:var(--pbg);font-size:.82rem;font-weight:800}
 .subscription-status::before{width:8px;height:8px;border-radius:50%;background:var(--primary);content:""}
+.subscription-status-live::before{animation:subscription-pulse 1.8s ease-in-out infinite}.subscription-ready-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--pbd);border-radius:20px;color:var(--pk);background:var(--pbg);font-size:.74rem;font-weight:800}.subscription-ready-badge i{font-size:1rem}@keyframes subscription-pulse{0%,100%{opacity:1}50%{opacity:.5}}
 .subscription-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
 .subscription-stat{display:flex;align-items:flex-start;gap:13px;padding:18px;border:1px solid var(--border);border-radius:14px;background:var(--card);box-shadow:var(--sh-md)}
 .subscription-stat-icon,.subscription-plan-icon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:12px;color:var(--primary);background:var(--pbg);font-size:1.2rem}

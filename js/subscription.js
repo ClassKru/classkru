@@ -26,9 +26,7 @@ function renderSubscriptionPage() {
 function startSubscriptionCheckout() {
   const status = document.getElementById('subscription-action-status');
   if (!status) return;
-  status.textContent = CK_BILLING_MODE === 'test'
-    ? 'บัญชีของคุณพร้อมใช้งาน ระบบจะอัปเดตสิทธิ์การใช้งานให้อัตโนมัติ'
-    : 'กำลังเตรียมรายการชำระเงิน…';
+  status.textContent = 'บัญชีของคุณพร้อมใช้งานแล้ว';
 }
 
 document.addEventListener('DOMContentLoaded', renderSubscriptionPage);
