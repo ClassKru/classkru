@@ -218,6 +218,7 @@
     const meta = info?.querySelector('p');
     const actions = head?.querySelector('.cl-detail-actions');
     if (!quiz || !info || !meta || !actions) return;
+    head.classList.toggle('is-meta-editing', state.detailEditing);
     root.querySelector('.cl-export-btn.pdf')?.remove();
     const oldDescription = info.querySelector('.cl-detail-description');
     oldDescription?.remove();

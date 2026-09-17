@@ -137,12 +137,17 @@
 .cl-edit-questions-head > span { padding:5px 9px; border-radius:99px; color:var(--primary-deep); background:var(--primary-light); font-size:.78rem; font-weight:800; }
 .cl-edit-bottom { display:flex; justify-content:flex-end; gap:9px; margin-top:18px; padding:12px 0; }
 .cl-detail-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:22px; margin-bottom:16px; }
+.cl-detail-head > div:first-child { min-width:0; flex:1 1 auto; }
+.cl-detail-head.is-meta-editing { display:block; }
+.cl-detail-head.is-meta-editing .cl-detail-actions { justify-content:flex-start; margin-top:14px; }
 .cl-detail-head h2 { margin:10px 0 4px; font-size:1.38rem; }
 .cl-detail-head p { margin:0; color:var(--text-muted); }
 .cl-detail-description { max-width:760px; margin:2px 0 10px !important; color:var(--text-secondary) !important; font-size:.98rem; line-height:1.58; }
 .cl-detail-edit-btn { color:var(--primary-deep); border-color:#a7dfca; background:var(--primary-light); }
 .cl-detail-edit-fields { display:grid; gap:10px; margin:10px 0 12px; }
 .cl-detail-edit-fields label { display:grid; gap:5px; color:var(--text-secondary); font-size:.78rem; font-weight:800; }
+.cl-detail-edit-fields input,
+.cl-detail-edit-fields textarea { width:100%; box-sizing:border-box; }
 .cl-detail-edit-fields textarea { min-height:70px; resize:vertical; }
 .cl-detail-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
 .cl-export-btn { min-height:42px; font-weight:800; }
