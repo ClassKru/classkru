@@ -555,6 +555,9 @@ const GUIDE_STEPS = {
     { target: '#btn-students-import-excel', title: 'มีรายชื่อหลายคน? นำเข้าได้เลย',
       body: 'ถ้ามีรายชื่อนักเรียนอยู่ในไฟล์แล้ว กด “นำเข้า Excel” เพื่อเพิ่มหลายคนพร้อมกันได้ทันที รองรับไฟล์ .xlsx และ .csv',
       desktopOnly: true },
+    { target: '#btn-students-join-activity', title: 'เพิ่มนักเรียนผ่านกิจกรรม',
+      body: 'ถ้าต้องการให้นักเรียนกรอกข้อมูลผ่านมือถือ ให้กดปุ่มนี้ ระบบจะเปิดแท็บกิจกรรมใหม่พร้อม QR Code และลิงก์เข้าร่วมให้ครูนำไปแชร์ได้ทันที',
+      desktopOnly: true, advance: 'click' },
     { target: '#btn-students-actions-mobile', title: 'ทางเลือกเพิ่มรายชื่อแบบเร็ว',
       body: 'บนมือถือ เปิดเมนูจัดการรายชื่อ แล้วเลือก “นำเข้า Excel” เพื่อเพิ่มนักเรียนหลายคนพร้อมกัน',
       mobileOnly: true }
