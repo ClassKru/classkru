@@ -48,7 +48,8 @@
 .cl-empty-library i { display:block; margin-bottom:7px; color:var(--primary); font-size:1.5rem; }
 
 .cl-wizard { max-width:1120px; margin:0 auto; }
-.cl-wizard-top { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px; }
+.cl-wizard-top { display:flex; align-items:center; justify-content:flex-start; gap:14px; margin-bottom:18px; }
+.cl-wizard-top > .btn { order:-1; flex:0 0 auto; }
 .cl-wizard-title { display:flex; align-items:center; gap:12px; min-width:0; }
 .cl-wizard-title .cl-create-icon { flex:0 0 auto; margin:0; }
 .cl-wizard-title h2 { margin:0; font-size:1.3rem; }
