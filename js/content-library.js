@@ -11,7 +11,8 @@
     grade: '',
     standardId: 'all',
     indicatorCodes: [],
-    draft: null
+    draft: null,
+    detailEditing: false
   };
 
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
@@ -45,6 +46,7 @@
     const root = document.getElementById('content-library-root');
     if (!root) return;
     root.innerHTML = state.view === 'quiz' ? quizWizardHtml() : state.view === 'review' ? reviewHtml() : state.view === 'detail' ? detailHtml() : homeHtml();
+    if (state.view === 'detail') renderDetailMetaControls(root);
   }
   window.renderContentLibrary = render;
 
@@ -68,6 +70,7 @@
     const quiz = library().find(item => item.id === id && item.type === 'quiz');
     if (!quiz) { showToast('ไม่พบข้อสอบชุดนี้', 'warning'); return; }
     state.draft = typeof structuredClone === 'function' ? structuredClone(quiz) : JSON.parse(JSON.stringify(quiz));
+    state.detailEditing = false;
     state.view = 'detail'; render();
   };
   window.setQuizClass = function (value) {
@@ -187,6 +190,47 @@
     const selected = Array.isArray(quiz.indicators) ? quiz.indicators : [];
     return `<div class="cl-wizard cl-detail"><div class="cl-wizard-top"><div class="cl-wizard-title"><span class="cl-create-icon"><i class="hgi-stroke hgi-task-02"></i></span><div><h2>รายละเอียดข้อสอบ</h2><p>ตรวจแก้หรือส่งออกเอกสารได้จากหน้านี้</p></div></div><button class="btn" type="button" onclick="closeQuizCreator()"><i class="hgi-stroke hgi-arrow-left-01"></i> <span>กลับคลัง</span></button></div><section class="card cl-detail-head"><div><span class="cl-saved-type"><i class="hgi-stroke hgi-task-02"></i> ข้อสอบ · ร่าง</span><h2>${escapeHtml(quiz.title || 'ข้อสอบไม่มีชื่อ')}</h2><p>${escapeHtml(quiz.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')} · ${quiz.questions?.length || 0} ข้อ · ${quiz.mode === 'practice' ? 'โหมดฝึกฝน' : 'โหมดแบบทดสอบ'}</p>${selected.length ? `<div class="cl-detail-indicators">${selected.map(item => `<span>${escapeHtml(item.code)}</span>`).join('')}</div>` : ''}</div><div class="cl-detail-actions"><button class="btn cl-export-btn word" type="button" data-export-type="word" onclick="exportQuizDocx()"><i class="hgi-stroke hgi-file-download"></i> ส่งออก Word</button><button class="btn cl-export-btn pdf" type="button" data-export-type="pdf" onclick="exportQuizPdf()"><i class="hgi-stroke hgi-file-02"></i> ส่งออก PDF</button><button class="btn btn-primary" type="button" onclick="editSavedQuiz()"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขข้อสอบ</button></div></section><div class="cl-detail-list">${(quiz.questions || []).map(detailQuestionHtml).join('') || '<div class="cl-empty-library">ข้อสอบนี้ยังไม่มีคำถาม</div>'}</div><div class="cl-detail-danger"><button class="btn" type="button" onclick="deleteSavedQuiz()"><i class="hgi-stroke hgi-delete-02"></i> ลบข้อสอบชุดนี้</button></div></div>`;
   }
+  function renderDetailMetaControls(root) {
+    const quiz = state.draft;
+    const head = root.querySelector('.cl-detail-head');
+    const info = head?.firstElementChild;
+    const meta = info?.querySelector('p');
+    const actions = head?.querySelector('.cl-detail-actions');
+    if (!quiz || !info || !meta || !actions) return;
+    root.querySelector('.cl-export-btn.pdf')?.remove();
+    const oldDescription = info.querySelector('.cl-detail-description');
+    oldDescription?.remove();
+    info.querySelector('.cl-detail-edit-fields')?.remove();
+    const description = document.createElement('p');
+    description.className = 'cl-detail-description';
+    description.textContent = quiz.description || 'ยังไม่มีคำอธิบายสำหรับข้อสอบชุดนี้';
+    info.insertBefore(description, meta);
+    actions.querySelector('[data-detail-edit]')?.remove();
+    actions.querySelector('[data-detail-save]')?.remove();
+    actions.querySelector('[data-detail-cancel]')?.remove();
+    if (!state.detailEditing) {
+      actions.insertAdjacentHTML('afterbegin', '<button class="btn cl-detail-edit-btn" type="button" data-detail-edit onclick="editQuizDetails()"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขรายละเอียด</button>');
+      return;
+    }
+    info.querySelector('h2').style.display = 'none';
+    description.style.display = 'none';
+    const fields = document.createElement('div');
+    fields.className = 'cl-detail-edit-fields';
+    fields.innerHTML = `<label>หัวข้อข้อสอบ<input id="detail-title" class="form-control" maxlength="160" value="${escapeHtml(quiz.title || '')}"></label><label>คำอธิบาย<textarea id="detail-description" class="form-control" maxlength="1200" placeholder="เช่น แบบทดสอบทบทวนเรื่องแรงและการเคลื่อนที่">${escapeHtml(quiz.description || '')}</textarea></label>`;
+    info.insertBefore(fields, meta);
+    actions.insertAdjacentHTML('afterbegin', '<button class="btn btn-primary" type="button" data-detail-save onclick="saveQuizDetails()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกข้อมูล</button><button class="btn" type="button" data-detail-cancel onclick="cancelQuizDetails()">ยกเลิก</button>');
+  }
+  window.editQuizDetails = function () { state.detailEditing = true; render(); document.getElementById('detail-title')?.focus(); };
+  window.cancelQuizDetails = function () { state.detailEditing = false; render(); };
+  window.saveQuizDetails = function () {
+    if (!state.draft) return;
+    const title = document.getElementById('detail-title')?.value.trim();
+    if (!title) { showToast('กรุณาระบุหัวข้อข้อสอบ', 'warning'); return; }
+    state.draft.title = title;
+    state.draft.description = document.getElementById('detail-description')?.value.trim() || '';
+    appState.mediaLibrary = library().map(item => item.id === state.draft.id ? { ...item, title:state.draft.title, description:state.draft.description } : item);
+    saveState(); state.detailEditing = false; render(); showToast('บันทึกข้อมูลข้อสอบแล้ว');
+  };
   window.editSavedQuiz = function () { state.view = 'review'; render(); };
   window.deleteSavedQuiz = function () {
     if (!state.draft || !confirm(`ลบข้อสอบ “${state.draft.title || ''}” ออกจากคลังใช่หรือไม่?`)) return;
