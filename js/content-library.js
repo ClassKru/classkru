@@ -35,7 +35,9 @@
     worksheetIndicatorCodes: [],
     draft: null,
     detailEditing: false,
-    editBaseline: ''
+    editBaseline: '',
+    libraryTab: 'all',
+    libraryQuery: ''
   };
 
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
@@ -79,6 +81,7 @@
     if (!root) return;
     root.innerHTML = state.worksheetView === 'form' ? worksheetFormHtml() : state.worksheetView === 'review' ? worksheetReviewHtml() : state.worksheetView === 'detail' ? worksheetDetailHtml() : state.lessonView === 'form' ? lessonFormHtml() : state.lessonView === 'review' ? lessonReviewHtml() : state.lessonView === 'detail' ? lessonDetailHtml() : state.view === 'quiz' ? quizWizardHtml() : state.view === 'review' ? reviewHtml() : state.view === 'edit' ? editHtml() : state.view === 'detail' ? detailHtml() : homeHtml();
     bindCreationCardActions(root);
+    bindLibraryControls(root);
     if (state.worksheetView === 'review' || state.worksheetView === 'detail') decorateWorksheetPreview(root);
     if (state.view === 'detail') renderDetailMetaControls(root);
   }
@@ -95,10 +98,42 @@
     });
   }
 
+  function bindLibraryControls(root) {
+    root.querySelectorAll('[data-library-tab]').forEach(tab => tab.addEventListener('click', () => {
+      state.libraryTab = tab.dataset.libraryTab || 'all';
+      render();
+    }));
+    const search = root.querySelector('[data-library-search]');
+    if (!search) return;
+    search.addEventListener('input', event => {
+      const cursor = event.target.selectionStart;
+      state.libraryQuery = event.target.value;
+      render();
+      const next = document.querySelector('[data-library-search]');
+      if (next) { next.focus(); next.setSelectionRange(cursor, cursor); }
+    });
+  }
+
+  function libraryItemMatches(item, query) {
+    if (!query) return true;
+    const haystack = [item.title, item.topic, item.subject, item.classLabel, item.worksheetTypeLabel, item.activityType, ...(Array.isArray(item.indicators) ? item.indicators.flatMap(indicator => [indicator.code, indicator.text]) : [])].join(' ').toLowerCase();
+    return haystack.includes(query.toLowerCase());
+  }
+  function savedLibraryItemHtml(item) {
+    if (item.type === 'quiz') return savedQuizHtml(item);
+    if (item.type === 'worksheet') return savedWorksheetHtml(item);
+    return savedLessonPlanHtml(item);
+  }
+  function libraryTabLabel(type) {
+    return { all:'ทั้งหมด', quiz:'ข้อสอบ', worksheet:'ใบงาน', lesson_plan:'แผนรายคาบ' }[type] || 'ทั้งหมด';
+  }
   function homeHtml() {
-    const saved = library().filter(item => item.type === 'quiz').slice().reverse();
-    const savedPlans = library().filter(item => item.type === 'lesson_plan').slice().reverse();
-    const savedWorksheets = library().filter(item => item.type === 'worksheet').slice().reverse();
+    const allItems = library().filter(item => ['quiz', 'worksheet', 'lesson_plan'].includes(item.type)).slice().reverse();
+    const tab = ['all', 'quiz', 'worksheet', 'lesson_plan'].includes(state.libraryTab) ? state.libraryTab : 'all';
+    const query = String(state.libraryQuery || '').trim();
+    const visibleItems = allItems.filter(item => (tab === 'all' || item.type === tab) && libraryItemMatches(item, query));
+    const tabCounts = { all:allItems.length, quiz:allItems.filter(item => item.type === 'quiz').length, worksheet:allItems.filter(item => item.type === 'worksheet').length, lesson_plan:allItems.filter(item => item.type === 'lesson_plan').length };
+    const resultLabel = query ? `พบ ${visibleItems.length} รายการจากการค้นหา` : `${tabCounts[tab]} รายการ`;
     return `<section class="cl-hero card"><div class="cl-hero-copy"><span class="cl-kicker"><i class="hgi-stroke hgi-book-open-01"></i> พื้นที่สร้างสื่อของคุณครู</span><h2>คลังสื่อการสอน</h2><p>สร้างข้อสอบจากเนื้อหาและตัวชี้วัด แล้วเชื่อมไปใช้กับห้องเรียนจริงได้ทันที</p></div><span class="cl-hero-mark"><i class="hgi-stroke hgi-sparkles"></i></span></section>
       <section><div class="cl-section-head"><div><h3>เริ่มสร้างสื่อ</h3><p>เลือกเครื่องมือที่ต้องการใช้</p></div></div><div class="cl-create-grid">
         <button class="cl-create-card quiz" type="button" data-create-action="quiz"><span class="cl-create-icon"><i class="hgi-stroke hgi-task-02"></i></span><span class="cl-function-label">แบบประเมิน</span><h4>สร้างข้อสอบ</h4><p>ให้ AI ช่วยร่างข้อสอบ โดยกำหนดห้องเรียน เนื้อหา และตัวชี้วัดได้</p></button>
@@ -106,9 +141,7 @@
         <button class="cl-create-card lesson-plan" type="button" data-create-action="lesson-plan"><span class="cl-create-icon"><i class="hgi-stroke hgi-presentation-01"></i></span><span class="cl-function-label">การวางแผน</span><h4>สร้างแผนการสอน</h4><p>กำหนดกรอบการสอน แล้วให้ AI ช่วยเติมกิจกรรมและการประเมิน</p></button>
         <button class="cl-create-card lesson-plan coming" type="button" disabled aria-disabled="true"><span class="cl-coming">เร็ว ๆ นี้</span><span class="cl-create-icon"><i class="hgi-stroke hgi-book-open-01"></i></span><span class="cl-function-label">การวางแผนรายวิชา</span><h4>แผนการจัดการเรียนรู้รายวิชา</h4><p>รวมหน่วยการเรียนรู้และแผนรายคาบไว้เป็นชุดเดียวสำหรับส่งออกทั้งภาคเรียน</p></button>
       </div></section>
-      <section><div class="cl-section-head"><div><h3>ข้อสอบของฉัน</h3><p>${saved.length ? `บันทึกไว้ ${saved.length} ชุด` : 'ข้อสอบที่บันทึกไว้จะแสดงที่นี่'}</p></div></div>${saved.length ? `<div class="cl-saved-grid">${saved.map(savedQuizHtml).join('')}</div>` : `<div class="cl-empty-library"><i class="hgi-stroke hgi-folder-01"></i><strong>ยังไม่มีข้อสอบในคลัง</strong><div>เริ่มจากเลือก “สร้างข้อสอบ” แล้ว AI จะช่วยสร้างฉบับร่างให้คุณตรวจสอบ</div></div>`}</section>
-      <section><div class="cl-section-head"><div><h3>ใบงานของฉัน</h3><p>${savedWorksheets.length ? `บันทึกไว้ ${savedWorksheets.length} ใบงาน` : 'ใบงานที่บันทึกไว้จะแสดงที่นี่'}</p></div></div>${savedWorksheets.length ? `<div class="cl-saved-grid">${savedWorksheets.map(savedWorksheetHtml).join('')}</div>` : `<div class="cl-empty-library"><i class="hgi-stroke hgi-note-02"></i><strong>ยังไม่มีใบงานในคลัง</strong><div>เริ่มจากกำหนดหัวข้อและตัวชี้วัด แล้วให้ AI ช่วยจัดทำร่างใบงาน</div></div>`}</section>
-      <section><div class="cl-section-head"><div><h3>แผนการสอนของฉัน</h3><p>${savedPlans.length ? `บันทึกไว้ ${savedPlans.length} แผน` : 'แผนที่บันทึกไว้จะแสดงที่นี่'}</p></div></div>${savedPlans.length ? `<div class="cl-saved-grid">${savedPlans.map(savedLessonPlanHtml).join('')}</div>` : `<div class="cl-empty-library"><i class="hgi-stroke hgi-presentation-01"></i><strong>ยังไม่มีแผนการสอน</strong><div>เริ่มจากกำหนดหัวข้อและตัวชี้วัด แล้วให้ AI ช่วยจัดทำร่างแผน</div></div>`}</section>`;
+      <section class="cl-library-section"><div class="cl-section-head"><div><h3>คลังของฉัน</h3><p>${resultLabel} · ค้นหาและกรองงานทั้งหมดได้จากที่เดียว</p></div></div><div class="cl-library-toolbar"><label class="cl-library-search"><i class="hgi-stroke hgi-search-01"></i><input data-library-search type="search" value="${escapeHtml(query)}" placeholder="ค้นหาชื่อเรื่อง วิชา ห้องเรียน หรือตัวชี้วัด" aria-label="ค้นหาในคลังสื่อการสอน"></label><div class="cl-library-tabs" role="tablist" aria-label="ประเภทสื่อในคลัง">${['all', 'quiz', 'worksheet', 'lesson_plan'].map(type => `<button class="cl-library-tab ${tab === type ? 'active' : ''}" type="button" data-library-tab="${type}" role="tab" aria-selected="${tab === type}">${libraryTabLabel(type)} <span>${tabCounts[type]}</span></button>`).join('')}</div></div>${visibleItems.length ? `<div class="cl-saved-grid">${visibleItems.map(savedLibraryItemHtml).join('')}</div>` : `<div class="cl-empty-library"><i class="hgi-stroke hgi-${query ? 'search-01' : 'folder-01'}"></i><strong>${query ? 'ไม่พบรายการที่ค้นหา' : `ยังไม่มี${tab === 'all' ? 'สื่อ' : libraryTabLabel(tab)}`}</strong><div>${query ? 'ลองใช้คำค้นอื่น หรือเลือกประเภทสื่ออื่น' : 'เริ่มจากเลือกเครื่องมือด้านบน แล้วงานที่บันทึกไว้จะแสดงที่นี่'}</div></div>`}</section>`;
   }
   function savedLessonPlanHtml(item) { return `<article class="cl-saved-card lesson-plan"><button class="cl-saved-card-main" type="button" onclick="openSavedLessonPlan('${escapeHtml(item.id)}')" aria-label="เปิดแผนการสอน ${escapeHtml(item.title || '')}"><span class="cl-saved-type cl-plan-type"><i class="hgi-stroke hgi-presentation-01"></i> แผนการสอน</span><h4>${escapeHtml(item.title || 'แผนการสอนไม่มีชื่อ')}</h4><p>${escapeHtml(item.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')}</p><div class="cl-saved-meta"><span>${escapeHtml(item.duration || 'ไม่ระบุเวลา')}</span><span>${Array.isArray(item.indicators) ? item.indicators.length : 0} ตัวชี้วัด</span><span>ร่าง</span></div><span class="cl-saved-open">เปิดแผน <i class="hgi-stroke hgi-arrow-right-01"></i></span></button><button class="cl-saved-delete" type="button" onclick="deleteSavedLibraryItem(event, '${escapeHtml(item.id)}')" aria-label="ลบแผนการสอน" title="ลบแผนการสอน"><i class="hgi-stroke hgi-delete-02"></i></button></article>`; }
   function savedWorksheetHtml(item) { return `<article class="cl-saved-card worksheet"><button class="cl-saved-card-main" type="button" onclick="openSavedWorksheet('${escapeHtml(item.id)}')" aria-label="เปิดใบงาน ${escapeHtml(item.title || '')}"><span class="cl-saved-type cl-worksheet-type"><i class="hgi-stroke hgi-note-02"></i> ใบงาน</span><h4>${escapeHtml(item.title || 'ใบงานไม่มีชื่อ')}</h4><p>${escapeHtml(item.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')}</p><div class="cl-saved-meta"><span>${escapeHtml(item.worksheetTypeLabel || item.activityType || 'กิจกรรม')}</span><span>${Array.isArray(item.indicators) ? item.indicators.length : 0} ตัวชี้วัด</span><span>ร่าง</span></div><span class="cl-saved-open">เปิดใบงาน <i class="hgi-stroke hgi-arrow-right-01"></i></span></button><button class="cl-saved-delete" type="button" onclick="deleteSavedLibraryItem(event, '${escapeHtml(item.id)}')" aria-label="ลบใบงาน" title="ลบใบงาน"><i class="hgi-stroke hgi-delete-02"></i></button></article>`; }

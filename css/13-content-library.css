@@ -35,6 +35,19 @@
 .cl-create-card p { margin:0; color:var(--text-muted); font-size:.84rem; line-height:1.55; }
 .cl-coming { position:absolute; top:14px; right:14px; padding:3px 8px; border-radius:99px; color:var(--text-muted); background:#f1f5f9; font-size:.7rem; font-weight:800; }
 .cl-saved-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
+.cl-library-section { margin-bottom:24px; }
+.cl-library-toolbar { display:grid; grid-template-columns:minmax(280px,1fr) auto; align-items:center; gap:12px; padding:14px 0; margin-bottom:14px; border-top:1px solid var(--border-color); border-bottom:1px solid var(--border-color); }
+.cl-library-search { display:flex; align-items:center; gap:9px; min-width:0; padding:10px 13px; border:1px solid var(--border-color); border-radius:12px; color:var(--text-muted); background:var(--bg-card); }
+.cl-library-search:focus-within { border-color:var(--primary); box-shadow:0 0 0 3px rgba(29,158,117,.1); }
+.cl-library-search i { flex:0 0 auto; font-size:1.05rem; }
+.cl-library-search input { width:100%; min-width:0; padding:0; border:0; outline:0; color:var(--text-main); background:transparent; font:inherit; }
+.cl-library-search input::placeholder { color:var(--text-muted); }
+.cl-library-tabs { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
+.cl-library-tab { display:inline-flex; align-items:center; gap:6px; min-height:38px; padding:7px 11px; border:1px solid var(--border-color); border-radius:10px; color:var(--text-secondary); background:var(--bg-card); cursor:pointer; font:inherit; font-size:.82rem; font-weight:700; transition:var(--transition-normal); }
+.cl-library-tab span { min-width:20px; padding:2px 5px; border-radius:99px; color:var(--text-muted); background:var(--bg-light); font-size:.7rem; text-align:center; }
+.cl-library-tab:hover { border-color:var(--primary); color:var(--primary-deep); }
+.cl-library-tab.active { border-color:var(--primary); color:var(--primary-deep); background:var(--primary-light); }
+.cl-library-tab.active span { color:var(--primary-deep); background:var(--bg-card); }
 .cl-saved-card { position:relative; width:100%; padding:0; border:1px solid var(--border-color); border-radius:16px; color:inherit; background:var(--bg-card); box-shadow:var(--shadow-sm); transition:var(--transition-normal); }
 .cl-saved-card:hover { border-color:var(--library-quiz-border); transform:translateY(-2px); box-shadow:var(--shadow-md); }
 .cl-saved-card-main { display:block; width:100%; padding:18px; border:0; border-radius:16px; color:inherit; background:transparent; cursor:pointer; text-align:left; font:inherit; }
@@ -273,6 +286,9 @@
   .cl-create-icon { float:left; width:42px; height:42px; margin:0 13px 0 0; }
   .cl-create-card p { min-height:37px; }
   .cl-form-card { padding:18px; }
+  .cl-library-toolbar { grid-template-columns:1fr; }
+  .cl-library-tabs { justify-content:flex-start; overflow-x:auto; flex-wrap:nowrap; padding-bottom:2px; }
+  .cl-library-tab { flex:0 0 auto; }
   .cl-form-grid { grid-template-columns:1fr; }
   .cl-field.full { grid-column:auto; }
   .cl-stepper { gap:5px; }
