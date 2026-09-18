@@ -70,10 +70,22 @@
     const root = document.getElementById('content-library-root');
     if (!root) return;
     root.innerHTML = state.worksheetView === 'form' ? worksheetFormHtml() : state.worksheetView === 'review' ? worksheetReviewHtml() : state.worksheetView === 'detail' ? worksheetDetailHtml() : state.lessonView === 'form' ? lessonFormHtml() : state.lessonView === 'review' ? lessonReviewHtml() : state.lessonView === 'detail' ? lessonDetailHtml() : state.view === 'quiz' ? quizWizardHtml() : state.view === 'review' ? reviewHtml() : state.view === 'edit' ? editHtml() : state.view === 'detail' ? detailHtml() : homeHtml();
+    bindCreationCardActions(root);
     if (state.worksheetView === 'review' || state.worksheetView === 'detail') decorateWorksheetPreview(root);
     if (state.view === 'detail') renderDetailMetaControls(root);
   }
   window.renderContentLibrary = render;
+
+  function bindCreationCardActions(root) {
+    root.querySelectorAll('[data-create-action]').forEach(card => {
+      card.addEventListener('click', () => {
+        const action = card.dataset.createAction;
+        if (action === 'worksheet') window.openWorksheetCreator();
+        if (action === 'quiz') window.openQuizCreator();
+        if (action === 'lesson-plan') window.openLessonPlanCreator();
+      });
+    });
+  }
 
   function homeHtml() {
     const saved = library().filter(item => item.type === 'quiz').slice().reverse();
@@ -81,9 +93,9 @@
     const savedWorksheets = library().filter(item => item.type === 'worksheet').slice().reverse();
     return `<section class="cl-hero card"><div class="cl-hero-copy"><span class="cl-kicker"><i class="hgi-stroke hgi-book-open-01"></i> พื้นที่สร้างสื่อของคุณครู</span><h2>คลังสื่อการสอน</h2><p>สร้างข้อสอบจากเนื้อหาและตัวชี้วัด แล้วเชื่อมไปใช้กับห้องเรียนจริงได้ทันที</p></div><span class="cl-hero-mark"><i class="hgi-stroke hgi-sparkles"></i></span></section>
       <section><div class="cl-section-head"><div><h3>เริ่มสร้างสื่อ</h3><p>เลือกเครื่องมือที่ต้องการใช้</p></div></div><div class="cl-create-grid">
-        <button class="cl-create-card quiz" type="button" onclick="openQuizCreator()"><span class="cl-create-icon"><i class="hgi-stroke hgi-task-02"></i></span><span class="cl-function-label">แบบประเมิน</span><h4>สร้างข้อสอบ</h4><p>ให้ AI ช่วยร่างข้อสอบ โดยกำหนดห้องเรียน เนื้อหา และตัวชี้วัดได้</p></button>
-        <button class="cl-create-card worksheet" type="button" onclick="openWorksheetCreator()"><span class="cl-create-icon"><i class="hgi-stroke hgi-note-02"></i></span><span class="cl-function-label">กิจกรรม</span><h4>สร้างใบงาน</h4><p>จัดทำใบงานพร้อมคำชี้แจง ขั้นตอน และพื้นที่สำหรับนักเรียนทำงาน</p></button>
-        <button class="cl-create-card lesson-plan" type="button" onclick="openLessonPlanCreator()"><span class="cl-create-icon"><i class="hgi-stroke hgi-presentation-01"></i></span><span class="cl-function-label">การวางแผน</span><h4>สร้างแผนการสอน</h4><p>กำหนดกรอบการสอน แล้วให้ AI ช่วยเติมกิจกรรมและการประเมิน</p></button>
+        <button class="cl-create-card quiz" type="button" data-create-action="quiz"><span class="cl-create-icon"><i class="hgi-stroke hgi-task-02"></i></span><span class="cl-function-label">แบบประเมิน</span><h4>สร้างข้อสอบ</h4><p>ให้ AI ช่วยร่างข้อสอบ โดยกำหนดห้องเรียน เนื้อหา และตัวชี้วัดได้</p></button>
+        <button class="cl-create-card worksheet" type="button" data-create-action="worksheet"><span class="cl-create-icon"><i class="hgi-stroke hgi-note-02"></i></span><span class="cl-function-label">กิจกรรม</span><h4>สร้างใบงาน</h4><p>จัดทำใบงานพร้อมคำชี้แจง ขั้นตอน และพื้นที่สำหรับนักเรียนทำงาน</p></button>
+        <button class="cl-create-card lesson-plan" type="button" data-create-action="lesson-plan"><span class="cl-create-icon"><i class="hgi-stroke hgi-presentation-01"></i></span><span class="cl-function-label">การวางแผน</span><h4>สร้างแผนการสอน</h4><p>กำหนดกรอบการสอน แล้วให้ AI ช่วยเติมกิจกรรมและการประเมิน</p></button>
       </div></section>
       <section><div class="cl-section-head"><div><h3>ข้อสอบของฉัน</h3><p>${saved.length ? `บันทึกไว้ ${saved.length} ชุด` : 'ข้อสอบที่บันทึกไว้จะแสดงที่นี่'}</p></div></div>${saved.length ? `<div class="cl-saved-grid">${saved.map(savedQuizHtml).join('')}</div>` : `<div class="cl-empty-library"><i class="hgi-stroke hgi-folder-01"></i><strong>ยังไม่มีข้อสอบในคลัง</strong><div>เริ่มจากเลือก “สร้างข้อสอบ” แล้ว AI จะช่วยสร้างฉบับร่างให้คุณตรวจสอบ</div></div>`}</section>
       <section><div class="cl-section-head"><div><h3>ใบงานของฉัน</h3><p>${savedWorksheets.length ? `บันทึกไว้ ${savedWorksheets.length} ใบงาน` : 'ใบงานที่บันทึกไว้จะแสดงที่นี่'}</p></div></div>${savedWorksheets.length ? `<div class="cl-saved-grid">${savedWorksheets.map(savedWorksheetHtml).join('')}</div>` : `<div class="cl-empty-library"><i class="hgi-stroke hgi-note-02"></i><strong>ยังไม่มีใบงานในคลัง</strong><div>เริ่มจากกำหนดหัวข้อและตัวชี้วัด แล้วให้ AI ช่วยจัดทำร่างใบงาน</div></div>`}</section>
@@ -109,7 +121,8 @@
   function worksheetOptionsHtml(saved, prefill) {
     const storedField = { worksheetWorkMode:'workMode', worksheetItemCount:'itemCount', worksheetDifficulty:'difficulty', worksheetVisuals:'visuals', worksheetAnswerSpace:'answerSpace', worksheetAnswerKey:'answerKey' };
     const value = (field, fallback) => saved[storedField[field]] || prefill[storedField[field]] || state[field] || fallback;
-    const numberOption = (field, current, label) => `<label class="cl-field"><span>${label}</span><input id="worksheet-${field}" class="form-control" type="number" min="1" max="10" step="1" value="${escapeHtml(current)}" oninput="setWorksheetOption('${field}', this.value)"><small class="cl-field-hint">ระบุได้ 1–10 ข้อ</small></label>`;
+    const option = (field, current, items) => `<label class="cl-field"><span>${items.label}</span><select id="worksheet-${field}" class="form-control" onchange="setWorksheetOption('${field}', this.value)">${items.options.map(item => `<option value="${item.value}" ${item.value === current ? 'selected' : ''}>${item.label}</option>`).join('')}</select></label>`;
+    const numberOption = (field, current, label) => `<label class="cl-field"><span>${label}</span><select id="worksheet-${field}" class="form-control" onchange="setWorksheetOption('${field}', this.value)">${Array.from({length:10}, (_, index) => `<option value="${index + 1}" ${String(current) === String(index + 1) ? 'selected' : ''}>${index + 1} ข้อ</option>`).join('')}</select></label>`;
     return `<section class="cl-worksheet-options-card"><div class="cl-worksheet-options-head"><div><h3>3. กำหนดลักษณะใบงาน</h3><p>กำหนดจำนวนข้อที่นักเรียนต้องทำ ระบบจะจัดโจทย์ลงในใบงานให้</p></div><span class="cl-worksheet-guide-badge"><i class="hgi-stroke hgi-magic-wand-01"></i> จัดหน้าพร้อมพื้นที่ตอบ</span></div><div class="cl-form-grid">${option('work-mode', value('worksheetWorkMode', 'individual'), { label:'รูปแบบการทำงาน', options:[{value:'individual',label:'ทำรายบุคคล'},{value:'pair',label:'ทำงานเป็นคู่'},{value:'group',label:'ทำงานเป็นกลุ่ม'}] })}${numberOption('item-count', value('worksheetItemCount', '8'), 'จำนวนข้อ')}${option('difficulty', value('worksheetDifficulty', 'medium'), { label:'ระดับความยาก', options:[{value:'easy',label:'พื้นฐาน'},{value:'medium',label:'ปานกลาง'},{value:'hard',label:'ท้าทาย'}] })}${option('visuals', value('worksheetVisuals', 'none'), { label:'สื่อประกอบที่รองรับ', options:[{value:'none',label:'ข้อความและตาราง (ยังไม่รองรับภาพ)'}] })}${option('answer-space', value('worksheetAnswerSpace', 'medium'), { label:'พื้นที่คำตอบ', options:[{value:'short',label:'สั้น กระชับ'},{value:'medium',label:'พอดี'},{value:'long',label:'มีพื้นที่อธิบาย'}] })}${option('answer-key', value('worksheetAnswerKey', 'yes'), { label:'เฉลยสำหรับครู', options:[{value:'yes',label:'สร้างเฉลยด้วย'},{value:'no',label:'ไม่ต้องสร้างเฉลย'}] })}</div></section>`;
   }
   function worksheetFormHtml() {
