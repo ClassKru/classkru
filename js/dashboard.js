@@ -140,7 +140,6 @@ function renderWebDashboard() {
       setupCard.style.display = 'none';
     }
   }
-  if (typeof renderDevelopmentDashboardCard === 'function') renderDevelopmentDashboardCard();
 
   // ---- Date display ----
   const dayEl = document.getElementById('home-day-name');
