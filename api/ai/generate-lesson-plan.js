@@ -9,8 +9,7 @@ function clean(value, max = 1200) { return String(value || '').trim().slice(0, m
 function asList(value, maxItems = 12) { return (Array.isArray(value) ? value : []).map(item => clean(item, 800)).filter(Boolean).slice(0, maxItems); }
 function parsePlan(text) {
   const stripped = String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-  const parsed = JSON.parse(stripped);
-  return parsed?.plan || parsed;
+  return JSON.parse(stripped);
 }
 async function authenticatedUser(req) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
@@ -71,7 +70,7 @@ ${indicators.map(item => `- ${item}`).join('\n')}
     if (!response.ok) return sendJson(res, 502, { error: 'generation_failed', message: 'AI ยังสร้างแผนการสอนไม่ได้ กรุณาลองใหม่อีกครั้ง' });
     let raw;
     try { raw = parsePlan(payload?.choices?.[0]?.message?.content); } catch (_) { return sendJson(res, 502, { error: 'invalid_ai_response', message: 'AI ส่งรูปแบบแผนไม่ถูกต้อง กรุณาลองใหม่' }); }
-    const plan = normalizePlan(raw);
+    const plan = normalizePlan(raw?.plan || raw);
     if (!plan.title || !plan.objectives.length || !plan.activities.length) return sendJson(res, 502, { error: 'empty_ai_response', message: 'AI ยังสร้างแผนที่มีข้อมูลไม่ครบ กรุณาลองใหม่' });
     return sendJson(res, 200, { plan, warnings: asList(raw?.warnings, 8) });
   } catch (error) {
