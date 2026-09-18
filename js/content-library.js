@@ -16,6 +16,8 @@
     lessonDraft: null,
     lessonDraftOrigin: 'new',
     lessonEditing: false,
+    lessonQuizLinkOpen: false,
+    quizPrefill: null,
     draft: null,
     detailEditing: false,
     editBaseline: ''
@@ -51,7 +53,7 @@
     initContext();
     const root = document.getElementById('content-library-root');
     if (!root) return;
-    root.innerHTML = state.lessonView === 'form' ? lessonFormHtml() : state.lessonView === 'review' ? lessonReviewHtml() : state.view === 'quiz' ? quizWizardHtml() : state.view === 'review' ? reviewHtml() : state.view === 'edit' ? editHtml() : state.view === 'detail' ? detailHtml() : homeHtml();
+    root.innerHTML = state.lessonView === 'form' ? lessonFormHtml() : state.lessonView === 'review' ? lessonReviewHtml() : state.lessonView === 'detail' ? lessonDetailHtml() : state.view === 'quiz' ? quizWizardHtml() : state.view === 'review' ? reviewHtml() : state.view === 'edit' ? editHtml() : state.view === 'detail' ? detailHtml() : homeHtml();
     if (state.view === 'detail') renderDetailMetaControls(root);
   }
   window.renderContentLibrary = render;
@@ -73,8 +75,8 @@
     return `<button class="cl-saved-card quiz" type="button" onclick="openQuizDetail('${escapeHtml(item.id)}')" aria-label="เปิดข้อสอบ ${escapeHtml(item.title || '')}"><span class="cl-saved-type"><i class="hgi-stroke hgi-task-02"></i> ข้อสอบ</span><h4>${escapeHtml(item.title || 'ข้อสอบไม่มีชื่อ')}</h4><p>${escapeHtml(item.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')}</p><div class="cl-saved-meta"><span>${Number(item.questions?.length || 0)} ข้อ</span><span>${item.mode === 'practice' ? 'โหมดฝึกฝน' : 'แบบทดสอบ'}</span><span>ร่าง</span></div><span class="cl-saved-open">เปิดข้อสอบ <i class="hgi-stroke hgi-arrow-right-01"></i></span></button>`;
   }
 
-  window.openLessonPlanCreator = function () { state.lessonView = 'form'; state.lessonDraft = null; state.lessonDraftOrigin = 'new'; state.lessonEditing = false; state.lessonIndicatorCodes = []; render(); };
-  window.closeLessonPlanCreator = function () { state.lessonView = 'home'; state.lessonDraft = null; state.lessonDraftOrigin = 'new'; state.lessonEditing = false; render(); };
+  window.openLessonPlanCreator = function () { state.lessonView = 'form'; state.lessonDraft = null; state.lessonDraftOrigin = 'new'; state.lessonEditing = false; state.lessonQuizLinkOpen = false; state.lessonIndicatorCodes = []; render(); };
+  window.closeLessonPlanCreator = function () { state.lessonView = 'home'; state.lessonDraft = null; state.lessonDraftOrigin = 'new'; state.lessonEditing = false; state.lessonQuizLinkOpen = false; render(); };
   window.setLessonClass = function (value) { state.selectedClassId = value; const room = selectedClass(); state.subjectId = subjectIdFromName(room?.subject); state.grade = String(room?.gradeLevel || ''); state.lessonIndicatorCodes = []; render(); };
   window.setLessonSubject = function (value) { state.subjectId = value; state.lessonIndicatorCodes = []; render(); };
   window.setLessonGrade = function (value) { state.grade = value; state.lessonIndicatorCodes = []; render(); };
@@ -118,10 +120,26 @@
   window.toggleLessonPlanEditing = function () { state.lessonEditing = !state.lessonEditing; render(); };
   window.leaveLessonPlanReview = function () { if (state.lessonDraftOrigin === 'new' && !window.confirm('แผนนี้ยังไม่ได้บันทึกเข้าคลัง ต้องการกลับคลังและทิ้งร่างนี้หรือไม่?')) return; closeLessonPlanCreator(); };
   window.backToLessonSettings = function () { state.lessonIndicatorCodes = Array.isArray(state.lessonDraft?.indicators) ? state.lessonDraft.indicators.map(item => item.code) : []; state.lessonView = 'form'; render(); };
-  window.saveLessonPlanDraft = function () { if (!state.lessonDraft?.plan) { showToast('ยังไม่มีร่างแผนการสอน', 'warning'); return; } appState.mediaLibrary = library().filter(item => item.id !== state.lessonDraft.id); appState.mediaLibrary.push({ ...state.lessonDraft, status:'draft', type:'lesson_plan' }); saveState(); state.lessonDraftOrigin = 'saved'; state.lessonView = 'home'; state.lessonDraft = null; state.lessonEditing = false; render(); showToast('บันทึกแผนการสอนเข้าคลังแล้ว'); };
-  window.openSavedLessonPlan = function (id) { const plan = library().find(item => item.id === id && item.type === 'lesson_plan'); if (!plan) { showToast('ไม่พบแผนการสอนนี้', 'warning'); return; } state.lessonDraft = plan; state.lessonDraftOrigin = 'saved'; state.lessonEditing = false; state.lessonView = 'review'; render(); };
-  window.openQuizCreator = function () { state.lessonView = 'home'; state.view = 'quiz'; state.draft = null; render(); };
-  window.closeQuizCreator = function () { state.view = 'home'; render(); };
+  window.saveLessonPlanDraft = function () { if (!state.lessonDraft?.plan) { showToast('ยังไม่มีร่างแผนการสอน', 'warning'); return; } const savedPlan = { ...state.lessonDraft, status:'ready', type:'lesson_plan', linkedQuizIds:Array.isArray(state.lessonDraft.linkedQuizIds) ? state.lessonDraft.linkedQuizIds : [], runs:Array.isArray(state.lessonDraft.runs) ? state.lessonDraft.runs : [] }; appState.mediaLibrary = library().filter(item => item.id !== savedPlan.id); appState.mediaLibrary.push(savedPlan); saveState(); state.lessonDraft = typeof structuredClone === 'function' ? structuredClone(savedPlan) : JSON.parse(JSON.stringify(savedPlan)); state.lessonDraftOrigin = 'saved'; state.lessonView = 'detail'; state.lessonEditing = false; render(); showToast('บันทึกแผนแล้ว พร้อมนำไปใช้กับห้องเรียน'); };
+  window.openSavedLessonPlan = function (id) { const plan = library().find(item => item.id === id && item.type === 'lesson_plan'); if (!plan) { showToast('ไม่พบแผนการสอนนี้', 'warning'); return; } state.lessonDraft = typeof structuredClone === 'function' ? structuredClone(plan) : JSON.parse(JSON.stringify(plan)); state.lessonDraftOrigin = 'saved'; state.lessonEditing = false; state.lessonView = 'detail'; render(); };
+  function clone(value) { return typeof structuredClone === 'function' ? structuredClone(value) : JSON.parse(JSON.stringify(value)); }
+  function saveLessonPlan(plan) { appState.mediaLibrary = library().map(item => item.id === plan.id ? plan : item); saveState(); state.lessonDraft = clone(plan); }
+  function linkedLessonQuizzes(plan) { const ids = Array.isArray(plan.linkedQuizIds) ? plan.linkedQuizIds : []; return library().filter(item => item.type === 'quiz' && ids.includes(item.id)); }
+  function lessonDetailHtml() {
+    const d = state.lessonDraft;
+    if (!d?.plan) { state.lessonView = 'home'; return homeHtml(); }
+    const p = d.plan; const quizzes = linkedLessonQuizzes(d);
+    const quizList = quizzes.length ? quizzes.map(quiz => `<button class="cl-plan-linked-item" type="button" onclick="openQuizDetail('${escapeHtml(quiz.id)}')"><span class="cl-saved-type"><i class="hgi-stroke hgi-task-02"></i> ข้อสอบ</span><strong>${escapeHtml(quiz.title || 'ข้อสอบไม่มีชื่อ')}</strong><small>${Number(quiz.questions?.length || 0)} ข้อ · เปิดรายละเอียด</small><i class="hgi-stroke hgi-arrow-right-01"></i></button>`).join('') : '<div class="cl-plan-empty-link"><i class="hgi-stroke hgi-task-02"></i><span>ยังไม่ได้เชื่อมแบบทดสอบกับแผนนี้</span></div>';
+    return `<div class="cl-wizard cl-lesson-detail"><div class="cl-wizard-top"><button class="btn" type="button" onclick="closeLessonPlanCreator()"><i class="hgi-stroke hgi-arrow-left-01"></i> <span>กลับคลัง</span></button><div class="cl-wizard-title"><span class="cl-create-icon lesson-plan"><i class="hgi-stroke hgi-presentation-01"></i></span><div><h2>รายละเอียดแผนการสอน</h2><p>จัดการแผนและสื่อที่เกี่ยวข้องได้จากหน้านี้</p></div></div></div><section class="card cl-plan-detail-head"><div><span class="cl-saved-type cl-plan-type"><i class="hgi-stroke hgi-presentation-01"></i> แผนการสอน</span><h2>${escapeHtml(p.title || d.topic || 'แผนการสอนไม่มีชื่อ')}</h2><p>${escapeHtml(d.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')} · ${escapeHtml(d.duration || 'ไม่ระบุเวลา')} · ${escapeHtml(d.method || 'ไม่ระบุรูปแบบ')}</p><div class="cl-detail-indicators">${(d.indicators || []).map(item => `<span>${escapeHtml(item.code)}</span>`).join('')}</div></div><div class="cl-detail-actions"><button class="btn cl-export-btn word" type="button" data-export-plan="word" onclick="exportLessonPlanDocx()"><i class="hgi-stroke hgi-file-download"></i> ส่งออก Word</button><button class="btn" type="button" onclick="editSavedLessonPlan()"><i class="hgi-stroke hgi-edit-02"></i> แก้ไขแผน</button></div></section><section class="card cl-plan-detail-section cl-plan-assets-section"><div class="cl-plan-section-head"><div><h3>สื่อและการประเมินที่เชื่อมกับแผน</h3><p>เลือกสื่อจากคลังเดิม หรือสร้างสื่อใหม่โดยใช้หัวข้อและตัวชี้วัดของแผนนี้</p></div><div class="cl-plan-section-actions"><button class="btn" type="button" onclick="openLessonQuizLinks()"><i class="hgi-stroke hgi-link-01"></i> เลือกข้อสอบจากคลัง</button><button class="btn btn-primary" type="button" onclick="createQuizFromLessonPlan()"><i class="hgi-stroke hgi-ai-magic"></i> สร้างข้อสอบใหม่จากแผน</button></div></div><div class="cl-plan-linked-list">${quizList}</div><div class="cl-plan-soon"><i class="hgi-stroke hgi-note-02"></i><span>ใบงานจะเชื่อมกับแผนได้ในลักษณะเดียวกัน เมื่อเครื่องมือสร้างใบงานพร้อมใช้งาน</span></div></section><section class="card cl-plan-preview cl-plan-detail-preview"><header><h3>เนื้อหาแผน</h3><p>รายละเอียดสำหรับตรวจทานหรือส่งออกเป็นเอกสาร Word</p></header><div class="cl-plan-grid"><article><h3>สาระสำคัญ</h3>${listHtml(p.keyConcepts)}</article><article><h3>จุดประสงค์การเรียนรู้</h3>${listHtml(p.objectives)}</article><article><h3>ขั้นตอนกิจกรรม</h3>${listHtml(p.activities)}</article><article><h3>สื่อและแหล่งเรียนรู้</h3>${listHtml(p.resources)}</article><article><h3>การวัดและประเมินผล</h3>${listHtml(p.assessment)}</article><article><h3>หลักฐานที่ควรเก็บ</h3>${listHtml(p.evidence)}</article></div></section>${lessonQuizLinkModal(d)}</div>`;
+  }
+  function lessonQuizLinkModal(plan) { if (!state.lessonQuizLinkOpen) return ''; const quizzes = library().filter(item => item.type === 'quiz'); const selected = Array.isArray(plan.linkedQuizIds) ? plan.linkedQuizIds : []; return `<div class="cl-detail-edit-modal" role="dialog" aria-modal="true" aria-labelledby="lesson-quiz-link-title"><div class="cl-detail-edit-dialog"><div class="cl-detail-edit-dialog-head"><div><span class="cl-saved-type cl-plan-type"><i class="hgi-stroke hgi-link-01"></i> สื่อที่เชื่อม</span><h3 id="lesson-quiz-link-title">เชื่อมแบบทดสอบกับแผน</h3></div><button class="cl-modal-close" type="button" onclick="closeLessonQuizLinks()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div class="cl-detail-edit-form"><p class="cl-modal-note">เลือกข้อสอบที่ใช้ประกอบแผนนี้ได้หลายชุด ข้อสอบต้นฉบับยังอยู่ในคลังตามเดิม</p><div class="cl-link-picker">${quizzes.length ? quizzes.map(quiz => `<label><input type="checkbox" name="lesson-linked-quiz" value="${escapeHtml(quiz.id)}" ${selected.includes(quiz.id) ? 'checked' : ''}><span><strong>${escapeHtml(quiz.title || 'ข้อสอบไม่มีชื่อ')}</strong><small>${escapeHtml(quiz.classLabel || 'ยังไม่ระบุห้อง')} · ${Number(quiz.questions?.length || 0)} ข้อ</small></span></label>`).join('') : '<div class="cl-empty-library">ยังไม่มีข้อสอบในคลัง สร้างข้อสอบจากแผนนี้ได้เลย</div>'}</div></div><div class="cl-detail-edit-dialog-actions"><button class="btn" type="button" onclick="closeLessonQuizLinks()">ยกเลิก</button><button class="btn btn-primary" type="button" onclick="saveLessonPlanQuizLinks()"><i class="hgi-stroke hgi-floppy-disk"></i> บันทึกการเชื่อม</button></div></div></div>`; }
+  window.editSavedLessonPlan = function () { state.lessonEditing = true; state.lessonView = 'review'; render(); };
+  window.openLessonQuizLinks = function () { state.lessonQuizLinkOpen = true; render(); };
+  window.closeLessonQuizLinks = function () { state.lessonQuizLinkOpen = false; render(); };
+  window.saveLessonPlanQuizLinks = function () { const plan = state.lessonDraft; if (!plan) return; const linkedQuizIds = [...document.querySelectorAll('input[name="lesson-linked-quiz"]:checked')].map(input => input.value); saveLessonPlan({ ...plan, linkedQuizIds }); state.lessonQuizLinkOpen = false; render(); showToast('บันทึกการเชื่อมข้อสอบแล้ว'); };
+  window.createQuizFromLessonPlan = function () { const plan = state.lessonDraft; if (!plan) return; state.selectedClassId = plan.classId || state.selectedClassId; state.subjectId = subjectIdFromName(plan.subject || selectedClass()?.subject); state.grade = String(selectedClass()?.gradeLevel || state.grade); state.standardId = 'all'; state.indicatorCodes = (plan.indicators || []).map(item => item.code); state.quizPrefill = { source:plan.topic || plan.title || '', title:`แบบทดสอบหลังเรียน เรื่อง ${plan.topic || plan.title || ''}`.trim(), instructions:`อ้างอิงแผนการสอน “${plan.title || plan.topic || ''}” และตัวชี้วัดที่เลือก`, lessonPlanId:plan.id }; state.lessonView = 'home'; state.view = 'quiz'; render(); };
+  window.openQuizCreator = function () { state.lessonView = 'home'; state.view = 'quiz'; state.draft = null; state.quizPrefill = null; render(); };
+  window.closeQuizCreator = function () { const returnPlanId = state.quizPrefill?.lessonPlanId; const returnPlan = returnPlanId ? library().find(item => item.id === returnPlanId && item.type === 'lesson_plan') : null; state.view = 'home'; state.draft = null; state.quizPrefill = null; if (returnPlan) { state.lessonDraft = clone(returnPlan); state.lessonDraftOrigin = 'saved'; state.lessonView = 'detail'; } render(); };
   window.openQuizDetail = function (id) {
     const quiz = library().find(item => item.id === id && item.type === 'quiz');
     if (!quiz) { showToast('ไม่พบข้อสอบชุดนี้', 'warning'); return; }
@@ -145,6 +163,7 @@
 
   function quizWizardHtml() {
     const room = selectedClass();
+    const prefill = state.quizPrefill || {};
     const cat = catalog();
     const subjectOptions = (cat?.subjects || []).filter(s => s.available).map(s => `<option value="${escapeHtml(s.id)}" ${s.id === state.subjectId ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
     const grades = state.subjectId && cat ? cat.getGrades(state.subjectId) : [];
@@ -152,8 +171,8 @@
     const indicatorRows = state.subjectId && cat ? cat.search({ subjectId:state.subjectId, grade:state.grade.toUpperCase(), standardId:state.standardId }) : [];
     const type = state.sourceType;
     const sourceField = type === 'topic'
-      ? `<label class="cl-field full"><span>หัวข้อที่ต้องการออกข้อสอบ</span><input id="quiz-source" class="form-control" maxlength="500" placeholder="เช่น สมการเชิงเส้นสองตัวแปร"></label>`
-      : `<label class="cl-field full"><span>เนื้อหาบทเรียน</span><textarea id="quiz-source" class="form-control" maxlength="12000" placeholder="วางเนื้อหาที่สอน หรือสรุปบทเรียนที่ต้องการให้ AI ใช้อ้างอิง..."></textarea><small>AI จะสร้างข้อสอบจากข้อมูลที่ครูให้เท่านั้น และครูต้องตรวจทานก่อนใช้งาน</small></label>`;
+      ? `<label class="cl-field full"><span>หัวข้อที่ต้องการออกข้อสอบ</span><input id="quiz-source" class="form-control" maxlength="500" value="${escapeHtml(prefill.source || '')}" placeholder="เช่น สมการเชิงเส้นสองตัวแปร"></label>`
+      : `<label class="cl-field full"><span>เนื้อหาบทเรียน</span><textarea id="quiz-source" class="form-control" maxlength="12000" placeholder="วางเนื้อหาที่สอน หรือสรุปบทเรียนที่ต้องการให้ AI ใช้อ้างอิง...">${escapeHtml(prefill.source || '')}</textarea><small>AI จะสร้างข้อสอบจากข้อมูลที่ครูให้เท่านั้น และครูต้องตรวจทานก่อนใช้งาน</small></label>`;
     return `<div class="cl-wizard"><div class="cl-wizard-top"><div class="cl-wizard-title"><span class="cl-create-icon"><i class="hgi-stroke hgi-task-02"></i></span><div><h2>สร้างข้อสอบ</h2><p>เริ่มจากเลือกห้องเรียนและขอบเขตเนื้อหา</p></div></div><button class="btn" type="button" onclick="closeQuizCreator()"><i class="hgi-stroke hgi-arrow-left-01"></i> <span>กลับคลัง</span></button></div>
       <div class="cl-stepper" aria-label="ขั้นตอนการสร้างข้อสอบ"><span class="cl-step active"><b>1</b> ตั้งค่าข้อสอบ</span><span class="cl-step"><b>2</b> ตรวจร่าง</span><span class="cl-step"><b>3</b> บันทึก/มอบหมาย</span></div>
       <section class="card cl-form-card"><h3>1. เลือกบริบทของข้อสอบ</h3><p class="cl-form-note">ข้อมูลห้องเรียนจะช่วยเติมวิชาและระดับชั้นให้โดยอัตโนมัติ</p><div class="cl-form-grid">
@@ -165,7 +184,7 @@
         <div class="cl-field full"><span>ตัวชี้วัด/ผลการเรียนรู้ <small style="font-weight:600;color:var(--text-muted)">(เลือกได้หลายข้อ ไม่เลือกได้)</small></span><div class="cl-indicator-table" role="group" aria-label="เลือกรายการตัวชี้วัด"><div class="cl-indicator-table-head"><span></span><span>รหัส</span><span>รายละเอียดตัวชี้วัด</span></div>${indicatorRows.slice(0,18).map(i => `<label class="cl-indicator-row"><input type="checkbox" value="${escapeHtml(i.code)}" ${state.indicatorCodes.includes(i.code) ? 'checked' : ''} onchange="toggleQuizIndicator(this.value,this.checked)"><strong>${escapeHtml(i.code)}</strong><span>${escapeHtml(i.text)}</span></label>`).join('') || '<div class="cl-indicator-empty">ไม่พบตัวชี้วัดที่ตรงกับข้อมูลที่เลือก — คุณยังสร้างจากเนื้อหาได้</div>'}</div></div></div>
         <hr style="border:0;border-top:1px solid var(--border-color);margin:22px 0;">
         <h3>2. กำหนดข้อสอบ</h3><p class="cl-form-note">AI จะสร้างเป็นฉบับร่างเพื่อให้ครูตรวจแก้ก่อนบันทึก</p><div class="cl-source-tabs"><button class="cl-source-tab ${type === 'topic' ? 'active' : ''}" type="button" onclick="setQuizSource('topic')"><i class="hgi-stroke hgi-bulb"></i> จากหัวข้อ</button><button class="cl-source-tab ${type === 'text' ? 'active' : ''}" type="button" onclick="setQuizSource('text')"><i class="hgi-stroke hgi-text"></i> วางเนื้อหา</button></div>
-        <div class="cl-form-grid">${sourceField}<label class="cl-field"><span>ชื่อข้อสอบ</span><input id="quiz-title" class="form-control" maxlength="160" placeholder="เช่น แบบทดสอบก่อนเรียน เรื่องสมการ"></label><label class="cl-field"><span>จำนวนข้อ</span><select id="quiz-count" class="form-control"><option value="5">5 ข้อ</option><option value="10" selected>10 ข้อ</option><option value="15">15 ข้อ</option></select></label><label class="cl-field"><span>ระดับความยาก</span><select id="quiz-difficulty" class="form-control"><option value="ง่าย">ง่าย</option><option value="ปานกลาง" selected>ปานกลาง</option><option value="ยาก">ยาก</option></select></label><div class="cl-field full"><span>ประเภทคำถาม</span><div class="cl-choices"><label class="cl-choice"><input type="checkbox" name="quiz-type" value="multiple_choice" checked> ปรนัย 4 ตัวเลือก</label><label class="cl-choice"><input type="checkbox" name="quiz-type" value="true_false"> ถูก / ผิด</label><label class="cl-choice"><input type="checkbox" name="quiz-type" value="short_answer"> คำตอบสั้น</label></div></div><label class="cl-field full"><span>คำสั่งเพิ่มเติม <small style="font-weight:600;color:var(--text-muted)">(ถ้ามี)</small></span><textarea id="quiz-instructions" class="form-control" maxlength="1200" placeholder="เช่น เน้นการคิดวิเคราะห์ ไม่ใช้โจทย์คำนวณยาว และมีคำอธิบายเฉลยทุกข้อ"></textarea></label></div>
+        <div class="cl-form-grid">${sourceField}<label class="cl-field"><span>ชื่อข้อสอบ</span><input id="quiz-title" class="form-control" maxlength="160" value="${escapeHtml(prefill.title || '')}" placeholder="เช่น แบบทดสอบก่อนเรียน เรื่องสมการ"></label><label class="cl-field"><span>จำนวนข้อ</span><select id="quiz-count" class="form-control"><option value="5">5 ข้อ</option><option value="10" selected>10 ข้อ</option><option value="15">15 ข้อ</option></select></label><label class="cl-field"><span>ระดับความยาก</span><select id="quiz-difficulty" class="form-control"><option value="ง่าย">ง่าย</option><option value="ปานกลาง" selected>ปานกลาง</option><option value="ยาก">ยาก</option></select></label><div class="cl-field full"><span>ประเภทคำถาม</span><div class="cl-choices"><label class="cl-choice"><input type="checkbox" name="quiz-type" value="multiple_choice" checked> ปรนัย 4 ตัวเลือก</label><label class="cl-choice"><input type="checkbox" name="quiz-type" value="true_false"> ถูก / ผิด</label><label class="cl-choice"><input type="checkbox" name="quiz-type" value="short_answer"> คำตอบสั้น</label></div></div><label class="cl-field full"><span>คำสั่งเพิ่มเติม <small style="font-weight:600;color:var(--text-muted)">(ถ้ามี)</small></span><textarea id="quiz-instructions" class="form-control" maxlength="1200" placeholder="เช่น เน้นการคิดวิเคราะห์ ไม่ใช้โจทย์คำนวณยาว และมีคำอธิบายเฉลยทุกข้อ">${escapeHtml(prefill.instructions || '')}</textarea></label></div>
         <div class="cl-actions"><button class="btn" type="button" onclick="closeQuizCreator()">ยกเลิก</button><button class="btn btn-primary" type="button" onclick="generateQuizDraft()"><i class="hgi-stroke hgi-ai-magic"></i> สร้างร่างข้อสอบ</button></div>
       </section></div>`;
   }
@@ -200,7 +219,7 @@
       const response = await fetch('/api/ai/generate-quiz', { method:'POST', headers:{ 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) }, body:JSON.stringify(payload) });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.message || result.error || 'ไม่สามารถสร้างข้อสอบได้');
-      state.draft = { ...payload, id:uid(), createdAt:new Date().toISOString(), questions:Array.isArray(result.questions) ? result.questions : [], qualityWarnings:Array.isArray(result.warnings) ? result.warnings : [] };
+      state.draft = { ...payload, id:uid(), createdAt:new Date().toISOString(), lessonPlanId:state.quizPrefill?.lessonPlanId || '', questions:Array.isArray(result.questions) ? result.questions : [], qualityWarnings:Array.isArray(result.warnings) ? result.warnings : [] };
       if (!state.draft.questions.length) throw new Error('AI ไม่ได้ส่งคำถามกลับมา กรุณาลองใหม่');
       state.view = 'review'; render();
     } catch (error) {
@@ -249,9 +268,19 @@
     if (!state.draft?.questions?.length) { showToast('ข้อสอบต้องมีอย่างน้อย 1 ข้อ', 'warning'); return; }
     appState.mediaLibrary = library().filter(item => item.id !== state.draft.id);
     appState.mediaLibrary.push({ ...state.draft, status:'draft', type:'quiz' });
+    const lessonPlanId = state.draft.lessonPlanId;
+    let linkedPlan = null;
+    if (lessonPlanId) {
+      appState.mediaLibrary = appState.mediaLibrary.map(item => {
+        if (item.id !== lessonPlanId || item.type !== 'lesson_plan') return item;
+        linkedPlan = { ...item, linkedQuizIds:[...new Set([...(Array.isArray(item.linkedQuizIds) ? item.linkedQuizIds : []), state.draft.id])] };
+        return linkedPlan;
+      });
+    }
     saveState();
-    state.view = 'home'; state.draft = null; render();
-    showToast('บันทึกข้อสอบเข้าคลังแล้ว');
+    state.view = 'home'; state.draft = null; state.quizPrefill = null;
+    if (linkedPlan) { state.lessonDraft = clone(linkedPlan); state.lessonDraftOrigin = 'saved'; state.lessonView = 'detail'; render(); showToast('บันทึกข้อสอบและเชื่อมกับแผนแล้ว'); return; }
+    render(); showToast('บันทึกข้อสอบเข้าคลังแล้ว');
   };
 
   function detailQuestionHtml(question, index) {
@@ -347,6 +376,23 @@
       const safeName = String(quiz.title || 'ข้อสอบ').replace(/[\\/:*?"<>|]/g, '_').slice(0, 80);
       const anchor = document.createElement('a'); anchor.href = URL.createObjectURL(blob); anchor.download = `${safeName}.docx`; document.body.appendChild(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(anchor.href), 1000);
       showToast('ดาวน์โหลดไฟล์ Word แล้ว');
+    } catch (error) { showToast(`ส่งออก Word ไม่สำเร็จ: ${error.message || 'กรุณาลองใหม่'}`, 'warning', 7000); }
+    finally { if (button) { button.disabled = false; button.innerHTML = oldHtml; } }
+  };
+  window.exportLessonPlanDocx = async function () {
+    const plan = state.lessonDraft;
+    if (!plan?.plan) { showToast('ไม่พบข้อมูลแผนการสอนสำหรับส่งออก', 'warning'); return; }
+    const button = document.querySelector('[data-export-plan="word"]');
+    const oldHtml = button?.innerHTML;
+    if (button) { button.disabled = true; button.innerHTML = '<i class="hgi-stroke hgi-loading-03"></i> กำลังสร้าง Word...'; }
+    try {
+      const session = await supabaseClient?.auth?.getSession();
+      const token = session?.data?.session?.access_token;
+      const response = await fetch('/api/exports/lesson-plan-docx', { method:'POST', headers:{ 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) }, body:JSON.stringify({ lessonPlan:plan }) });
+      if (!response.ok) { const error = await response.json().catch(() => ({})); throw new Error(error.message || 'ไม่สามารถสร้างไฟล์ Word ได้'); }
+      const blob = await response.blob(); const safeName = String(plan.plan.title || plan.topic || 'แผนการสอน').replace(/[\\/:*?"<>|]/g, '_').slice(0, 80);
+      const anchor = document.createElement('a'); anchor.href = URL.createObjectURL(blob); anchor.download = `${safeName}.docx`; document.body.appendChild(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(anchor.href), 1000);
+      showToast('ดาวน์โหลดไฟล์ Word แล้ว แก้ไขต่อใน Microsoft Word ได้ทันที');
     } catch (error) { showToast(`ส่งออก Word ไม่สำเร็จ: ${error.message || 'กรุณาลองใหม่'}`, 'warning', 7000); }
     finally { if (button) { button.disabled = false; button.innerHTML = oldHtml; } }
   };
