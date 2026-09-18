@@ -19,6 +19,7 @@
     lessonQuizLinkOpen: false,
     lessonWorksheetLinkOpen: false,
     quizPrefill: null,
+    quizReturnPlanId: '',
     worksheetView: 'home',
     worksheetDraft: null,
     worksheetDraftOrigin: 'new',
@@ -202,11 +203,14 @@
   window.saveLessonPlanWorksheetLinks = function () { const plan = state.lessonDraft; if (!plan) return; const linkedWorksheetIds = [...document.querySelectorAll('input[name="lesson-linked-worksheet"]:checked')].map(input => input.value); saveLessonPlan({ ...plan, linkedWorksheetIds }); state.lessonWorksheetLinkOpen = false; render(); showToast('บันทึกการเชื่อมใบงานแล้ว'); };
   window.createQuizFromLessonPlan = function () { const plan = state.lessonDraft; if (!plan) return; state.selectedClassId = plan.classId || state.selectedClassId; state.subjectId = subjectIdFromName(plan.subject || selectedClass()?.subject); state.grade = String(selectedClass()?.gradeLevel || state.grade); state.standardId = 'all'; state.indicatorCodes = (plan.indicators || []).map(item => item.code); state.quizPrefill = { source:plan.topic || plan.title || '', title:`แบบทดสอบหลังเรียน เรื่อง ${plan.topic || plan.title || ''}`.trim(), instructions:`อ้างอิงแผนการสอน “${plan.title || plan.topic || ''}” และตัวชี้วัดที่เลือก`, lessonPlanId:plan.id }; state.lessonView = 'home'; state.view = 'quiz'; render(); };
   window.createWorksheetFromLessonPlan = function () { const plan = state.lessonDraft; if (!plan) return; state.selectedClassId = plan.classId || state.selectedClassId; state.subjectId = subjectIdFromName(plan.subject || selectedClass()?.subject); state.grade = String(selectedClass()?.gradeLevel || state.grade); state.worksheetIndicatorCodes = (plan.indicators || []).map(item => item.code); state.worksheetPrefill = { title:`ใบงานเรื่อง ${plan.topic || plan.title || ''}`.trim(), topic:plan.topic || plan.title || '', classId:plan.classId, indicators:plan.indicators || [], activityType:'สืบค้นและรวบรวมข้อมูล', lessonPlanId:plan.id, resources:Array.isArray(plan.plan?.resources) ? plan.plan.resources.join('\n') : '', focus:Array.isArray(plan.plan?.assessment) ? plan.plan.assessment.join('\n') : '' }; state.lessonView = 'home'; state.worksheetView = 'form'; render(); };
-  window.openQuizCreator = function () { state.worksheetView = 'home'; state.lessonView = 'home'; state.view = 'quiz'; state.draft = null; state.quizPrefill = null; render(); };
-  window.closeQuizCreator = function () { const returnPlanId = state.quizPrefill?.lessonPlanId; const returnPlan = returnPlanId ? library().find(item => item.id === returnPlanId && item.type === 'lesson_plan') : null; state.view = 'home'; state.draft = null; state.quizPrefill = null; if (returnPlan) { state.lessonDraft = clone(returnPlan); state.lessonDraftOrigin = 'saved'; state.lessonView = 'detail'; } render(); };
+  window.openQuizCreator = function () { state.worksheetView = 'home'; state.lessonView = 'home'; state.view = 'quiz'; state.draft = null; state.quizPrefill = null; state.quizReturnPlanId = ''; render(); };
+  window.closeQuizCreator = function () { const returnPlanId = state.quizPrefill?.lessonPlanId || state.quizReturnPlanId; const returnPlan = returnPlanId ? library().find(item => item.id === returnPlanId && item.type === 'lesson_plan') : null; state.view = 'home'; state.draft = null; state.quizPrefill = null; state.quizReturnPlanId = ''; if (returnPlan) { state.lessonDraft = clone(returnPlan); state.lessonDraftOrigin = 'saved'; state.lessonView = 'detail'; } render(); };
   window.openQuizDetail = function (id) {
     const quiz = library().find(item => item.id === id && item.type === 'quiz');
     if (!quiz) { showToast('ไม่พบข้อสอบชุดนี้', 'warning'); return; }
+    state.quizReturnPlanId = state.lessonView === 'detail' ? state.lessonDraft?.id || '' : '';
+    state.lessonView = 'home';
+    state.worksheetView = 'home';
     state.draft = typeof structuredClone === 'function' ? structuredClone(quiz) : JSON.parse(JSON.stringify(quiz));
     state.detailEditing = false;
     state.editBaseline = '';
