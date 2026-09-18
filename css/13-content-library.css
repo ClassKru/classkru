@@ -69,6 +69,11 @@
 .cl-worksheet-format-card { display:grid; grid-template-columns:minmax(0,1fr) minmax(260px,360px); align-items:end; gap:18px; margin:4px 0 22px; padding:18px; border:1px solid var(--library-worksheet-border); border-radius:14px; background:var(--library-worksheet-bg); }
 .cl-worksheet-format-card h3 { margin:0 0 4px; color:var(--text-main); font-size:1rem; }
 .cl-worksheet-format-card p { margin:0; color:var(--text-muted); font-size:.82rem; line-height:1.55; }
+.cl-worksheet-options-card { margin:-4px 0 22px; padding:18px; border:1px solid #cceee0; border-radius:14px; background:#f4fcf8; }
+.cl-worksheet-options-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:14px; }
+.cl-worksheet-options-card h3 { margin:0 0 4px; color:var(--text-main); font-size:1rem; }
+.cl-worksheet-options-card p { margin:0; color:var(--text-muted); font-size:.82rem; line-height:1.55; }
+.cl-worksheet-guide-badge { display:inline-flex; align-items:center; gap:5px; flex:0 0 auto; padding:5px 9px; border-radius:99px; color:var(--primary-deep); background:var(--primary-light); font-size:.72rem; font-weight:800; }
 .cl-field-hint { display:block; margin-top:5px; color:var(--text-muted); font-size:.76rem; line-height:1.45; }
 .cl-plan-asset-group + .cl-plan-asset-group { margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color); }
 .cl-plan-asset-group h4 { margin:0 0 3px; font-size:1rem; }
@@ -289,6 +294,8 @@
   .cl-detail-question { padding:17px; }
   .cl-plan-grid,.cl-worksheet-grid { grid-template-columns:1fr; }
   .cl-worksheet-format-card { grid-template-columns:1fr; }
+  .cl-worksheet-options-head { flex-direction:column; }
+  .cl-worksheet-guide-badge { align-self:flex-start; }
   .cl-plan-wide { grid-column:auto; }
   .cl-worksheet-wide { grid-column:auto; }
   .cl-plan-edit-grid { grid-template-columns:1fr; }
