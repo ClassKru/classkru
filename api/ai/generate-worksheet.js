@@ -25,20 +25,26 @@ module.exports = async function handler(req, res) {
     const body = parseBody(req); const title = clean(body.title, 240);
     const indicators = Array.isArray(body.indicators) ? body.indicators.slice(0, 12).map(item => `${clean(item.code,80)}: ${clean(item.text,800)}`).filter(Boolean) : [];
     if (title.length < 3 || !indicators.length) return sendJson(res, 400, { error:'invalid_request', message:'กรุณาระบุชื่อใบงานและตัวชี้วัดอย่างน้อย 1 ข้อ' });
-    const format = clean(body.worksheetTypeLabel || body.worksheetType, 120);
-    const formatRules = { 'เติมคำ / ตอบคำถาม':'เน้นคำถามสั้น เติมคำ จับคู่ หรือคำตอบอธิบายสั้น ๆ ไม่ต้องสร้างขั้นตอนทดลอง', 'ตาราง / จำแนกข้อมูล':'เน้นรายการ ตาราง ตัวเลือก การทำเครื่องหมาย การจับคู่ หรือการจัดกลุ่มที่นักเรียนต้องเติมหรือวิเคราะห์', 'ทดลอง / สำรวจ / บันทึกผล':'ต้องมีคำถามนำ อุปกรณ์ ขั้นตอน ตารางบันทึกผล ช่องจดข้อสังเกต คำถามวิเคราะห์ และสรุปผล โดยเว้นช่องให้บันทึกข้อมูลจริง' }[format] || 'เลือกโครงสร้างใบงานที่เหมาะกับหัวข้อและเวลา โดยเน้นกิจกรรมที่นักเรียนต้องลงมือทำ';
+    const formatId = clean(body.worksheetType, 40);
+    const format = clean(body.worksheetTypeLabel || formatId, 120);
+    const formatSpec = {
+      questions: { rule:'สร้าง question เท่านั้น แต่ละ question คือ 1 ข้อ ไม่สร้าง table และไม่สร้างขั้นตอนการทดลอง', example:'{"type":"question","title":"คำถามที่ 1","instruction":"โจทย์ที่มีข้อมูลครบ","answer":"แนวคำตอบ"}' },
+      table: { rule:'สร้าง table เพียง 1 บล็อกเท่านั้น จำนวนแถวต้องเท่ากับจำนวนข้อที่เลือก ทุกแถวต้องมีข้อมูลโจทย์และ null เป็นช่องให้นักเรียนเติม', example:'{"type":"table","title":"จำแนกข้อมูล","instruction":"คำสั่งที่มีข้อมูลครบ","columns":["ข้อมูล","คำตอบ"],"rows":[["ข้อมูลข้อแรก",null]],"answer":"แถว 1: แนวคำตอบ"}' },
+      inquiry: { rule:'สร้าง table เพียง 1 บล็อกเท่านั้น จำนวนแถวต้องเท่ากับจำนวนข้อที่เลือก ใช้บันทึกการสังเกตจริง ห้ามแต่งผลการทดลองและห้ามสร้างคำถามเพิ่ม', example:'{"type":"table","title":"บันทึกผลการสำรวจ","instruction":"อุปกรณ์และขั้นตอนที่ทำได้จริง","columns":["สิ่งที่สังเกต","ผลที่บันทึก"],"rows":[["รายการที่ 1",null]],"answer":"แนวทางตรวจ: ตรวจว่าบันทึกจากหลักฐานจริง"}' }
+    }[formatId] || null;
+    if (!formatSpec) return sendJson(res, 400, { error:'invalid_worksheet_type', message:'กรุณาเลือกแม่แบบใบงานที่ระบบรองรับ' });
     const workMode = { individual:'รายบุคคล', pair:'ทำงานเป็นคู่', group:'ทำงานเป็นกลุ่ม' }[clean(body.workMode,40)] || 'รายบุคคล';
     const difficulty = { easy:'พื้นฐาน', medium:'ปานกลาง', hard:'ท้าทาย' }[clean(body.difficulty,40)] || 'ปานกลาง';
     const visuals = 'ใช้ข้อความและตารางเท่านั้น รุ่นนี้ยังไม่รองรับภาพ';
     const answerSpace = { short:'สั้น กระชับ', medium:'พอดี', long:'มีพื้นที่ให้อธิบาย' }[clean(body.answerSpace,40)] || 'พอดี';
     const answerKey = clean(body.answerKey,40) === 'no' ? 'ไม่ต้องสร้างเฉลย' : 'สร้างเฉลยสำหรับครูด้วย';
-    const rules = 'สร้างใบงานภาษาไทยที่พร้อมพิมพ์และครูนำไปปรับใช้ได้จริง ไม่ใช่แผนการสอนหรือคำอธิบายการสอน ห้ามสร้างผลคะแนนหรือข้อมูลนักเรียน ห้ามอ้างว่าเป็นเอกสารทางการ ทุกส่วนต้องสัมพันธ์กับตัวชี้วัด เวลา และทรัพยากรที่ให้มา หากข้อมูลไม่พอให้เสนอเป็นข้อควรตรวจสอบ และต้องไม่ยัดหัวข้อที่ไม่จำเป็นลงในใบงาน';
+    const rules = 'ตอบตามแม่แบบที่ผู้ใช้เลือกเท่านั้น สร้างใบงานภาษาไทยที่พร้อมพิมพ์ ไม่สร้างแผนการสอน ไม่เลือกแม่แบบใหม่ และไม่เพิ่มส่วนที่ไม่ได้ขอ';
     const prompt = `จัดทำร่างใบงานสำหรับครูไทยจากกรอบที่ได้รับเท่านั้น
 - วิชา: ${clean(body.subject,160)}
 - ระดับชั้น: ${clean(body.grade,80)}
 - หัวข้อ/ชื่อใบงาน: ${title}
 - รูปแบบใบงาน: ${format}
-- หลักการของรูปแบบนี้: ${formatRules}
+- คำสั่งเฉพาะแม่แบบนี้: ${formatSpec.rule}
 - ประเภทกิจกรรม: ${clean(body.activityType,120)}
 - เวลา: ${clean(body.duration,80)}
 - รูปแบบการทำงาน: ${workMode}
@@ -52,15 +58,13 @@ module.exports = async function handler(req, res) {
 - สิ่งที่ครูอยากเน้น: ${clean(body.focus,1000) || 'ไม่ระบุ'}
 ตัวชี้วัดที่เลือกไว้:\n${indicators.map(item => `- ${item}`).join('\n')}
 
-สร้างกิจกรรมจริงให้เด็กทำได้จากเอกสารนี้ทันที มีข้อมูล ตัวเลข หรือข้อความโจทย์ครบ ห้ามอ้างภาพ ตาราง หรือเอกสารที่ไม่ได้แนบ ห้ามบอกเพียงว่า "สร้างตาราง" หรือ "ดูภาพ"
-ใช้บล็อก question สำหรับโจทย์หนึ่งข้อ หรือ table สำหรับตาราง 2–4 คอลัมน์ มีข้อมูลโจทย์ในแถวและใช้ null เป็นช่องคำตอบที่นักเรียนต้องเติม ห้ามเติมเฉลยในช่อง null
-จำนวนข้อ/แถวที่นักเรียนต้องทำรวมต้องเท่ากับจำนวนที่เลือกแบบพอดี: question นับ 1 ข้อ, table นับจำนวนแถว ทุกช่อง null ใน table คือช่องตอบของแถวนั้น ห้ามสร้าง question หรือ table เพิ่มเพื่อสรุปผล ห้ามสร้างข้อเกิน ห้ามสร้างข้อน้อย และคำชี้แจงไม่ถูกนับเป็นข้อ
-แบบตารางและแบบสำรวจต้องมี table อย่างน้อยหนึ่งบล็อก แบบสำรวจห้ามแต่งผลสังเกต ให้ช่องบันทึกผลเป็น null
+ทำตามคำสั่งแม่แบบด้านบนเท่านั้น สร้างโจทย์จริงที่นักเรียนทำได้ทันที มีข้อมูล ตัวเลข หรือข้อความครบ ห้ามอ้างภาพหรือเอกสารที่ไม่ได้แนบ ห้ามบอกเพียงว่า "สร้างตาราง"
+จำนวนข้อ/แถวที่นักเรียนต้องทำต้องเท่ากับจำนวนที่เลือกแบบพอดี: question นับ 1 ข้อ, table นับจำนวนแถว คำชี้แจงไม่ถูกนับเป็นข้อ
 answer เป็นเฉลย/แนวทางตรวจสำหรับครูแยกต่างหาก ระบุเลขแถวให้ตรงกัน สำหรับกิจกรรมจริงให้แนวทางประเมินไม่แต่งผลทดลอง หากไม่ขอเฉลยให้เป็นข้อความว่าง
 คำชี้แจงรวมสั้นไม่เกิน 3 ข้อ ไม่ต้องใส่หัวข้อรายงานหรือขั้นตอนการสอน
 ตรวจนับก่อนตอบ JSON หากจำนวนไม่ตรงให้ปรับจำนวนแถวหรือจำนวน question จนตรงก่อน ห้ามส่งคำตอบที่จำนวนไม่ตรง
-ตอบ JSON ล้วน ห้ามมี markdown ตาม schema นี้:
-{"worksheet":{"title":"...","directions":["..."],"blocks":[{"type":"table","title":"จำแนกข้อมูล","instruction":"โจทย์ที่มีข้อมูลครบ","columns":["ข้อมูล","คำตอบ","เหตุผล"],"rows":[["ข้อมูลข้อแรก",null,null]],"answer":"แถว 1: เฉลยและเหตุผล"},{"type":"question","title":"อธิบาย","instruction":"คำถามจริง","answer":"แนวคำตอบ"}]},"warnings":[]}`;
+ตอบ JSON ล้วน ห้ามมี markdown และใช้โครงสร้างนี้เท่านั้น:
+{"worksheet":{"title":"...","directions":["คำชี้แจงสั้น ๆ"],"blocks":[${formatSpec.example}]},"warnings":[]}`;
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method:'POST', headers:{ Authorization:`Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type':'application/json', 'HTTP-Referer':process.env.APP_URL || 'https://classkru-kohl.vercel.app', 'X-Title':'ClassKru' }, body:JSON.stringify({ model:process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature:0.25, max_tokens:5000, messages:[{ role:'system', content:rules }, { role:'user', content:prompt }] }) });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) return sendJson(res, 502, { error:'generation_failed', message:'AI ยังสร้างใบงานไม่ได้ กรุณาลองใหม่อีกครั้ง' });

@@ -7,13 +7,13 @@ const {execFileSync} = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const raw = {title:'จำนวนจริง: จำแนกและอธิบาย',directions:['จำแนกจำนวนที่กำหนด แล้วอธิบายเหตุผล'],blocks:[{type:'table',title:'จำแนกจำนวน',instruction:'เขียนว่าเป็นจำนวนตรรกยะหรืออตรรกยะ พร้อมอธิบายเหตุผล',columns:['จำนวน','ประเภท','เหตุผล'],rows:[['−3',null,null],['0.25',null,null],['√2',null,null]],answer:'แถว 1: ตรรกยะ เขียนเป็น −3/1 ได้; แถว 2: ตรรกยะ เท่ากับ 1/4; แถว 3: อตรรกยะ ไม่สามารถเขียนเป็นอัตราส่วนจำนวนเต็มได้'},{type:'question',title:'อธิบายความเข้าใจ',instruction:'0.333… เป็นจำนวนตรรกยะหรือไม่ เพราะเหตุใด',answer:'เป็นจำนวนตรรกยะ เพราะเท่ากับ 1/3'}]};
+const raw = {title:'จำนวนจริง: จำแนกและอธิบาย',directions:['จำแนกจำนวนที่กำหนด แล้วอธิบายเหตุผล'],blocks:[{type:'table',title:'จำแนกจำนวน',instruction:'เขียนว่าเป็นจำนวนตรรกยะหรืออตรรกยะ พร้อมอธิบายเหตุผล',columns:['จำนวน','ประเภท','เหตุผล'],rows:[['−3',null,null],['0.25',null,null],['√2',null,null],['0.333…',null,null]],answer:'แถว 1: ตรรกยะ เขียนเป็น −3/1 ได้; แถว 2: ตรรกยะ เท่ากับ 1/4; แถว 3: อตรรกยะ ไม่สามารถเขียนเป็นอัตราส่วนจำนวนเต็มได้; แถว 4: ตรรกยะ เพราะเท่ากับ 1/3'}]};
 const options = {itemCount:4,answerSpace:'long',answerKey:'yes',worksheetType:'table'};
 const fixture = {subject:'คณิตศาสตร์',grade:'ม.2',duration:'1 คาบ',indicators:[{code:'ค 1.1 ม.2/2'}],...options,worksheet:normalize(raw,options)};
 module.exports = {fixture};
 test('structured worksheet preserves blanks, enforces count and separates answers',()=>{
   assert.equal(fixture.worksheet.blocks[0].rows[0][1],null);
-  assert.equal(fixture.worksheet.blocks[1].lines,4);
+  assert.equal(fixture.worksheet.blocks[0].lines,4);
   assert.throws(()=>normalize(raw,{...options,itemCount:8}),/จำนวนข้อ/);
   const invalid = structuredClone(raw); invalid.blocks[0].rows[0] = ['3','ตรรกยะ','เหตุผล'];
   assert.throws(()=>normalize(invalid,options),/ช่องว่าง/);
@@ -21,7 +21,7 @@ test('structured worksheet preserves blanks, enforces count and separates answer
   assert.ok(noKey.blocks.every(b=>!b.answer));
   const rendered = html(fixture);
   assert.match(rendered,/<table>/);
-  assert.ok(!rendered.split('</article>')[0].includes('เท่ากับ 1/3'));
+  assert.ok(!rendered.split('</article>')[0].includes('ตรรกยะ เขียนเป็น'));
   const hostile = structuredClone(fixture); hostile.worksheet.blocks[0].rows[0][0] = '<img src=x onerror=alert(1)>';
   assert.ok(!html(hostile).includes('<img'));
 });
@@ -44,7 +44,7 @@ test('API passes structured output through validation and rejects incomplete con
     called++; const request = JSON.parse(init.body);
     assert.match(request.messages[1].content,/จำนวนข้อ\/แถวที่นักเรียนต้องทำรวมทั้งหมด/);
     assert.match(request.messages[1].content,/แบบพอดี/);
-    assert.match(request.messages[1].content,/ห้ามสร้าง question หรือ table เพิ่ม/);
+    assert.match(request.messages[1].content,/table เพียง 1 บล็อก/);
     return {ok:true,json:async()=>({choices:[{message:{content:JSON.stringify({worksheet:output})}}]})};
   };
   const response = ()=>({setHeader(){},status(n){this.code=n;return this;},json(b){this.body=b;}});

@@ -29,7 +29,10 @@
     });
     const count = blocks.reduce((n,b) => n + (b.type === 'table' ? b.rows.length : 1), 0);
     if (options.itemCount && count !== Number(options.itemCount)) throw new Error(`จำนวนข้อไม่ตรงที่เลือก (${count}/${options.itemCount})`);
-    if (['table','inquiry'].includes(options.worksheetType) && !blocks.some(b => b.type === 'table')) throw new Error('แม่แบบนี้ต้องมีตารางจริง');
+    if (options.worksheetType === 'questions' && blocks.some(b => b.type !== 'question')) throw new Error('แม่แบบตอบคำถามต้องมีเฉพาะโจทย์คำถาม');
+    if (['table','inquiry'].includes(options.worksheetType)) {
+      if (blocks.length !== 1 || blocks[0].type !== 'table') throw new Error('แม่แบบนี้ต้องมีตารางเดียวและนับจำนวนจากแถวในตาราง');
+    }
     return {version:2, title:text(raw.title), directions:(Array.isArray(raw.directions) ? raw.directions : []).map(text).filter(Boolean).slice(0,3), blocks};
   }
   function html(d, editing = false) {
