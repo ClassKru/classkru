@@ -33,6 +33,8 @@ test('Word contains editable table, blank cells and teacher page break',async()=
   const xml = execFileSync('unzip',['-p',file,'word/document.xml'],{encoding:'utf8'});
   assert.match(xml,/<w:tbl>/); assert.match(xml,/<w:pageBreakBefore\/>/);
   assert.match(xml,/จำแนกจำนวน/); assert.match(xml,/เฉลย/);
+  assert.match(xml,/w:ascii="TH SarabunPSK"/); assert.match(xml,/w:hAnsi="TH SarabunPSK"/);
+  assert.match(xml,/w:sz w:val="28"/); assert.match(xml,/w:sz w:val="32"/); assert.match(xml,/w:sz w:val="36"/);
   console.log('Worksheet sample:',file);
 });
 test('API passes structured output through validation and rejects incomplete content',async()=>{
