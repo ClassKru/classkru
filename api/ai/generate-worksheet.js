@@ -1,0 +1,57 @@
+'use strict';
+
+const { sendJson, parseBody, requestOriginIsValid } = require('../_lib/http');
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
+function clean(value, max = 1400) { return String(value || '').trim().slice(0, max); }
+function asList(value, maxItems = 12) { return (Array.isArray(value) ? value : []).map(item => clean(item, 1200)).filter(Boolean).slice(0, maxItems); }
+function parseJson(text) { return JSON.parse(String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')); }
+async function authenticatedUser(req) {
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  if (!token) return null;
+  const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, { headers:{ apikey:SUPABASE_PUBLISHABLE_KEY, Authorization:`Bearer ${token}` } });
+  return response.ok ? response.json() : null;
+}
+function normalizeWorksheet(value, fallbackTitle) {
+  const item = value && typeof value === 'object' ? value : {};
+  return {
+    title: clean(item.title || fallbackTitle, 240),
+    directions: asList(item.directions), context: asList(item.context), steps: asList(item.steps, 16),
+    tasks: asList(item.tasks, 16), responseAreas: asList(item.responseAreas, 12), submission: asList(item.submission, 10), assessmentCriteria: asList(item.assessmentCriteria, 12)
+  };
+}
+
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') return sendJson(res, 405, { error:'method_not_allowed' });
+  if (!requestOriginIsValid(req)) return sendJson(res, 403, { error:'invalid_origin' });
+  if (!process.env.OPENROUTER_API_KEY) return sendJson(res, 503, { error:'ai_not_configured', message:'ยังไม่ได้ตั้งค่า OPENROUTER_API_KEY' });
+  try {
+    const user = await authenticatedUser(req);
+    if (!user?.id) return sendJson(res, 401, { error:'authentication_required', message:'กรุณาเข้าสู่ระบบใหม่ก่อนใช้งาน AI' });
+    const body = parseBody(req); const title = clean(body.title, 240);
+    const indicators = Array.isArray(body.indicators) ? body.indicators.slice(0, 12).map(item => `${clean(item.code,80)}: ${clean(item.text,800)}`).filter(Boolean) : [];
+    if (title.length < 3 || !indicators.length) return sendJson(res, 400, { error:'invalid_request', message:'กรุณาระบุชื่อใบงานและตัวชี้วัดอย่างน้อย 1 ข้อ' });
+    const rules = 'สร้างใบงานภาษาไทยที่ครูนำไปปรับใช้ได้จริง ห้ามสร้างผลคะแนนหรือข้อมูลนักเรียน ห้ามอ้างว่าเป็นเอกสารทางการ ทุกส่วนต้องสัมพันธ์กับตัวชี้วัด เวลา และทรัพยากรที่ให้มา หากข้อมูลไม่พอให้เสนอเป็นข้อควรตรวจสอบ';
+    const prompt = `จัดทำร่างใบงานสำหรับครูไทยจากกรอบที่ได้รับเท่านั้น
+- วิชา: ${clean(body.subject,160)}
+- ระดับชั้น: ${clean(body.grade,80)}
+- หัวข้อ/ชื่อใบงาน: ${title}
+- ประเภทกิจกรรม: ${clean(body.activityType,120)}
+- เวลา: ${clean(body.duration,80)}
+- สิ่งที่อยากให้นักเรียนทำหรือส่ง: ${clean(body.learnerOutput,1200) || 'ไม่ระบุ'}
+- อุปกรณ์หรือข้อจำกัด: ${clean(body.resources,1000) || 'ไม่ระบุ'}
+- สิ่งที่ครูอยากเน้น: ${clean(body.focus,1000) || 'ไม่ระบุ'}
+ตัวชี้วัดที่เลือกไว้:\n${indicators.map(item => `- ${item}`).join('\n')}
+
+ตอบ JSON ล้วน ห้ามมี markdown ตาม schema นี้:
+{"worksheet":{"title":"...","directions":["..."],"context":["..."],"steps":["..."],"tasks":["..."],"responseAreas":["..."],"submission":["..."],"assessmentCriteria":["..."]},"warnings":["..."]}`;
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method:'POST', headers:{ Authorization:`Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type':'application/json', 'HTTP-Referer':process.env.APP_URL || 'https://classkru-kohl.vercel.app', 'X-Title':'ClassKru' }, body:JSON.stringify({ model:process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature:0.25, max_tokens:3000, messages:[{ role:'system', content:rules }, { role:'user', content:prompt }] }) });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) return sendJson(res, 502, { error:'generation_failed', message:'AI ยังสร้างใบงานไม่ได้ กรุณาลองใหม่อีกครั้ง' });
+    let raw; try { raw = parseJson(payload?.choices?.[0]?.message?.content); } catch (_) { return sendJson(res, 502, { error:'invalid_ai_response', message:'AI ส่งรูปแบบใบงานไม่ถูกต้อง กรุณาลองใหม่' }); }
+    const worksheet = normalizeWorksheet(raw?.worksheet || raw, title);
+    if (!worksheet.title || !worksheet.directions.length || !worksheet.steps.length || !worksheet.tasks.length) return sendJson(res, 502, { error:'empty_ai_response', message:'AI ยังสร้างใบงานที่มีข้อมูลไม่ครบ กรุณาเพิ่มรายละเอียดให้ชัดเจนขึ้น' });
+    return sendJson(res, 200, { worksheet, warnings:asList(raw?.warnings, 8) });
+  } catch (error) { console.error('Worksheet generation error:', error); return sendJson(res, 500, { error:'server_error', message:'เกิดข้อผิดพลาดขณะสร้างใบงาน' }); }
+};
