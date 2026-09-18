@@ -60,6 +60,10 @@
 .cl-plan-grid article ul { padding-left:19px; }
 .cl-plan-grid article li + li { margin-top:5px; }
 .cl-plan-wide { grid-column:1 / -1; }
+.cl-plan-edit-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.cl-plan-edit-field { display:flex; flex-direction:column; gap:7px; padding:16px; border:1px solid var(--border-color); border-radius:13px; background:#fbfffd; color:var(--primary-deep); font-size:.92rem; font-weight:800; }
+.cl-plan-edit-field small { color:var(--text-muted); font-size:.75rem; font-weight:600; }
+.cl-plan-edit-field textarea { min-height:138px; resize:vertical; line-height:1.65; }
 
 .cl-wizard { max-width:1120px; margin:0 auto; }
 .cl-wizard-top { display:flex; align-items:center; justify-content:flex-start; gap:14px; margin-bottom:18px; }
@@ -219,6 +223,7 @@
   .cl-detail-question { padding:17px; }
   .cl-plan-grid { grid-template-columns:1fr; }
   .cl-plan-wide { grid-column:auto; }
+  .cl-plan-edit-grid { grid-template-columns:1fr; }
   .cl-indicator-table-head { display:none; }
   .cl-indicator-table { border-left:0; border-right:0; border-radius:0; }
   .cl-indicator-row { grid-template-columns:24px minmax(0,1fr); gap:4px 10px; padding:12px 4px; font-size:.83rem; }
