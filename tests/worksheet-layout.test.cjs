@@ -42,7 +42,9 @@ test('API passes structured output through validation and rejects incomplete con
   global.fetch = async (url,init)=>{
     if (url.includes('/auth/v1/user')) return {ok:true,json:async()=>({id:'test-user'})};
     called++; const request = JSON.parse(init.body);
-    assert.match(request.messages[1].content,/null/);
+    assert.match(request.messages[1].content,/จำนวนข้อ\/แถวที่นักเรียนต้องทำรวมทั้งหมด/);
+    assert.match(request.messages[1].content,/แบบพอดี/);
+    assert.match(request.messages[1].content,/ห้ามสร้าง question หรือ table เพิ่ม/);
     return {ok:true,json:async()=>({choices:[{message:{content:JSON.stringify({worksheet:output})}}]})};
   };
   const response = ()=>({setHeader(){},status(n){this.code=n;return this;},json(b){this.body=b;}});

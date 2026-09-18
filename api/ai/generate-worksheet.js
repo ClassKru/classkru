@@ -42,7 +42,7 @@ module.exports = async function handler(req, res) {
 - ประเภทกิจกรรม: ${clean(body.activityType,120)}
 - เวลา: ${clean(body.duration,80)}
 - รูปแบบการทำงาน: ${workMode}
-- จำนวนกิจกรรม/ข้อ: ${clean(body.itemCount,40) || '8'}
+- จำนวนข้อ/แถวที่นักเรียนต้องทำรวมทั้งหมด: ${clean(body.itemCount,40) || '8'}
 - ระดับความยาก: ${difficulty}
 - ภาพหรือสื่อประกอบ: ${visuals}
 - พื้นที่คำตอบ: ${answerSpace}
@@ -54,10 +54,11 @@ module.exports = async function handler(req, res) {
 
 สร้างกิจกรรมจริงให้เด็กทำได้จากเอกสารนี้ทันที มีข้อมูล ตัวเลข หรือข้อความโจทย์ครบ ห้ามอ้างภาพ ตาราง หรือเอกสารที่ไม่ได้แนบ ห้ามบอกเพียงว่า "สร้างตาราง" หรือ "ดูภาพ"
 ใช้บล็อก question สำหรับโจทย์หนึ่งข้อ หรือ table สำหรับตาราง 2–4 คอลัมน์ มีข้อมูลโจทย์ในแถวและใช้ null เป็นช่องคำตอบที่นักเรียนต้องเติม ห้ามเติมเฉลยในช่อง null
-จำนวนข้อรวมต้องเท่ากับจำนวนที่เลือก: question นับ 1 ข้อ, table นับจำนวนแถว ไม่ต้องแยกบล็อกสำหรับคำชี้แจง
+จำนวนข้อ/แถวที่นักเรียนต้องทำรวมต้องเท่ากับจำนวนที่เลือกแบบพอดี: question นับ 1 ข้อ, table นับจำนวนแถว ทุกช่อง null ใน table คือช่องตอบของแถวนั้น ห้ามสร้าง question หรือ table เพิ่มเพื่อสรุปผล ห้ามสร้างข้อเกิน ห้ามสร้างข้อน้อย และคำชี้แจงไม่ถูกนับเป็นข้อ
 แบบตารางและแบบสำรวจต้องมี table อย่างน้อยหนึ่งบล็อก แบบสำรวจห้ามแต่งผลสังเกต ให้ช่องบันทึกผลเป็น null
 answer เป็นเฉลย/แนวทางตรวจสำหรับครูแยกต่างหาก ระบุเลขแถวให้ตรงกัน สำหรับกิจกรรมจริงให้แนวทางประเมินไม่แต่งผลทดลอง หากไม่ขอเฉลยให้เป็นข้อความว่าง
 คำชี้แจงรวมสั้นไม่เกิน 3 ข้อ ไม่ต้องใส่หัวข้อรายงานหรือขั้นตอนการสอน
+ตรวจนับก่อนตอบ JSON หากจำนวนไม่ตรงให้ปรับจำนวนแถวหรือจำนวน question จนตรงก่อน ห้ามส่งคำตอบที่จำนวนไม่ตรง
 ตอบ JSON ล้วน ห้ามมี markdown ตาม schema นี้:
 {"worksheet":{"title":"...","directions":["..."],"blocks":[{"type":"table","title":"จำแนกข้อมูล","instruction":"โจทย์ที่มีข้อมูลครบ","columns":["ข้อมูล","คำตอบ","เหตุผล"],"rows":[["ข้อมูลข้อแรก",null,null]],"answer":"แถว 1: เฉลยและเหตุผล"},{"type":"question","title":"อธิบาย","instruction":"คำถามจริง","answer":"แนวคำตอบ"}]},"warnings":[]}`;
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method:'POST', headers:{ Authorization:`Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type':'application/json', 'HTTP-Referer':process.env.APP_URL || 'https://classkru-kohl.vercel.app', 'X-Title':'ClassKru' }, body:JSON.stringify({ model:process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature:0.25, max_tokens:5000, messages:[{ role:'system', content:rules }, { role:'user', content:prompt }] }) });
