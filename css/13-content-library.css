@@ -312,3 +312,21 @@
   .cl-indicator-row strong { grid-column:2; }
   .cl-indicator-row > span { grid-column:2; color:var(--text-secondary); font-size:.8rem; }
 }
+/* Printable worksheet content; teacher controls remain outside the student sheet. */
+.cl-student-sheet { max-width: 794px; margin: 0 auto; padding: 28px; background: var(--bg-card); color: var(--text-main); font-family: 'Sarabun',sans-serif; }
+.cl-student-sheet header { text-align:center; border-bottom:2px solid var(--border-color); padding-bottom:18px; }
+.cl-student-sheet p,.cl-sheet-key p { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7; }
+.cl-sheet-block { margin:24px 0; break-inside:avoid; }
+.cl-sheet-block h3 { font-size:18px; margin-bottom:8px; }
+.cl-sheet-table-scroll { overflow-x:auto; }
+.cl-student-sheet table { width:100%; table-layout:fixed; border-collapse:collapse; }
+.cl-student-sheet th,.cl-student-sheet td { border:1px solid var(--text-muted); padding:10px; vertical-align:top; overflow-wrap:anywhere; }
+.cl-student-sheet th { background:var(--bg-light); }
+.cl-sheet-answer-line { height:32px; border-bottom:1px dotted var(--text-muted); }
+.cl-sheet-key { margin:24px auto 0; max-width:794px; padding:20px; border:1px solid var(--border-color); border-radius:12px; }
+.cl-sheet-key summary { cursor:pointer; color:var(--primary-deep); font-weight:700; }
+.cl-sheet-edit { display:grid; gap:16px; padding:20px; border:1px solid var(--border-color); border-radius:12px; }
+@media(max-width:600px) { .cl-student-sheet { padding:8px; } .cl-student-sheet th,.cl-student-sheet td { padding:6px; font-size:14px; } }
+.cl-worksheet-detail .cl-detail-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.cl-worksheet-detail .cl-detail-actions .btn { white-space:nowrap; flex-shrink:0; }
+@media(max-width:600px) { .cl-worksheet-detail .cl-plan-detail-head { display:block; } .cl-worksheet-detail .cl-detail-actions { margin-top:16px; } }
