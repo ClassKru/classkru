@@ -70,7 +70,8 @@ answer เป็นเฉลย/แนวทางตรวจสำหรับ
     if (!response.ok) return sendJson(res, 502, { error:'generation_failed', message:'AI ยังสร้างใบงานไม่ได้ กรุณาลองใหม่อีกครั้ง' });
     let raw; try { raw = parseJson(payload?.choices?.[0]?.message?.content); } catch (_) { return sendJson(res, 502, { error:'invalid_ai_response', message:'AI ส่งรูปแบบใบงานไม่ถูกต้อง กรุณาลองใหม่' }); }
     let worksheet;
-    try { worksheet = normalize(raw?.worksheet || raw, { ...body, itemCount:[4,6,8,10].includes(Number(body.itemCount)) ? Number(body.itemCount) : 8 }); }
+    const requestedItemCount = Number(body.itemCount);
+    try { worksheet = normalize(raw?.worksheet || raw, { ...body, itemCount:Number.isInteger(requestedItemCount) && requestedItemCount >= 1 && requestedItemCount <= 10 ? requestedItemCount : 8 }); }
     catch (error) { return sendJson(res, 502, { error:'invalid_worksheet', message:`ร่างใบงานยังไม่ผ่านการตรวจ: ${error.message} กรุณาลองสร้างใหม่` }); }
     if (!worksheet.title || !worksheet.directions.length) return sendJson(res, 502, { error:'empty_ai_response', message:'ใบงานขาดชื่อหรือคำชี้แจง' });
     return sendJson(res, 200, { worksheet, warnings:asList(raw?.warnings, 8) });

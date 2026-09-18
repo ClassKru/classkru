@@ -15,6 +15,7 @@ test('structured worksheet preserves blanks, enforces count and separates answer
   assert.equal(fixture.worksheet.blocks[0].rows[0][1],null);
   assert.equal(fixture.worksheet.blocks[0].lines,4);
   assert.throws(()=>normalize(raw,{...options,itemCount:8}),/จำนวนข้อ/);
+  assert.equal(normalize(raw,{...options,itemCount:4}).blocks[0].rows.length,4);
   const invalid = structuredClone(raw); invalid.blocks[0].rows[0] = ['3','ตรรกยะ','เหตุผล'];
   assert.throws(()=>normalize(invalid,options),/ช่องว่าง/);
   const noKey = normalize(raw,{...options,answerKey:'no'});
