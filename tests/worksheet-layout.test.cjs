@@ -66,7 +66,9 @@ test('matching and drawing templates keep layout separate from AI content',()=>{
   const drawing = normalize({title:'วาดโครงสร้างเซลล์',directions:['วาดภาพและเติมคำอธิบาย'],blocks:[{type:'drawing_form',title:'วาดและอธิบาย',instruction:'ทำตามคำสั่งในแต่ละข้อ',items:[{prompt:'วาดเซลล์พืชพร้อมป้ายกำกับ',fields:['ส่วนประกอบ','หน้าที่']},{prompt:'วาดเซลล์สัตว์พร้อมป้ายกำกับ',fields:['ส่วนประกอบ']}],rubric:['ภาพสอดคล้องกับเนื้อหา','คำอธิบายถูกต้อง'],answer:'ตรวจตามเกณฑ์'}]},{worksheetType:'drawing_form',itemCount:2,answerKey:'yes'});
   assert.equal(drawing.blocks[0].items.length,2);
   assert.match(html({subject:'วิทยาศาสตร์',grade:'ม.3',indicators:[],worksheet:drawing}),/cl-sheet-drawing-box/);
-  assert.throws(()=>normalize({...drawing,blocks:[{...drawing.blocks[0],items:drawing.blocks[0].items.slice(0,1)}]},{worksheetType:'drawing_form',itemCount:2,answerKey:'yes'}),/จำนวนข้อ/);
+  assert.throws(()=>normalize({...drawing,blocks:[{...drawing.blocks[0],items:drawing.blocks[0].items.slice(0,1)}]},{worksheetType:'drawing_form',itemCount:2,strictItemCount:true,answerKey:'yes'}),/จำนวนข้อ/);
   const openEnded = normalize({title:'วาด Mind Map',directions:['วาดและอธิบาย'],blocks:[{type:'drawing_form',title:'งานสร้างสรรค์',instruction:'วาดภาพตามความเข้าใจ',items:[{prompt:'วาด Mind Map เรื่องสารอาหาร',fields:['คำอธิบาย']}],rubric:['เนื้อหาถูกต้อง','จัดลำดับความคิดชัดเจน']}]},{worksheetType:'drawing_form',itemCount:1,answerKey:'yes'});
   assert.match(openEnded.blocks[0].answer,/เนื้อหาถูกต้อง/);
+  const multiPartQuestion = normalize({title:'วิเคราะห์สารอาหาร',directions:['ตอบคำถาม'],blocks:[{type:'question',title:'วิเคราะห์',instruction:'อธิบายสารอาหาร 3 ชนิดและหน้าที่',answer:'ตอบครบทั้ง 3 ชนิด'},{type:'question',title:'ยกตัวอย่าง',instruction:'ยกตัวอย่างพืช',answer:'มีตัวอย่างสอดคล้อง'},{type:'question',title:'สรุป',instruction:'สรุปความสำคัญ',answer:'สรุปมีเหตุผล'}]},{worksheetType:'questions',itemCount:1,answerKey:'yes'});
+  assert.equal(multiPartQuestion.blocks.length,3);
 });

@@ -46,7 +46,8 @@
       return block;
     });
     const count = blocks.reduce((n,b) => n + (b.type === 'table' ? b.rows.length : b.type === 'matching' ? b.leftItems.length : b.type === 'drawing_form' ? b.items.length : 1), 0);
-    if (options.itemCount && count !== Number(options.itemCount)) throw new Error(`จำนวนข้อไม่ตรงที่เลือก (${count}/${options.itemCount})`);
+    const strictCount = typeof options.strictItemCount === 'boolean' ? options.strictItemCount : !['questions','drawing_form'].includes(options.worksheetType);
+    if (options.itemCount && strictCount && count !== Number(options.itemCount)) throw new Error(`จำนวนข้อไม่ตรงที่เลือก (${count}/${options.itemCount})`);
     if (options.worksheetType === 'questions' && blocks.some(b => b.type !== 'question')) throw new Error('แม่แบบตอบคำถามต้องมีเฉพาะโจทย์คำถาม');
     if (['table','inquiry'].includes(options.worksheetType)) {
       if (blocks.length !== 1 || blocks[0].type !== 'table') throw new Error('แม่แบบนี้ต้องมีตารางเดียวและนับจำนวนจากแถวในตาราง');

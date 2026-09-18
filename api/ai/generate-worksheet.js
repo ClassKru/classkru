@@ -8,24 +8,6 @@ const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_pub
 function clean(value, max = 1400) { return String(value || '').trim().slice(0, max); }
 function asList(value, maxItems = 12) { return (Array.isArray(value) ? value : []).map(item => clean(item, 1200)).filter(Boolean).slice(0, maxItems); }
 function parseJson(text) { return JSON.parse(String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')); }
-function fitToRequestedCount(worksheet, formatId, requested) {
-  if (!worksheet || !Array.isArray(worksheet.blocks) || !Number.isInteger(requested) || requested < 1 || requested > 10) return worksheet;
-  const copy = {...worksheet, blocks:worksheet.blocks.map(block => ({...block}))};
-  if (formatId === 'questions' && copy.blocks.length > requested) copy.blocks = copy.blocks.slice(0, requested);
-  if (['table','inquiry'].includes(formatId) && copy.blocks.length === 1 && Array.isArray(copy.blocks[0].rows) && copy.blocks[0].rows.length > requested) copy.blocks[0].rows = copy.blocks[0].rows.slice(0, requested);
-  if (formatId === 'drawing_form' && copy.blocks.length === 1 && Array.isArray(copy.blocks[0].items) && copy.blocks[0].items.length > requested) copy.blocks[0].items = copy.blocks[0].items.slice(0, requested);
-  if (formatId === 'matching' && copy.blocks.length === 1 && Array.isArray(copy.blocks[0].leftItems) && copy.blocks[0].leftItems.length > requested) {
-    const block = copy.blocks[0]; const keep = new Set(Array.from({length:requested}, (_, index) => index));
-    const pairs = Array.isArray(block.answerPairs) ? block.answerPairs : [];
-    const keptPairs = pairs.filter(pair => Array.isArray(pair) && keep.has(Number(pair[0])));
-    const rightIndexes = [...new Set(keptPairs.map(pair => Number(pair[1])))];
-    const rightMap = new Map(rightIndexes.map((value,index) => [value,index]));
-    block.leftItems = block.leftItems.slice(0, requested);
-    block.rightItems = rightIndexes.map(index => block.rightItems?.[index]).filter(Boolean);
-    block.answerPairs = keptPairs.map(pair => [Number(pair[0]), rightMap.get(Number(pair[1]))]);
-  }
-  return copy;
-}
 async function authenticatedUser(req) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return null;
@@ -79,7 +61,7 @@ module.exports = async function handler(req, res) {
 ตัวชี้วัดที่เลือกไว้:\n${indicators.map(item => `- ${item}`).join('\n')}
 
 ทำตามคำสั่งแม่แบบด้านบนเท่านั้น สร้างโจทย์จริงที่นักเรียนทำได้ทันที มีข้อมูล ตัวเลข หรือข้อความครบ ห้ามอ้างภาพหรือเอกสารที่ไม่ได้แนบ ห้ามบอกเพียงว่า "สร้างตาราง"
-จำนวนข้อ/แถวที่นักเรียนต้องทำต้องเท่ากับจำนวนที่เลือกแบบพอดี: question นับ 1 ข้อ, table นับจำนวนแถว, matching นับจำนวนคู่, drawing_form นับจำนวน items คำชี้แจงไม่ถูกนับเป็นข้อ
+จำนวนที่เลือกเป็นเป้าหมายของกิจกรรมหลัก: question นับจำนวนโจทย์หลัก, table นับจำนวนแถว, matching นับจำนวนคู่, drawing_form นับจำนวนภารกิจหลัก ตัวเลขหรือรายการย่อยภายในคำสั่งไม่ให้นับเพิ่ม เช่น “ระบุธาตุอาหาร 3 ชนิด” ยังเป็น 1 ภารกิจวาดภาพ หากเป็นคำถามหรือวาดภาพให้คงองค์ประกอบย่อยไว้เพื่อให้ผลลัพธ์ครบ ไม่ตัดทิ้งเพียงเพื่อให้ตัวเลขตรง ส่วน table และ matching ต้องตรงแบบพอดี
 answer เป็นเฉลย/แนวทางตรวจสำหรับครูแยกต่างหาก ระบุเลขแถวให้ตรงกัน สำหรับกิจกรรมจริงให้แนวทางประเมินไม่แต่งผลทดลอง หากไม่ขอเฉลยให้เป็นข้อความว่าง
 คำชี้แจงรวมสั้นไม่เกิน 3 ข้อ ไม่ต้องใส่หัวข้อรายงานหรือขั้นตอนการสอน
 ตรวจนับก่อนตอบ JSON หากจำนวนไม่ตรงให้ปรับจำนวนแถวหรือจำนวน question จนตรงก่อน ห้ามส่งคำตอบที่จำนวนไม่ตรง
@@ -92,7 +74,7 @@ answer เป็นเฉลย/แนวทางตรวจสำหรับ
     let worksheet;
     const requestedItemCount = Number(body.itemCount);
     const safeItemCount = Number.isInteger(requestedItemCount) && requestedItemCount >= 1 && requestedItemCount <= 10 ? requestedItemCount : 8;
-    try { worksheet = normalize(fitToRequestedCount(raw?.worksheet || raw, formatId, safeItemCount), { ...body, itemCount:safeItemCount }); }
+    try { worksheet = normalize(raw?.worksheet || raw, { ...body, itemCount:safeItemCount, strictItemCount:['table','inquiry','matching'].includes(formatId) }); }
     catch (error) { return sendJson(res, 502, { error:'invalid_worksheet', message:`ร่างใบงานยังไม่ผ่านการตรวจ: ${error.message} กรุณาลองสร้างใหม่` }); }
     if (!worksheet.title || !worksheet.directions.length) return sendJson(res, 502, { error:'empty_ai_response', message:'ใบงานขาดชื่อหรือคำชี้แจง' });
     return sendJson(res, 200, { worksheet, warnings:asList(raw?.warnings, 8) });
