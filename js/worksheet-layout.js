@@ -12,7 +12,8 @@
     const lines = {short:1, medium:2, long:4}[options.answerSpace] || 2;
     const blocks = raw.blocks.map((b, index) => {
       if (!b || !['question','table','matching','drawing_form'].includes(b.type)) throw new Error('รูปแบบกิจกรรมไม่รองรับ');
-      const block = {type:b.type, title:text(b.title) || `กิจกรรม ${index + 1}`, instruction:text(b.instruction), answer:text(b.answer), lines};
+      const rubric = (Array.isArray(b.rubric) ? b.rubric : []).map(text).filter(Boolean).slice(0,6);
+      const block = {type:b.type, title:text(b.title) || `กิจกรรม ${index + 1}`, instruction:text(b.instruction), answer:text(b.answer) || text(b.answerCriteria) || (rubric.length ? rubric.join(' · ') : ''), lines};
       if (!block.instruction) throw new Error('โจทย์ยังไม่ครบ');
       if (b.type === 'table') {
         if (!Array.isArray(b.columns) || b.columns.length < 2 || b.columns.length > 4 || !b.columns.every(c => text(c))) throw new Error('ตารางต้องมีหัวคอลัมน์ 2–4 ช่อง');
@@ -37,7 +38,7 @@
         if (!Array.isArray(b.items) || !b.items.length || b.items.length > 10) throw new Error('ใบงานวาดภาพต้องมีภารกิจ 1–10 รายการ');
         block.items = b.items.map(item => ({prompt:text(item?.prompt), fields:(Array.isArray(item?.fields) ? item.fields : []).map(text).filter(Boolean).slice(0,6)}));
         if (block.items.some(item => !item.prompt)) throw new Error('ภารกิจวาดภาพต้องมีคำสั่งครบทุกข้อ');
-        block.rubric = (Array.isArray(b.rubric) ? b.rubric : []).map(text).filter(Boolean).slice(0,6);
+        block.rubric = rubric;
         if (!block.rubric.length) throw new Error('ใบงานวาดภาพต้องมีเกณฑ์หรือแนวทางตรวจ');
       }
       if (options.answerKey === 'no') block.answer = '';

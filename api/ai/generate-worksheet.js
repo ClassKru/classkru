@@ -8,6 +8,24 @@ const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_pub
 function clean(value, max = 1400) { return String(value || '').trim().slice(0, max); }
 function asList(value, maxItems = 12) { return (Array.isArray(value) ? value : []).map(item => clean(item, 1200)).filter(Boolean).slice(0, maxItems); }
 function parseJson(text) { return JSON.parse(String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '')); }
+function fitToRequestedCount(worksheet, formatId, requested) {
+  if (!worksheet || !Array.isArray(worksheet.blocks) || !Number.isInteger(requested) || requested < 1 || requested > 10) return worksheet;
+  const copy = {...worksheet, blocks:worksheet.blocks.map(block => ({...block}))};
+  if (formatId === 'questions' && copy.blocks.length > requested) copy.blocks = copy.blocks.slice(0, requested);
+  if (['table','inquiry'].includes(formatId) && copy.blocks.length === 1 && Array.isArray(copy.blocks[0].rows) && copy.blocks[0].rows.length > requested) copy.blocks[0].rows = copy.blocks[0].rows.slice(0, requested);
+  if (formatId === 'drawing_form' && copy.blocks.length === 1 && Array.isArray(copy.blocks[0].items) && copy.blocks[0].items.length > requested) copy.blocks[0].items = copy.blocks[0].items.slice(0, requested);
+  if (formatId === 'matching' && copy.blocks.length === 1 && Array.isArray(copy.blocks[0].leftItems) && copy.blocks[0].leftItems.length > requested) {
+    const block = copy.blocks[0]; const keep = new Set(Array.from({length:requested}, (_, index) => index));
+    const pairs = Array.isArray(block.answerPairs) ? block.answerPairs : [];
+    const keptPairs = pairs.filter(pair => Array.isArray(pair) && keep.has(Number(pair[0])));
+    const rightIndexes = [...new Set(keptPairs.map(pair => Number(pair[1])))];
+    const rightMap = new Map(rightIndexes.map((value,index) => [value,index]));
+    block.leftItems = block.leftItems.slice(0, requested);
+    block.rightItems = rightIndexes.map(index => block.rightItems?.[index]).filter(Boolean);
+    block.answerPairs = keptPairs.map(pair => [Number(pair[0]), rightMap.get(Number(pair[1]))]);
+  }
+  return copy;
+}
 async function authenticatedUser(req) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   if (!token) return null;
@@ -32,7 +50,7 @@ module.exports = async function handler(req, res) {
       table: { rule:'สร้าง table เพียง 1 บล็อกเท่านั้น จำนวนแถวต้องเท่ากับจำนวนข้อที่เลือก ทุกแถวต้องมีข้อมูลโจทย์และ null เป็นช่องให้นักเรียนเติม', example:'{"type":"table","title":"จำแนกข้อมูล","instruction":"คำสั่งที่มีข้อมูลครบ","columns":["ข้อมูล","คำตอบ"],"rows":[["ข้อมูลข้อแรก",null]],"answer":"แถว 1: แนวคำตอบ"}' },
       inquiry: { rule:'สร้าง table เพียง 1 บล็อกเท่านั้น จำนวนแถวต้องเท่ากับจำนวนข้อที่เลือก ใช้บันทึกการสังเกตจริง ห้ามแต่งผลการทดลองและห้ามสร้างคำถามเพิ่ม', example:'{"type":"table","title":"บันทึกผลการสำรวจ","instruction":"อุปกรณ์และขั้นตอนที่ทำได้จริง","columns":["สิ่งที่สังเกต","ผลที่บันทึก"],"rows":[["รายการที่ 1",null]],"answer":"แนวทางตรวจ: ตรวจว่าบันทึกจากหลักฐานจริง"}' },
       matching: { rule:'สร้าง matching เพียง 1 บล็อกเท่านั้น มีรายการซ้ายและขวาจำนวนเท่ากับจำนวนข้อที่เลือก 1–10 รายการ ห้ามใส่คำตอบในช่องนักเรียน ต้องมี answerPairs เป็นคู่หมายเลขดัชนี [ซ้าย,ขวา] ครบทุกคู่ และควรเรียง rightItems ให้สลับจาก leftItems', example:'{"type":"matching","title":"จับคู่คำศัพท์กับความหมาย","instruction":"ลากเส้นหรือเขียนตัวอักษรจับคู่รายการฝั่งซ้ายกับฝั่งขวา","leftItems":["คำศัพท์ 1"],"rightItems":["ความหมาย 1"],"answerPairs":[[0,0]],"answer":"1 จับคู่กับ ก"}' },
-      drawing_form: { rule:'สร้าง drawing_form เพียง 1 บล็อก มี items เท่ากับจำนวนข้อที่เลือก 1–10 รายการ แต่ละรายการต้องมี prompt ที่นักเรียนทำได้จริงและ fields 0–4 ช่องสำหรับเขียนอธิบาย ต้องมี rubric สำหรับตรวจงาน ห้ามสร้างภาพจาก AI และห้ามอ้างภาพที่ไม่ได้แนบ', example:'{"type":"drawing_form","title":"วาดและอธิบาย","instruction":"วาดภาพตามคำสั่ง แล้วเติมข้อมูลประกอบ","items":[{"prompt":"วาดแบบจำลองของเซลล์และใส่ป้ายกำกับ","fields":["ส่วนประกอบสำคัญ","หน้าที่"]}],"rubric":["ภาพตรงตามเนื้อหา","คำอธิบายสัมพันธ์กับภาพ"],"answer":"ตรวจตาม rubric และความถูกต้องของเนื้อหา"}' }
+      drawing_form: { rule:'สร้าง drawing_form เพียง 1 บล็อก มี items เท่ากับจำนวนข้อที่เลือก 1–10 รายการ แต่ละรายการต้องมี prompt ที่นักเรียนทำได้จริงและ fields 0–4 ช่องสำหรับเขียนอธิบาย ต้องมี rubric สำหรับตรวจงาน ไม่จำเป็นต้องมี answer เพราะ rubric ใช้แทนแนวทางตรวจได้ ห้ามสร้างภาพจาก AI และห้ามอ้างภาพที่ไม่ได้แนบ', example:'{"type":"drawing_form","title":"วาดและอธิบาย","instruction":"วาดภาพตามคำสั่ง แล้วเติมข้อมูลประกอบ","items":[{"prompt":"วาดแบบจำลองของเซลล์และใส่ป้ายกำกับ","fields":["ส่วนประกอบสำคัญ","หน้าที่"]}],"rubric":["ภาพตรงตามเนื้อหา","คำอธิบายสัมพันธ์กับภาพ"]}' }
     }[formatId] || null;
     if (!formatSpec) return sendJson(res, 400, { error:'invalid_worksheet_type', message:'กรุณาเลือกแม่แบบใบงานที่ระบบรองรับ' });
     const workMode = { individual:'รายบุคคล', pair:'ทำงานเป็นคู่', group:'ทำงานเป็นกลุ่ม' }[clean(body.workMode,40)] || 'รายบุคคล';
@@ -73,7 +91,8 @@ answer เป็นเฉลย/แนวทางตรวจสำหรับ
     let raw; try { raw = parseJson(payload?.choices?.[0]?.message?.content); } catch (_) { return sendJson(res, 502, { error:'invalid_ai_response', message:'AI ส่งรูปแบบใบงานไม่ถูกต้อง กรุณาลองใหม่' }); }
     let worksheet;
     const requestedItemCount = Number(body.itemCount);
-    try { worksheet = normalize(raw?.worksheet || raw, { ...body, itemCount:Number.isInteger(requestedItemCount) && requestedItemCount >= 1 && requestedItemCount <= 10 ? requestedItemCount : 8 }); }
+    const safeItemCount = Number.isInteger(requestedItemCount) && requestedItemCount >= 1 && requestedItemCount <= 10 ? requestedItemCount : 8;
+    try { worksheet = normalize(fitToRequestedCount(raw?.worksheet || raw, formatId, safeItemCount), { ...body, itemCount:safeItemCount }); }
     catch (error) { return sendJson(res, 502, { error:'invalid_worksheet', message:`ร่างใบงานยังไม่ผ่านการตรวจ: ${error.message} กรุณาลองสร้างใหม่` }); }
     if (!worksheet.title || !worksheet.directions.length) return sendJson(res, 502, { error:'empty_ai_response', message:'ใบงานขาดชื่อหรือคำชี้แจง' });
     return sendJson(res, 200, { worksheet, warnings:asList(raw?.warnings, 8) });

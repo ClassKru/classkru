@@ -67,4 +67,6 @@ test('matching and drawing templates keep layout separate from AI content',()=>{
   assert.equal(drawing.blocks[0].items.length,2);
   assert.match(html({subject:'วิทยาศาสตร์',grade:'ม.3',indicators:[],worksheet:drawing}),/cl-sheet-drawing-box/);
   assert.throws(()=>normalize({...drawing,blocks:[{...drawing.blocks[0],items:drawing.blocks[0].items.slice(0,1)}]},{worksheetType:'drawing_form',itemCount:2,answerKey:'yes'}),/จำนวนข้อ/);
+  const openEnded = normalize({title:'วาด Mind Map',directions:['วาดและอธิบาย'],blocks:[{type:'drawing_form',title:'งานสร้างสรรค์',instruction:'วาดภาพตามความเข้าใจ',items:[{prompt:'วาด Mind Map เรื่องสารอาหาร',fields:['คำอธิบาย']}],rubric:['เนื้อหาถูกต้อง','จัดลำดับความคิดชัดเจน']}]},{worksheetType:'drawing_form',itemCount:1,answerKey:'yes'});
+  assert.match(openEnded.blocks[0].answer,/เนื้อหาถูกต้อง/);
 });
