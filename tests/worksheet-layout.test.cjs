@@ -58,3 +58,13 @@ test('API passes structured output through validation and rejects incomplete con
     const bad=response(); await handler(req,bad); assert.equal(bad.code,502); assert.equal(called,2);
   } finally {global.fetch=originalFetch; if(originalKey===undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY=originalKey;}
 });
+
+test('matching and drawing templates keep layout separate from AI content',()=>{
+  const matching = normalize({title:'จับคู่ระบบนิเวศ',directions:['จับคู่คำศัพท์กับความหมาย'],blocks:[{type:'matching',title:'จับคู่',instruction:'เขียนตัวอักษรลงในช่องคำตอบ',leftItems:['ผู้ผลิต','ผู้บริโภค'],rightItems:['สิ่งมีชีวิตที่สร้างอาหารเอง','สิ่งมีชีวิตที่กินสิ่งอื่น'],answerPairs:[[0,0],[1,1]],answer:'ตรวจตามคู่คำตอบ'}]},{worksheetType:'matching',itemCount:2,answerKey:'yes'});
+  assert.equal(matching.blocks[0].type,'matching');
+  assert.match(html({subject:'วิทยาศาสตร์',grade:'ม.3',indicators:[],worksheet:matching}),/cl-sheet-matching/);
+  const drawing = normalize({title:'วาดโครงสร้างเซลล์',directions:['วาดภาพและเติมคำอธิบาย'],blocks:[{type:'drawing_form',title:'วาดและอธิบาย',instruction:'ทำตามคำสั่งในแต่ละข้อ',items:[{prompt:'วาดเซลล์พืชพร้อมป้ายกำกับ',fields:['ส่วนประกอบ','หน้าที่']},{prompt:'วาดเซลล์สัตว์พร้อมป้ายกำกับ',fields:['ส่วนประกอบ']}],rubric:['ภาพสอดคล้องกับเนื้อหา','คำอธิบายถูกต้อง'],answer:'ตรวจตามเกณฑ์'}]},{worksheetType:'drawing_form',itemCount:2,answerKey:'yes'});
+  assert.equal(drawing.blocks[0].items.length,2);
+  assert.match(html({subject:'วิทยาศาสตร์',grade:'ม.3',indicators:[],worksheet:drawing}),/cl-sheet-drawing-box/);
+  assert.throws(()=>normalize({...drawing,blocks:[{...drawing.blocks[0],items:drawing.blocks[0].items.slice(0,1)}]},{worksheetType:'drawing_form',itemCount:2,answerKey:'yes'}),/จำนวนข้อ/);
+});

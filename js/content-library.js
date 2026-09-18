@@ -116,7 +116,7 @@
   window.setWorksheetOption = function (field, value) { const stateField = `worksheet${field.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('')}`; if (Object.prototype.hasOwnProperty.call(state, stateField)) state[stateField] = value; };
   window.toggleWorksheetIndicator = function (code, checked) { state.worksheetIndicatorCodes = checked ? [...new Set([...state.worksheetIndicatorCodes, code])] : state.worksheetIndicatorCodes.filter(item => item !== code); };
   function selectedWorksheetIndicators() { const cat = catalog(); if (!cat || !state.subjectId) return []; const rows = cat.search({ subjectId:state.subjectId, grade:state.grade.toUpperCase(), standardId:'all' }); return rows.filter(row => state.worksheetIndicatorCodes.includes(row.code)); }
-  const worksheetFormats = [{ id:'questions', label:'เติมคำ / ตอบคำถาม', hint:'ใบงานพื้นฐานสำหรับทบทวนความเข้าใจ เติมคำ จับคู่ หรือเขียนคำตอบสั้น ๆ' }, { id:'table', label:'ตาราง / จำแนกข้อมูล', hint:'ใช้จัดกลุ่ม เปรียบเทียบ ทำเครื่องหมาย หรือบันทึกข้อมูลลงตาราง' }, { id:'inquiry', label:'ทดลอง / สำรวจ / บันทึกผล', hint:'ใช้กับการสังเกตหรือทดลอง มีขั้นตอน ตารางบันทึกผล และคำถามสรุป' }];
+  const worksheetFormats = [{ id:'questions', label:'เติมคำ / ตอบคำถาม', hint:'ใบงานพื้นฐานสำหรับทบทวนความเข้าใจ เติมคำ หรือเขียนคำตอบสั้น ๆ' }, { id:'table', label:'ตาราง / จำแนกข้อมูล', hint:'ใช้จัดกลุ่ม เปรียบเทียบ ทำเครื่องหมาย หรือบันทึกข้อมูลลงตาราง' }, { id:'inquiry', label:'ทดลอง / สำรวจ / บันทึกผล', hint:'ใช้กับการสังเกตหรือทดลอง มีขั้นตอน ตารางบันทึกผล และคำถามสรุป' }, { id:'matching', label:'จับคู่ / ลากเส้น', hint:'แสดงรายการสองฝั่งให้นักเรียนจับคู่ โดยมีช่องคำตอบและเฉลยแยกสำหรับครู' }, { id:'drawing_form', label:'วาดภาพ / แบบฟอร์ม', hint:'สร้างพื้นที่วาดหรือออกแบบ พร้อมช่องให้เขียนคำอธิบายและเกณฑ์ตรวจ' }];
   function worksheetFormat(value) { return worksheetFormats.find(item => item.id === value) || worksheetFormats[0]; }
   function worksheetOptionsHtml(saved, prefill) {
     const storedField = { worksheetWorkMode:'workMode', worksheetItemCount:'itemCount', worksheetDifficulty:'difficulty', worksheetVisuals:'visuals', worksheetAnswerSpace:'answerSpace', worksheetAnswerKey:'answerKey' };
@@ -178,7 +178,12 @@
     let target = w.blocks[Number(parts.shift())];
     while (target && parts.length > 1) target = target[parts.shift()];
     const key = parts[0];
-    if (target && Object.prototype.hasOwnProperty.call(target,key) && target[key] !== null) target[key] = value;
+    if (target && key === 'drawingItems' && Array.isArray(target.items)) {
+      const prompts = String(value || '').split('\n').map(item => item.trim()).filter(Boolean);
+      target.items = prompts.map((prompt, index) => ({ prompt, fields:target.items[index]?.fields || [] }));
+      return;
+    }
+    if (target && Object.prototype.hasOwnProperty.call(target,key) && target[key] !== null) target[key] = ['leftItems','rightItems'].includes(key) ? String(value || '').split('\n').map(item => item.trim()).filter(Boolean) : value;
   };
   window.toggleWorksheetEditing = function () { state.worksheetEditing = !state.worksheetEditing; render(); };
   window.leaveWorksheetReview = function () { if (state.worksheetDraftOrigin === 'new' && !window.confirm('ใบงานนี้ยังไม่ได้บันทึกเข้าคลัง ต้องการกลับคลังและทิ้งร่างนี้หรือไม่?')) return; closeWorksheetCreator(); };
