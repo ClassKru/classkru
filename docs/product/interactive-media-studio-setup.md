@@ -2,6 +2,8 @@
 
 อัปเดต 19 กันยายน 2569 · โค้ดบน `feature/media-studio-live` จาก `origin/main` commit `687a617`
 
+ส่งขึ้น [PR #75](https://github.com/ClassKru/classkru/pull/75) แล้ว; code commit `1029671` ผ่าน CI บน Linux รวม SQL/security 8 tests และ browser integration แต่ **Vercel preview ยัง failed และยังไม่เปิด Production** ต้องอ่าน Build Logs ผ่านบัญชีทีม `classkru-dev` ก่อนสรุปสาเหตุ
+
 ## สิ่งที่สร้างแล้ว
 
 ครูเข้าจากหน้าวันนี้ เครื่องมือ หรือ **คลังสื่อ → เกมและแบบจำลองกับ AI** ใช้บัญชี Supabase เดิม ไม่สมัครบัญชีใหม่:
@@ -109,6 +111,7 @@ RPC ล็อกการจองงานในฐานข้อมูล: �
 - Scanner เป็นการป้องกันเสริม ไม่ใช่เครื่องยืนยันว่าโค้ดปลอดภัย ขอบเขตหลักคือ origin แยก + iframe sandbox + CSP
 - ปิด network, storage, popup, form submit, camera, microphone และการนำทางภายนอกของตัวเกม; wrapper ไม่รับโค้ดหรือข้อความจากเกมไป execute
 - Browser check เป็น smoke test ไม่สามารถพิสูจน์ความถูกต้องของเกมหรือป้องกัน browser zero-day ได้ทั้งหมด ก่อนเปิดกว้างควรแยก worker สำหรับโค้ดไม่เชื่อถือออกจาก service ที่มี credential
+- Chromium serverless ใช้ launch flags ที่เลือกเอง ไม่ใช้ default ของ package ที่ปิด web/site isolation และไม่ส่ง API/DB secret เข้า environment ของ browser process อย่างไรก็ตาม OS sandbox ของ Chromium serverless ไม่ได้เปิด (`--no-sandbox`) ซึ่งต่างจาก iframe sandbox ที่ยังเปิดอยู่ จึงต้องจำกัด pilot/เพิ่ม worker isolation ก่อนรับโค้ดจากผู้ใช้ทั่วไปจำนวนมาก
 - token ในลิงก์เป็นสิทธิ์เข้าชม: ใครได้ลิงก์ก็เปิดได้ อย่าใส่ข้อมูลส่วนบุคคลในสื่อ Preview มีอายุ 15 นาที published ไม่มีวันหมดอายุจนกว่าจะปิดลิงก์
 - การเพิกถอนมีผลกับการโหลดครั้งต่อไป ไม่สามารถเรียกคืนไฟล์ที่นักเรียนเปิด/คัดลอกไปแล้ว
 - การเก็บเข้ากรุเป็น soft archive เก็บบทสนทนาและเวอร์ชันเดิมไว้ ยังไม่มี UI ลบถาวรหรือ retention/cleanup อัตโนมัติ

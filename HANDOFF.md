@@ -12,7 +12,9 @@
 >
 > สำหรับงานนี้ยึด `CLAUDE.md`: feature → PR → ผู้ใช้ merge → Vercel auto-deploy ไม่ใช้ workflow push `HEAD:main` เก่าที่บันทึกในหัวข้อ 5/6 ด้านล่าง
 >
-> ส่งขึ้น Git แล้ว: [PR #75](https://github.com/ClassKru/classkru/pull/75), initial commit `899803b` ยังไม่ merge; CI Linux รอบแรกพบ Chromium 153 เป็น ESM default export และแก้ loader แล้ว กำลังตรวจรอบใหม่ Vercel preview รอบแรก failed ในทีม **classkru-dev** แต่บัญชี CLI ไม่มี scope นี้ จึงยังอ่าน build log/ตั้งค่าไม่ได้ ต้องให้ผู้ใช้เชื่อมบัญชีที่มีสิทธิ์หรือส่งข้อความ error ที่ตัด secret ออก
+> ส่งขึ้น Git แล้ว: [PR #75](https://github.com/ClassKru/classkru/pull/75), initial commit `899803b`; โค้ดล่าสุด `1029671` **CI ผ่านครบ** บน Linux รวม browser integration และ unit/security 8 tests หลังแก้ Chromium ESM loader และไม่ใช้ค่า default ที่ปิด web/site isolation; Chromium process ไม่ได้รับ AI/DB secret ผ่าน environment ยังไม่ merge
+>
+> **จุดที่ค้างจริง:** Vercel preview ของ `1029671` failed: `dpl_9drrxtbsbVfna521WhEjt2sgDzMs` ในทีม **classkru-dev** บัญชี CLI ไม่มี scope นี้ (`The specified scope does not exist`) จึงยังอ่าน build log/ตั้งค่าไม่ได้ ขอผู้ใช้ส่ง Error จาก Build Logs ที่ตัด secret ออก หรือเชื่อมบัญชีที่มีสิทธิ์ ห้ามเดาสาเหตุว่าเป็นจำนวน function แม้ตรวจพบ API routes จากเดิม 12 เพิ่มเป็น 14 ซึ่งอาจเกินขีดจำกัดหากใช้ Hobby
 >
 > เวอร์ชันล่าสุด: เพิ่มพื้นฐานระบบสมาชิก/การชำระเงินแบบโหมดทดสอบ, หน้าสมาชิกในแอป, แท็บสมาชิกสำหรับผู้ดูแล และรายงานการขายเงินแบบอ่านอย่างเดียว; migration `202609170001_membership_billing_foundation.sql` รันบน Supabase Production สำเร็จแล้ว; commits `4e8c129`, `e16ca4f`, `ba93ff2` push ขึ้น `main` แล้วเพื่อให้ Vercel deploy; asset version `463`
 >
