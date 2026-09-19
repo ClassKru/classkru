@@ -4,7 +4,8 @@ const { fail } = require('./media-db');
 const { render, POLICY_VERSION } = require('./media-artifact');
 async function launchBrowser() {
   if (process.env.MEDIA_BROWSER_EXECUTABLE) return puppeteer.launch({executablePath:process.env.MEDIA_BROWSER_EXECUTABLE,headless:true,args:['--disable-dev-shm-usage']});
-  const chromium = require('@sparticuz/chromium');
+  const chromiumModule = require('@sparticuz/chromium');
+  const chromium = chromiumModule.default || chromiumModule;
   return puppeteer.launch({args:chromium.args,executablePath:await chromium.executablePath(),headless:true});
 }
 async function checkInBrowser(artifact) {

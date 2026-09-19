@@ -12,6 +12,8 @@
 >
 > สำหรับงานนี้ยึด `CLAUDE.md`: feature → PR → ผู้ใช้ merge → Vercel auto-deploy ไม่ใช้ workflow push `HEAD:main` เก่าที่บันทึกในหัวข้อ 5/6 ด้านล่าง
 >
+> ส่งขึ้น Git แล้ว: [PR #75](https://github.com/ClassKru/classkru/pull/75), initial commit `899803b` ยังไม่ merge; CI Linux รอบแรกพบ Chromium 153 เป็น ESM default export และแก้ loader แล้ว กำลังตรวจรอบใหม่ Vercel preview รอบแรก failed ในทีม **classkru-dev** แต่บัญชี CLI ไม่มี scope นี้ จึงยังอ่าน build log/ตั้งค่าไม่ได้ ต้องให้ผู้ใช้เชื่อมบัญชีที่มีสิทธิ์หรือส่งข้อความ error ที่ตัด secret ออก
+>
 > เวอร์ชันล่าสุด: เพิ่มพื้นฐานระบบสมาชิก/การชำระเงินแบบโหมดทดสอบ, หน้าสมาชิกในแอป, แท็บสมาชิกสำหรับผู้ดูแล และรายงานการขายเงินแบบอ่านอย่างเดียว; migration `202609170001_membership_billing_foundation.sql` รันบน Supabase Production สำเร็จแล้ว; commits `4e8c129`, `e16ca4f`, `ba93ff2` push ขึ้น `main` แล้วเพื่อให้ Vercel deploy; asset version `463`
 >
 > เวอร์ชัน 460: คลังสื่อการสอนเอากล่องข้อความแจ้งการเชื่อมห้องเรียนออกจากหน้าสร้างข้อสอบ เพราะข้อมูลซ้ำกับช่องเลือกห้องเรียน; การเชื่อม `classId` ยังทำงานเหมือนเดิม
