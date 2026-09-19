@@ -14,7 +14,9 @@
 >
 > ส่งขึ้น Git แล้ว: [PR #75](https://github.com/ClassKru/classkru/pull/75), initial commit `899803b`; โค้ดล่าสุด `1029671` **CI ผ่านครบ** บน Linux รวม browser integration และ unit/security 8 tests หลังแก้ Chromium ESM loader และไม่ใช้ค่า default ที่ปิด web/site isolation; Chromium process ไม่ได้รับ AI/DB secret ผ่าน environment ยังไม่ merge
 >
-> **ยืนยันสาเหตุ Vercel แล้วจากภาพผู้ใช้:** Hobby จำกัด 12 Serverless Functions แต่ชุดใหม่มี 14 จึงรวม API ส่งออก Word 4 แบบไว้ที่ `api/exports/index.js` และย้าย implementation เดิมไป `api/_lib/exports/` ใช้ rewrite คง URL เดิม จำนวนฟังก์ชันหลักเหลือ **11/12**; ทดสอบ export routing/auth/Word regression 10 tests ผ่านและเพิ่ม guard ใน CI รอผล preview หลัง push การแก้นี้ ไม่ต้องเปลี่ยนแพลนเพื่อแก้ function-count error
+> **แก้ Vercel สำเร็จแล้ว:** commit `21e512e` ผ่านทั้ง CI และ Vercel Preview (`dpl_4imDx4P5JoeiHCXR164o8QvqMnAa`) หลังรวม API ส่งออก Word 4 แบบไว้ที่ `api/exports/index.js` และย้าย implementation เดิมไป `api/_lib/exports/` ใช้ rewrite คง URL เดิม จำนวนฟังก์ชันหลักเหลือ **11/12**; export routing/auth/Word regression 10 tests ผ่านและมี guard ใน CI ไม่ต้องเปลี่ยนแพลนเพื่อแก้ function-count error
+>
+> Preview: `https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app` — ตรวจ HTTP แล้วหน้าเว็บและ API ตอบ 302 ไป Vercel Authentication จึงยังตรวจ runtime ออนไลน์หลังล็อกอินไม่ได้ ไม่ได้ปิด Deployment Protection และยังไม่ได้ merge PR
 >
 > บัญชี CLI ยังไม่มีสิทธิ์ทีม `classkru-dev` (`The specified scope does not exist`) การตั้ง environment variables, ติดตั้ง Supabase migration และสร้าง media project ยังต้องเข้าบัญชี ClassKru ที่มีสิทธิ์
 >

@@ -2,7 +2,9 @@
 
 อัปเดต 19 กันยายน 2569 · โค้ดบน `feature/media-studio-live` จาก `origin/main` commit `687a617`
 
-ส่งขึ้น [PR #75](https://github.com/ClassKru/classkru/pull/75) แล้ว; code commit `1029671` ผ่าน CI บน Linux รวม SQL/security 8 tests และ browser integration ภาพ Deployment จากผู้ใช้ยืนยันว่า Vercel failed เพราะมี 14 functions เกินเพดาน Hobby 12 ตัว จึงรวมการส่งออก Word เหลือฟังก์ชันเดียว ทำให้ทั้งแอปเหลือ **11 functions** โดยคง URL เดิม และเพิ่ม export/function-count regression tests แล้ว ยังต้องตรวจผล preview และตั้งค่าฐานข้อมูล/เว็บสื่อก่อนเปิด Production
+ส่งขึ้น [PR #75](https://github.com/ClassKru/classkru/pull/75) แล้ว; code commit `21e512e` **ผ่านทั้ง CI และ Vercel Preview** หลังรวมการส่งออก Word เหลือฟังก์ชันเดียว ทำให้ทั้งแอปเหลือ **11 functions** แก้ข้อผิดพลาดเกินเพดาน Hobby 12 ตัว โดยคง URL เดิมไว้ การตรวจครอบคลุม SQL/security 8 tests, export/เอกสาร 10 tests, browser integration และ syntax
+
+เปิด [เว็บตัวอย่าง](https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app) ด้วยบัญชี Vercel ที่มีสิทธิ์ (ยังมี Deployment Protection; คำขอแบบไม่ล็อกอินตอบ 302 ไป Vercel Authentication) **ยังไม่ merge/เปิด Production และยังต้องตั้งค่าฐานข้อมูลกับเว็บเปิดสื่อแยก** จึงยังไม่ยืนยัน end-to-end กับ AI/บัญชีครูจริงบนออนไลน์
 
 ## สิ่งที่สร้างแล้ว
 
