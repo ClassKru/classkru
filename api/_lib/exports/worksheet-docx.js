@@ -1,8 +1,8 @@
 'use strict';
 
 const { Document, Packer, Paragraph, TextRun, AlignmentType, LevelFormat } = require('docx');
-const { createWorksheetDocument } = require('../_lib/worksheet-document');
-const { sendJson, parseBody, requestOriginIsValid } = require('../_lib/http');
+const { createWorksheetDocument } = require('../worksheet-document');
+const { sendJson, parseBody, requestOriginIsValid } = require('../http');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
 const BODY_SIZE = 28; const TITLE_SIZE = 36;

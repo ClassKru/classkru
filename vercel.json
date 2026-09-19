@@ -1,4 +1,5 @@
 {
+  "rewrites": [{"source":"/api/exports/:document","destination":"/api/exports?document=:document"}],
   "functions": {"api/media-studio/index.js":{"maxDuration":300,"includeFiles":"node_modules/@sparticuz/chromium/bin/**"}},
   "headers": [
     {

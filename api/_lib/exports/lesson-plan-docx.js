@@ -1,7 +1,7 @@
 'use strict';
 
 const { Document, Packer, Paragraph, TextRun, AlignmentType, LevelFormat } = require('docx');
-const { sendJson, parseBody, requestOriginIsValid } = require('../_lib/http');
+const { sendJson, parseBody, requestOriginIsValid } = require('../http');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';

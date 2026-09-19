@@ -24,6 +24,9 @@ jobs:
       - name: Media ownership, queue and security tests
         run: npm run test:media
 
+      - name: Export routing and document regression tests
+        run: node --test tests/export-routing.test.cjs tests/lesson-plan.test.cjs tests/worksheet-layout.test.cjs
+
       - name: Media browser integration tests
         run: npm run test:media:browser
 

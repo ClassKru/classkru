@@ -14,7 +14,9 @@
 >
 > ส่งขึ้น Git แล้ว: [PR #75](https://github.com/ClassKru/classkru/pull/75), initial commit `899803b`; โค้ดล่าสุด `1029671` **CI ผ่านครบ** บน Linux รวม browser integration และ unit/security 8 tests หลังแก้ Chromium ESM loader และไม่ใช้ค่า default ที่ปิด web/site isolation; Chromium process ไม่ได้รับ AI/DB secret ผ่าน environment ยังไม่ merge
 >
-> **จุดที่ค้างจริง:** Vercel preview ของ `1029671` failed: `dpl_9drrxtbsbVfna521WhEjt2sgDzMs` ในทีม **classkru-dev** บัญชี CLI ไม่มี scope นี้ (`The specified scope does not exist`) จึงยังอ่าน build log/ตั้งค่าไม่ได้ ขอผู้ใช้ส่ง Error จาก Build Logs ที่ตัด secret ออก หรือเชื่อมบัญชีที่มีสิทธิ์ ห้ามเดาสาเหตุว่าเป็นจำนวน function แม้ตรวจพบ API routes จากเดิม 12 เพิ่มเป็น 14 ซึ่งอาจเกินขีดจำกัดหากใช้ Hobby
+> **ยืนยันสาเหตุ Vercel แล้วจากภาพผู้ใช้:** Hobby จำกัด 12 Serverless Functions แต่ชุดใหม่มี 14 จึงรวม API ส่งออก Word 4 แบบไว้ที่ `api/exports/index.js` และย้าย implementation เดิมไป `api/_lib/exports/` ใช้ rewrite คง URL เดิม จำนวนฟังก์ชันหลักเหลือ **11/12**; ทดสอบ export routing/auth/Word regression 10 tests ผ่านและเพิ่ม guard ใน CI รอผล preview หลัง push การแก้นี้ ไม่ต้องเปลี่ยนแพลนเพื่อแก้ function-count error
+>
+> บัญชี CLI ยังไม่มีสิทธิ์ทีม `classkru-dev` (`The specified scope does not exist`) การตั้ง environment variables, ติดตั้ง Supabase migration และสร้าง media project ยังต้องเข้าบัญชี ClassKru ที่มีสิทธิ์
 >
 > เวอร์ชันล่าสุด: เพิ่มพื้นฐานระบบสมาชิก/การชำระเงินแบบโหมดทดสอบ, หน้าสมาชิกในแอป, แท็บสมาชิกสำหรับผู้ดูแล และรายงานการขายเงินแบบอ่านอย่างเดียว; migration `202609170001_membership_billing_foundation.sql` รันบน Supabase Production สำเร็จแล้ว; commits `4e8c129`, `e16ca4f`, `ba93ff2` push ขึ้น `main` แล้วเพื่อให้ Vercel deploy; asset version `463`
 >

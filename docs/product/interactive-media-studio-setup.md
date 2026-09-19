@@ -2,7 +2,7 @@
 
 อัปเดต 19 กันยายน 2569 · โค้ดบน `feature/media-studio-live` จาก `origin/main` commit `687a617`
 
-ส่งขึ้น [PR #75](https://github.com/ClassKru/classkru/pull/75) แล้ว; code commit `1029671` ผ่าน CI บน Linux รวม SQL/security 8 tests และ browser integration แต่ **Vercel preview ยัง failed และยังไม่เปิด Production** ต้องอ่าน Build Logs ผ่านบัญชีทีม `classkru-dev` ก่อนสรุปสาเหตุ
+ส่งขึ้น [PR #75](https://github.com/ClassKru/classkru/pull/75) แล้ว; code commit `1029671` ผ่าน CI บน Linux รวม SQL/security 8 tests และ browser integration ภาพ Deployment จากผู้ใช้ยืนยันว่า Vercel failed เพราะมี 14 functions เกินเพดาน Hobby 12 ตัว จึงรวมการส่งออก Word เหลือฟังก์ชันเดียว ทำให้ทั้งแอปเหลือ **11 functions** โดยคง URL เดิม และเพิ่ม export/function-count regression tests แล้ว ยังต้องตรวจผล preview และตั้งค่าฐานข้อมูล/เว็บสื่อก่อนเปิด Production
 
 ## สิ่งที่สร้างแล้ว
 
@@ -56,6 +56,8 @@ RLS อ่านได้เฉพาะเจ้าของ; browser ไม่
 ### 2. Vercel โปรเจกต์ ClassKru หลัก
 
 ตั้ง Node.js **24.x**, ใช้ package-lock และ Fluid Compute โดย function สร้างสื่อตั้ง `maxDuration: 300` ใน `vercel.json` ต้องตรวจข้อจำกัดบัญชีจริงก่อนเปิดใช้
+
+การส่งออกเอกสารเดิม 4 URL (`/api/exports/worksheet-docx`, `quiz-docx`, `lesson-plan-docx`, `lesson-pack-docx`) ใช้ rewrite ไปยัง `api/exports/index.js` ร่วมกัน ห้ามเพิ่มไฟล์ handler แยกกลับใน `api/exports/` โดยไม่ตรวจจำนวน functions; implementation ย้ายไป `api/_lib/exports/` ซึ่งไม่ใช่ endpoint สาธารณะ
 
 Environment variables ฝั่งเซิร์ฟเวอร์:
 
