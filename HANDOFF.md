@@ -1,6 +1,16 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 17 กันยายน 2569
+> อัปเดตล่าสุด: 19 กันยายน 2569
+>
+> **งานที่กำลังส่งตรวจ: AI Interactive Media Studio** — branch `feature/media-studio-live` จาก `origin/main` commit `687a617`; asset ใหม่ **484** ผ่าน `bump-version.sh` (เลขสูงสุดเดิมในทุกหน้า 483); workspace `C:\Users\USER\ClassKru\_worktrees\media-studio-live` แยกจากงานค้าง/ต้นแบบในโฟลเดอร์หลัก ห้ามเอาโค้ดต้นแบบใน worktree หลักมา push ทับงาน GitHub ล่าสุด
+>
+> ทำ chat → plan → freeform HTML/CSS/JS → browser check → private storage/version → isolated preview → publish/revoke/archive โดยใช้บัญชี Supabase เดิมและ **OpenRouter key เดิม** เป็นลำดับแรก คู่มือสถานะจริง/ตั้งค่า/ข้อจำกัด: [`docs/product/interactive-media-studio-setup.md`](docs/product/interactive-media-studio-setup.md)
+>
+> **ยังไม่เปิด Production:** ต้องติดตั้ง migration `202609190001_media_studio.sql`, ตั้ง server env และสร้าง Vercel media project Root Directory `media-host` ในทีม ClassKru แล้วตรวจด้วยบัญชี/AI จริง เครื่องนี้เห็น Vercel ทีม DOAI เท่านั้น จึงไม่ deploy ข้ามทีม; ห้ามอ้างว่า merge/push อย่างเดียวทำให้ระบบครบพร้อมใช้ คิวรุ่นนี้ยังอาศัยหน้าที่เปิดเพื่อเริ่มงาน ไม่มี scheduler อิสระ
+>
+> ผลทดสอบ: SQL/RLS/Storage/queue/provider/public capability ผ่านในเครื่อง; browser fixture ผ่าน chat/build/resume/preview/review/publish/revoke/mobile และ sandbox/network/navigation isolation ไม่ใช่ end-to-end กับ AI/Supabase Production
+>
+> สำหรับงานนี้ยึด `CLAUDE.md`: feature → PR → ผู้ใช้ merge → Vercel auto-deploy ไม่ใช้ workflow push `HEAD:main` เก่าที่บันทึกในหัวข้อ 5/6 ด้านล่าง
 >
 > เวอร์ชันล่าสุด: เพิ่มพื้นฐานระบบสมาชิก/การชำระเงินแบบโหมดทดสอบ, หน้าสมาชิกในแอป, แท็บสมาชิกสำหรับผู้ดูแล และรายงานการขายเงินแบบอ่านอย่างเดียว; migration `202609170001_membership_billing_foundation.sql` รันบน Supabase Production สำเร็จแล้ว; commits `4e8c129`, `e16ca4f`, `ba93ff2` push ขึ้น `main` แล้วเพื่อให้ Vercel deploy; asset version `463`
 >
