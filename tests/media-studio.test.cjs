@@ -7,6 +7,14 @@ const crypto=require('node:crypto');
 const {validateArtifact,hash,render}=require('../api/_lib/media-artifact');
 const fixture=require('./media-fixture.cjs');
 const service=require('../api/_lib/media-service');
+test('server browser retains web/site isolation and receives no AI/database credentials',t=>{
+  const {serverLaunchArgs,browserEnvironment}=require('../api/_lib/media-check');
+  for(const flag of ['--disable-web-security','--disable-site-isolation-trials','--single-process','--allow-running-insecure-content'])assert.ok(!serverLaunchArgs.includes(flag));
+  assert.ok(serverLaunchArgs.includes('--site-per-process'));
+  const key='CLASSKRU_TEST_SECRET',old=process.env[key];process.env[key]='must-not-reach-browser';
+  t.after(()=>{if(old===undefined)delete process.env[key];else process.env[key]=old;});
+  assert.equal(browserEnvironment()[key],undefined);assert.equal(browserEnvironment().OPENROUTER_API_KEY,undefined);assert.equal(browserEnvironment().SUPABASE_SECRET_KEY,undefined);
+});
 test('artifact policy rejects executable markup, external CSS and forbidden APIs',()=>{
   const artifact=validateArtifact(fixture);assert.equal(hash(artifact).length,64);
   for(const html of ['<script>alert(1)</script>','<img src="https://evil.test">','<svg><foreignObject>bad</foreignObject></svg>','<button onclick="alert(1)">x</button>','<input type="password">'])assert.throws(()=>validateArtifact({...fixture,html}));

@@ -2,11 +2,22 @@
 const puppeteer = require('puppeteer-core');
 const { fail } = require('./media-db');
 const { render, POLICY_VERSION } = require('./media-artifact');
+// Chromium's serverless convenience args disable web security and site isolation.
+// Use an explicit allowlist instead; never inherit those insecure defaults.
+const serverLaunchArgs = ['--no-sandbox','--disable-setuid-sandbox','--no-zygote','--disable-dev-shm-usage','--disable-gpu','--font-render-hinting=none','--site-per-process'];
+function browserEnvironment() {
+  const env={};
+  for(const key of ['PATH','HOME','TMPDIR','TMP','TEMP','LD_LIBRARY_PATH','FONTCONFIG_PATH','FONTCONFIG_FILE','LANG','TZ','SystemRoot','WINDIR','LOCALAPPDATA']) {
+    if(process.env[key]!==undefined)env[key]=process.env[key];
+  }
+  return env;
+}
 async function launchBrowser() {
-  if (process.env.MEDIA_BROWSER_EXECUTABLE) return puppeteer.launch({executablePath:process.env.MEDIA_BROWSER_EXECUTABLE,headless:true,args:['--disable-dev-shm-usage']});
+  if (process.env.MEDIA_BROWSER_EXECUTABLE) return puppeteer.launch({executablePath:process.env.MEDIA_BROWSER_EXECUTABLE,headless:true,args:['--disable-dev-shm-usage'],env:browserEnvironment()});
   const chromiumModule = require('@sparticuz/chromium');
   const chromium = chromiumModule.default || chromiumModule;
-  return puppeteer.launch({args:chromium.args,executablePath:await chromium.executablePath(),headless:true});
+  const executablePath=await chromium.executablePath();
+  return puppeteer.launch({args:serverLaunchArgs,executablePath,headless:'shell',env:browserEnvironment()});
 }
 async function checkInBrowser(artifact) {
   const browser = await launchBrowser();
@@ -40,4 +51,4 @@ async function checkInBrowser(artifact) {
     return await Promise.race([work(),new Promise((_,reject)=>{timer=setTimeout(()=>{browser.process()?.kill();reject(fail('preview_timeout'));},20000);})]);
   } finally { clearTimeout(timer); await browser.close().catch(()=>{}); }
 }
-module.exports = { checkInBrowser, launchBrowser };
+module.exports = { checkInBrowser, launchBrowser, serverLaunchArgs, browserEnvironment };
