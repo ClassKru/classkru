@@ -16,7 +16,7 @@
 >
 > ผลทดสอบในเครื่อง: Media unit/integration **14 tests ผ่าน**, Browser chat/build/resume/preview/review/publish/revoke/mobile + sandbox/network/navigation ผ่าน, Word export/lesson/worksheet **10 tests ผ่าน**, syntax **97 JS/CJS files ผ่าน**, npm audit **0 vulnerabilities** ไม่ใช่การทดสอบ Supabase/AI Production; asset **485** ผ่าน `bump-version.sh`
 >
-> เดิม commit `21e512e` ผ่าน CI + Vercel Preview หลังรวม Word APIs เหลือ **11/12 functions** ปัจจุบันยังคง 11 functions; การเปลี่ยน Storage-only ต้องตรวจ CI/deployment ของ commit ใหม่หลัง push ไม่ใช้ผลเดิมแทน
+> **Storage-only commit `6b2c4cb` push แล้วและผ่าน CI + Vercel Preview จริง**: GitHub Actions run `35481707707` success, Vercel deployment `By1kUEwoDerDd5VJBcTWJxeaZPf5` success; PR #75 ยังเปิด/mergeable และอัปเดตคำอธิบายเป็นวิธีติดตั้งแบบไม่รัน SQL แล้ว จำนวน functions ยัง **11/12** ผลนี้ยืนยัน build/test ไม่ใช่การตั้งค่า cloud/AI หรือ production E2E
 >
 > [Preview](https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app) ยังมี Deployment Protection (302 เมื่อไม่ล็อกอิน) ยังไม่ merge PR คู่มือตั้งค่า/ข้อจำกัด/โครงสร้างไฟล์: [interactive-media-studio-setup.md](docs/product/interactive-media-studio-setup.md)
 >

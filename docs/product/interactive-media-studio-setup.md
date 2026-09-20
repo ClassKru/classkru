@@ -6,7 +6,7 @@
 
 ตามคำขอผู้ใช้ เปลี่ยน Media Studio ให้เก็บ **ไฟล์ JSON เข้ารหัสใน Supabase Storage เดิม โดยไม่สร้างตาราง SQL เพิ่ม** ใช้ Supabase Auth และ OpenRouter เดิม ส่วนข้อมูลเช็กชื่อ/คะแนน/ระบบอื่นไม่ถูกเปลี่ยนวิธีจัดเก็บ
 
-โค้ดและการทดสอบในเครื่องพร้อมส่งตรวจ แต่ **ยังไม่ยืนยันการใช้งานออนไลน์กับ AI/Supabase จริง** ต้องตั้ง server env, ตรวจ Storage policies และสร้างเว็บเปิดสื่อในทีม ClassKru ก่อน เครื่องนี้ยังไม่มีสิทธิ์ Vercel ทีม `classkru-dev` หรือ Supabase server credentials จึงไม่ deploy ไปบัญชี DOAI แทน
+โค้ด commit `6b2c4cb` ส่งขึ้น PR แล้วและ **ผ่านทั้ง CI กับ Vercel Preview** (Actions run `35481707707`, deployment `By1kUEwoDerDd5VJBcTWJxeaZPf5`) แต่ **ยังไม่ยืนยันการใช้งานออนไลน์กับ AI/Supabase จริง** ต้องตั้ง server env, ตรวจ Storage policies และสร้างเว็บเปิดสื่อในทีม ClassKru ก่อน เครื่องนี้ยังไม่มีสิทธิ์ Vercel ทีม `classkru-dev` หรือ Supabase server credentials จึงไม่ deploy ไปบัญชี DOAI แทน
 
 [Preview](https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app) ยังมี Vercel Deployment Protection การเปิดแบบไม่ล็อกอินตอบ 302; ระบบหลักมี 11 Serverless Functions หลังรวม Word export 4 URL ไว้ใน handler เดียวแล้ว ไม่ต้องเพิ่มแพลนเพื่อแก้ function-count error เดิม
 
