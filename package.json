@@ -6,7 +6,7 @@
     "node": "24.x"
   },
   "scripts": {
-    "test:media": "node --test tests/media-studio.test.cjs tests/media-storage.test.cjs",
+    "test:media": "node --test tests/media-studio.test.cjs tests/media-storage.test.cjs tests/media-host.test.cjs",
     "test:media:browser": "node tests/media-studio-browser.test.cjs",
     "dev:media": "node scripts/media-dev.cjs"
   },

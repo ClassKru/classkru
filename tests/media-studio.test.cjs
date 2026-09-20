@@ -8,9 +8,12 @@ test('server browser retains web/site isolation and receives no AI/database cred
   const {serverLaunchArgs,browserEnvironment}=require('../api/_lib/media-check');
   for(const flag of ['--disable-web-security','--disable-site-isolation-trials','--single-process','--allow-running-insecure-content'])assert.ok(!serverLaunchArgs.includes(flag));
   assert.ok(serverLaunchArgs.includes('--site-per-process'));
-  const key='CLASSKRU_TEST_SECRET',old=process.env[key];process.env[key]='must-not-reach-browser';
-  t.after(()=>{if(old===undefined)delete process.env[key];else process.env[key]=old;});
-  assert.equal(browserEnvironment()[key],undefined);assert.equal(browserEnvironment().OPENROUTER_API_KEY,undefined);assert.equal(browserEnvironment().SUPABASE_SECRET_KEY,undefined);
+  const keys=['CLASSKRU_TEST_SECRET','CLASSKRU_APP_BYPASS_SECRET','VERCEL_AUTOMATION_BYPASS_SECRET'];
+  const old=Object.fromEntries(keys.map(key=>[key,process.env[key]]));
+  for(const key of keys)process.env[key]='must-not-reach-browser';
+  t.after(()=>{for(const key of keys){if(old[key]===undefined)delete process.env[key];else process.env[key]=old[key];}});
+  for(const key of keys)assert.equal(browserEnvironment()[key],undefined);
+  assert.equal(browserEnvironment().OPENROUTER_API_KEY,undefined);assert.equal(browserEnvironment().SUPABASE_SECRET_KEY,undefined);
 });
 test('artifact policy rejects executable markup, external CSS and forbidden APIs',()=>{
   const artifact=validateArtifact(fixture);assert.equal(hash(artifact).length,64);

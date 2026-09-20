@@ -12,7 +12,19 @@
 >
 > สคริปต์ SQL รุ่นเก่าย้ายไป `docs/product/history/202609190001_media_studio.sql` เป็นประวัติ ไม่ต้องรัน ไม่ได้ลบตาราง/bucket จริง ถ้าเคยใช้ SQL pilot มีงานแล้ว ต้องสำรวจและวางแผนโอนก่อนสลับ (รุ่นใหม่ไม่ย้ายงาน SQL อัตโนมัติ)
 >
-> **ยังไม่เปิด Production:** ต้องตั้ง env, ตรวจ Storage policies โดยเฉพาะ direct write/delete ที่ encryption ป้องกันไม่ได้ และสร้าง media Vercel project Root Directory `media-host` ในทีม ClassKru จากนั้นตรวจ AI/Auth จริง เครื่องนี้ CLI เข้าถึงแค่ DOAI ไม่ใช่ `classkru-dev`; พบปลั๊กอิน Supabase/Vercel แต่ยังไม่มีการยืนยันเชื่อมบัญชี จึงไม่อ้างว่า setup เสร็จ
+> **ยังไม่เปิด Media Studio บนเว็บหลัก Production:** ผู้ใช้สร้าง media Vercel project แล้ว (รายละเอียดด้านล่าง); ยังต้องจับคู่ origins, ตรวจ server env/Storage policies โดยเฉพาะ direct write/delete ที่ encryption ป้องกันไม่ได้ และทดสอบ AI/Auth จริง เครื่องนี้ CLI เข้าถึงแค่ DOAI ไม่ใช่ `classkru-dev`; ไม่ deploy ข้ามทีมแทน
+>
+> **20 ก.ย. 2569 — เว็บเปิดสื่อ Deploy ผ่านแล้ว:** โปรเจกต์ `classkru-media` ในทีม `classkru-dev` ใช้ repo `ClassKru/classkru`, branch `feature/media-studio-live`, commit `d91cd65`, Root Directory `media-host`; deployment `DjQ2eCa2N8mhmUMaYjmwNHtyZFcU` success ตรวจ URL `https://classkru-media.vercel.app/` แบบไม่ล็อกอินได้ HTTP 200, title `สื่อการสอน · ClassKru` และมี `player.js`/`player.css` แล้ว ไม่ใช่หน้า login ซ้ำเดิม สาเหตุ error ก่อนหน้าคือช่องว่างนำหน้า Root Directory (`" media-host"`) ซึ่งผู้ใช้แก้แล้ว ไม่ใช่ Git ผิด repo ผู้ใช้ตรวจยืนยันการเชื่อมต่อมาจาก ClassKru
+>
+> **Cloud env ที่ผู้ใช้รายงานว่าตั้งแล้ว (ยังไม่ตรวจค่าลับจริง):** โปรเจกต์หลัก `classkru` / Preview branch `feature/media-studio-live` มี `OPENROUTER_API_KEY`, `MEDIA_STORAGE_KEY`, `MEDIA_STORAGE_BUCKET=classkru-media-preview`; เดิมมี `SUPABASE_SECRET_KEY` ทั้ง Production/Preview ส่วนโปรเจกต์ `classkru-media` / Production ตั้ง `CLASSKRU_APP_ORIGIN=https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app` ตามขั้นตอน ไม่ใส่ AI/Supabase/encryption secrets บน media host
+>
+> **MEDIA_ORIGIN:** ผู้ใช้รายงานว่าตั้ง `MEDIA_ORIGIN=https://classkru-media.vercel.app` ในโปรเจกต์หลักเฉพาะ Preview branch นี้และทำตามขั้นตอน redeploy เรียบร้อยแล้ว ยังไม่ได้ตรวจ runtime env โดยตรงเพราะ app Preview ตอบ 302 ไป `vercel.com`
+>
+> **ผู้ใช้อนุมัติ "เชื่อมต่อเลย" — เพิ่ม server-only automation bypass:** `media-host/api/render.js` รองรับ `CLASSKRU_APP_BYPASS_SECRET` (ต้องสร้างจากโปรเจกต์ `classkru` แล้วตั้ง Type Secret / Production ใน `classkru-media`) ส่ง header เฉพาะ fixed API บน HTTPS `CLASSKRU_APP_ORIGIN`, ไม่มี query/cookie/forward ผู้ใช้/redirect, ไม่ใช้ automatic secret ของ media project, fail closed บน config ไม่ปลอดภัยหรือ upstream สะท้อน secret กุญแจมีขอบเขตผ่าน Vercel ทั้งโปรเจกต์จึงบันทึก threat model และการ revoke ไว้แล้ว ไม่ปิด Protection/ไม่เปิด public domain exception
+>
+> **ผลตรวจ bypass ในเครื่อง:** `npm run test:media` **21 tests ผ่าน** (เดิม 14 + media-host 7 รวม native fetch redirect และ credential leakage); Chromium environment ไม่รับทั้ง bypass secret สองชื่อ; Browser chat/build/resume/preview/review/publish/revoke/mobile/sandbox/network/navigation ผ่าน ไม่เปลี่ยน frontend js/css จึงไม่ต้อง bump asset 485
+>
+> **ขั้นถัดไป:** ส่งโค้ดขึ้น feature branch ให้ Vercel auto-deploy แล้วให้ผู้ใช้สร้าง/ตั้งกุญแจตามคู่มือข้อ 3.1 และ redeploy media project — ยังไม่มีการสร้างหรือเข้าถึงกุญแจจริง ยังต้องตรวจ cloud origins/Storage policies/AI และลิงก์จริง ไม่ merge PR ไม่ถือว่าเชื่อมต่อออนไลน์สำเร็จเพียงเพราะ tests ผ่าน
 >
 > ผลทดสอบในเครื่อง: Media unit/integration **14 tests ผ่าน**, Browser chat/build/resume/preview/review/publish/revoke/mobile + sandbox/network/navigation ผ่าน, Word export/lesson/worksheet **10 tests ผ่าน**, syntax **97 JS/CJS files ผ่าน**, npm audit **0 vulnerabilities** ไม่ใช่การทดสอบ Supabase/AI Production; asset **485** ผ่าน `bump-version.sh`
 >

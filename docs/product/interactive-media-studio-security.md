@@ -8,6 +8,16 @@
 >
 > บันทึกเมื่อ: 19 กันยายน 2569
 
+## การเชื่อม Preview ผ่าน Vercel Protection — เพิ่ม 20 ก.ย. 2569
+
+ผู้ใช้อนุมัติ server-to-server Protection Bypass for Automation โดยคง Vercel Protection ไว้ ไม่เพิ่ม public domain exception โค้ด `media-host/api/render.js` อ่านเฉพาะ `CLASSKRU_APP_BYPASS_SECRET` ของโปรเจกต์หลักจาก server environment และส่งเป็น header ไปยัง HTTPS origin ที่ผู้ดูแลกำหนดใน `CLASSKRU_APP_ORIGIN` + fixed public-media endpoint ไม่รับ URL ปลายทางหรือ credentials จาก request ของผู้เล่น ไม่ตาม redirect ไม่ส่ง bypass cookie และไม่ส่ง secret เข้าเกม/เบราว์เซอร์
+
+**Trust boundary ที่เพิ่ม:** media-host server ถือกุญแจผ่านด่าน Vercel ได้ทั้งโปรเจกต์หลัก ไม่ใช่กุญแจที่ Vercel จำกัดเฉพาะ API สื่อ จึงต้องจำกัดผู้เข้าถึง env, ไม่ตั้งใน Preview ที่ไม่เชื่อถือ, ไม่บันทึกลง log/URL/repository และ revoke เมื่อเลิกใช้หรือรั่ว ไม่ใช้ automatic `VERCEL_AUTOMATION_BYPASS_SECRET` ของ media project ซึ่งเป็นคนละกุญแจ ห้ามนำ AI/Supabase/Storage encryption key มาไว้ที่ media host
+
+มาตรการเดิมยังอยู่: Supabase Auth/ownership บน API ครู, random share capability + review/revoke/hash บน public API และ sandbox/CSP ของเกม กุญแจอัตโนมัติที่ Vercel inject ให้ app server ต้องถูกกรองออกจาก environment ของ Chromium เช่นเดียวกับ secrets อื่น
+
+ชุดทดสอบเพิ่มตรวจ fixed destination/header-only, ไม่ forward request cookies/headers, origin/config validation, native fetch ไม่ตาม redirect, generic errors/no credential reflection และไม่มี bypass secrets ใน Chromium environment **ยังไม่ใช่หลักฐานว่าได้ตั้งกุญแจหรือทดสอบ cloud จริงแล้ว** ขั้นตอนสร้าง/หมุน/เพิกถอนดู [คู่มือติดตั้ง ข้อ 3.1](interactive-media-studio-setup.md#31-เชื่อมเว็บสื่อกับ-preview-ที่มี-vercel-protection)
+
 ## 1. ขอบเขตที่เอกสารนี้ป้องกัน
 
 เอกสารนี้ใช้กับโหมด **AI Custom Studio**: ครูหรือ AI สร้างสื่อเป็น web artifact ใหม่ เช่น HTML, CSS, JavaScript, รูปภาพ และเสียง แล้วเปิดให้ครูหรือนักเรียนใช้ผ่านเว็บ

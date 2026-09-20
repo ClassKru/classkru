@@ -6,9 +6,13 @@
 
 ตามคำขอผู้ใช้ เปลี่ยน Media Studio ให้เก็บ **ไฟล์ JSON เข้ารหัสใน Supabase Storage เดิม โดยไม่สร้างตาราง SQL เพิ่ม** ใช้ Supabase Auth และ OpenRouter เดิม ส่วนข้อมูลเช็กชื่อ/คะแนน/ระบบอื่นไม่ถูกเปลี่ยนวิธีจัดเก็บ
 
-โค้ด commit `6b2c4cb` ส่งขึ้น PR แล้วและ **ผ่านทั้ง CI กับ Vercel Preview** (Actions run `35481707707`, deployment `By1kUEwoDerDd5VJBcTWJxeaZPf5`) แต่ **ยังไม่ยืนยันการใช้งานออนไลน์กับ AI/Supabase จริง** ต้องตั้ง server env, ตรวจ Storage policies และสร้างเว็บเปิดสื่อในทีม ClassKru ก่อน เครื่องนี้ยังไม่มีสิทธิ์ Vercel ทีม `classkru-dev` หรือ Supabase server credentials จึงไม่ deploy ไปบัญชี DOAI แทน
+โค้ด commit `6b2c4cb` ส่งขึ้น PR แล้วและ **ผ่านทั้ง CI กับ Vercel Preview** (Actions run `35481707707`, deployment `By1kUEwoDerDd5VJBcTWJxeaZPf5`) และ head `d91cd65` ผ่าน CI (Actions run `35485063182`) แต่ **ยังไม่ยืนยันการใช้งานออนไลน์กับ AI/Supabase จริง** ยังต้องตรวจ server env, Storage policies และการเชื่อม origins เครื่องนี้ยังไม่มีสิทธิ์ Vercel ทีม `classkru-dev` หรือ Supabase server credentials จึงไม่ deploy ไปบัญชี DOAI แทน
 
-[Preview](https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app) ยังมี Vercel Deployment Protection การเปิดแบบไม่ล็อกอินตอบ 302; ระบบหลักมี 11 Serverless Functions หลังรวม Word export 4 URL ไว้ใน handler เดียวแล้ว ไม่ต้องเพิ่มแพลนเพื่อแก้ function-count error เดิม
+**20 ก.ย. 2569 — เว็บเปิดสื่อแยกพร้อมสำหรับขั้นตอนเชื่อมต่อ:** ผู้ใช้ตั้งโปรเจกต์ `classkru-media` จาก repo เดิม branch `feature/media-studio-live` และแก้ช่องว่างนำหน้า Root Directory ให้เป็น `media-host` แล้ว [deployment `DjQ2eCa2N8mhmUMaYjmwNHtyZFcU`](https://vercel.com/classkru-dev/classkru-media/DjQ2eCa2N8mhmUMaYjmwNHtyZFcU) success; ตรวจ [เว็บเปิดสื่อ](https://classkru-media.vercel.app/) แบบไม่ล็อกอินได้ HTTP 200 พร้อม title/player assets ถูกต้อง ยังไม่ใช่การทดสอบเกมจริง
+
+ผู้ใช้รายงานว่าตั้ง OpenRouter/encryption key และ bucket `classkru-media-preview` ในโปรเจกต์หลักเฉพาะ Preview branch นี้แล้ว (ไม่ได้ตรวจค่าลับ) และตั้ง `CLASSKRU_APP_ORIGIN` ของ media project ให้ชี้ app Preview แล้ว ต่อมาผู้ใช้ยืนยันทำขั้นตอนตั้ง `MEDIA_ORIGIN=https://classkru-media.vercel.app` ในโปรเจกต์หลัก / Preview branch `feature/media-studio-live` และ redeploy เรียบร้อย ยังตรวจ runtime env โดยตรงไม่ได้เพราะ Deployment Protection ต้องตรวจ app origin และแก้ข้อจำกัดการเข้าถึงด้านล่างก่อนทดสอบครบระบบ ห้ามส่งหรือบันทึกค่าลับในเอกสาร
+
+[Preview](https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app) ยังมี Vercel Deployment Protection ทั้งหน้าเว็บและ public API ตอบ 302 ไป `vercel.com` เมื่อไม่ล็อกอิน ผู้ใช้อนุมัติให้เพิ่ม server-only Protection Bypass for Automation แล้ว โค้ดรองรับ `CLASSKRU_APP_BYPASS_SECRET` ตามข้อ 3.1 แต่ **ยังไม่ได้สร้าง/ตั้งกุญแจจริงหรือยืนยันการเชื่อมต่อออนไลน์ผ่านกุญแจ** ไม่ปิด Protection และไม่เปิด domain exception ระบบหลักมี 11 Serverless Functions หลังรวม Word export 4 URL ไว้ใน handler เดียวแล้ว ไม่ต้องเพิ่มแพลนเพื่อแก้ function-count error เดิม
 
 ## ครูใช้งานอย่างไร
 
@@ -88,13 +92,39 @@ node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 
 - Import repository เดิมเป็นอีก Vercel project ในทีม ClassKru
 - Root Directory: `media-host`; Framework: Other; ไม่มี build command
-- ตั้งเพียง `CLASSKRU_APP_ORIGIN`; **ห้ามใส่ AI/Supabase/Storage encryption key ในโปรเจกต์นี้**
+- ตั้ง `CLASSKRU_APP_ORIGIN`; ถ้าเว็บหลักมี Vercel Protection ให้เพิ่มเฉพาะ server-only `CLASSKRU_APP_BYPASS_SECRET` ตามข้อ 3.1 **ห้ามใส่ AI/Supabase/Storage encryption key ในโปรเจกต์นี้**
 - นำ origin `.vercel.app` ที่ได้จริงมาตั้ง `MEDIA_ORIGIN` ในโปรเจกต์หลัก
 - ทดลองลิงก์นักเรียนจากหน้าต่างส่วนตัว ต้องไม่ติด Vercel login
 - Preview ต้องจับคู่ app/media origin และให้ media server เรียก public API หลักได้ ไม่ปิด Deployment Protection โดยเดา
 - wrapper ที่เชื่อถือได้อยู่คนละ origin กับ ClassKru; ตัวเกมอยู่ iframe `sandbox="allow-scripts"` โดยไม่มี `allow-same-origin`
 
 การใช้งานมีโควตาและค่า AI/Storage/compute ตามบัญชี ไม่รับประกันใช้ฟรีเมื่อขยายจำนวนครู
+
+### 3.1 เชื่อมเว็บสื่อกับ Preview ที่มี Vercel Protection
+
+ผู้ใช้อนุมัติวิธีนี้วันที่ 20 ก.ย. 2569: คง Protection ของเว็บหลัก ไม่เปิดทั้ง Preview สู่สาธารณะ กุญแจนี้ให้เซิร์ฟเวอร์ media ผ่านด่าน Vercel เท่านั้น ไม่แทน Supabase Auth ของครูหรือ share token/review/revoke ของสื่อ
+
+1. โปรเจกต์ **`classkru`** → Deployment Protection → **Protection Bypass for Automation** → สร้าง secret ใหม่สำหรับ media host (ถ้าตั้งชื่อได้ใช้ `classkru-media-preview`) ไม่ใช้ OpenRouter key, Supabase key หรือ encryption key
+2. คัดลอกค่าไปเก็บใน password manager และตั้งในโปรเจกต์ **`classkru-media`** → Environment Variables:
+   - Type: **Secret**
+   - Key: **`CLASSKRU_APP_BYPASS_SECRET`**
+   - Value: ค่า secret จาก **โปรเจกต์หลัก** ในข้อ 1
+   - Environment: **Production** ของ media project ซึ่งกำลังใช้ branch `feature/media-studio-live`; ไม่แชร์ให้ Preview branches อื่นโดยไม่จำเป็น
+3. ตรวจ `CLASSKRU_APP_ORIGIN` ใน media project / Production ให้เป็น `https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app` เท่านั้น ไม่มี path/query/fragment ต้อง HTTPS เมื่อมีกุญแจ
+4. Redeploy **classkru-media** จาก branch นี้หลังตั้ง env แล้ว รอ Ready จากนั้นเปิดสื่อด้วยลิงก์ที่ครูสร้างจริงจาก Preview
+5. ครูเปิดหน้า Preview โดยล็อกอิน Vercel ตามปกติ แล้วล็อกอิน ClassKru นักเรียนใช้ลิงก์บน media domain โดยไม่ต้องได้รับ bypass secret
+
+ข้อจำกัดและการรักษาความลับ:
+
+- กุญแจมีสิทธิ์ผ่าน Deployment Protection **ทุก deployment ของโปรเจกต์หลัก** ไม่ได้จำกัดเฉพาะ API สื่อโดย Vercel; โค้ดของเราใช้เฉพาะ origin ที่ตั้งฝั่งเซิร์ฟเวอร์และ path `/api/media-studio/public` เท่านั้น
+- ส่งเป็น header `x-vercel-protection-bypass` ระหว่างเซิร์ฟเวอร์ ไม่ใส่ URL, HTML, CSP, localStorage, browser config, log หรือรูปที่ส่งในแชท ไม่ส่ง `x-vercel-set-bypass-cookie` และไม่ forward cookie/header ของผู้ใช้
+- ไม่ใช้ `VERCEL_AUTOMATION_BYPASS_SECRET` ของ media project เพราะเป็นกุญแจคนละโปรเจกต์ กุญแจที่ Vercel อาจ inject ให้ app server ต้องไม่ไปถึง Chromium (มี environment allowlist และ regression test)
+- ไม่ตาม redirect; configuration ไม่ปลอดภัย/กุญแจมี whitespace/upstream ผิดพลาด/สะท้อนกุญแจกลับมาต้อง fail closed แบบข้อความทั่วไป ไม่มี retry อัตโนมัติ
+- เมื่อต้องเปลี่ยนกุญแจ ให้สร้างตัวใหม่ในโปรเจกต์หลัก ตั้งแทนใน media project และ redeploy/ตรวจสื่อก่อนเพิกถอนตัวเก่า หากกุญแจรั่วให้ revoke ทันที ยอมให้สื่อเปิดไม่ได้ชั่วคราวจนเปลี่ยนสำเร็จ
+- เมื่อย้ายไป origin Production ที่ไม่ติด Protection ให้เปลี่ยน app origin และเอา bypass secret ออกจาก media project/redeploy แล้ว revoke กุญแจที่เลิกใช้ ไม่จำเป็นต้องปิด Protection ทั้งโปรเจกต์
+- หาก UI เสนอ upgrade/ค่าใช้จ่าย ให้หยุดก่อน ไม่กดซื้ออัตโนมัติ
+
+อ้างอิง: [Vercel Protection Bypass for Automation](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation) (ตรวจเอกสารฉบับ 16 ก.ย. 2569)
 
 ### 4. ตรวจรับก่อน merge/เปิดใช้
 
@@ -147,6 +177,8 @@ npm.cmd run test:media:browser
 ```
 
 Unit/integration ใช้ตัวจำลอง HTTP ของ Storage ผ่าน REST adapter และ encryption จริง ตรวจ owner isolation, quotas, concurrent leases, idempotency, timeouts, archive/revoke/hash และ Auth API ส่วน browser ใช้สอง HTTP origins กับ AI fixture ตรวจ UI และ sandbox ทั้งหมดนี้ **ไม่ใช่ผลทดสอบ Supabase/AI Production**
+
+เพิ่ม `tests/media-host.test.cjs` ใน `npm run test:media`/CI: รวม **21 tests ผ่าน** ตรวจการส่งกุญแจเฉพาะ fixed endpoint, ไม่ forward credentials ของผู้ใช้, ปฏิเสธ origin/config ไม่ปลอดภัย, ไม่มี secret ใน response, fail closed บน upstream error/credential reflection และทดสอบ native fetch กับ HTTP redirect fixture ว่าไม่ส่งต่อกุญแจไปปลายทาง Browser QA เดิมผ่านด้วย local HTTP ที่ไม่มีกุญแจ
 
 ทดสอบ API จริงโดยคัดลอก `.env.example` เป็น `.env.local` และใส่ค่าฝั่งเซิร์ฟเวอร์เฉพาะในเครื่อง:
 
