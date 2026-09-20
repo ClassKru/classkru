@@ -1,24 +1,26 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 19 กันยายน 2569
+> อัปเดตล่าสุด: 20 กันยายน 2569
 >
-> **งานที่กำลังส่งตรวจ: AI Interactive Media Studio** — branch `feature/media-studio-live` จาก `origin/main` commit `687a617`; asset ใหม่ **484** ผ่าน `bump-version.sh` (เลขสูงสุดเดิมในทุกหน้า 483); workspace `C:\Users\USER\ClassKru\_worktrees\media-studio-live` แยกจากงานค้าง/ต้นแบบในโฟลเดอร์หลัก ห้ามเอาโค้ดต้นแบบใน worktree หลักมา push ทับงาน GitHub ล่าสุด
+> **งานที่กำลังส่งตรวจ: AI Interactive Media Studio — Storage-only JSON** บน `feature/media-studio-live`, [PR #75](https://github.com/ClassKru/classkru/pull/75), workspace `C:\Users\USER\ClassKru\_worktrees\media-studio-live` เท่านั้น ห้าม push ต้นแบบ/งานอื่นที่ค้างในโฟลเดอร์หลักทับ branch นี้
 >
-> ทำ chat → plan → freeform HTML/CSS/JS → browser check → private storage/version → isolated preview → publish/revoke/archive โดยใช้บัญชี Supabase เดิมและ **OpenRouter key เดิม** เป็นลำดับแรก คู่มือสถานะจริง/ตั้งค่า/ข้อจำกัด: [`docs/product/interactive-media-studio-setup.md`](docs/product/interactive-media-studio-setup.md)
+> ผู้ใช้ขอเก็บใน Supabase เดิมแต่ไม่เพิ่มตาราง SQL จึงเปลี่ยน jobs/turns/plans/versions/links/quotas เป็นไฟล์ JSON เข้ารหัส AES-256-GCM ใน private bucket `classkru-media-files` สร้าง bucket อัตโนมัติเมื่อสร้างงานแรก ใช้ Auth/OpenRouter เดิม ไม่แตะข้อมูลเช็กชื่อ/คะแนน
 >
-> **ยังไม่เปิด Production:** ต้องติดตั้ง migration `202609190001_media_studio.sql`, ตั้ง server env และสร้าง Vercel media project Root Directory `media-host` ในทีม ClassKru แล้วตรวจด้วยบัญชี/AI จริง เครื่องนี้เห็น Vercel ทีม DOAI เท่านั้น จึงไม่ deploy ข้ามทีม; ห้ามอ้างว่า merge/push อย่างเดียวทำให้ระบบครบพร้อมใช้ คิวรุ่นนี้ยังอาศัยหน้าที่เปิดเพื่อเริ่มงาน ไม่มี scheduler อิสระ
+> ต้องตั้ง `MEDIA_STORAGE_KEY` เป็น random 32 bytes hex (64 ตัว) และสำรองอย่างปลอดภัย เพิ่มจาก Supabase server key/AI/origin ที่ต้องตั้งอยู่แล้ว ทุก instance ที่ใช้ bucket เดียวต้องใช้ key เดียว ห้ามสุ่มเปลี่ยน key หลังมีงาน; ยังไม่มี rotation/migration tool
 >
-> ผลทดสอบ: SQL/RLS/Storage/queue/provider/public capability ผ่านในเครื่อง; browser fixture ผ่าน chat/build/resume/preview/review/publish/revoke/mobile และ sandbox/network/navigation isolation ไม่ใช่ end-to-end กับ AI/Supabase Production
+> ทุก write สร้างไฟล์ใหม่ exclusive upload ไม่ overwrite/delete; leases เป็น append-only sequence + release marker กัน stale release, สูงสุด 2 workers ทั้งระบบ/ครูละ 1, 3 pending, 40 คำขอต่อวันปฏิทินไทย, 100 projects, 30 versions, preview/published link ชนิดละ 200 ต่องาน มี immutable claim ไม่ retry AI ซ้ำโดยอัตโนมัติ ผลลัพธ์+คำตอบ AI commit ใน JSON ไฟล์เดียว; orphan files ไม่ถูกลบทิ้ง
 >
-> สำหรับงานนี้ยึด `CLAUDE.md`: feature → PR → ผู้ใช้ merge → Vercel auto-deploy ไม่ใช้ workflow push `HEAD:main` เก่าที่บันทึกในหัวข้อ 5/6 ด้านล่าง
+> สคริปต์ SQL รุ่นเก่าย้ายไป `docs/product/history/202609190001_media_studio.sql` เป็นประวัติ ไม่ต้องรัน ไม่ได้ลบตาราง/bucket จริง ถ้าเคยใช้ SQL pilot มีงานแล้ว ต้องสำรวจและวางแผนโอนก่อนสลับ (รุ่นใหม่ไม่ย้ายงาน SQL อัตโนมัติ)
 >
-> ส่งขึ้น Git แล้ว: [PR #75](https://github.com/ClassKru/classkru/pull/75), initial commit `899803b`; โค้ดล่าสุด `1029671` **CI ผ่านครบ** บน Linux รวม browser integration และ unit/security 8 tests หลังแก้ Chromium ESM loader และไม่ใช้ค่า default ที่ปิด web/site isolation; Chromium process ไม่ได้รับ AI/DB secret ผ่าน environment ยังไม่ merge
+> **ยังไม่เปิด Production:** ต้องตั้ง env, ตรวจ Storage policies โดยเฉพาะ direct write/delete ที่ encryption ป้องกันไม่ได้ และสร้าง media Vercel project Root Directory `media-host` ในทีม ClassKru จากนั้นตรวจ AI/Auth จริง เครื่องนี้ CLI เข้าถึงแค่ DOAI ไม่ใช่ `classkru-dev`; พบปลั๊กอิน Supabase/Vercel แต่ยังไม่มีการยืนยันเชื่อมบัญชี จึงไม่อ้างว่า setup เสร็จ
 >
-> **แก้ Vercel สำเร็จแล้ว:** commit `21e512e` ผ่านทั้ง CI และ Vercel Preview (`dpl_4imDx4P5JoeiHCXR164o8QvqMnAa`) หลังรวม API ส่งออก Word 4 แบบไว้ที่ `api/exports/index.js` และย้าย implementation เดิมไป `api/_lib/exports/` ใช้ rewrite คง URL เดิม จำนวนฟังก์ชันหลักเหลือ **11/12**; export routing/auth/Word regression 10 tests ผ่านและมี guard ใน CI ไม่ต้องเปลี่ยนแพลนเพื่อแก้ function-count error
+> ผลทดสอบในเครื่อง: Media unit/integration **14 tests ผ่าน**, Browser chat/build/resume/preview/review/publish/revoke/mobile + sandbox/network/navigation ผ่าน, Word export/lesson/worksheet **10 tests ผ่าน**, syntax **97 JS/CJS files ผ่าน**, npm audit **0 vulnerabilities** ไม่ใช่การทดสอบ Supabase/AI Production; asset **485** ผ่าน `bump-version.sh`
 >
-> Preview: `https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app` — ตรวจ HTTP แล้วหน้าเว็บและ API ตอบ 302 ไป Vercel Authentication จึงยังตรวจ runtime ออนไลน์หลังล็อกอินไม่ได้ ไม่ได้ปิด Deployment Protection และยังไม่ได้ merge PR
+> เดิม commit `21e512e` ผ่าน CI + Vercel Preview หลังรวม Word APIs เหลือ **11/12 functions** ปัจจุบันยังคง 11 functions; การเปลี่ยน Storage-only ต้องตรวจ CI/deployment ของ commit ใหม่หลัง push ไม่ใช้ผลเดิมแทน
 >
-> บัญชี CLI ยังไม่มีสิทธิ์ทีม `classkru-dev` (`The specified scope does not exist`) การตั้ง environment variables, ติดตั้ง Supabase migration และสร้าง media project ยังต้องเข้าบัญชี ClassKru ที่มีสิทธิ์
+> [Preview](https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app) ยังมี Deployment Protection (302 เมื่อไม่ล็อกอิน) ยังไม่ merge PR คู่มือตั้งค่า/ข้อจำกัด/โครงสร้างไฟล์: [interactive-media-studio-setup.md](docs/product/interactive-media-studio-setup.md)
+>
+> สำหรับงานนี้ยึด `CLAUDE.md`: feature → PR → ผู้ใช้ merge → Vercel auto-deploy ไม่ใช้ workflow push `HEAD:main` เก่าด้านล่าง; ไม่มี scheduler อิสระ ต้องเปิดงานเพื่อเริ่ม queued; polling ตรวจสถานะทุก 5 วินาที ไม่โหลดประวัติเต็มซ้ำขณะสถานะคงเดิม
 >
 > เวอร์ชันล่าสุด: เพิ่มพื้นฐานระบบสมาชิก/การชำระเงินแบบโหมดทดสอบ, หน้าสมาชิกในแอป, แท็บสมาชิกสำหรับผู้ดูแล และรายงานการขายเงินแบบอ่านอย่างเดียว; migration `202609170001_membership_billing_foundation.sql` รันบน Supabase Production สำเร็จแล้ว; commits `4e8c129`, `e16ca4f`, `ba93ff2` push ขึ้น `main` แล้วเพื่อให้ Vercel deploy; asset version `463`
 >

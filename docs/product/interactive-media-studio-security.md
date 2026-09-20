@@ -1,6 +1,8 @@
 # Interactive Media Studio — แนวทางความปลอดภัยสำหรับสื่อที่ AI สร้าง
 
-> สถานะ: แนวทางความปลอดภัยและ roadmap; implementation ปัจจุบันดู [คู่มือติดตั้ง](interactive-media-studio-setup.md) โดยใช้ private bucket เดียว `media-bundles` แม้เผยแพร่แล้ว ไม่มี public bucket/ไฟล์แนบ/Source Pack ตามข้อเสนอขยายด้านล่าง และยังไม่อ้างว่าทำมาตรการในเอกสารนี้ครบทุกข้อ
+> สถานะ 20 ก.ย. 2569: implementation ปัจจุบันดู [คู่มือติดตั้ง](interactive-media-studio-setup.md) ใช้ไฟล์ JSON เข้ารหัสใน private bucket `classkru-media-files` ไม่สร้างตาราง media SQL เพิ่ม ส่วนแบบตารางด้านล่างเป็นประวัติ/roadmap ไม่ใช่วิธีติดตั้งปัจจุบัน ไม่มี public bucket/ไฟล์แนบ/Source Pack และยังไม่อ้างว่าทำมาตรการในเอกสารนี้ครบทุกข้อ
+>
+> ข้อควรระวังของแบบไฟล์: ต้องสำรอง `MEDIA_STORAGE_KEY`; encryption ไม่แทน Storage access control และไม่ป้องกันการลบ/replay journal โดยผู้มีสิทธิ์ ต้องตรวจ deny direct writes/delete ก่อนเปิดใช้ ไม่มี cleanup/rotation อัตโนมัติ ห้ามลบ lease/revoke history เอง รุ่นนี้จำกัด pilot จนกว่าจะผ่าน cloud permission/load tests และแยก worker รันโค้ดไม่เชื่อถือ
 >
 > เอกสารที่เกี่ยวข้อง: [แนวคิดผลิตภัณฑ์](interactive-media-studio.md) · [MVP spec](interactive-media-studio-mvp-spec.md)
 >

@@ -17,32 +17,29 @@ module.exports = async function handler(req,res) {
     let result;
     if (req.method==='GET' && action==='config') {
       let origin = null; try {origin=service.mediaOrigin();} catch (_) { /* report readiness only */ }
-      result={ai:configured(),storage:!!(process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY),media_origin:origin};
+      result={ai:configured(),storage:db.configured(),media_origin:origin};
     } else if (req.method==='GET' && action==='list') {
-      result={projects:await db.rows('media_projects',{teacher_id:`eq.${teacher.id}`,archived:req.query.archived==='true'?'eq.true':'eq.false',order:'updated_at.desc',limit:100,select:'id,title,context,archived,updated_at'})};
+      result={projects:await service.list(teacher.id,req.query.archived==='true')};
     } else if (req.method==='GET' && action==='get') result=await service.state(teacher.id,req.query.id);
+    else if (req.method==='GET' && action==='jobs') result=await service.jobStatus(teacher.id,req.query.id);
     else if (req.method==='POST' && action==='create') {
-      result={project:await db.rpc('media_create_project',{p_teacher:teacher.id,p_title:service.text(body.title,120)||'สื่อใหม่',p_context:service.context(body.context)})};
+      result={project:await service.create(teacher.id,body.title,body.context)};
     } else if (req.method==='POST' && action==='enqueue') {
       if (!configured()) throw db.fail('ai_not_configured',503);
       if (!['plan','build'].includes(body.kind)) throw db.fail('invalid_kind');
       if (body.kind==='build') service.mediaOrigin();
       const message=service.text(body.message,6000);
       if (message.length<3) throw db.fail('invalid_message');
-      const job=await db.rpc('media_enqueue',{p_teacher:teacher.id,p_project:service.id(body.project_id),p_kind:body.kind,p_message:message,p_key:service.id(body.request_key)});
-      result={job:service.safeJob(job)};
-    } else if (req.method==='POST' && action==='run') result=await service.run(teacher.id,body.job_id);
+      result={job:await service.enqueue(teacher.id,body.project_id,body.kind,message,body.request_key)};
+    } else if (req.method==='POST' && action==='run') result=await service.run(teacher.id,body.project_id,body.job_id);
     else if (req.method==='POST' && ['preview','publish'].includes(action)) {
       if (action==='publish' && body.reviewed!==true) throw db.fail('review_required');
-      result=await service.issueLink(teacher.id,body.version_id,action==='publish'?'published':'preview');
+      result=await service.issueLink(teacher.id,body.project_id,body.version_id,action==='publish'?'published':'preview');
     } else if (req.method==='POST' && action==='revoke') {
-      const link=await db.owned('media_links',service.id(body.link_id),teacher.id);
-      await db.patch('media_links',{id:`eq.${link.id}`,teacher_id:`eq.${teacher.id}`},{revoked_at:new Date().toISOString()});
-      await db.insert('media_events',{teacher_id:teacher.id,project_id:link.project_id,version_id:link.version_id,action:'revoke'});
-      result={ok:true};
+      result={ok:await service.revoke(teacher.id,body.project_id,body.link_id)};
     } else if (req.method==='POST' && action==='archive') {
       if (typeof body.archived!=='boolean') throw db.fail('invalid_archive');
-      result={ok:await db.rpc('media_archive',{p_teacher:teacher.id,p_project:service.id(body.project_id),p_archived:body.archived})};
+      result={ok:await service.archive(teacher.id,body.project_id,body.archived)};
     } else throw db.fail('unknown_action');
     return sendJson(res,200,result);
   } catch(error) {

@@ -1,6 +1,6 @@
 # Interactive Media Studio — ข้อเสนอออกแบบ MVP
 
-> สถานะ: ข้อเสนอ MVP เดิมแบบ template เก็บไว้เป็นประวัติ ต่อมาผู้ใช้เลือกสร้างสื่ออิสระ; สิ่งที่ทำจริงดู [คู่มือติดตั้ง](interactive-media-studio-setup.md) ไม่ได้เริ่มจาก matching template ตามข้อเสนอเดิมด้านล่าง
+> สถานะ: ข้อเสนอ MVP เดิมแบบ template/SQL เก็บไว้เป็นประวัติ ต่อมาผู้ใช้เลือกสร้างสื่ออิสระและไฟล์ JSON ใน Supabase Storage โดยไม่เพิ่มตาราง media SQL; สิ่งที่ทำจริงดู [คู่มือติดตั้ง](interactive-media-studio-setup.md) ไม่ได้เริ่มจาก matching template ตามข้อเสนอเดิมด้านล่าง
 >
 > เอกสารต้นทาง: [Interactive Media Studio](interactive-media-studio.md)
 >

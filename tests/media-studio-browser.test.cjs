@@ -14,11 +14,13 @@ async function mockApi(req,res){
   assert.equal(req.headers.authorization,'Bearer test-session');
   const body=typeof req.body==='string'?JSON.parse(req.body):req.body||{};
   const action=req.method==='GET'?req.query.action:body.action;
+  if(['enqueue','run','preview','publish','revoke','archive'].includes(action))assert.equal(body.project_id,projectId);
   let data;
   if(action==='config')data={ai:true,storage:true,media_origin:mediaOrigin};
   else if(action==='list')data={projects:exists?[{...current.project,updated_at:new Date().toISOString()}]:[]};
   else if(action==='create'){exists=true;data={project:current.project};}
   else if(action==='get')data=current;
+  else if(action==='jobs')data={jobs:current.jobs};
   else if(action==='enqueue'){
     current.turns.push({role:'teacher',message:body.message});current.jobs=[{id:jobId,status:'queued',kind:body.kind}];data={job:current.jobs[0]};
   }else if(action==='run'){

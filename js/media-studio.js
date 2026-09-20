@@ -8,7 +8,7 @@
   const $=id=>document.getElementById(`ms-${id}`);
   const errors={
     authentication_required:'กรุณาเข้าสู่ระบบก่อนใช้คลังสื่อ',invalid_session:'หมดเวลาเข้าสู่ระบบ กรุณาล็อกอินใหม่',
-    ai_not_configured:'ยังไม่ได้เปิดบริการ AI กรุณาติดต่อผู้ดูแล',storage_not_configured:'ยังไม่ได้เชื่อมพื้นที่บันทึกสื่อ กรุณาติดต่อผู้ดูแล',migration_required:'ฐานข้อมูลคลังสื่อยังไม่พร้อม กรุณาติดต่อผู้ดูแล',
+    ai_not_configured:'ยังไม่ได้เปิดบริการ AI กรุณาติดต่อผู้ดูแล',storage_not_configured:'พื้นที่เก็บสื่อหรือกุญแจเข้ารหัสยังไม่พร้อม กรุณาติดต่อผู้ดูแล',storage_bucket_unsafe:'พื้นที่เก็บสื่อต้องเป็นส่วนตัว กรุณาติดต่อผู้ดูแล',storage_integrity_failed:'ตรวจสอบไฟล์ไม่ผ่าน กรุณาติดต่อผู้ดูแล',storage_unavailable:'ติดต่อพื้นที่เก็บไฟล์ไม่สำเร็จ กรุณาลองใหม่',workspace_busy:'บัญชีนี้กำลังบันทึกงาน กรุณารอสักครู่แล้วลองใหม่',request_conflict:'คำขอนี้ถูกใช้แล้ว กรุณาส่งใหม่',link_limit:'งานนี้สร้างลิงก์ครบขีดจำกัดแล้ว กรุณาติดต่อผู้ดูแล',
     media_host_not_configured:'ยังไม่ได้ตั้งเว็บเปิดสื่อ กรุณาติดต่อผู้ดูแล',invalid_media_origin:'การตั้งค่าเว็บเปิดสื่อไม่ถูกต้อง',
     daily_limit:'วันนี้ใช้โควตาสร้างและคุยกับ AI ครบแล้ว ลองใหม่ภายหลัง',project_limit:'คลังมีครบ 100 งานแล้ว',version_limit:'งานนี้มีครบ 30 เวอร์ชันแล้ว',
     project_busy:'งานนี้กำลังประมวลผล กรุณารอให้เสร็จก่อน',queue_limit:'มีงานรออยู่หลายงาน กรุณารอก่อน',
@@ -87,12 +87,24 @@
     clearTimeout(poll);
     const active=data.jobs.filter(j=>['queued','running'].includes(j.status));
     for (const job of active.filter(j=>j.status==='queued')) processJob(job.id,projectId);
-    if(active.length)poll=setTimeout(()=>load(projectId).catch(e=>notice(errorText(e),true)),2500);
+    if(active.length)poll=setTimeout(()=>pollJobs(projectId),5000);
+  }
+  async function pollJobs(projectId) {
+    const stamp=epoch;
+    try {
+      const data=await api('jobs',{id:projectId},true);
+      if(!root||selected!==projectId||stamp!==epoch)return;
+      if(JSON.stringify(data.jobs)!==JSON.stringify(snapshot?.jobs))return await load(projectId);
+      for(const job of data.jobs.filter(j=>j.status==='queued'))processJob(job.id,projectId);
+      if(data.jobs.some(j=>['queued','running'].includes(j.status)))poll=setTimeout(()=>pollJobs(projectId),5000);
+    } catch(e) {
+      if(root&&selected===projectId&&stamp===epoch){notice(errorText(e),true);poll=setTimeout(()=>pollJobs(projectId),10000);}
+    }
   }
   function processJob(jobId,projectId) {
     if(running.has(jobId))return;
     running.add(jobId);
-    api('run',{job_id:jobId}).then(()=>{if(root&&selected===projectId)return load(projectId,true);}).catch(e=>{if(root)notice(errorText(e),true);}).finally(()=>running.delete(jobId));
+    api('run',{project_id:projectId,job_id:jobId}).then(result=>{if(result.started&&root&&selected===projectId)return load(projectId,true);}).catch(e=>{if(root)notice(errorText(e),true);}).finally(()=>running.delete(jobId));
   }
   async function choose(projectId) {
     epoch++;clearTimeout(poll);closePreview();selected=projectId;selectedVersion=null;snapshot=null;$('review').checked=false;
@@ -113,7 +125,7 @@
     finally {busy=false;if(root)controls();}
   }
   async function previewMedia() {
-    const link=await api('preview',{version_id:selectedVersion});
+    const link=await api('preview',{project_id:selected,version_id:selectedVersion});
     if(!root)return;
     const url=new URL(link.url);
     if(url.origin!==config.media_origin)throw new Error('เว็บเปิดสื่อไม่ตรงกับการตั้งค่า');
@@ -131,13 +143,13 @@
       if(button.dataset.project)return await choose(button.dataset.project);
       if(button.dataset.question){$('input').value=button.dataset.question;$('input').focus();return;}
       if(button.dataset.copy){await navigator.clipboard.writeText(button.dataset.copy);notice('คัดลอกลิงก์แล้ว');return;}
-      if(button.dataset.revoke){await api('revoke',{link_id:button.dataset.revoke});await load(selected);notice('ปิดลิงก์แล้ว ผู้เปิดครั้งถัดไปจะเข้าไม่ได้');return;}
+      if(button.dataset.revoke){await api('revoke',{project_id:selected,link_id:button.dataset.revoke});await load(selected);notice('ปิดลิงก์แล้ว ผู้เปิดครั้งถัดไปจะเข้าไม่ได้');return;}
       switch(button.id){
         case 'ms-close':close();break;
         case 'ms-new':epoch++;clearTimeout(poll);closePreview();selected=null;selectedVersion=null;snapshot=null;renderState({project:{title:'สื่อใหม่'},turns:[],versions:[],jobs:[],links:[]});await list();$('input').focus();break;
         case 'ms-build':await send('build');break;
         case 'ms-preview':await previewMedia();break;
-        case 'ms-publish':{if(!$('review').checked)return;const result=await api('publish',{version_id:selectedVersion,reviewed:true});await load(selected);notice('เผยแพร่แล้ว คัดลอกลิงก์ด้านล่างส่งให้นักเรียนได้');break;}
+        case 'ms-publish':{if(!$('review').checked)return;const result=await api('publish',{project_id:selected,version_id:selectedVersion,reviewed:true});await load(selected);notice('เผยแพร่แล้ว คัดลอกลิงก์ด้านล่างส่งให้นักเรียนได้');break;}
         case 'ms-archive':{const archived=!snapshot.project.archived;if(archived&&!confirm('เก็บงานนี้เข้ากรุและปิดลิงก์ที่แชร์ทั้งหมด? คุณนำงานกลับมาได้'))return;await api('archive',{project_id:selected,archived});await load(selected);await list();break;}
       }
     }catch(e){notice(errorText(e),true);}

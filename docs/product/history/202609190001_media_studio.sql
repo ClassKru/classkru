@@ -1,3 +1,6 @@
+-- HISTORICAL ONLY. Do not run for the Storage-only Media Studio (20 Sep 2026).
+-- Retained for reviewing/servicing any earlier SQL-based pilot installation.
+-- No existing cloud table or object is removed by the Storage-only release.
 -- Media Studio: server writes only; owner-scoped reads; atomic queue/quotas.
 begin;
 create table public.media_projects (
