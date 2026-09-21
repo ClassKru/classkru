@@ -100,7 +100,7 @@ const APP_NAVIGATION = [
   { id: 'dashboard', label: 'หน้าหลัก', mobileLabel: 'หน้าหลัก', icon: 'hgi-home-01', screens: ['dashboard'], desktopOrder: 1, mobileOrder: 1 },
   { id: 'classrooms', label: 'ห้องเรียนของฉัน', mobileLabel: 'ห้องเรียน', icon: 'hgi-school', screens: ['classrooms', 'students', 'scores', 'reports'], desktopScreens: ['classrooms', 'students', 'scores', 'reports', 'checkin'], desktopOrder: 2, mobileOrder: 5 },
   { id: 'timetable', label: 'ตารางสอน', mobileLabel: 'ตารางสอน', icon: 'hgi-calendar-03', screens: ['timetable'], desktopOrder: 3, mobileOrder: 2 },
-  { id: 'library', label: 'คลังสื่อการสอน', mobileLabel: 'คลังสื่อ', icon: 'hgi-book-02', screens: ['library'], desktopOrder: 4, moreOrder: 1 },
+  { id: 'library', label: 'AI ช่วยสร้างสื่อ', mobileLabel: 'AI ช่วยสร้างสื่อ', icon: 'hgi-book-02', screens: ['library'], desktopOrder: 4, moreOrder: 1 },
   { id: 'checkin', label: 'เช็คชื่อ', mobileLabel: 'เช็คชื่อ', icon: 'hgi-task-done-01', screens: ['checkin'], mobileOrder: 3, className: 'checkin-btn', action: 'mobileCheckinTap()' },
   { id: 'tools', label: 'เครื่องมือช่วยสอน', mobileLabel: 'เครื่องมือ', icon: 'hgi-magic-wand-01', screens: ['tools'], desktopOrder: 7, moreOrder: 3 },
   { id: 'qr-score', label: 'กรอกคะแนนด้วย QR', mobileLabel: 'QR คะแนน', icon: 'hgi-qr-code', screens: [], desktopOrder: 6, mobileOrder: 4, className: 'qr-score-mobile-nav', action: 'openQrScoreScanner()' },
