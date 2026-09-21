@@ -169,6 +169,8 @@
 .cl-form-note { margin:0 0 18px; color:var(--text-muted); font-size:.86rem; }
 .cl-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .cl-field { display:flex; flex-direction:column; gap:7px; min-width:0; font-size:.82rem; font-weight:800; color:var(--text-secondary); }
+.cl-indicator-field-label { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:.35em; }
+.cl-indicator-selection-note { color:var(--text-muted); font-size:inherit; font-weight:600; }
 .cl-field select,.cl-field input,.cl-field textarea { width:100%; box-sizing:border-box; }
 .cl-field textarea { min-height:126px; resize:vertical; line-height:1.55; }
 .cl-field.full { grid-column:1 / -1; }
