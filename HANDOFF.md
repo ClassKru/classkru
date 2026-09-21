@@ -24,7 +24,11 @@
 >
 > **ผลตรวจ bypass ในเครื่อง:** `npm run test:media` **21 tests ผ่าน** (เดิม 14 + media-host 7 รวม native fetch redirect และ credential leakage); Chromium environment ไม่รับทั้ง bypass secret สองชื่อ; Browser chat/build/resume/preview/review/publish/revoke/mobile/sandbox/network/navigation ผ่าน ไม่เปลี่ยน frontend js/css จึงไม่ต้อง bump asset 485
 >
-> **ขั้นถัดไป:** ส่งโค้ดขึ้น feature branch ให้ Vercel auto-deploy แล้วให้ผู้ใช้สร้าง/ตั้งกุญแจตามคู่มือข้อ 3.1 และ redeploy media project — ยังไม่มีการสร้างหรือเข้าถึงกุญแจจริง ยังต้องตรวจ cloud origins/Storage policies/AI และลิงก์จริง ไม่ merge PR ไม่ถือว่าเชื่อมต่อออนไลน์สำเร็จเพียงเพราะ tests ผ่าน
+> **ส่งขึ้น Git และ Deploy bypass แล้ว:** commit `093c11b` บน `feature/media-studio-live` / PR #75 ผ่าน CI run `35498260707`, Vercel `classkru-media` deployment `FUraJNt3xwFr5ubFUrsgdbHYpSWc` และ `classkru` deployment `A8p1bASmKrqe4Xt7K3Ds74382A4P` success ทั้งคู่ ไม่มีการ merge main
+>
+> **21 ก.ย. 2569 — ผู้ใช้ตั้ง bypass secret และ redeploy แล้ว:** Vercel `classkru-media` deployment `9LHcwgYvp79oCmieboZMZbmR68b5` success ทดสอบภายนอกแบบไม่ใช้/ไม่แสดง secret ด้วย `GET https://classkru-media.vercel.app/api/render?token=<64hexจำลอง>` + `sec-fetch-dest: iframe` ได้ HTTP **404** และข้อความ generic (ไม่ redirect/ไม่ใช่ 503) ซึ่งยืนยันว่า media host ผ่าน Vercel Protection ไปถึง public API ของ `classkru` แล้ว แต่ token ไม่มีอยู่จริงจึงถูกปฏิเสธตามออกแบบ
+>
+> **ขั้นถัดไป:** ครูล็อกอิน ClassKru Preview แล้วทดสอบสร้างสื่อจริงผ่าน AI → review → publish → เปิดลิงก์จากหน้าต่างส่วนตัว/มือถือ ตรวจว่า link เปิดจริงและ revoke แล้วเป็น 404; จากนั้นตรวจ Supabase Storage policies สองบัญชี/AI usage ก่อน merge PR ยังไม่ได้ทดสอบ AI/Storage cloud หรือมีสื่อ/link จริง ไม่ถือว่าเปิด Production
 >
 > ผลทดสอบในเครื่อง: Media unit/integration **14 tests ผ่าน**, Browser chat/build/resume/preview/review/publish/revoke/mobile + sandbox/network/navigation ผ่าน, Word export/lesson/worksheet **10 tests ผ่าน**, syntax **97 JS/CJS files ผ่าน**, npm audit **0 vulnerabilities** ไม่ใช่การทดสอบ Supabase/AI Production; asset **485** ผ่าน `bump-version.sh`
 >
