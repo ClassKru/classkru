@@ -58,8 +58,10 @@ async function main(){
     assert.match(await page.$eval('#ms-conversation',el=>el.textContent),/รางรถไฟพลังงาน/);
     assert.match(await page.$eval('#ms-plan',el=>el.textContent),/ความสูง · มวล · แรงเสียดทาน/);
     assert.equal(await page.$eval('#ms-build',el=>el.disabled),true);
-    await page.type('#ms-input','อยากสร้างเกมพลังงานศักย์และพลังงานจลน์');await page.click('#ms-send');
+    await page.click('[data-starter-question]');
     await page.waitForFunction(()=>document.getElementById('ms-plan').textContent.includes('ความสูงลด'));
+    assert.match(current.turns[0].message,/พลังงานศักย์/);
+    assert.match(await page.$eval('#ms-conversation',el=>el.textContent),/ให้เด็กปรับความสูงและสังเกตความเร็ว/);
     await page.click('#ms-build');await page.waitForFunction(()=>!document.getElementById('ms-preview').disabled);
     assert.equal(await page.$eval('#ms-publish',el=>el.disabled),true);
     await page.click('#ms-preview');await page.waitForFunction(()=>!!document.querySelector('.ms-preview iframe'));

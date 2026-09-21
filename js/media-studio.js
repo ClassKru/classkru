@@ -24,6 +24,16 @@
   const starterQuestions=['เด็กควรเล่นเดี่ยวหรือเป็นกลุ่ม?','ต้องการใช้เวลาในคาบกี่นาที?','อยากให้แรงเสียดทานเป็นตัวแปรหลักไหม?'];
   const errorText=error=>errors[String(error.code||'').toLowerCase()]||error.message||'เกิดข้อผิดพลาด กรุณาลองใหม่';
   function notice(message,isError=false) { if ($('notice')) { $('notice').textContent=message; $('notice').classList.toggle('ms-error',isError); } }
+  function chatStatus(message) {
+    if (!$('conversation')) return;
+    $('reply-status')?.remove();
+    if (message) {
+      const bubble=document.createElement('article');bubble.id='ms-reply-status';bubble.className='ms-message assistant';
+      const label=document.createElement('strong');label.textContent='สถานะการตอบกลับ';
+      const text=document.createElement('p');text.textContent=message;bubble.append(label,text);$('conversation').append(bubble);
+    }
+    $('conversation').scrollTop=$('conversation').scrollHeight;
+  }
   async function api(action,data={},get=false) {
     if (typeof supabaseClient==='undefined' || !supabaseClient) throw {code:'authentication_required'};
     const {data:session,error}=await supabaseClient.auth.getSession();
@@ -88,6 +98,7 @@
     $('links').innerHTML=data.links.map(link=>`<div class="ms-link"><a href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">เปิดลิงก์สื่อ</a><button type="button" class="btn" data-copy="${esc(link.url)}">คัดลอก</button><button type="button" class="btn" data-revoke="${esc(link.id)}">ปิดลิงก์</button></div>`).join('');
     const job=data.jobs[0];
     $('job').textContent=job?.status==='queued'?'รอคิวสร้างสื่อ…':job?.status==='running'?'AI กำลังทำงานและระบบกำลังตรวจสื่อ…':job?.status==='failed'?errorText({code:job.error_code}):'';
+    chatStatus(['queued','running'].includes(job?.status)?(job.kind==='plan'?'AI กำลังอ่านไอเดียและเตรียมคำตอบ…':'AI กำลังสร้างและตรวจสอบสื่อ…'):job?.status==='failed'?errorText({code:job.error_code}):'');
     controls();
   }
   async function load(projectId,selectNewest=false) {
@@ -116,24 +127,25 @@
   function processJob(jobId,projectId) {
     if(running.has(jobId))return;
     running.add(jobId);
-    api('run',{project_id:projectId,job_id:jobId}).then(result=>{if(result.started&&root&&selected===projectId)return load(projectId,true);}).catch(e=>{if(root)notice(errorText(e),true);}).finally(()=>running.delete(jobId));
+    const stamp=epoch;
+    api('run',{project_id:projectId,job_id:jobId}).then(()=>{if(root&&selected===projectId&&epoch===stamp)return load(projectId,true);}).catch(e=>{if(root&&selected===projectId&&epoch===stamp){notice(errorText(e),true);chatStatus(errorText(e));}}).finally(()=>running.delete(jobId));
   }
   async function choose(projectId) {
     epoch++;clearTimeout(poll);closePreview();selected=projectId;selectedVersion=null;snapshot=null;$('review').checked=false;
     notice('กำลังเปิดงาน…');await load(projectId);await list();notice('บันทึกงานและบทสนทนาในบัญชีของคุณครู');
   }
   async function send(kind) {
-    if(busy)return;
+    if(busy||snapshot?.jobs?.some(j=>['queued','running'].includes(j.status)))return;
     let message=$('input').value.trim();
     if(kind==='build'&&!message)message='สร้างสื่อที่เล่นได้ตามแผนที่คุยกัน พร้อมตัวแปร ภารกิจ และปุ่มเริ่มใหม่';
     if(message.length<3){notice('พิมพ์ไอเดียหรือสิ่งที่อยากปรับอย่างน้อย 3 ตัวอักษร',true);return;}
-    busy=true;controls();
+    busy=true;controls();chatStatus('กำลังส่งข้อความให้ AI…');
     try {
       if(!selected){const result=await api('create',{title:message.slice(0,70),context:classContext()});selected=result.project.id;}
       const result=await api('enqueue',{project_id:selected,kind,message,request_key:crypto.randomUUID()});
       $('input').value='';notice('บันทึกคำขอแล้ว · เปิดงานนี้ภายหลังเพื่อดูผลได้');
       await load(selected);await list();processJob(result.job.id,selected);
-    } catch(e){notice(errorText(e),true);}
+    } catch(e){notice(errorText(e),true);chatStatus(errorText(e));}
     finally {busy=false;if(root)controls();}
   }
   async function previewMedia() {
@@ -154,8 +166,8 @@
     try {
       if(button.dataset.project)return await choose(button.dataset.project);
       if(button.dataset.useStarter){$('input').value=starterIdea;await send('plan');return;}
-      if(button.dataset.starterQuestion){$('input').value=`${starterIdea}\n\n${button.dataset.starterQuestion}`;$('input').focus();return;}
-      if(button.dataset.question){$('input').value=button.dataset.question;$('input').focus();return;}
+      if(button.dataset.starterQuestion){$('input').value=`${starterIdea}\n\n${button.dataset.starterQuestion}`;await send('plan');return;}
+      if(button.dataset.question){$('input').value=button.dataset.question;await send('plan');return;}
       if(button.dataset.starter){$('input').value=button.dataset.starter;$('input').focus();return;}
       if(button.dataset.copy){await navigator.clipboard.writeText(button.dataset.copy);notice('คัดลอกลิงก์แล้ว');return;}
       if(button.dataset.revoke){await api('revoke',{project_id:selected,link_id:button.dataset.revoke});await load(selected);notice('ปิดลิงก์แล้ว ผู้เปิดครั้งถัดไปจะเข้าไม่ได้');return;}
