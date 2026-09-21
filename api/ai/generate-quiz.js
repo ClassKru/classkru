@@ -53,7 +53,9 @@ module.exports = async function handler(req, res) {
     if (!user?.id) return sendJson(res, 401, { error: 'authentication_required', message: 'กรุณาเข้าสู่ระบบใหม่ก่อนใช้งาน AI' });
     const body = parseBody(req);
     const source = clean(body.source, MAX_SOURCE_LENGTH);
-    const questionCount = Math.max(1, Math.min(15, Number(body.questionCount) || 10));
+    const requestedQuestionCount = body.questionCount === undefined || body.questionCount === null || body.questionCount === '' ? 10 : Number(body.questionCount);
+    if (!Number.isInteger(requestedQuestionCount) || requestedQuestionCount < 1 || requestedQuestionCount > 30) return sendJson(res, 400, { error:'invalid_question_count', message:'จำนวนข้อสอบต้องเป็นจำนวนเต็ม 1–30 ข้อ' });
+    const questionCount = requestedQuestionCount;
     const types = Array.isArray(body.types) ? body.types.filter(type => ALLOWED_TYPES.has(type)) : [];
     if (source.length < 3 || !types.length) return sendJson(res, 400, { error: 'invalid_request', message: 'กรุณาระบุเนื้อหาและประเภทคำถาม' });
 
@@ -63,7 +65,7 @@ module.exports = async function handler(req, res) {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://classkru-kohl.vercel.app', 'X-Title': 'ClassKru' },
-      body: JSON.stringify({ model: process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature: 0.25, max_tokens: 4500, messages: [{ role:'system', content:qualityRules }, { role:'user', content:prompt }] })
+      body: JSON.stringify({ model: process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature: 0.25, max_tokens: questionCount > 15 ? 9000 : 4500, messages: [{ role:'system', content:qualityRules }, { role:'user', content:prompt }] })
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {

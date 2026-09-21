@@ -8,7 +8,8 @@
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function normalize(raw, options = {}) {
     if (!text(raw?.title) || !Array.isArray(raw?.directions) || !raw.directions.some(text)) throw new Error('กรุณาระบุชื่อใบงานและคำชี้แจง');
-    if (!raw || !Array.isArray(raw.blocks) || !raw.blocks.length || raw.blocks.length > 12) throw new Error('ใบงานต้องมีโจทย์หรือตารางให้ทำ');
+    const maxBlocks = options.worksheetType === 'questions' ? 30 : 12;
+    if (!raw || !Array.isArray(raw.blocks) || !raw.blocks.length || raw.blocks.length > maxBlocks) throw new Error('ใบงานต้องมีโจทย์หรือตารางให้ทำ');
     const lines = {short:1, medium:2, long:4}[options.answerSpace] || 2;
     const blocks = raw.blocks.map((b, index) => {
       if (!b || !['question','table','matching','drawing_form'].includes(b.type)) throw new Error('รูปแบบกิจกรรมไม่รองรับ');

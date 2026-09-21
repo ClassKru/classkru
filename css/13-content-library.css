@@ -88,6 +88,8 @@
 .cl-worksheet-options-card p { margin:0; color:var(--text-muted); font-size:.82rem; line-height:1.55; }
 .cl-worksheet-guide-badge { display:inline-flex; align-items:center; gap:5px; flex:0 0 auto; padding:5px 9px; border-radius:99px; color:var(--primary-deep); background:var(--primary-light); font-size:.72rem; font-weight:800; }
 .cl-field-hint { display:block; margin-top:5px; color:var(--text-muted); font-size:.76rem; line-height:1.45; }
+.cl-count-custom { margin-top:8px; }
+.cl-count-custom[hidden] { display:none; }
 .cl-plan-asset-group + .cl-plan-asset-group { margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color); }
 .cl-plan-asset-group h4 { margin:0 0 3px; font-size:1rem; }
 .cl-plan-asset-group h4 i { color:var(--primary); margin-right:5px; }

@@ -25,7 +25,7 @@ test('quiz generation requests concise explanations tailored to each question', 
   const handler = require('../api/ai/generate-quiz');
   const res = response();
   await handler({ method:'POST', headers:{ host:'classkru.test', authorization:'Bearer test-token' }, body:{
-    subject:'วิทยาศาสตร์', grade:'ม.2', sourceType:'topic', source:'การเคลื่อนที่และการสังเคราะห์ด้วยแสง', questionCount:2, types:['multiple_choice','short_answer']
+    subject:'วิทยาศาสตร์', grade:'ม.2', sourceType:'topic', source:'การเคลื่อนที่และการสังเคราะห์ด้วยแสง', questionCount:30, types:['multiple_choice','short_answer']
   } }, res);
 
   assert.equal(res.code, 200);
@@ -33,6 +33,8 @@ test('quiz generation requests concise explanations tailored to each question', 
   assert.match(aiRequest.messages[0].content, /ถ้ามีการคำนวณ.*ขั้นคำนวณสำคัญ/);
   assert.match(aiRequest.messages[0].content, /โจทย์แนวคิดหรือบรรยาย.*หลักการ/);
   assert.match(aiRequest.messages[0].content, /โจทย์ผสม.*ทั้งวิธีคำนวณและเหตุผล/);
+  assert.match(aiRequest.messages[1].content, /สร้าง 30 ข้อ/);
+  assert.equal(aiRequest.max_tokens, 9000);
   assert.deepEqual(res.body.questions.map(question => question.explanation), [
     'ระยะทาง = ความเร็ว × เวลา = 4 × (3 × 3,600) = 43,200 เมตร',
     'พืชใช้พลังงานแสงในการสังเคราะห์ด้วยแสงเพื่อสร้างอาหาร'
