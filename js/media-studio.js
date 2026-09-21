@@ -20,6 +20,8 @@
     job_expired:'งานนี้หมดเวลาประมวลผล คุณส่งคำขอใหม่ได้',generation_failed:'สร้างสื่อไม่สำเร็จ กรุณาลองปรับคำขอแล้วส่งใหม่',project_archived:'งานนี้เก็บเข้ากรุแล้ว กรุณานำกลับมาก่อน',
     database_unavailable:'ติดต่อคลังสื่อไม่ได้ กรุณาลองใหม่',not_found:'ไม่พบงานนี้หรือบัญชีนี้ไม่มีสิทธิ์เปิด',review_required:'กรุณาทดลองและยืนยันตรวจสื่อก่อนเผยแพร่'
   };
+  const starterIdea='อยากสร้างเกมเรื่องพลังงานศักย์และพลังงานจลน์ ให้นักเรียนเห็นว่าความสูงจุดปล่อยส่งผลต่อความเร็วอย่างไร โดยปรับความสูง มวล และแรงเสียดทานได้';
+  const starterQuestions=['เด็กควรเล่นเดี่ยวหรือเป็นกลุ่ม?','ต้องการใช้เวลาในคาบกี่นาที?','อยากให้แรงเสียดทานเป็นตัวแปรหลักไหม?'];
   const errorText=error=>errors[String(error.code||'').toLowerCase()]||error.message||'เกิดข้อผิดพลาด กรุณาลองใหม่';
   function notice(message,isError=false) { if ($('notice')) { $('notice').textContent=message; $('notice').classList.toggle('ms-error',isError); } }
   async function api(action,data={},get=false) {
@@ -67,12 +69,16 @@
   }
   function renderState(data) {
     snapshot=data;
+    const showGuide=!selected&&!data.turns.length;
     $('title').textContent=data.project.title;
-    $('conversation').innerHTML=data.turns.map(turn=>`<article class="ms-message ${turn.role}"><strong>${turn.role==='teacher'?'คุณครู':'AI ผู้ช่วยออกแบบ'}</strong><p>${esc(turn.message)}</p></article>`).join('')||'<p class="ms-empty">บอกสิ่งที่อยากให้นักเรียนเข้าใจ แล้วเราจะเริ่มออกแบบด้วยกัน</p>';
+    $('conversation').innerHTML=showGuide?`<div class="ms-example-label">ตัวอย่างบทสนทนา · ยังไม่เรียก AI</div><article class="ms-message teacher"><strong>คุณครู</strong><p>อยากสร้างเกมเรื่องพลังงานศักย์และพลังงานจลน์ ให้นักเรียนเห็นตัวแปรที่เปลี่ยนไปได้ง่าย</p></article><article class="ms-message assistant"><strong>AI ผู้ช่วยออกแบบ</strong><p>ลองเริ่มจาก <b>รางรถไฟพลังงาน</b> ค่ะ เด็กจะปรับความสูงจุดปล่อย แล้วสังเกตว่ารถไฟเคลื่อนที่เร็วขึ้นเมื่ออยู่ต่ำลงอย่างไร</p><p>อาจต่อยอดเป็นเกมภารกิจให้พารถไฟถึงสถานีด้วยพลังงานที่พอดี ก่อนสร้างจริง AI จะช่วยปรับระดับความยาก เวลา และอุปกรณ์ให้เหมาะกับห้องเรียนของคุณครู</p></article>`:data.turns.map(turn=>`<article class="ms-message ${turn.role}"><strong>${turn.role==='teacher'?'คุณครู':'AI ผู้ช่วยออกแบบ'}</strong><p>${esc(turn.message)}</p></article>`).join('')||'<p class="ms-empty">บอกสิ่งที่อยากให้นักเรียนเข้าใจ แล้วเราจะเริ่มออกแบบด้วยกัน</p>';
     $('conversation').scrollTop=$('conversation').scrollHeight;
     const p=data.project.plan;
-    $('plan').innerHTML=p?`<div class="ms-plan-title"><span>สรุปที่พร้อมสร้าง</span><h3>${esc(p.title)}</h3></div>${[['เป้าหมาย',p.objective],['สิ่งที่เด็กจะเห็น',p.observation],['ตัวแปร',(p.variables||[]).join(' · ')],['ภารกิจ',p.mission]].map(([label,value])=>`<div class="ms-plan-row"><small>${label}</small><p>${esc(value)}</p></div>`).join('')}`:'<div class="ms-plan-empty"><strong>AI จะสรุปแผนให้ที่นี่</strong><p>เมื่อคุยกันแล้ว คุณครูจะเห็นเป้าหมาย สิ่งที่เด็กสังเกต ตัวแปร และภารกิจ ก่อนตัดสินใจสร้าง</p></div>';
-    $('followups').innerHTML=(p?.next_questions||[]).map(q=>`<button class="btn" type="button" data-question="${esc(q)}">${esc(q)}</button>`).join('');
+    const guidedPlan={title:'รางรถไฟพลังงาน: ปรับความสูงจุดปล่อย',objective:'เชื่อมความสัมพันธ์ของพลังงานศักย์ พลังงานจลน์ และความเร็ว',observation:'อยู่สูง → ปล่อย → เคลื่อนที่เร็วขึ้น',variables:'ความสูง · มวล · แรงเสียดทาน',mission:'พารถไฟให้ถึงสถานีด้วยพลังงานที่พอดี'};
+    const visiblePlan=p?{title:p.title,objective:p.objective,observation:p.observation,variables:(p.variables||[]).join(' · '),mission:p.mission}:showGuide?guidedPlan:null;
+    $('plan').innerHTML=visiblePlan?`<div class="ms-plan-title"><span>${p?'สรุปที่พร้อมสร้าง':'ตัวอย่างแผนสื่อ · ยังไม่บันทึก'}</span><h3>${esc(visiblePlan.title)}</h3></div>${[['เป้าหมาย',visiblePlan.objective],['สิ่งที่เด็กจะเห็น',visiblePlan.observation],['ตัวแปร',visiblePlan.variables],['ภารกิจ',visiblePlan.mission]].map(([label,value])=>`<div class="ms-plan-row"><small>${label}</small><p>${esc(value)}</p></div>`).join('')}${showGuide?'<button type="button" class="btn btn-primary ms-use-starter" data-use-starter="true">ใช้ไอเดียนี้ แล้วให้ AI ช่วยต่อ</button>':''}`:'<div class="ms-plan-empty"><strong>AI จะสรุปแผนให้ที่นี่</strong><p>เมื่อคุยกันแล้ว คุณครูจะเห็นเป้าหมาย สิ่งที่เด็กสังเกต ตัวแปร และภารกิจ ก่อนตัดสินใจสร้าง</p></div>';
+    $('followups').innerHTML=(p?.next_questions||[]).map(q=>`<button class="btn" type="button" data-question="${esc(q)}">${esc(q)}</button>`).join('')||(showGuide?starterQuestions.map(q=>`<button class="btn" type="button" data-starter-question="${esc(q)}">${esc(q)}</button>`).join(''):'' );
+    $('starters').hidden=showGuide;
     const oldVersion=selectedVersion;
     if (!data.versions.some(v=>v.id===selectedVersion)) selectedVersion=data.versions[0]?.id||null;
     if (oldVersion!==selectedVersion) $('review').checked=false;
@@ -147,6 +153,8 @@
     const button=event.target.closest('button');if(!button)return;
     try {
       if(button.dataset.project)return await choose(button.dataset.project);
+      if(button.dataset.useStarter){$('input').value=starterIdea;await send('plan');return;}
+      if(button.dataset.starterQuestion){$('input').value=`${starterIdea}\n\n${button.dataset.starterQuestion}`;$('input').focus();return;}
       if(button.dataset.question){$('input').value=button.dataset.question;$('input').focus();return;}
       if(button.dataset.starter){$('input').value=button.dataset.starter;$('input').focus();return;}
       if(button.dataset.copy){await navigator.clipboard.writeText(button.dataset.copy);notice('คัดลอกลิงก์แล้ว');return;}

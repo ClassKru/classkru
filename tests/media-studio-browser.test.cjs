@@ -55,6 +55,9 @@ async function main(){
     await page.setViewport({width:1440,height:1050});
     await page.goto(appOrigin+'/harness');await page.click('button');
     await page.waitForFunction(()=>!document.getElementById('ms-send').disabled);
+    assert.match(await page.$eval('#ms-conversation',el=>el.textContent),/รางรถไฟพลังงาน/);
+    assert.match(await page.$eval('#ms-plan',el=>el.textContent),/ความสูง · มวล · แรงเสียดทาน/);
+    assert.equal(await page.$eval('#ms-build',el=>el.disabled),true);
     await page.type('#ms-input','อยากสร้างเกมพลังงานศักย์และพลังงานจลน์');await page.click('#ms-send');
     await page.waitForFunction(()=>document.getElementById('ms-plan').textContent.includes('ความสูงลด'));
     await page.click('#ms-build');await page.waitForFunction(()=>!document.getElementById('ms-preview').disabled);

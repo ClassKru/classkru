@@ -19,7 +19,7 @@ HTML อนุญาต div span p h1-h4 section article header footer main asid
 async function ask(kind, data) {
   if (process.env.OPENROUTER_API_KEY) {
     const schema=kind==='build'?artifactSchema:planSchema;
-    const instructions=kind==='build'?buildInstructions:`${common}\nเสนอทางเลือก 2–3 ทางใน assistant_message หากโจทย์กว้าง กรอกร่างที่เหมาะที่สุดในช่องอื่น ตัวแปรไม่เกิน 5 ตัว คำถามต่อไม่เกิน 3 ข้อ ห้ามอ้างว่าสร้างสื่อเสร็จแล้ว`;
+    const instructions=kind==='build'?buildInstructions:`${common}\nคุณกำลังคุยในพื้นที่ร่วมออกแบบ ไม่ใช่รับคำสั่งสร้างโค้ดทันที เริ่ม assistant_message ด้วยการสรุปความตั้งใจของครูอย่างเห็นอกเห็นใจ ระบุ “สมมติฐานที่ใช้” เมื่อข้อมูลระดับชั้น เวลา หรืออุปกรณ์ยังไม่ครบ หากโจทย์กว้าง เสนอทางเลือกกิจกรรม 2–3 ทางที่ตั้งชื่อชัดเจน พร้อมเหตุผลสั้น ๆ และแนะนำ 1 ทางที่เหมาะที่สุด อย่าถามหลายคำถามในย่อหน้าเดียว คำถามสำคัญให้ใส่ใน next_questions เพื่อแสดงเป็นปุ่ม ครูสามารถข้ามคำถามได้\nกรอกร่างแผนที่เหมาะที่สุดในช่องอื่น: objective คือสิ่งที่ผู้เรียนทำได้, observation คือสิ่งที่ผู้เรียนเห็นหรือสังเกต, variables คือสิ่งที่ปรับได้, mission คือภารกิจที่ตรวจความเข้าใจได้ ตัวแปรไม่เกิน 5 ตัว คำถามต่อไม่เกิน 3 ข้อ ห้ามอ้างว่าสร้างสื่อเสร็จแล้ว`;
     const response=await fetch('https://openrouter.ai/api/v1/chat/completions',{
       method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${process.env.OPENROUTER_API_KEY}`,'HTTP-Referer':process.env.OPENROUTER_SITE_URL||process.env.CLASSKRU_APP_ORIGIN||'https://classkru-kohl.vercel.app','X-Title':'ClassKru'},
       signal:AbortSignal.timeout(kind==='build'?170000:60000),
@@ -39,7 +39,7 @@ async function ask(kind, data) {
     signal:AbortSignal.timeout(kind === 'build' ? 170000 : 60000),
     body:JSON.stringify({model:process.env.OPENAI_MEDIA_STUDIO_MODEL || 'gpt-5.6-luna', store:false,
       reasoning:{effort:'low'}, max_output_tokens:kind === 'build' ? 14000 : 2500,
-      instructions:kind === 'build' ? buildInstructions : `${common}\nเสนอแนวคิดตามโจทย์ ถ้ากว้างเสนอ 2–3 ทางใน assistant_message และกรอกร่างที่เหมาะที่สุดในช่องอื่น ถามต่อไม่เกิน 3 ข้อ มีตัวแปรไม่เกิน 5 ตัว ยังไม่อ้างว่าสร้างเกมสำเร็จ`,
+      instructions:kind === 'build' ? buildInstructions : `${common}\nคุณกำลังคุยในพื้นที่ร่วมออกแบบ ไม่ใช่รับคำสั่งสร้างโค้ดทันที เริ่ม assistant_message ด้วยการสรุปความตั้งใจของครูอย่างเห็นอกเห็นใจ ระบุสมมติฐานเมื่อระดับชั้น เวลา หรืออุปกรณ์ยังไม่ครบ หากโจทย์กว้าง เสนอทางเลือกกิจกรรม 2–3 ทางที่ตั้งชื่อชัดเจน พร้อมเหตุผลสั้น ๆ และแนะนำ 1 ทางที่เหมาะที่สุด คำถามสำคัญให้ใส่ใน next_questions เพื่อแสดงเป็นปุ่ม ครูสามารถข้ามคำถามได้ กรอกร่างแผนที่เหมาะที่สุด: objective คือสิ่งที่ผู้เรียนทำได้, observation คือสิ่งที่ผู้เรียนเห็นหรือสังเกต, variables คือสิ่งที่ปรับได้, mission คือภารกิจที่ตรวจความเข้าใจได้ ตัวแปรไม่เกิน 5 ตัว ถามต่อไม่เกิน 3 ข้อ ยังไม่อ้างว่าสร้างเกมสำเร็จ`,
       input:[{role:'user',content:JSON.stringify(data)}],
       text:{format:{type:'json_schema',name:kind === 'build' ? 'teaching_artifact' : 'teaching_plan',strict:true,schema:kind === 'build' ? artifactSchema : planSchema}}
     })
