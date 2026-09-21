@@ -2,7 +2,19 @@
   "name": "classkru",
   "private": true,
   "version": "1.0.0",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "test:media": "node --test tests/media-studio.test.cjs tests/media-storage.test.cjs tests/media-host.test.cjs",
+    "test:media:browser": "node tests/media-studio-browser.test.cjs",
+    "dev:media": "node scripts/media-dev.cjs"
+  },
   "dependencies": {
-    "docx": "^9.5.1"
+    "@sparticuz/chromium": "153.0.0",
+    "acorn": "8.15.0",
+    "docx": "^9.5.1",
+    "parse5": "7.3.0",
+    "puppeteer-core": "25.11.0"
   }
 }

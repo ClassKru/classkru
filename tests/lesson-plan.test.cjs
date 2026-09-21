@@ -58,7 +58,7 @@ test('lesson plan API follows teacher-selected frame and normalizes draft sectio
 
 test('lesson plan Word export includes plan frame, indicators and editable teacher notes', async () => {
   const originalFetch = global.fetch;
-  const handler = require('../api/exports/lesson-plan-docx');
+  const handler = require('../api/_lib/exports/lesson-plan-docx');
   global.fetch = async () => ({ok:true, json:async () => ({id:'teacher-1'})});
   try {
     const lessonPlan = {title:'แผนเรื่องระบบนิเวศ', subject:'วิทยาศาสตร์และเทคโนโลยี', grade:'ม.3', classLabel:'วิทยาศาสตร์และเทคโนโลยี · ม.3/1', duration:'2 คาบ (100 นาที)', method:'สืบเสาะหาความรู้', indicators:[{code:'ว 1.1 ม.3/1', text:'อธิบายปฏิสัมพันธ์ในระบบนิเวศ'}], plan:{title:'แผนเรื่องระบบนิเวศ', keyConcepts:['สิ่งมีชีวิตสัมพันธ์กับสิ่งแวดล้อม'], objectives:['อธิบายองค์ประกอบระบบนิเวศได้'], activities:['ขั้นนำ: ทบทวนภาพระบบนิเวศ'], resources:['ภาพระบบนิเวศ'], assessment:['วิธีประเมิน: ตรวจใบงาน | เครื่องมือ: รูบริก | เกณฑ์: ผ่าน 70%'], evidence:['ใบงาน'], adaptations:['ลดจำนวนตัวอย่างเมื่อเวลาไม่พอ']}};
@@ -81,7 +81,7 @@ test('lesson plan Word export includes plan frame, indicators and editable teach
 
 test('lesson pack Word export includes linked worksheet, quiz and teacher sections', async () => {
   const originalFetch = global.fetch;
-  const handler = require('../api/exports/lesson-pack-docx');
+  const handler = require('../api/_lib/exports/lesson-pack-docx');
   global.fetch = async () => ({ok:true, json:async () => ({id:'teacher-1'})});
   try {
     const lessonPlan = {title:'แผนเรื่องระบบนิเวศ', subject:'วิทยาศาสตร์และเทคโนโลยี', grade:'ม.3', classLabel:'วิทยาศาสตร์และเทคโนโลยี · ม.3/1', duration:'1 คาบ (50 นาที)', method:'สืบเสาะหาความรู้', indicators:[{code:'ว 1.1 ม.3/1', text:'อธิบายปฏิสัมพันธ์ในระบบนิเวศ'}], plan:{title:'แผนเรื่องระบบนิเวศ', keyConcepts:['สิ่งมีชีวิตสัมพันธ์กับสิ่งแวดล้อม'], objectives:['อธิบายองค์ประกอบระบบนิเวศได้'], activities:['วิเคราะห์ตัวอย่าง'], resources:['ภาพระบบนิเวศ'], assessment:['ตรวจใบงาน'], evidence:['ใบงาน']}};

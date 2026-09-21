@@ -1,6 +1,42 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 17 กันยายน 2569
+> อัปเดตล่าสุด: 20 กันยายน 2569
+>
+> **งานที่กำลังส่งตรวจ: AI Interactive Media Studio — Storage-only JSON** บน `feature/media-studio-live`, [PR #75](https://github.com/ClassKru/classkru/pull/75), workspace `C:\Users\USER\ClassKru\_worktrees\media-studio-live` เท่านั้น ห้าม push ต้นแบบ/งานอื่นที่ค้างในโฟลเดอร์หลักทับ branch นี้
+>
+> ผู้ใช้ขอเก็บใน Supabase เดิมแต่ไม่เพิ่มตาราง SQL จึงเปลี่ยน jobs/turns/plans/versions/links/quotas เป็นไฟล์ JSON เข้ารหัส AES-256-GCM ใน private bucket `classkru-media-files` สร้าง bucket อัตโนมัติเมื่อสร้างงานแรก ใช้ Auth/OpenRouter เดิม ไม่แตะข้อมูลเช็กชื่อ/คะแนน
+>
+> ต้องตั้ง `MEDIA_STORAGE_KEY` เป็น random 32 bytes hex (64 ตัว) และสำรองอย่างปลอดภัย เพิ่มจาก Supabase server key/AI/origin ที่ต้องตั้งอยู่แล้ว ทุก instance ที่ใช้ bucket เดียวต้องใช้ key เดียว ห้ามสุ่มเปลี่ยน key หลังมีงาน; ยังไม่มี rotation/migration tool
+>
+> ทุก write สร้างไฟล์ใหม่ exclusive upload ไม่ overwrite/delete; leases เป็น append-only sequence + release marker กัน stale release, สูงสุด 2 workers ทั้งระบบ/ครูละ 1, 3 pending, 40 คำขอต่อวันปฏิทินไทย, 100 projects, 30 versions, preview/published link ชนิดละ 200 ต่องาน มี immutable claim ไม่ retry AI ซ้ำโดยอัตโนมัติ ผลลัพธ์+คำตอบ AI commit ใน JSON ไฟล์เดียว; orphan files ไม่ถูกลบทิ้ง
+>
+> สคริปต์ SQL รุ่นเก่าย้ายไป `docs/product/history/202609190001_media_studio.sql` เป็นประวัติ ไม่ต้องรัน ไม่ได้ลบตาราง/bucket จริง ถ้าเคยใช้ SQL pilot มีงานแล้ว ต้องสำรวจและวางแผนโอนก่อนสลับ (รุ่นใหม่ไม่ย้ายงาน SQL อัตโนมัติ)
+>
+> **ยังไม่เปิด Media Studio บนเว็บหลัก Production:** ผู้ใช้สร้าง media Vercel project แล้ว (รายละเอียดด้านล่าง); ยังต้องจับคู่ origins, ตรวจ server env/Storage policies โดยเฉพาะ direct write/delete ที่ encryption ป้องกันไม่ได้ และทดสอบ AI/Auth จริง เครื่องนี้ CLI เข้าถึงแค่ DOAI ไม่ใช่ `classkru-dev`; ไม่ deploy ข้ามทีมแทน
+>
+> **20 ก.ย. 2569 — เว็บเปิดสื่อ Deploy ผ่านแล้ว:** โปรเจกต์ `classkru-media` ในทีม `classkru-dev` ใช้ repo `ClassKru/classkru`, branch `feature/media-studio-live`, commit `d91cd65`, Root Directory `media-host`; deployment `DjQ2eCa2N8mhmUMaYjmwNHtyZFcU` success ตรวจ URL `https://classkru-media.vercel.app/` แบบไม่ล็อกอินได้ HTTP 200, title `สื่อการสอน · ClassKru` และมี `player.js`/`player.css` แล้ว ไม่ใช่หน้า login ซ้ำเดิม สาเหตุ error ก่อนหน้าคือช่องว่างนำหน้า Root Directory (`" media-host"`) ซึ่งผู้ใช้แก้แล้ว ไม่ใช่ Git ผิด repo ผู้ใช้ตรวจยืนยันการเชื่อมต่อมาจาก ClassKru
+>
+> **Cloud env ที่ผู้ใช้รายงานว่าตั้งแล้ว (ยังไม่ตรวจค่าลับจริง):** โปรเจกต์หลัก `classkru` / Preview branch `feature/media-studio-live` มี `OPENROUTER_API_KEY`, `MEDIA_STORAGE_KEY`, `MEDIA_STORAGE_BUCKET=classkru-media-preview`; เดิมมี `SUPABASE_SECRET_KEY` ทั้ง Production/Preview ส่วนโปรเจกต์ `classkru-media` / Production ตั้ง `CLASSKRU_APP_ORIGIN=https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app` ตามขั้นตอน ไม่ใส่ AI/Supabase/encryption secrets บน media host
+>
+> **MEDIA_ORIGIN:** ผู้ใช้รายงานว่าตั้ง `MEDIA_ORIGIN=https://classkru-media.vercel.app` ในโปรเจกต์หลักเฉพาะ Preview branch นี้และทำตามขั้นตอน redeploy เรียบร้อยแล้ว ยังไม่ได้ตรวจ runtime env โดยตรงเพราะ app Preview ตอบ 302 ไป `vercel.com`
+>
+> **ผู้ใช้อนุมัติ "เชื่อมต่อเลย" — เพิ่ม server-only automation bypass:** `media-host/api/render.js` รองรับ `CLASSKRU_APP_BYPASS_SECRET` (ต้องสร้างจากโปรเจกต์ `classkru` แล้วตั้ง Type Secret / Production ใน `classkru-media`) ส่ง header เฉพาะ fixed API บน HTTPS `CLASSKRU_APP_ORIGIN`, ไม่มี query/cookie/forward ผู้ใช้/redirect, ไม่ใช้ automatic secret ของ media project, fail closed บน config ไม่ปลอดภัยหรือ upstream สะท้อน secret กุญแจมีขอบเขตผ่าน Vercel ทั้งโปรเจกต์จึงบันทึก threat model และการ revoke ไว้แล้ว ไม่ปิด Protection/ไม่เปิด public domain exception
+>
+> **ผลตรวจ bypass ในเครื่อง:** `npm run test:media` **21 tests ผ่าน** (เดิม 14 + media-host 7 รวม native fetch redirect และ credential leakage); Chromium environment ไม่รับทั้ง bypass secret สองชื่อ; Browser chat/build/resume/preview/review/publish/revoke/mobile/sandbox/network/navigation ผ่าน ไม่เปลี่ยน frontend js/css จึงไม่ต้อง bump asset 485
+>
+> **ส่งขึ้น Git และ Deploy bypass แล้ว:** commit `093c11b` บน `feature/media-studio-live` / PR #75 ผ่าน CI run `35498260707`, Vercel `classkru-media` deployment `FUraJNt3xwFr5ubFUrsgdbHYpSWc` และ `classkru` deployment `A8p1bASmKrqe4Xt7K3Ds74382A4P` success ทั้งคู่ ไม่มีการ merge main
+>
+> **21 ก.ย. 2569 — ผู้ใช้ตั้ง bypass secret และ redeploy แล้ว:** Vercel `classkru-media` deployment `9LHcwgYvp79oCmieboZMZbmR68b5` success ทดสอบภายนอกแบบไม่ใช้/ไม่แสดง secret ด้วย `GET https://classkru-media.vercel.app/api/render?token=<64hexจำลอง>` + `sec-fetch-dest: iframe` ได้ HTTP **404** และข้อความ generic (ไม่ redirect/ไม่ใช่ 503) ซึ่งยืนยันว่า media host ผ่าน Vercel Protection ไปถึง public API ของ `classkru` แล้ว แต่ token ไม่มีอยู่จริงจึงถูกปฏิเสธตามออกแบบ
+>
+> **ขั้นถัดไป:** ครูล็อกอิน ClassKru Preview แล้วทดสอบสร้างสื่อจริงผ่าน AI → review → publish → เปิดลิงก์จากหน้าต่างส่วนตัว/มือถือ ตรวจว่า link เปิดจริงและ revoke แล้วเป็น 404; จากนั้นตรวจ Supabase Storage policies สองบัญชี/AI usage ก่อน merge PR ยังไม่ได้ทดสอบ AI/Storage cloud หรือมีสื่อ/link จริง ไม่ถือว่าเปิด Production
+>
+> ผลทดสอบในเครื่อง: Media unit/integration **14 tests ผ่าน**, Browser chat/build/resume/preview/review/publish/revoke/mobile + sandbox/network/navigation ผ่าน, Word export/lesson/worksheet **10 tests ผ่าน**, syntax **97 JS/CJS files ผ่าน**, npm audit **0 vulnerabilities** ไม่ใช่การทดสอบ Supabase/AI Production; asset **485** ผ่าน `bump-version.sh`
+>
+> **Storage-only commit `6b2c4cb` push แล้วและผ่าน CI + Vercel Preview จริง**: GitHub Actions run `35481707707` success, Vercel deployment `By1kUEwoDerDd5VJBcTWJxeaZPf5` success; PR #75 ยังเปิด/mergeable และอัปเดตคำอธิบายเป็นวิธีติดตั้งแบบไม่รัน SQL แล้ว จำนวน functions ยัง **11/12** ผลนี้ยืนยัน build/test ไม่ใช่การตั้งค่า cloud/AI หรือ production E2E
+>
+> [Preview](https://classkru-git-feature-media-studio-live-classkru-dev.vercel.app) ยังมี Deployment Protection (302 เมื่อไม่ล็อกอิน) ยังไม่ merge PR คู่มือตั้งค่า/ข้อจำกัด/โครงสร้างไฟล์: [interactive-media-studio-setup.md](docs/product/interactive-media-studio-setup.md)
+>
+> สำหรับงานนี้ยึด `CLAUDE.md`: feature → PR → ผู้ใช้ merge → Vercel auto-deploy ไม่ใช้ workflow push `HEAD:main` เก่าด้านล่าง; ไม่มี scheduler อิสระ ต้องเปิดงานเพื่อเริ่ม queued; polling ตรวจสถานะทุก 5 วินาที ไม่โหลดประวัติเต็มซ้ำขณะสถานะคงเดิม
 >
 > เวอร์ชันล่าสุด: เพิ่มพื้นฐานระบบสมาชิก/การชำระเงินแบบโหมดทดสอบ, หน้าสมาชิกในแอป, แท็บสมาชิกสำหรับผู้ดูแล และรายงานการขายเงินแบบอ่านอย่างเดียว; migration `202609170001_membership_billing_foundation.sql` รันบน Supabase Production สำเร็จแล้ว; commits `4e8c129`, `e16ca4f`, `ba93ff2` push ขึ้น `main` แล้วเพื่อให้ Vercel deploy; asset version `463`
 >
