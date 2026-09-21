@@ -23,7 +23,8 @@ module.exports = async function handler(req,res) {
     } else if (req.method==='GET' && action==='get') result=await service.state(teacher.id,req.query.id);
     else if (req.method==='GET' && action==='jobs') result=await service.jobStatus(teacher.id,req.query.id);
     else if (req.method==='POST' && action==='create') {
-      result={project:await service.create(teacher.id,body.title,body.context)};
+      // The Studio is a teacher-owned conversation space, never a classroom workspace.
+      result={project:await service.create(teacher.id,body.title,{})};
     } else if (req.method==='POST' && action==='enqueue') {
       if (!configured()) throw db.fail('ai_not_configured',503);
       if (!['plan','build'].includes(body.kind)) throw db.fail('invalid_kind');
