@@ -191,7 +191,7 @@
 .cl-indicator-row:has(input:checked) { background:#f2fcf7; }
 .cl-indicator-row input { width:20px; height:20px; margin:0; accent-color:var(--primary); cursor:pointer; }
 .cl-indicator-row strong { color:var(--primary-deep); white-space:nowrap; font-size:.83rem; }
-.cl-indicator-row > span { min-width:0; }
+.cl-indicator-row > span { min-width:0; font-weight:400; }
 .cl-indicator-empty { padding:16px; color:var(--text-muted); font-size:.84rem; }
 .cl-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
 .cl-actions .btn { min-height:42px; }
