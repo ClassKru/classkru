@@ -2,11 +2,11 @@
 
 > อัปเดตล่าสุด: 21 กันยายน 2569
 >
-> **งานที่กำลังส่งตรวจ: AI Interactive Media Studio — Storage-only JSON** บน `feature/media-studio-live`, [PR #75](https://github.com/ClassKru/classkru/pull/75), workspace `C:\Users\USER\ClassKru\_worktrees\media-studio-live` เท่านั้น ห้าม push ต้นแบบ/งานอื่นที่ค้างในโฟลเดอร์หลักทับ branch นี้
+> **งานที่กำลังส่งขึ้นเว็บหลัก: AI Interactive Media Studio — Storage-only JSON** บน `feature/media-studio-live`, workspace `C:\Users\USER\ClassKru\_worktrees\media-studio-live` เท่านั้น ห้าม push ต้นแบบ/งานอื่นที่ค้างในโฟลเดอร์หลักทับ branch นี้
 >
 > **21 ก.ย. 2569 — ปรับเป็นช่วงสนทนาก่อนสร้างสื่อ:** เข้าได้จากการ์ดเดียวในหน้าเครื่องมือ “คุยออกแบบสื่อกับ AI” โดยไม่รับหรือบันทึกความผูกกับห้องเรียน; API `create` ทิ้ง `context` จาก client และเก็บ conversation เป็น teacher-owned project เดิมในไฟล์ JSON เข้ารหัส. หน้าต่างเหลือสามส่วน: การ์ดบทสนทนาเก่าด้านซ้าย, แชตที่ enqueue/run และดึงคำตอบ AI กลับมาอัตโนมัติตรงกลาง, และแนวทาง/คำถามต่อยอดจาก AI ด้านขวา. ตัดข้อความตัวอย่างและส่วน preview/publish ออกจาก UI; ปุ่ม “สร้างสื่อ · เร็ว ๆ นี้” disabled ไว้ชัดเจน. API สร้าง artifact เดิมยังคงอยู่เพื่อช่วงถัดไป แต่ UI รอบนี้ส่งเฉพาะ `plan`. เพิ่ม regression ยืนยัน API ไม่ยอมผูก context ห้องเรียน และ Browser QA สำหรับแชต/ตอบอัตโนมัติ/กลับมาเปิดบทสนทนา/มือถือ; `npm.cmd run test:media` ผ่าน 21 ข้อและ `npm.cmd run test:media:browser` ผ่าน. Bump asset เป็น `487`.
 >
-> ส่ง commit `434feb9` (`Focus media studio on AI conversations`) ขึ้น PR #75 แล้ว; Vercel Preview ของ `classkru` และ `classkru-media` จาก commit นี้สถานะ success. ยังไม่ได้ทดสอบแชตจริงกับบัญชีครู, Supabase Storage และ OpenRouter runtime จึงยังไม่ merge หรือเปิด Production.
+> 21 ก.ย. 2569: rebased งานสนทนาเข้ากับ `origin/main` แล้วและตรวจซ้ำผ่านทั้ง API 21 ข้อกับ Browser QA. กำลังส่ง fast-forward ไป `main` เพื่อให้ Vercel deploy Production; ยังไม่ได้ทดสอบแชตจริงกับบัญชีครู, Supabase Storage และ OpenRouter runtime.
 >
 > ผู้ใช้ขอเก็บใน Supabase เดิมแต่ไม่เพิ่มตาราง SQL จึงเปลี่ยน jobs/turns/plans/versions/links/quotas เป็นไฟล์ JSON เข้ารหัส AES-256-GCM ใน private bucket `classkru-media-files` สร้าง bucket อัตโนมัติเมื่อสร้างงานแรก ใช้ Auth/OpenRouter เดิม ไม่แตะข้อมูลเช็กชื่อ/คะแนน
 >
