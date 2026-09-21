@@ -51,13 +51,19 @@
   function controls() {
     const active=snapshot?.jobs?.some(j=>['queued','running'].includes(j.status));
     const archived=snapshot?.project?.archived;
+    const hasPlan=Boolean(snapshot?.project?.plan);
+    const hasVersion=Boolean(selectedVersion);
     $('send').disabled=busy||active||archived||!config?.ai||!config?.storage;
-    $('build').disabled=busy||active||archived||!config?.ai||!config?.storage||!config?.media_origin;
+    $('build').disabled=busy||active||archived||!hasPlan||!config?.ai||!config?.storage||!config?.media_origin;
     $('build').textContent=snapshot?.versions?.length?'สร้างเวอร์ชันปรับปรุง':'สร้างสื่อที่เล่นได้';
-    $('preview').disabled=!selectedVersion||busy||!config?.media_origin||archived;
-    $('publish').disabled=!selectedVersion||!$('review').checked||busy||archived||!config?.media_origin;
+    $('build-help').hidden=hasPlan||active||archived;
+    $('preview').disabled=!hasVersion||busy||!config?.media_origin||archived;
+    $('publish').disabled=!hasVersion||!$('review').checked||busy||archived||!config?.media_origin;
     $('archive').hidden=!selected;
     $('archive').textContent=archived?'นำกลับมาใช้งาน':'เก็บงานเข้ากรุ';
+    $('step-plan').classList.toggle('is-current',!hasPlan);
+    $('step-build').classList.toggle('is-current',hasPlan&&!hasVersion);
+    $('step-review').classList.toggle('is-current',hasVersion);
   }
   function renderState(data) {
     snapshot=data;
@@ -65,7 +71,7 @@
     $('conversation').innerHTML=data.turns.map(turn=>`<article class="ms-message ${turn.role}"><strong>${turn.role==='teacher'?'คุณครู':'AI ผู้ช่วยออกแบบ'}</strong><p>${esc(turn.message)}</p></article>`).join('')||'<p class="ms-empty">บอกสิ่งที่อยากให้นักเรียนเข้าใจ แล้วเราจะเริ่มออกแบบด้วยกัน</p>';
     $('conversation').scrollTop=$('conversation').scrollHeight;
     const p=data.project.plan;
-    $('plan').innerHTML=p?`<h3>${esc(p.title)}</h3>${[['เป้าหมาย',p.objective],['สิ่งที่เด็กจะเห็น',p.observation],['ตัวแปร',(p.variables||[]).join(' · ')],['ภารกิจ',p.mission]].map(([label,value])=>`<div class="ms-plan-row"><small>${label}</small><p>${esc(value)}</p></div>`).join('')}`:'<p class="ms-empty">แผนสื่อจะปรากฏหลังคุยกับ AI</p>';
+    $('plan').innerHTML=p?`<div class="ms-plan-title"><span>สรุปที่พร้อมสร้าง</span><h3>${esc(p.title)}</h3></div>${[['เป้าหมาย',p.objective],['สิ่งที่เด็กจะเห็น',p.observation],['ตัวแปร',(p.variables||[]).join(' · ')],['ภารกิจ',p.mission]].map(([label,value])=>`<div class="ms-plan-row"><small>${label}</small><p>${esc(value)}</p></div>`).join('')}`:'<div class="ms-plan-empty"><strong>AI จะสรุปแผนให้ที่นี่</strong><p>เมื่อคุยกันแล้ว คุณครูจะเห็นเป้าหมาย สิ่งที่เด็กสังเกต ตัวแปร และภารกิจ ก่อนตัดสินใจสร้าง</p></div>';
     $('followups').innerHTML=(p?.next_questions||[]).map(q=>`<button class="btn" type="button" data-question="${esc(q)}">${esc(q)}</button>`).join('');
     const oldVersion=selectedVersion;
     if (!data.versions.some(v=>v.id===selectedVersion)) selectedVersion=data.versions[0]?.id||null;
@@ -142,6 +148,7 @@
     try {
       if(button.dataset.project)return await choose(button.dataset.project);
       if(button.dataset.question){$('input').value=button.dataset.question;$('input').focus();return;}
+      if(button.dataset.starter){$('input').value=button.dataset.starter;$('input').focus();return;}
       if(button.dataset.copy){await navigator.clipboard.writeText(button.dataset.copy);notice('คัดลอกลิงก์แล้ว');return;}
       if(button.dataset.revoke){await api('revoke',{project_id:selected,link_id:button.dataset.revoke});await load(selected);notice('ปิดลิงก์แล้ว ผู้เปิดครั้งถัดไปจะเข้าไม่ได้');return;}
       switch(button.id){
@@ -160,8 +167,8 @@
     returnFocus=document.activeElement;root=document.createElement('div');root.className='ms-overlay';
     root.innerHTML=`<section class="ms-dialog" role="dialog" aria-modal="true" aria-labelledby="ms-title"><header class="ms-header"><div><small>ClassKru · สร้างสื่อกับ AI</small><h2 id="ms-title">สื่อใหม่</h2></div><button id="ms-close" type="button" class="btn" aria-label="ปิดหน้าต่าง">ปิด</button></header>
       <div class="ms-layout"><aside class="ms-library"><button id="ms-new" type="button" class="btn btn-primary">+ สร้างงานใหม่</button><h3>คลังสื่อของฉัน</h3><label><input id="ms-archived" type="checkbox"> งานที่เก็บเข้ากรุ</label><div id="ms-library"></div></aside>
-      <main class="ms-main"><p id="ms-notice" role="status">กำลังเปิดคลังสื่อ…</p><p class="ms-privacy">ข้อความจะส่งให้ AI และบันทึกเพื่อคุยต่อในบัญชีคุณครู กรุณาไม่ใส่ข้อมูลส่วนตัวของนักเรียน</p><div class="ms-workspace"><div class="ms-chat"><div id="ms-conversation" role="log" aria-live="polite"></div><div id="ms-followups"></div><form id="ms-form"><label for="ms-input">ไอเดียหรือสิ่งที่อยากปรับ</label><textarea id="ms-input" rows="3" maxlength="6000" placeholder="อยากสร้างเกมพลังงานศักย์และพลังงานจลน์ ให้เด็กเห็นว่าความสูงส่งผลต่อความเร็วอย่างไร"></textarea><div class="ms-composer-actions"><button id="ms-send" type="submit" class="btn">คุยและวางแผน</button><button id="ms-build" type="button" class="btn btn-primary">สร้างสื่อที่เล่นได้</button></div></form><p id="ms-job" role="status"></p></div><aside class="ms-plan"><h3>แผนสื่อ</h3><div id="ms-plan"></div></aside></div>
-      <section class="ms-output"><label for="ms-versions">สื่อที่สร้างแล้ว</label><select id="ms-versions"></select><p id="ms-version-summary"></p><div class="ms-output-actions"><button id="ms-preview" type="button" class="btn">ทดลองเล่น</button><label><input id="ms-review" type="checkbox"> ฉันทดลองและตรวจเนื้อหาของเวอร์ชันนี้แล้ว</label><button id="ms-publish" type="button" class="btn btn-primary">เผยแพร่ลิงก์</button></div><div id="ms-links"></div></section><button id="ms-archive" type="button" class="btn" hidden>เก็บงานเข้ากรุ</button></main></div></section>`;
+      <main class="ms-main"><p id="ms-notice" role="status">กำลังเปิดคลังสื่อ…</p><div class="ms-intro"><div><p class="ms-kicker">เริ่มจากไอเดียสั้น ๆ ก็ได้</p><h3>ออกแบบสื่อร่วมกับ AI ก่อน แล้วค่อยสร้างเมื่อเห็นภาพตรงกัน</h3></div><p class="ms-privacy">บทสนทนานี้บันทึกในบัญชีคุณครูเพื่อคุยต่อได้ กรุณาไม่ใส่ข้อมูลส่วนตัวของนักเรียน</p></div><ol class="ms-steps" aria-label="ขั้นตอนสร้างสื่อ"><li id="ms-step-plan" class="is-current"><span>1</span>คุยและวางแผน</li><li id="ms-step-build"><span>2</span>สร้างและทดลอง</li><li id="ms-step-review"><span>3</span>ตรวจและเผยแพร่</li></ol><div class="ms-workspace"><div class="ms-chat"><div class="ms-chat-heading"><div><p class="ms-kicker">บทสนทนากับ AI</p><h3>คุณอยากให้เด็กเข้าใจอะไร</h3></div><span>ตอบทีละขั้น</span></div><div id="ms-conversation" role="log" aria-live="polite"></div><div id="ms-followups"></div><div id="ms-starters" class="ms-starters" aria-label="ไอเดียเริ่มต้น"><button type="button" data-starter="อยากสร้างเกมพลังงานศักย์และพลังงานจลน์ ให้เด็กเห็นว่าความสูงส่งผลต่อความเร็วอย่างไร">เกมพลังงานและการเคลื่อนที่</button><button type="button" data-starter="อยากทำกิจกรรมคณิตศาสตร์ที่เด็กปรับตัวแปรและอธิบายเหตุผลของคำตอบได้">กิจกรรมให้ปรับตัวแปร</button><button type="button" data-starter="อยากเปลี่ยนบทเรียนนี้ให้เป็นภารกิจสั้น ๆ ในเวลา 15 นาที">ภารกิจสั้น 15 นาที</button></div><form id="ms-form"><label for="ms-input">เล่าไอเดีย หรือบอกสิ่งที่อยากปรับ</label><textarea id="ms-input" rows="3" maxlength="6000" placeholder="เช่น อยากสร้างเกมพลังงานศักย์และพลังงานจลน์ ให้เด็กเห็นว่าความสูงส่งผลต่อความเร็วอย่างไร"></textarea><div class="ms-composer-actions"><button id="ms-send" type="submit" class="btn">ให้ AI ช่วยวางแผน</button><button id="ms-build" type="button" class="btn btn-primary">สร้างสื่อที่เล่นได้</button></div><p id="ms-build-help" class="ms-action-help">วางแผนกับ AI ก่อน แล้วจึงสร้างสื่อที่ตรงกับห้องเรียน</p></form><p id="ms-job" role="status"></p></div><aside class="ms-plan"><div class="ms-plan-heading"><p class="ms-kicker">แผนสื่อ</p><span>อัปเดตจากบทสนทนา</span></div><div id="ms-plan"></div></aside></div>
+      <section class="ms-output"><div class="ms-output-heading"><div><p class="ms-kicker">ขั้นตอนสุดท้าย</p><label for="ms-versions">ทดลอง ตรวจ แล้วเผยแพร่</label></div><select id="ms-versions"></select></div><p id="ms-version-summary"></p><div class="ms-output-actions"><button id="ms-preview" type="button" class="btn">1. ทดลองเล่น</button><label><input id="ms-review" type="checkbox"> 2. ฉันทดลองและตรวจเนื้อหาของเวอร์ชันนี้แล้ว</label><button id="ms-publish" type="button" class="btn btn-primary">3. เผยแพร่ลิงก์</button></div><div id="ms-links"></div></section><button id="ms-archive" type="button" class="btn" hidden>เก็บงานเข้ากรุ</button></main></div></section>`;
     document.body.append(root);document.body.classList.add('modal-open');root.addEventListener('click',action);
     root.addEventListener('keydown',event=>{
       if(event.key==='Escape'){if(preview)closePreview();else close();return;}
