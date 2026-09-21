@@ -141,9 +141,10 @@ test('authenticated HTTP ignores forged owner fields and requires explicit teach
     const res={setHeader(){},status(n){this.statusCode=n;return this;},json(v){this.body=v;}};
     await handler({method:'POST',headers:{host:'app.test',origin:'https://app.test',authorization:'Bearer teacher-a'},body},res);return res;
   };
-  const created=await call({action:'create',teacher_id:b,title:'real owner',context:{}});
+  const created=await call({action:'create',teacher_id:b,title:'real owner',context:{classroom:'ม.1/1',subject:'วิทยาศาสตร์'}});
   assert.equal(created.statusCode,200);const p=created.body.project;
   assert.equal((await service.list(b)).length,0);assert.equal((await service.list(a)).length,1);
+  assert.deepEqual(p.context,{subject:'',classroom:'',goal:'',duration_minutes:15},'Studio projects never bind a conversation to a classroom');
   const j=await service.enqueue(a,p.id,'build','สร้างเกม',uuid());await service.run(a,p.id,j.id);
   assert.equal((await call({action:'publish',project_id:p.id,version_id:j.id,reviewed:false})).statusCode,400);
   assert.equal((await call({action:'publish',project_id:p.id,version_id:j.id,reviewed:true})).statusCode,200);
