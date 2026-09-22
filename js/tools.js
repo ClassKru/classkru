@@ -9,8 +9,6 @@ const TEACHING_TOOLS = [
   { id:'countdown',     name:'นับถอยหลัง',   desc:'ตั้งเวลากิจกรรม',    icon:'hgi-alarm-clock',    tint:'coral',  status:'ready', open: openCountdownTool },
   { id:'timer',         name:'จับเวลา',      desc:'จับเวลาเดินหน้า',    icon:'hgi-timer-02',       tint:'amber',  status:'ready', open: openTimerTool },
   { id:'random-number', name:'สุ่มตัวเลข',    desc:'สุ่มเลข / หัวข้อ',   icon:'hgi-dice-faces-05',  tint:'purple', status:'ready', open: openRandomNumberTool },
-  { id:'noise',         name:'วัดเสียงห้อง',  desc:'คุมระดับเสียง',      icon:'hgi-volume-high',    tint:'pink',   status:'soon' },
-  { id:'scoreboard',    name:'กระดานคะแนน',  desc:'สะสมแต้มพฤติกรรม',   icon:'hgi-award-01',       tint:'gray',   status:'soon' },
 ];
 
 let teachingToolsYear = null;
