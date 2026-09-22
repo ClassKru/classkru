@@ -574,6 +574,15 @@ const GUIDE_STEPS = {
       mobileOnly: true, blockTarget: true },
     { before: ensureCheckinOpen, target: '.d-attendance-table, .d-col-status', title: 'เช็คชื่อบนจอใหญ่',
       body: 'บนเว็บ/เดสก์ท็อปจะเห็นเป็นตาราง กดสถานะในแต่ละแถวเพื่อเช็คชื่อเร็ว ๆ',
+      desktopOnly: true, blockTarget: true },
+    { before: ensureCheckinOpen, target: '.swipe-mini-btn.qr', title: 'เช็คชื่อด้วย QR',
+      body: 'ถ้าต้องการให้นักเรียนเช็คชื่อด้วยมือถือ ให้กดปุ่มนี้เพื่อเปิด QR สำหรับแชร์หน้าชั้นเรียน',
+      desktopOnly: true, advance: 'click' },
+    { target: '#modal-qr-attendance .qr-attendance-sheet', title: 'หน้าต่างเช็คชื่อด้วย QR',
+      body: 'แสดง QR และลิงก์เข้าร่วม ครูคัดลอกลิงก์หรือเปิด QR ให้นักเรียนสแกนได้จากหน้านี้',
+      desktopOnly: true, blockTarget: true },
+    { target: '#modal-qr-attendance .qr-attendance-live', title: 'ดูสถานะแบบสด',
+      body: 'ด้านขวาจะแสดงจำนวนคนที่เช็คชื่อแล้วและรายชื่อที่ส่งเข้ามาแบบอัตโนมัติ',
       desktopOnly: true, blockTarget: true }
   ],
   scores: [
