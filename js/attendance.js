@@ -1215,6 +1215,18 @@ function setAllSwipePresent() {
   }, { title: 'มาทุกคน', icon: '<i class="hgi-stroke hgi-checkmark-circle-02" style="color:var(--color-present);"></i>', okText: 'ยืนยัน', okSafe: true });
 }
 
+function openAttendanceActivity() {
+  if (!swipeClassId) return;
+  try {
+    // หน้ากิจกรรมเปิดเป็นหน้าต่างใหม่ จึงส่ง appState ล่าสุดไปให้ก่อนเปิด
+    localStorage.setItem('classkru_mobile_v4', JSON.stringify(appState));
+  } catch (error) {
+    console.warn('Unable to sync classroom state before opening activity:', error);
+  }
+  const params = new URLSearchParams({ classId: swipeClassId, mode: 'attendance' });
+  window.open(`join-activity.html?${params.toString()}`, '_blank');
+}
+
 function clearSwipeChecks() {
   showConfirm('ต้องการล้างผลเช็คชื่อทั้งหมด?', () => {
     swipeResults = {};

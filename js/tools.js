@@ -258,7 +258,17 @@ function _tlChanGet() {
   return _tlChan;
 }
 function _tlStageBtn() {
-  return `<a class="tl-stage-btn" id="tl-stage-btn" href="stage.html" target="_blank" rel="noopener">เปิดจอฉาย</a>`;
+  return `<div class="tl-stage-actions">
+      <button type="button" class="tl-fullscreen-btn" onclick="_tlRequestFullscreen()"><i class="hgi-stroke hgi-maximize-01"></i> เต็มจอ</button>
+      <a class="tl-stage-btn" id="tl-stage-btn" href="stage.html" target="_blank" rel="noopener">เปิดจอฉาย</a>
+    </div>`;
+}
+function _tlRequestFullscreen() {
+  const root = document.documentElement;
+  if (document.fullscreenElement) { document.exitFullscreen?.(); return; }
+  const request = root.requestFullscreen || root.webkitRequestFullscreen;
+  if (!request) { showToast('เบราว์เซอร์นี้ไม่รองรับโหมดเต็มจอ'); return; }
+  Promise.resolve(request.call(root)).catch(() => showToast('ไม่สามารถเปิดโหมดเต็มจอได้'));
 }
 function _tlStageBtnState() {
   const b = document.getElementById('tl-stage-btn');

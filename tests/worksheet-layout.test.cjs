@@ -41,13 +41,13 @@ test('API passes structured output through validation and rejects incomplete con
   const originalFetch = global.fetch; const originalKey = process.env.OPENROUTER_API_KEY;
   process.env.OPENROUTER_API_KEY = 'test-placeholder';
   const handler = require('../api/ai/generate-worksheet');
-  let output = raw; let called=0;
+  let output = raw; let called=0; let aiRequest;
   global.fetch = async (url,init)=>{
     if (url.includes('/auth/v1/user')) return {ok:true,json:async()=>({id:'test-user'})};
-    called++; const request = JSON.parse(init.body);
+    called++; const request = JSON.parse(init.body); aiRequest = request;
     assert.match(request.messages[1].content,/จำนวนข้อ\/แถวที่นักเรียนต้องทำรวมทั้งหมด/);
     assert.match(request.messages[1].content,/แบบพอดี/);
-    assert.match(request.messages[1].content,/table เพียง 1 บล็อก/);
+    if (request.messages[1].content.includes('- รูปแบบใบงาน: ตาราง / จำแนกข้อมูล')) assert.match(request.messages[1].content,/table เพียง 1 บล็อก/);
     return {ok:true,json:async()=>({choices:[{message:{content:JSON.stringify({worksheet:output})}}]})};
   };
   const response = ()=>({setHeader(){},status(n){this.code=n;return this;},json(b){this.body=b;}});
@@ -56,6 +56,11 @@ test('API passes structured output through validation and rejects incomplete con
     const good=response(); await handler(req,good); assert.equal(good.code,200); assert.equal(good.body.worksheet.version,2);
     output={title:'incomplete',directions:['do something'],tasks:['make a table']};
     const bad=response(); await handler(req,bad); assert.equal(bad.code,502); assert.equal(called,2);
+    output={title:'แบบฝึก 30 ข้อ',directions:['ตอบคำถาม'],blocks:Array.from({length:30},(_,index)=>({type:'question',title:`ข้อ ${index+1}`,instruction:`โจทย์ข้อ ${index+1}`,answer:`แนวคำตอบ ${index+1}`}))};
+    const manyQuestions=response(); await handler({...req,body:{...req.body,worksheetType:'questions',worksheetTypeLabel:'เติมคำ / ตอบคำถาม',itemCount:30}},manyQuestions);
+    assert.equal(manyQuestions.code,200); assert.equal(manyQuestions.body.worksheet.blocks.length,30); assert.match(aiRequest.messages[1].content,/จำนวนข้อ\/แถวที่นักเรียนต้องทำรวมทั้งหมด: 30/); assert.equal(aiRequest.max_tokens,9000);
+    const tooMany=response(); await handler({...req,body:{...req.body,worksheetType:'questions',itemCount:31}},tooMany);
+    assert.equal(tooMany.code,400); assert.equal(tooMany.body.error,'invalid_item_count'); assert.equal(called,3);
   } finally {global.fetch=originalFetch; if(originalKey===undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY=originalKey;}
 });
 
@@ -71,4 +76,12 @@ test('matching and drawing templates keep layout separate from AI content',()=>{
   assert.match(openEnded.blocks[0].answer,/เนื้อหาถูกต้อง/);
   const multiPartQuestion = normalize({title:'วิเคราะห์สารอาหาร',directions:['ตอบคำถาม'],blocks:[{type:'question',title:'วิเคราะห์',instruction:'อธิบายสารอาหาร 3 ชนิดและหน้าที่',answer:'ตอบครบทั้ง 3 ชนิด'},{type:'question',title:'ยกตัวอย่าง',instruction:'ยกตัวอย่างพืช',answer:'มีตัวอย่างสอดคล้อง'},{type:'question',title:'สรุป',instruction:'สรุปความสำคัญ',answer:'สรุปมีเหตุผล'}]},{worksheetType:'questions',itemCount:1,answerKey:'yes'});
   assert.equal(multiPartQuestion.blocks.length,3);
+});
+
+test('question worksheets allow up to 30 main questions only in question format',()=>{
+  const questions = Array.from({length:30},(_,index)=>({type:'question',title:`ข้อ ${index+1}`,instruction:`โจทย์ข้อ ${index+1}`,answer:`แนวคำตอบ ${index+1}`}));
+  const worksheet = normalize({title:'แบบฝึก 30 ข้อ',directions:['ตอบคำถาม'],blocks:questions},{worksheetType:'questions',itemCount:30,answerKey:'yes'});
+  assert.equal(worksheet.blocks.length,30);
+  assert.throws(()=>normalize({title:'แบบฝึก 31 ข้อ',directions:['ตอบคำถาม'],blocks:[...questions,{type:'question',title:'ข้อ 31',instruction:'โจทย์ข้อ 31',answer:'แนวคำตอบ'}]},{worksheetType:'questions',itemCount:31,answerKey:'yes'}),/โจทย์หรือตาราง/);
+  assert.throws(()=>normalize({title:'ตารางเกินจำนวน',directions:['กรอกตาราง'],blocks:questions},{worksheetType:'table',itemCount:30,answerKey:'yes'}),/โจทย์หรือตาราง/);
 });

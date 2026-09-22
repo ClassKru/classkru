@@ -35,6 +35,9 @@ module.exports = async function handler(req, res) {
       drawing_form: { rule:'สร้าง drawing_form เพียง 1 บล็อก มี items เท่ากับจำนวนข้อที่เลือก 1–10 รายการ แต่ละรายการต้องมี prompt ที่นักเรียนทำได้จริงและ fields 0–4 ช่องสำหรับเขียนอธิบาย ต้องมี rubric สำหรับตรวจงาน ไม่จำเป็นต้องมี answer เพราะ rubric ใช้แทนแนวทางตรวจได้ ห้ามสร้างภาพจาก AI และห้ามอ้างภาพที่ไม่ได้แนบ', example:'{"type":"drawing_form","title":"วาดและอธิบาย","instruction":"วาดภาพตามคำสั่ง แล้วเติมข้อมูลประกอบ","items":[{"prompt":"วาดแบบจำลองของเซลล์และใส่ป้ายกำกับ","fields":["ส่วนประกอบสำคัญ","หน้าที่"]}],"rubric":["ภาพตรงตามเนื้อหา","คำอธิบายสัมพันธ์กับภาพ"]}' }
     }[formatId] || null;
     if (!formatSpec) return sendJson(res, 400, { error:'invalid_worksheet_type', message:'กรุณาเลือกแม่แบบใบงานที่ระบบรองรับ' });
+    const requestedItemCount = body.itemCount === undefined || body.itemCount === null || body.itemCount === '' ? 10 : Number(body.itemCount);
+    const itemCountLimit = formatId === 'questions' ? 30 : 10;
+    if (!Number.isInteger(requestedItemCount) || requestedItemCount < 1 || requestedItemCount > itemCountLimit) return sendJson(res, 400, { error:'invalid_item_count', message:`จำนวนกิจกรรมหลักต้องเป็นจำนวนเต็ม 1–${itemCountLimit} รายการสำหรับแม่แบบนี้` });
     const workMode = { individual:'รายบุคคล', pair:'ทำงานเป็นคู่', group:'ทำงานเป็นกลุ่ม' }[clean(body.workMode,40)] || 'รายบุคคล';
     const difficulty = { easy:'พื้นฐาน', medium:'ปานกลาง', hard:'ท้าทาย' }[clean(body.difficulty,40)] || 'ปานกลาง';
     const visuals = 'ใช้โครงสร้างใบงานและพื้นที่วาดที่กำหนดไว้ ห้ามให้ AI สร้างภาพประกอบเอง';
@@ -50,7 +53,7 @@ module.exports = async function handler(req, res) {
 - ประเภทกิจกรรม: ${clean(body.activityType,120)}
 - เวลา: ${clean(body.duration,80)}
 - รูปแบบการทำงาน: ${workMode}
-- จำนวนข้อ/แถวที่นักเรียนต้องทำรวมทั้งหมด: ${clean(body.itemCount,40) || '8'}
+- จำนวนข้อ/แถวที่นักเรียนต้องทำรวมทั้งหมด: ${requestedItemCount}
 - ระดับความยาก: ${difficulty}
 - ภาพหรือสื่อประกอบ: ${visuals}
 - พื้นที่คำตอบ: ${answerSpace}
@@ -67,14 +70,12 @@ answer เป็นเฉลย/แนวทางตรวจสำหรับ
 ตรวจนับก่อนตอบ JSON หากจำนวนไม่ตรงให้ปรับจำนวนแถวหรือจำนวน question จนตรงก่อน ห้ามส่งคำตอบที่จำนวนไม่ตรง
 ตอบ JSON ล้วน ห้ามมี markdown และใช้โครงสร้างนี้เท่านั้น:
 {"worksheet":{"title":"...","directions":["คำชี้แจงสั้น ๆ"],"blocks":[${formatSpec.example}]},"warnings":[]}`;
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method:'POST', headers:{ Authorization:`Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type':'application/json', 'HTTP-Referer':process.env.APP_URL || 'https://classkru-kohl.vercel.app', 'X-Title':'ClassKru' }, body:JSON.stringify({ model:process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature:0.25, max_tokens:5000, messages:[{ role:'system', content:rules }, { role:'user', content:prompt }] }) });
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method:'POST', headers:{ Authorization:`Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type':'application/json', 'HTTP-Referer':process.env.APP_URL || 'https://classkru-kohl.vercel.app', 'X-Title':'ClassKru' }, body:JSON.stringify({ model:process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature:0.25, max_tokens:requestedItemCount > 15 ? 9000 : 5000, messages:[{ role:'system', content:rules }, { role:'user', content:prompt }] }) });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) return sendJson(res, 502, { error:'generation_failed', message:'AI ยังสร้างใบงานไม่ได้ กรุณาลองใหม่อีกครั้ง' });
     let raw; try { raw = parseJson(payload?.choices?.[0]?.message?.content); } catch (_) { return sendJson(res, 502, { error:'invalid_ai_response', message:'AI ส่งรูปแบบใบงานไม่ถูกต้อง กรุณาลองใหม่' }); }
     let worksheet;
-    const requestedItemCount = Number(body.itemCount);
-    const safeItemCount = Number.isInteger(requestedItemCount) && requestedItemCount >= 1 && requestedItemCount <= 10 ? requestedItemCount : 8;
-    try { worksheet = normalize(raw?.worksheet || raw, { ...body, itemCount:safeItemCount, strictItemCount:['table','inquiry','matching'].includes(formatId) }); }
+    try { worksheet = normalize(raw?.worksheet || raw, { ...body, itemCount:requestedItemCount, strictItemCount:['table','inquiry','matching'].includes(formatId) }); }
     catch (error) { return sendJson(res, 502, { error:'invalid_worksheet', message:`ร่างใบงานยังไม่ผ่านการตรวจ: ${error.message} กรุณาลองสร้างใหม่` }); }
     if (!worksheet.title || !worksheet.directions.length) return sendJson(res, 502, { error:'empty_ai_response', message:'ใบงานขาดชื่อหรือคำชี้แจง' });
     return sendJson(res, 200, { worksheet, warnings:asList(raw?.warnings, 8) });

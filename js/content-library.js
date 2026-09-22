@@ -6,6 +6,7 @@
   const state = {
     view: 'home',
     sourceType: 'topic',
+    quizQuestionCount: '10',
     selectedClassId: '',
     subjectId: '',
     grade: '',
@@ -151,23 +152,59 @@
     return `<article class="cl-saved-card quiz"><button class="cl-saved-card-main" type="button" onclick="openQuizDetail('${escapeHtml(item.id)}')" aria-label="เปิดข้อสอบ ${escapeHtml(item.title || '')}"><span class="cl-saved-type"><i class="hgi-stroke hgi-task-02"></i> ข้อสอบ</span><h4>${escapeHtml(item.title || 'ข้อสอบไม่มีชื่อ')}</h4><p>${escapeHtml(item.classLabel || 'ยังไม่ได้เชื่อมห้องเรียน')}</p><div class="cl-saved-meta"><span>${Number(item.questions?.length || 0)} ข้อ</span><span>${item.mode === 'practice' ? 'โหมดฝึกฝน' : 'แบบทดสอบ'}</span><span>ร่าง</span></div><span class="cl-saved-open">เปิดข้อสอบ <i class="hgi-stroke hgi-arrow-right-01"></i></span></button><button class="cl-saved-delete" type="button" onclick="deleteSavedLibraryItem(event, '${escapeHtml(item.id)}')" aria-label="ลบข้อสอบ" title="ลบข้อสอบ"><i class="hgi-stroke hgi-delete-02"></i></button></article>`;
   }
 
-  window.openWorksheetCreator = function () { state.worksheetView = 'form'; state.worksheetDraft = null; state.worksheetDraftOrigin = 'new'; state.worksheetEditing = false; state.worksheetPrefill = null; state.worksheetType = 'questions'; state.worksheetWorkMode = 'individual'; state.worksheetItemCount = '8'; state.worksheetDifficulty = 'medium'; state.worksheetVisuals = 'none'; state.worksheetAnswerSpace = 'medium'; state.worksheetAnswerKey = 'yes'; state.worksheetIndicatorCodes = []; render(); };
+  window.openWorksheetCreator = function () { state.worksheetView = 'form'; state.worksheetDraft = null; state.worksheetDraftOrigin = 'new'; state.worksheetEditing = false; state.worksheetPrefill = null; state.worksheetType = 'questions'; state.worksheetWorkMode = 'individual'; state.worksheetItemCount = '10'; state.worksheetDifficulty = 'medium'; state.worksheetVisuals = 'none'; state.worksheetAnswerSpace = 'medium'; state.worksheetAnswerKey = 'yes'; state.worksheetIndicatorCodes = []; render(); };
   window.closeWorksheetCreator = function () { const returnPlanId = state.worksheetPrefill?.lessonPlanId || state.worksheetDraft?.lessonPlanId; const returnPlan = returnPlanId ? library().find(item => item.id === returnPlanId && item.type === 'lesson_plan') : null; state.worksheetView = 'home'; state.worksheetDraft = null; state.worksheetDraftOrigin = 'new'; state.worksheetEditing = false; state.worksheetPrefill = null; state.worksheetIndicatorCodes = []; if (returnPlan) { state.lessonDraft = clone(returnPlan); state.lessonDraftOrigin = 'saved'; state.lessonView = 'detail'; } render(); };
   window.setWorksheetClass = function (value) { state.selectedClassId = value; const room = selectedClass(); state.subjectId = subjectIdFromName(room?.subject); state.grade = String(room?.gradeLevel || ''); state.worksheetIndicatorCodes = []; render(); };
   window.setWorksheetSubject = function (value) { state.subjectId = value; state.worksheetIndicatorCodes = []; render(); };
   window.setWorksheetGrade = function (value) { state.grade = value; state.worksheetIndicatorCodes = []; render(); };
-  window.setWorksheetType = function (value) { state.worksheetType = value; };
-  window.setWorksheetOption = function (field, value) { const stateField = `worksheet${field.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('')}`; if (Object.prototype.hasOwnProperty.call(state, stateField)) state[stateField] = value; };
+  window.setWorksheetType = function (value) { state.worksheetType = value; configureWorksheetCountControl(value); };
+  window.setWorksheetOption = function (field, value) {
+    if (field === 'item-count') {
+      const custom = document.getElementById('worksheet-item-count-custom');
+      if (value === 'custom') { if (custom) custom.hidden = false; return; }
+      state.worksheetItemCount = value;
+      if (custom) { custom.value = value; custom.hidden = true; }
+      return;
+    }
+    const stateField = `worksheet${field.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('')}`;
+    if (Object.prototype.hasOwnProperty.call(state, stateField)) state[stateField] = value;
+  };
+  window.setWorksheetCustomItemCount = function (value) { state.worksheetItemCount = value; };
   window.toggleWorksheetIndicator = function (code, checked) { state.worksheetIndicatorCodes = checked ? [...new Set([...state.worksheetIndicatorCodes, code])] : state.worksheetIndicatorCodes.filter(item => item !== code); };
   function selectedWorksheetIndicators() { const cat = catalog(); if (!cat || !state.subjectId) return []; const rows = cat.search({ subjectId:state.subjectId, grade:state.grade.toUpperCase(), standardId:'all' }); return rows.filter(row => state.worksheetIndicatorCodes.includes(row.code)); }
   const worksheetFormats = [{ id:'questions', label:'เติมคำ / ตอบคำถาม', hint:'ใบงานพื้นฐานสำหรับทบทวนความเข้าใจ เติมคำ หรือเขียนคำตอบสั้น ๆ' }, { id:'table', label:'ตาราง / จำแนกข้อมูล', hint:'ใช้จัดกลุ่ม เปรียบเทียบ ทำเครื่องหมาย หรือบันทึกข้อมูลลงตาราง' }, { id:'inquiry', label:'ทดลอง / สำรวจ / บันทึกผล', hint:'ใช้กับการสังเกตหรือทดลอง มีขั้นตอน ตารางบันทึกผล และคำถามสรุป' }, { id:'matching', label:'จับคู่ / ลากเส้น', hint:'แสดงรายการสองฝั่งให้นักเรียนจับคู่ โดยมีช่องคำตอบและเฉลยแยกสำหรับครู' }, { id:'drawing_form', label:'วาดภาพ / แบบฟอร์ม', hint:'สร้างพื้นที่วาดหรือออกแบบ พร้อมช่องให้เขียนคำอธิบายและเกณฑ์ตรวจ' }];
   function worksheetFormat(value) { return worksheetFormats.find(item => item.id === value) || worksheetFormats[0]; }
+  function worksheetCountLimit(type) { return type === 'questions' ? 30 : 10; }
+  function worksheetCountPresets(type) { return [5,10,15,20,30].filter(count => count <= worksheetCountLimit(type)); }
+  function worksheetCountOption(current, type) {
+    const limit = worksheetCountLimit(type);
+    const count = String(current || '10');
+    const presets = worksheetCountPresets(type);
+    const isPreset = presets.includes(Number(count));
+    const choices = presets.map(value => `<option value="${value}" ${count === String(value) ? 'selected' : ''}>${value} ข้อ</option>`).join('');
+    return `<div class="cl-field"><span>จำนวนกิจกรรมหลัก</span><select id="worksheet-item-count" class="form-control" onchange="setWorksheetOption('item-count', this.value)">${choices}<option value="custom" ${isPreset ? '' : 'selected'}>กำหนดเอง</option></select><input id="worksheet-item-count-custom" class="form-control cl-count-custom" type="number" min="1" max="${limit}" step="1" inputmode="numeric" aria-label="จำนวนกิจกรรมหลักที่กำหนดเอง" value="${escapeHtml(count)}" oninput="setWorksheetCustomItemCount(this.value)" ${isPreset ? 'hidden' : ''}><small id="worksheet-item-count-hint" class="cl-field-hint">${limit === 10 ? 'แม่แบบนี้รองรับได้ 1–10 กิจกรรมหลัก' : 'เลือกจำนวนที่ต้องการ หรือกำหนดเองได้ 1–30 ข้อ'}</small></div>`;
+  }
+  function configureWorksheetCountControl(type) {
+    const select = document.getElementById('worksheet-item-count');
+    const custom = document.getElementById('worksheet-item-count-custom');
+    const hint = document.getElementById('worksheet-item-count-hint');
+    if (!select || !custom) return;
+    const limit = worksheetCountLimit(type);
+    const count = Math.min(limit, Math.max(1, Number(state.worksheetItemCount) || 10));
+    state.worksheetItemCount = String(count);
+    const presets = worksheetCountPresets(type);
+    select.innerHTML = [...presets.map(value => `<option value="${value}">${value} ข้อ</option>`), `<option value="custom">กำหนดเอง</option>`].join('');
+    select.value = presets.includes(count) ? String(count) : 'custom';
+    custom.max = String(limit);
+    custom.value = String(count);
+    custom.hidden = select.value !== 'custom';
+    if (hint) hint.textContent = limit === 10 ? 'แม่แบบนี้รองรับได้ 1–10 กิจกรรมหลัก' : 'เลือกจำนวนที่ต้องการ หรือกำหนดเองได้ 1–30 ข้อ';
+  }
   function worksheetOptionsHtml(saved, prefill) {
     const storedField = { worksheetWorkMode:'workMode', worksheetItemCount:'itemCount', worksheetDifficulty:'difficulty', worksheetVisuals:'visuals', worksheetAnswerSpace:'answerSpace', worksheetAnswerKey:'answerKey' };
     const value = (field, fallback) => saved[storedField[field]] || prefill[storedField[field]] || state[field] || fallback;
     const option = (field, current, items) => `<label class="cl-field"><span>${items.label}</span><select id="worksheet-${field}" class="form-control" onchange="setWorksheetOption('${field}', this.value)">${items.options.map(item => `<option value="${item.value}" ${item.value === current ? 'selected' : ''}>${item.label}</option>`).join('')}</select></label>`;
-    const numberOption = (field, current, label) => `<label class="cl-field"><span>${label}</span><select id="worksheet-${field}" class="form-control" onchange="setWorksheetOption('${field}', this.value)">${Array.from({length:10}, (_, index) => `<option value="${index + 1}" ${String(current) === String(index + 1) ? 'selected' : ''}>${index + 1} ข้อ</option>`).join('')}</select></label>`;
-    return `<section class="cl-worksheet-options-card"><div class="cl-worksheet-options-head"><div><h3>3. กำหนดลักษณะใบงาน</h3><p>กำหนดจำนวนกิจกรรมหลักเป็นเป้าหมาย ระบบจะรักษารายละเอียดสำคัญในคำสั่งไว้ให้ครบ</p></div><span class="cl-worksheet-guide-badge"><i class="hgi-stroke hgi-magic-wand-01"></i> จัดหน้าพร้อมพื้นที่ตอบ</span></div><div class="cl-form-grid">${option('work-mode', value('worksheetWorkMode', 'individual'), { label:'รูปแบบการทำงาน', options:[{value:'individual',label:'ทำรายบุคคล'},{value:'pair',label:'ทำงานเป็นคู่'},{value:'group',label:'ทำงานเป็นกลุ่ม'}] })}${numberOption('item-count', value('worksheetItemCount', '8'), 'จำนวนกิจกรรมหลัก')}${option('difficulty', value('worksheetDifficulty', 'medium'), { label:'ระดับความยาก', options:[{value:'easy',label:'พื้นฐาน'},{value:'medium',label:'ปานกลาง'},{value:'hard',label:'ท้าทาย'}] })}${option('visuals', value('worksheetVisuals', 'none'), { label:'สื่อประกอบที่รองรับ', options:[{value:'none',label:'โครงสร้างใบงานและพื้นที่วาด'}] })}${option('answer-space', value('worksheetAnswerSpace', 'medium'), { label:'พื้นที่คำตอบ', options:[{value:'short',label:'สั้น กระชับ'},{value:'medium',label:'พอดี'},{value:'long',label:'มีพื้นที่อธิบาย'}] })}${option('answer-key', value('worksheetAnswerKey', 'yes'), { label:'เฉลยสำหรับครู', options:[{value:'yes',label:'สร้างเฉลย/เกณฑ์ตรวจด้วย'},{value:'no',label:'ไม่ต้องสร้างเฉลย'}] })}</div></section>`;
+    return `<section class="cl-worksheet-options-card"><div class="cl-worksheet-options-head"><div><h3>3. กำหนดลักษณะใบงาน</h3><p>กำหนดจำนวนกิจกรรมหลักเป็นเป้าหมาย ระบบจะรักษารายละเอียดสำคัญในคำสั่งไว้ให้ครบ</p></div><span class="cl-worksheet-guide-badge"><i class="hgi-stroke hgi-magic-wand-01"></i> จัดหน้าพร้อมพื้นที่ตอบ</span></div><div class="cl-form-grid">${option('work-mode', value('worksheetWorkMode', 'individual'), { label:'รูปแบบการทำงาน', options:[{value:'individual',label:'ทำรายบุคคล'},{value:'pair',label:'ทำงานเป็นคู่'},{value:'group',label:'ทำงานเป็นกลุ่ม'}] })}${worksheetCountOption(value('worksheetItemCount', '10'), state.worksheetType)}${option('difficulty', value('worksheetDifficulty', 'medium'), { label:'ระดับความยาก', options:[{value:'easy',label:'พื้นฐาน'},{value:'medium',label:'ปานกลาง'},{value:'hard',label:'ท้าทาย'}] })}${option('visuals', value('worksheetVisuals', 'none'), { label:'สื่อประกอบที่รองรับ', options:[{value:'none',label:'โครงสร้างใบงานและพื้นที่วาด'}] })}${option('answer-space', value('worksheetAnswerSpace', 'medium'), { label:'พื้นที่คำตอบ', options:[{value:'short',label:'สั้น กระชับ'},{value:'medium',label:'พอดี'},{value:'long',label:'มีพื้นที่อธิบาย'}] })}${option('answer-key', value('worksheetAnswerKey', 'yes'), { label:'เฉลยสำหรับครู', options:[{value:'yes',label:'สร้างเฉลย/เกณฑ์ตรวจด้วย'},{value:'no',label:'ไม่ต้องสร้างเฉลย'}] })}</div></section>`;
   }
   function worksheetFormHtml() {
     const saved = state.worksheetDraft || {}; const prefill = state.worksheetPrefill || {}; const requestedType = saved.worksheetType || prefill.worksheetType || state.worksheetType; const selectedType = worksheetFormats.some(item => item.id === requestedType) ? requestedType : 'questions'; state.worksheetType = selectedType;
@@ -189,7 +226,11 @@
     if (!room) { showToast('กรุณาเลือกห้องเรียนก่อนสร้างใบงาน', 'warning'); return; }
     if (title.length < 3) { showToast('กรุณาระบุชื่อใบงาน', 'warning'); return; }
     if (!indicators.length) { showToast('กรุณาเลือกตัวชี้วัดอย่างน้อย 1 ข้อ', 'warning'); return; }
-    const payload = { title, worksheetType, worksheetTypeLabel:worksheetFormat(worksheetType).label, classId:room.id, classLabel:`${room.subject} · ${room.className}`, subject:room.subject, grade:gradeLabel(state.grade), topic:state.worksheetPrefill?.topic || title, activityType:document.getElementById('worksheet-activity-type')?.value || '', duration:document.getElementById('worksheet-duration')?.value || '', indicators:indicators.map(row => ({ code:row.code, text:row.text })), workMode:document.getElementById('worksheet-work-mode')?.value || state.worksheetWorkMode, itemCount:document.getElementById('worksheet-item-count')?.value || state.worksheetItemCount, difficulty:document.getElementById('worksheet-difficulty')?.value || state.worksheetDifficulty, visuals:document.getElementById('worksheet-visuals')?.value || state.worksheetVisuals, answerSpace:document.getElementById('worksheet-answer-space')?.value || state.worksheetAnswerSpace, answerKey:document.getElementById('worksheet-answer-key')?.value || state.worksheetAnswerKey, learnerOutput:document.getElementById('worksheet-output')?.value.trim() || '', resources:document.getElementById('worksheet-resources')?.value.trim() || '', focus:document.getElementById('worksheet-focus')?.value.trim() || '', lessonPlanId:state.worksheetPrefill?.lessonPlanId || '' };
+    const countControl = document.getElementById('worksheet-item-count');
+    const itemCount = Number(countControl?.value === 'custom' ? document.getElementById('worksheet-item-count-custom')?.value : countControl?.value || state.worksheetItemCount || 10);
+    if (!Number.isInteger(itemCount) || itemCount < 1 || itemCount > worksheetCountLimit(worksheetType)) { showToast(`กรุณาระบุจำนวนกิจกรรมหลัก 1–${worksheetCountLimit(worksheetType)} รายการ`, 'warning'); document.getElementById('worksheet-item-count-custom')?.focus(); return; }
+    state.worksheetItemCount = String(itemCount);
+    const payload = { title, worksheetType, worksheetTypeLabel:worksheetFormat(worksheetType).label, classId:room.id, classLabel:`${room.subject} · ${room.className}`, subject:room.subject, grade:gradeLabel(state.grade), topic:state.worksheetPrefill?.topic || title, activityType:document.getElementById('worksheet-activity-type')?.value || '', duration:document.getElementById('worksheet-duration')?.value || '', indicators:indicators.map(row => ({ code:row.code, text:row.text })), workMode:document.getElementById('worksheet-work-mode')?.value || state.worksheetWorkMode, itemCount, difficulty:document.getElementById('worksheet-difficulty')?.value || state.worksheetDifficulty, visuals:document.getElementById('worksheet-visuals')?.value || state.worksheetVisuals, answerSpace:document.getElementById('worksheet-answer-space')?.value || state.worksheetAnswerSpace, answerKey:document.getElementById('worksheet-answer-key')?.value || state.worksheetAnswerKey, learnerOutput:document.getElementById('worksheet-output')?.value.trim() || '', resources:document.getElementById('worksheet-resources')?.value.trim() || '', focus:document.getElementById('worksheet-focus')?.value.trim() || '', lessonPlanId:state.worksheetPrefill?.lessonPlanId || '' };
     ensureWorksheetProcessingOverlay(); document.getElementById('worksheet-processing-overlay')?.classList.add('show');
     try { const session = await supabaseClient?.auth?.getSession(); const token = session?.data?.session?.access_token; const response = await fetch(apiPath('/api/ai/generate-worksheet'), { method:'POST', headers:{ 'Content-Type':'application/json', ...(token ? { Authorization:`Bearer ${token}` } : {}) }, body:JSON.stringify(payload) }); const result = await response.json().catch(() => ({})); if (!response.ok) throw new Error(result.message || result.error || 'ไม่สามารถสร้างใบงานได้'); state.worksheetDraft = { ...payload, id:uid(), createdAt:new Date().toISOString(), worksheet:result.worksheet, warnings:Array.isArray(result.warnings) ? result.warnings : [] }; state.worksheetDraftOrigin = 'new'; state.worksheetEditing = false; state.worksheetView = 'review'; render(); } catch (error) { console.warn('Worksheet generation failed:', error); showToast(`สร้างใบงานไม่สำเร็จ: ${error.message || 'กรุณาลองใหม่'}`, 'warning', 7000); } finally { document.getElementById('worksheet-processing-overlay')?.classList.remove('show'); }
   };
@@ -336,6 +377,21 @@
   window.setQuizGrade = function (value) { state.grade = value; state.standardId = 'all'; state.indicatorCodes = []; render(); };
   window.setQuizStandard = function (value) { state.standardId = value; state.indicatorCodes = []; render(); };
   window.setQuizSource = function (type) { state.sourceType = type; render(); };
+  window.setQuizQuestionCount = function (value) {
+    const custom = document.getElementById('quiz-count-custom');
+    if (value === 'custom') { if (custom) custom.hidden = false; return; }
+    state.quizQuestionCount = value;
+    if (custom) { custom.value = value; custom.hidden = true; }
+  };
+  window.setQuizCustomQuestionCount = function (value) { state.quizQuestionCount = value; };
+
+  function quizCountOption() {
+    const count = String(state.quizQuestionCount || '10');
+    const presets = [5,10,15,20,30];
+    const isPreset = presets.includes(Number(count));
+    const choices = presets.map(value => `<option value="${value}" ${count === String(value) ? 'selected' : ''}>${value} ข้อ</option>`).join('');
+    return `<div class="cl-field"><span>จำนวนข้อ</span><select id="quiz-count" class="form-control" onchange="setQuizQuestionCount(this.value)">${choices}<option value="custom" ${isPreset ? '' : 'selected'}>กำหนดเอง</option></select><input id="quiz-count-custom" class="form-control cl-count-custom" type="number" min="1" max="30" step="1" inputmode="numeric" aria-label="จำนวนข้อที่กำหนดเอง" value="${escapeHtml(count)}" oninput="setQuizCustomQuestionCount(this.value)" ${isPreset ? 'hidden' : ''}><small class="cl-field-hint">เลือก 5, 10, 15, 20, 30 ข้อ หรือกำหนดเองได้ 1–30 ข้อ</small></div>`;
+  }
 
   function quizWizardHtml() {
     const room = selectedClass();
@@ -357,10 +413,10 @@
         <label class="cl-field"><span>ระดับชั้น</span><select class="form-control" onchange="setQuizGrade(this.value)"><option value="">ไม่ระบุ</option>${grades.map(g => `<option value="${g}" ${g.toLowerCase() === state.grade.toLowerCase() ? 'selected' : ''}>${gradeLabel(g.toLowerCase())}</option>`).join('')}</select></label>
       </div>
         <div class="cl-form-grid"><label class="cl-field full"><span>มาตรฐานการเรียนรู้</span><select class="form-control" onchange="setQuizStandard(this.value)" ${standards.length ? '' : 'disabled'}><option value="all">${standards.length ? 'ทุกมาตรฐานที่เกี่ยวข้อง' : 'ยังไม่มีข้อมูลมาตรฐานสำหรับวิชา/ชั้นนี้'}</option>${standards.map(s => `<option value="${escapeHtml(s.id)}" ${s.id === state.standardId ? 'selected' : ''}>${escapeHtml(s.code)} · ${escapeHtml(s.title)}</option>`).join('')}</select></label>
-        <div class="cl-field full"><span>ตัวชี้วัด/ผลการเรียนรู้ <small style="font-weight:600;color:var(--text-muted)">(เลือกได้หลายข้อ ไม่เลือกได้)</small></span><div class="cl-indicator-table" role="group" aria-label="เลือกรายการตัวชี้วัด"><div class="cl-indicator-table-head"><span></span><span>รหัส</span><span>รายละเอียดตัวชี้วัด</span></div>${indicatorRows.slice(0,18).map(i => `<label class="cl-indicator-row"><input type="checkbox" value="${escapeHtml(i.code)}" ${state.indicatorCodes.includes(i.code) ? 'checked' : ''} onchange="toggleQuizIndicator(this.value,this.checked)"><strong>${escapeHtml(i.code)}</strong><span>${escapeHtml(i.text)}</span></label>`).join('') || '<div class="cl-indicator-empty">ไม่พบตัวชี้วัดที่ตรงกับข้อมูลที่เลือก — คุณยังสร้างจากเนื้อหาได้</div>'}</div></div></div>
+        <div class="cl-field full"><span class="cl-indicator-field-label">ตัวชี้วัด/ผลการเรียนรู้ <small class="cl-indicator-selection-note">(เลือกได้หลายข้อ ไม่เลือกก็ได้)</small></span><div class="cl-indicator-table" role="group" aria-label="เลือกรายการตัวชี้วัด"><div class="cl-indicator-table-head"><span></span><span>รหัส</span><span>รายละเอียดตัวชี้วัด</span></div>${indicatorRows.slice(0,18).map(i => `<label class="cl-indicator-row"><input type="checkbox" value="${escapeHtml(i.code)}" ${state.indicatorCodes.includes(i.code) ? 'checked' : ''} onchange="toggleQuizIndicator(this.value,this.checked)"><strong>${escapeHtml(i.code)}</strong><span>${escapeHtml(i.text)}</span></label>`).join('') || '<div class="cl-indicator-empty">ไม่พบตัวชี้วัดที่ตรงกับข้อมูลที่เลือก — คุณยังสร้างจากเนื้อหาได้</div>'}</div></div></div>
         <hr style="border:0;border-top:1px solid var(--border-color);margin:22px 0;">
         <h3>2. กำหนดข้อสอบ</h3><p class="cl-form-note">AI จะสร้างเป็นฉบับร่างเพื่อให้ครูตรวจแก้ก่อนบันทึก</p><div class="cl-source-tabs"><button class="cl-source-tab ${type === 'topic' ? 'active' : ''}" type="button" onclick="setQuizSource('topic')"><i class="hgi-stroke hgi-bulb"></i> จากหัวข้อ</button><button class="cl-source-tab ${type === 'text' ? 'active' : ''}" type="button" onclick="setQuizSource('text')"><i class="hgi-stroke hgi-text"></i> วางเนื้อหา</button></div>
-        <div class="cl-form-grid">${sourceField}<label class="cl-field"><span>ชื่อข้อสอบ</span><input id="quiz-title" class="form-control" maxlength="160" value="${escapeHtml(prefill.title || '')}" placeholder="เช่น แบบทดสอบก่อนเรียน เรื่องสมการ"></label><label class="cl-field"><span>จำนวนข้อ</span><select id="quiz-count" class="form-control"><option value="5">5 ข้อ</option><option value="10" selected>10 ข้อ</option><option value="15">15 ข้อ</option></select></label><label class="cl-field"><span>ระดับความยาก</span><select id="quiz-difficulty" class="form-control"><option value="ง่าย">ง่าย</option><option value="ปานกลาง" selected>ปานกลาง</option><option value="ยาก">ยาก</option></select></label><div class="cl-field full"><span>ประเภทคำถาม</span><div class="cl-choices"><label class="cl-choice"><input type="checkbox" name="quiz-type" value="multiple_choice" checked> ปรนัย 4 ตัวเลือก</label><label class="cl-choice"><input type="checkbox" name="quiz-type" value="true_false"> ถูก / ผิด</label><label class="cl-choice"><input type="checkbox" name="quiz-type" value="short_answer"> คำตอบสั้น</label></div></div><label class="cl-field full"><span>คำสั่งเพิ่มเติม <small style="font-weight:600;color:var(--text-muted)">(ถ้ามี)</small></span><textarea id="quiz-instructions" class="form-control" maxlength="1200" placeholder="เช่น เน้นการคิดวิเคราะห์ ไม่ใช้โจทย์คำนวณยาว และมีคำอธิบายเฉลยทุกข้อ">${escapeHtml(prefill.instructions || '')}</textarea></label></div>
+        <div class="cl-form-grid">${sourceField}<label class="cl-field"><span>ชื่อข้อสอบ</span><input id="quiz-title" class="form-control" maxlength="160" value="${escapeHtml(prefill.title || '')}" placeholder="เช่น แบบทดสอบก่อนเรียน เรื่องสมการ"></label>${quizCountOption()}<label class="cl-field"><span>ระดับความยาก</span><select id="quiz-difficulty" class="form-control"><option value="ง่าย">ง่าย</option><option value="ปานกลาง" selected>ปานกลาง</option><option value="ยาก">ยาก</option></select></label><div class="cl-field full"><span>ประเภทคำถาม</span><div class="cl-choices"><label class="cl-choice"><input type="checkbox" name="quiz-type" value="multiple_choice" checked> ปรนัย 4 ตัวเลือก</label><label class="cl-choice"><input type="checkbox" name="quiz-type" value="true_false"> ถูก / ผิด</label><label class="cl-choice"><input type="checkbox" name="quiz-type" value="short_answer"> คำตอบสั้น</label></div></div><label class="cl-field full"><span>คำสั่งเพิ่มเติม <small style="font-weight:600;color:var(--text-muted)">(ถ้ามี)</small></span><textarea id="quiz-instructions" class="form-control" maxlength="1200" placeholder="เช่น เน้นการคิดวิเคราะห์ ไม่ใช้โจทย์คำนวณยาว และมีคำอธิบายเฉลยทุกข้อ">${escapeHtml(prefill.instructions || '')}</textarea></label></div>
         <div class="cl-actions"><button class="btn" type="button" onclick="closeQuizCreator()">ยกเลิก</button><button class="btn btn-primary" type="button" onclick="generateQuizDraft()"><i class="hgi-stroke hgi-ai-magic"></i> สร้างร่างข้อสอบ</button></div>
       </section></div>`;
   }
@@ -386,8 +442,12 @@
     if (!room) { showToast('กรุณาเลือกห้องเรียนก่อนสร้างข้อสอบ', 'warning'); return; }
     if (source.length < 3) { showToast(state.sourceType === 'topic' ? 'กรุณาระบุหัวข้อ' : 'กรุณาวางเนื้อหาบทเรียน', 'warning'); return; }
     if (!types.length) { showToast('กรุณาเลือกประเภทคำถามอย่างน้อย 1 แบบ', 'warning'); return; }
+    const countControl = document.getElementById('quiz-count');
+    const questionCount = Number(countControl?.value === 'custom' ? document.getElementById('quiz-count-custom')?.value : countControl?.value || state.quizQuestionCount);
+    if (!Number.isInteger(questionCount) || questionCount < 1 || questionCount > 30) { showToast('กรุณาระบุจำนวนข้อเป็นจำนวนเต็ม 1–30', 'warning'); document.getElementById('quiz-count-custom')?.focus(); return; }
+    state.quizQuestionCount = String(questionCount);
     const title = document.getElementById('quiz-title')?.value.trim() || `ข้อสอบ ${source.slice(0, 60)}`;
-    const payload = { title, classId:room.id, classLabel:`${room.subject} · ${room.className}`, subject:room.subject, grade:gradeLabel(state.grade), sourceType:state.sourceType, source, questionCount:Number(document.getElementById('quiz-count')?.value || 10), types, difficulty:document.getElementById('quiz-difficulty')?.value || 'ปานกลาง', mode:'assessment', instructions:document.getElementById('quiz-instructions')?.value.trim() || '', indicators:selectedIndicators().map(row => ({ code:row.code, text:row.text })) };
+    const payload = { title, classId:room.id, classLabel:`${room.subject} · ${room.className}`, subject:room.subject, grade:gradeLabel(state.grade), sourceType:state.sourceType, source, questionCount, types, difficulty:document.getElementById('quiz-difficulty')?.value || 'ปานกลาง', mode:'assessment', instructions:document.getElementById('quiz-instructions')?.value.trim() || '', indicators:selectedIndicators().map(row => ({ code:row.code, text:row.text })) };
     ensureProcessingOverlay(); processing(true);
     try {
       const session = await supabaseClient?.auth?.getSession();
@@ -413,7 +473,7 @@
   function questionHtml(question, index) {
     const typeName = question.type === 'true_false' ? 'ถูก / ผิด' : question.type === 'short_answer' ? 'คำตอบสั้น' : 'ปรนัย';
     const options = question.type === 'multiple_choice' ? `<div class="cl-option-list">${(question.options || []).map((option, optionIndex) => `<label class="cl-option"><input type="radio" name="answer-${index}" ${Number(question.answerIndex) === optionIndex ? 'checked' : ''} onchange="setQuizAnswer(${index},${optionIndex})"><input type="text" class="form-control" value="${escapeHtml(option)}" oninput="setQuizOption(${index},${optionIndex},this.value)"></label>`).join('')}</div>` : question.type === 'true_false' ? `<div class="cl-option-list"><label class="cl-option"><input type="radio" name="answer-${index}" ${question.answer === 'ถูก' ? 'checked' : ''} onchange="setQuizAnswerText(${index},'ถูก')"> ถูก</label><label class="cl-option"><input type="radio" name="answer-${index}" ${question.answer === 'ผิด' ? 'checked' : ''} onchange="setQuizAnswerText(${index},'ผิด')"> ผิด</label></div>` : `<label class="cl-field" style="margin-top:12px"><span>แนวคำตอบที่ยอมรับได้</span><input class="form-control" value="${escapeHtml(question.answer || '')}" oninput="setQuizAnswerText(${index},this.value)"></label>`;
-    return `<article class="card cl-question-card"><div class="cl-question-head"><span class="cl-question-no"><b>${index + 1}</b> ${typeName}</span><div class="cl-question-tools"><button class="cl-icon-btn" type="button" onclick="deleteQuizQuestion(${index})" title="ลบข้อนี้" aria-label="ลบข้อนี้"><i class="hgi-stroke hgi-delete-02"></i></button></div></div><textarea class="form-control" oninput="setQuizPrompt(${index},this.value)">${escapeHtml(question.prompt || '')}</textarea>${options}${question.explanation ? `<div class="cl-explanation"><strong>คำอธิบายจาก AI:</strong> ${escapeHtml(question.explanation)}</div>` : ''}</article>`;
+    return `<article class="card cl-question-card"><div class="cl-question-head"><span class="cl-question-no"><b>${index + 1}</b> ${typeName}</span><div class="cl-question-tools"><button class="cl-icon-btn" type="button" onclick="deleteQuizQuestion(${index})" title="ลบข้อนี้" aria-label="ลบข้อนี้"><i class="hgi-stroke hgi-delete-02"></i></button></div></div><textarea class="form-control" oninput="setQuizPrompt(${index},this.value)">${escapeHtml(question.prompt || '')}</textarea>${options}<label class="cl-explanation"><strong>คำอธิบายเฉลยสำหรับครู</strong><textarea class="form-control" rows="3" maxlength="900" placeholder="AI จะอธิบายวิธีคำนวณหรือเหตุผลตามลักษณะของข้อนี้" oninput="setQuizExplanation(${index},this.value)">${escapeHtml(question.explanation || '')}</textarea></label></article>`;
   }
   function editHtml() {
     const quiz = state.draft;
@@ -422,6 +482,7 @@
   }
   window.backToQuizSettings = function () { state.view = 'quiz'; render(); };
   window.setQuizPrompt = (index, value) => { state.draft.questions[index].prompt = value; };
+  window.setQuizExplanation = (index, value) => { state.draft.questions[index].explanation = value; };
   window.setQuizOption = (index, optionIndex, value) => { state.draft.questions[index].options[optionIndex] = value; };
   window.setQuizAnswer = (index, answerIndex) => { state.draft.questions[index].answerIndex = answerIndex; };
   window.setQuizAnswerText = (index, answer) => { state.draft.questions[index].answer = answer; };

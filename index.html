@@ -88,7 +88,7 @@
           <label>ชื่อเล่น<input id="public-nickname" class="form-control" placeholder="เช่น บอล"></label>
           <div class="ck-public-two-col">
             <label>เลขที่<input id="public-student-no" class="form-control" inputmode="numeric" placeholder="12"></label>
-            <label>รหัสนักเรียน<input id="public-student-code" class="form-control" placeholder="ไม่บังคับ"></label>
+            <label>รหัสนักเรียน<input id="public-student-code" class="form-control" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="ไม่บังคับ"></label>
           </div>
         </div>
         <p class="ck-public-note">ข้อมูลนี้จะถูกส่งให้ครูตรวจสอบก่อนเพิ่มเข้ารายชื่อห้องเรียน</p>
@@ -294,7 +294,7 @@
             </aside>
           </div>
 
-          <div style="margin:16px 0"><button class="btn btn-primary" type="button" onclick="openInteractiveMediaStudio()"><i class="hgi-stroke hgi-magic-wand-01"></i> สื่อสำหรับคาบนี้ · สร้างกับ AI / คลังของฉัน</button></div>
+          <div class="home-ai-action"><button class="btn btn-primary" type="button" onclick="openInteractiveMediaStudio()"><i class="hgi-stroke hgi-magic-wand-01"></i> สื่อสำหรับคาบนี้ · สร้างกับ AI / คลังของฉัน</button></div>
           <section id="home-setup-card" class="card home-setup-card" style="display:none;">
             <div>
               <span class="home-setup-kicker"><i class="hgi-stroke hgi-rocket-01"></i> เริ่มต้นใช้งาน</span>
@@ -799,6 +799,7 @@
       <div class="swipe-progress">
         <div class="swipe-progress-actions">
           <button class="swipe-mini-btn primary" onclick="setAllSwipePresent()"><i class="hgi-stroke hgi-tick-02"></i> มาทุกคน</button>
+          <button class="swipe-mini-btn qr desktop-only-flex" onclick="openAttendanceActivity()"><i class="hgi-stroke hgi-qr-code-01"></i> เช็คชื่อด้วย QR</button>
           <span class="swipe-progress-checked">เช็คแล้ว <span id="swipe-checked-count">0</span> / <span id="swipe-total-count">0</span></span>
           <button class="swipe-mini-btn danger" onclick="clearSwipeChecks()"><i class="hgi-stroke hgi-delete-02"></i> ล้างข้อมูล</button>
         </div>

@@ -555,11 +555,51 @@
 /* ==========================================================
    จอฉาย — เครื่องมือหน้าชั้นทุกตัวใช้ภาษาเดียวกัน
    ========================================================== */
+#random-name-overlay,
+#tool-timer-overlay,
+#tool-countdown-overlay,
+#tool-number-overlay,
+#tool-group-overlay {
+  padding: 0;
+  align-items: stretch;
+  justify-content: stretch;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
 .tl-screen, .rn-fullscreen {
-  position: relative; width: 100%; height: 100%; min-height: 100dvh; background: var(--loud-surface);
+  --tl-frame-ink: var(--loud-ink);
+  position: relative; width: 100vw; height: 100dvh; min-height: 100dvh; box-sizing: border-box;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255,255,255,.34), transparent 34%),
+    var(--loud-surface);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: clamp(16px, 3vh, 30px); padding: 26px 20px 30px;
-  overflow-y: auto;
+  overflow-x: hidden; overflow-y: auto;
+}
+.tl-screen::before, .rn-fullscreen::before {
+  content: "";
+  position: absolute;
+  inset: clamp(16px, 2.2vw, 34px);
+  border: 1px solid color-mix(in srgb, var(--tl-frame-ink) 18%, transparent);
+  border-radius: clamp(18px, 2.2vw, 32px);
+  box-shadow:
+    inset 0 0 0 7px color-mix(in srgb, #fff 22%, transparent),
+    0 16px 48px color-mix(in srgb, var(--tl-frame-ink) 10%, transparent);
+  pointer-events: none;
+}
+.tl-screen::after, .rn-fullscreen::after {
+  content: "CLASSKRU  ·  เครื่องมือช่วยสอน";
+  position: absolute;
+  top: clamp(25px, 3.4vw, 52px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: color-mix(in srgb, var(--tl-frame-ink) 52%, transparent);
+  font-size: clamp(.58rem, .9vw, .78rem);
+  font-weight: 800;
+  letter-spacing: .12em;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .tl-close, .rn-close {
   position: absolute; top: 18px; right: 18px; width: 48px; height: 48px; border-radius: 50%;
@@ -569,15 +609,24 @@
 }
 .tl-close:active, .rn-close:active { transform: translateY(4px); box-shadow: none; }
 
-.tl-stage-btn {
-  position: absolute; top: 18px; left: 18px; font-family: inherit; text-decoration: none;
+.tl-stage-actions {
+  position: absolute; top: 18px; left: 18px; z-index: 1;
+  display: flex; align-items: center; gap: 8px;
+}
+.tl-stage-btn, .tl-fullscreen-btn {
+  font-family: inherit; text-decoration: none;
   display: inline-flex; align-items: center; line-height: 1;
   font-size: 0.95rem; font-weight: 800; color: var(--loud-ink); background: #fff;
   border: 3px solid var(--loud-ink); border-radius: 99px; padding: 11px 20px; cursor: pointer;
   box-shadow: 0 4px 0 var(--loud-ink);
 }
-.tl-stage-btn:active { transform: translateY(4px); box-shadow: none; }
+.tl-fullscreen-btn { gap: 6px; }
+.tl-stage-btn:active, .tl-fullscreen-btn:active { transform: translateY(4px); box-shadow: none; }
 .tl-stage-btn.is-live { background: var(--loud-accent); color: #fff; }
+@media (max-width: 520px) {
+  .tl-stage-actions { top: 14px; left: 14px; gap: 6px; }
+  .tl-stage-btn, .tl-fullscreen-btn { font-size: .78rem; padding: 9px 12px; border-width: 2px; }
+}
 
 .tl-kicker {
   display: inline-flex; align-items: center; background: var(--loud-surface-2);
@@ -671,7 +720,13 @@
 .tl-group.g4 { --g-bg: #faeeda; --g-fg: #854f0b; }
 .tl-group.g5 { --g-bg: #eeedfe; --g-fg: #534ab7; }
 
-.rn-fullscreen { background: var(--rn-bg, var(--loud-surface)); transition: background .3s ease; }
+.rn-fullscreen {
+  --tl-frame-ink: var(--rn-fg, var(--loud-ink));
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255,255,255,.34), transparent 34%),
+    var(--rn-bg, var(--loud-surface));
+  transition: background .3s ease;
+}
 .rn-stage { text-align: center; }
 .rn-reveal-no {
   width: clamp(74px, 9vw, 104px); height: clamp(74px, 9vw, 104px); margin: 0 auto 20px; border-radius: 50%;

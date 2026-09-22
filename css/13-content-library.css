@@ -88,6 +88,8 @@
 .cl-worksheet-options-card p { margin:0; color:var(--text-muted); font-size:.82rem; line-height:1.55; }
 .cl-worksheet-guide-badge { display:inline-flex; align-items:center; gap:5px; flex:0 0 auto; padding:5px 9px; border-radius:99px; color:var(--primary-deep); background:var(--primary-light); font-size:.72rem; font-weight:800; }
 .cl-field-hint { display:block; margin-top:5px; color:var(--text-muted); font-size:.76rem; line-height:1.45; }
+.cl-count-custom { margin-top:8px; }
+.cl-count-custom[hidden] { display:none; }
 .cl-plan-asset-group + .cl-plan-asset-group { margin-top:20px; padding-top:20px; border-top:1px solid var(--border-color); }
 .cl-plan-asset-group h4 { margin:0 0 3px; font-size:1rem; }
 .cl-plan-asset-group h4 i { color:var(--primary); margin-right:5px; }
@@ -167,6 +169,8 @@
 .cl-form-note { margin:0 0 18px; color:var(--text-muted); font-size:.86rem; }
 .cl-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .cl-field { display:flex; flex-direction:column; gap:7px; min-width:0; font-size:.82rem; font-weight:800; color:var(--text-secondary); }
+.cl-indicator-field-label { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:.35em; }
+.cl-indicator-selection-note { color:var(--text-muted); font-size:inherit; font-weight:600; }
 .cl-field select,.cl-field input,.cl-field textarea { width:100%; box-sizing:border-box; }
 .cl-field textarea { min-height:126px; resize:vertical; line-height:1.55; }
 .cl-field.full { grid-column:1 / -1; }
@@ -187,7 +191,7 @@
 .cl-indicator-row:has(input:checked) { background:#f2fcf7; }
 .cl-indicator-row input { width:20px; height:20px; margin:0; accent-color:var(--primary); cursor:pointer; }
 .cl-indicator-row strong { color:var(--primary-deep); white-space:nowrap; font-size:.83rem; }
-.cl-indicator-row > span { min-width:0; }
+.cl-indicator-row > span { min-width:0; font-weight:400; }
 .cl-indicator-empty { padding:16px; color:var(--text-muted); font-size:.84rem; }
 .cl-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:22px; }
 .cl-actions .btn { min-height:42px; }
@@ -220,8 +224,9 @@
 .cl-option { display:flex; align-items:center; gap:8px; }
 .cl-option input[type="radio"] { accent-color:var(--primary); }
 .cl-option input[type="text"] { flex:1; }
-.cl-explanation { margin-top:13px; padding:10px 12px; border-radius:10px; color:#4d665d; background:#f6fbf8; font-size:.82rem; line-height:1.55; }
+.cl-explanation { display:block; margin-top:13px; padding:10px 12px; border-radius:10px; color:#4d665d; background:#f6fbf8; font-size:.82rem; line-height:1.55; }
 .cl-explanation strong { color:var(--primary-deep); }
+.cl-explanation textarea { display:block; margin-top:7px; min-height:82px; font:inherit; color:var(--text-main); background:#fff; }
 .cl-review-bottom { position:sticky; bottom:12px; display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:18px; padding:12px 14px; border:1px solid var(--border-color); border-radius:14px; background:rgba(255,255,255,.94); box-shadow:var(--shadow-md); backdrop-filter:blur(8px); }
 .cl-review-bottom span { color:var(--text-muted); font-size:.82rem; font-weight:700; }
 .cl-edit-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 14px; margin:0 0 16px; border:1px solid #cdeee0; border-radius:13px; color:#316655; background:#f4fcf8; font-size:.82rem; font-weight:700; }
