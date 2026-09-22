@@ -444,3 +444,6 @@ Asset version ถูก bump เป็น `493`. Validation: media tests 23/23, 
 Backend เก็บ `image_prompt` ไว้ใน job และใช้เป็น prompt จริงของ OpenRouter image request; request-key เดิมจะถูกตรวจสอบ prompt ด้วยเพื่อป้องกันการนำงานคนละ prompt กลับมาใช้ซ้ำ Asset version ถูก bump เป็น `492`.
 
 Validation completed: `npm.cmd run test:media` (23/23), `node tests/navigation-shell.test.cjs`, syntax checks for changed JS files, and `git diff --check`. Pending: deploy commit to Vercel Production and test the modal/edit/confirm flow with a real image model/key.
+## 17. Unified Web Media image flow (2026-09-22)
+
+ปรับประเภท `image` ให้ใช้ build flow เดียวกับ `motion` และ `game` แล้ว โดยสร้างเป็นโปสเตอร์ อินโฟกราฟิก ใบงาน หรือแผนภาพด้วย HTML/CSS/inline SVG/JS แทนการเรียก Image API และยังคง `media_type: image` ใน Planner เพื่อแยกความหมายของสื่อ ทั้งสามประเภทใช้ `kind: build`, editable confirmation prompt และ artifact storage/review เดียวกัน Asset version เป็น `494`.
