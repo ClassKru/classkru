@@ -100,11 +100,6 @@ async function enqueue(teacher,projectId,kind,message,requestKey,preferredMediaT
       }
     }
     if(pending>=3) throw db.fail('queue_limit',429);
-    const day=new Date(Date.now()+7*3600000).toISOString().slice(0,10),quota=`${base(teacher)}/quota/${day}`;
-    if(!await db.get(`${quota}/${name}`)) {
-      if((await db.list(quota,{limit:40})).length>=40) throw db.fail('daily_limit',429);
-      await db.put(`${quota}/${name}`,{created_at:now()});
-    }
     const job={id:requestKey,project_id:p.id,kind,message,media_type:preferredMediaType||null,prompt_override:text(promptOverride,12000),image_prompt:kind==='image'?text(promptOverride,12000):'',share_epoch:p.share_epoch,created_at:now()};
     await db.put(`${base(teacher)}/jobs/${name}`,job);
     return safeJob({...job,status:'queued'});

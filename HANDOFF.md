@@ -447,3 +447,6 @@ Validation completed: `npm.cmd run test:media` (23/23), `node tests/navigation-s
 ## 17. Unified Web Media image flow (2026-09-22)
 
 ปรับประเภท `image` ให้ใช้ build flow เดียวกับ `motion` และ `game` แล้ว โดยสร้างเป็นโปสเตอร์ อินโฟกราฟิก ใบงาน หรือแผนภาพด้วย HTML/CSS/inline SVG/JS แทนการเรียก Image API และยังคง `media_type: image` ใน Planner เพื่อแยกความหมายของสื่อ ทั้งสามประเภทใช้ `kind: build`, editable confirmation prompt และ artifact storage/review เดียวกัน Asset version เป็น `494`.
+## 18. Media Studio daily quota removed (2026-09-22)
+
+ปลด daily request quota ของ Media Studio ออกแล้ว จึงไม่มี `daily_limit` สำหรับการสนทนาและสร้างสื่ออีกต่อไป แต่คง pending queue, project และ version limits เพื่อกันงานซ้อนและรักษาความเสถียรของระบบ. Regression test ยืนยันว่า quota records เก่าไม่บล็อกการ enqueue งานใหม่.

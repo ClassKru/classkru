@@ -108,11 +108,11 @@ test('lost response after result commit reconciles success and preserves immutab
   await service.run(a,p.id,j.id);assert.equal(calls(),1);
   assert.ok([...f.objects.keys()].some(n=>n.includes('/artifacts/')));
 });
-test('daily request budget, pending budget and version/project limits reject before AI calls',async t=>{
+test('Media Studio has no daily request budget while pending, version and project limits reject before AI calls',async t=>{
   fixture(t);const calls=providers(t),a=uuid(),p=await service.create(a,'test',{});
   const day=new Date(Date.now()+7*3600000).toISOString().slice(0,10);
   for(let i=0;i<40;i++)await db.put(`users/${a}/quota/${day}/${p.id}_${uuid()}.json`,{});
-  await assert.rejects(service.enqueue(a,p.id,'plan','โควตาหมด',uuid()),{code:'daily_limit'});
+  assert.equal((await service.enqueue(a,p.id,'plan','โควตาที่บันทึกไว้ไม่ต้องจำกัด',uuid())).status,'queued');
   const b=uuid(),ps=[];for(let i=0;i<4;i++)ps.push(await service.create(b,`project ${i}`,{}));
   for(let i=0;i<3;i++)await service.enqueue(b,ps[i].id,'plan','รอทำงาน',uuid());
   await assert.rejects(service.enqueue(b,ps[3].id,'plan','งานที่สี่',uuid()),{code:'queue_limit'});
