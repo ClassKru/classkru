@@ -671,7 +671,34 @@
 .tl-group.g4 { --g-bg: #faeeda; --g-fg: #854f0b; }
 .tl-group.g5 { --g-bg: #eeedfe; --g-fg: #534ab7; }
 
-.rn-fullscreen { background: var(--rn-bg, var(--loud-surface)); transition: background .3s ease; }
+.rn-fullscreen {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255,255,255,.34), transparent 34%),
+    var(--rn-bg, var(--loud-surface));
+  transition: background .3s ease;
+}
+.rn-fullscreen::before {
+  content: "";
+  position: absolute;
+  inset: clamp(16px, 2.2vw, 34px);
+  border: 1px solid color-mix(in srgb, var(--rn-fg, var(--loud-ink)) 18%, transparent);
+  border-radius: clamp(18px, 2.2vw, 32px);
+  box-shadow: inset 0 0 0 7px color-mix(in srgb, #fff 22%, transparent);
+  pointer-events: none;
+}
+.rn-fullscreen::after {
+  content: "CLASSKRU  ·  เครื่องมือช่วยสอน";
+  position: absolute;
+  top: clamp(25px, 3.4vw, 52px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: color-mix(in srgb, var(--rn-fg, var(--loud-ink)) 52%, transparent);
+  font-size: clamp(.58rem, .9vw, .78rem);
+  font-weight: 800;
+  letter-spacing: .12em;
+  white-space: nowrap;
+  pointer-events: none;
+}
 .rn-stage { text-align: center; }
 .rn-reveal-no {
   width: clamp(74px, 9vw, 104px); height: clamp(74px, 9vw, 104px); margin: 0 auto 20px; border-radius: 50%;
