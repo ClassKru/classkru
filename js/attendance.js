@@ -1215,6 +1215,12 @@ function setAllSwipePresent() {
   }, { title: 'มาทุกคน', icon: '<i class="hgi-stroke hgi-checkmark-circle-02" style="color:var(--color-present);"></i>', okText: 'ยืนยัน', okSafe: true });
 }
 
+function openAttendanceActivity() {
+  if (!swipeClassId) return;
+  const params = new URLSearchParams({ classId: swipeClassId, mode: 'attendance' });
+  window.open(`join-activity.html?${params.toString()}`, '_blank');
+}
+
 function clearSwipeChecks() {
   showConfirm('ต้องการล้างผลเช็คชื่อทั้งหมด?', () => {
     swipeResults = {};

@@ -2694,7 +2694,9 @@
     ];
     let state = loadJson(STORAGE_KEY, { classes: [] });
     let sessions = loadJson(JOIN_KEY, {});
-    let currentClassId = new URLSearchParams(location.search).get('classId') || '';
+    const pageParams = new URLSearchParams(location.search);
+    const activityMode = pageParams.get('mode') === 'attendance';
+    let currentClassId = pageParams.get('classId') || '';
     let activeCode = '';
     let timer = null;
     let presentationWindow = null;
@@ -2756,7 +2758,8 @@
       return getSessionParticipants(session).find(item => item.id === participantId) || null;
     }
     function getJoinUrl(code) {
-      return `${location.origin}${location.pathname}?join=${encodeURIComponent(code)}`;
+      const modeQuery = activityMode ? '&mode=attendance' : '';
+      return `${location.origin}${location.pathname}?join=${encodeURIComponent(code)}${modeQuery}`;
     }
 
     // รหัสห้องเดิมเป็น CK-1000..CK-9999 = มีแค่ 9,000 ค่า และ code เป็น unique ถาวรในตาราง
@@ -2976,8 +2979,32 @@
       });
     }
 
+    function configureAttendanceActivityView() {
+      if (!activityMode) return;
+      document.querySelector('#teacher-view .brand h1').textContent = 'เช็คชื่อจากกิจกรรม';
+      document.querySelector('#teacher-view .settings-card h2').textContent = 'ตั้งค่ากิจกรรมเช็คชื่อ';
+      document.querySelector('#teacher-view .setup-summary span').textContent = 'บันทึกการมาเรียนและคำตอบกิจกรรม';
+      document.querySelector('#teacher-view .settings-card .actions .btn-primary').innerHTML = '<i class="hgi-stroke hgi-qr-code-01"></i> สร้าง QR เช็คชื่อ';
+      document.querySelector('#teacher-view .backstage-head h2').textContent = 'รายชื่อที่เช็คชื่อแล้ว';
+      document.querySelector('#teacher-view .backstage-head p').textContent = 'ข้อมูลจะถูกผูกกับรายชื่อในห้องเรียน';
+      document.querySelector('#teacher-view .backstage-head .btn').style.display = 'none';
+      document.querySelector('#teacher-view .stage-kicker').textContent = 'ห้องเรียนสด · เช็คชื่อจากกิจกรรม';
+      document.querySelector('#student-view h2').textContent = 'เช็คชื่อเข้าคาบ';
+      document.querySelector('#student-view .student-card > p').textContent = 'กรอกเลขที่หรือรหัสนักเรียน แล้วตอบคำถามสั้น ๆ เพื่อเช็คชื่อ';
+      document.querySelector('#student-view #student-nickname')?.closest('label')?.setAttribute('hidden', '');
+      document.querySelector('#student-view #student-nickname')?.removeAttribute('required');
+      document.querySelector('#student-view #student-no')?.removeAttribute('required');
+      document.querySelector('#student-view #student-no')?.setAttribute('placeholder', 'เลขที่ของคุณ');
+      document.querySelector('#student-view .student-form-card .btn-primary').innerHTML = '<i class="hgi-stroke hgi-door-01"></i> เริ่มเช็คชื่อ';
+      document.querySelector('#student-view #student-question-card h2').textContent = 'ตอบคำถามเช็คอิน';
+      document.querySelector('#student-view #student-question-card .btn-primary').innerHTML = '<i class="hgi-stroke hgi-task-done-01"></i> ส่งคำตอบและเช็คชื่อ';
+      document.querySelector('#student-view #student-success h2').textContent = 'เช็คชื่อเรียบร้อย';
+      document.querySelector('#student-view #student-success p').textContent = 'บันทึกการมาเรียนและคำตอบกิจกรรมแล้ว';
+    }
+
     function renderTeacherView() {
       document.getElementById('teacher-view').style.display = 'block';
+      configureAttendanceActivityView();
       const classSelect = document.getElementById('class-select');
       classSelect.innerHTML = (state.classes || []).map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.subject || 'วิชา')} (${escapeHtml(c.className || 'ห้องเรียน')}) · ${(c.students || []).length} คน</option>`).join('');
       if (!currentClassId && state.classes && state.classes[0]) currentClassId = state.classes[0].id;
@@ -2998,8 +3025,17 @@
       updateRoomLabel();
       findLatestSession();
       if (!activeCode) {
-        document.getElementById('answer-type').value = 'short';
-        document.getElementById('options-wrap').style.display = 'none';
+        if (activityMode) {
+          document.getElementById('question-input').value = 'วันนี้พร้อมเรียนแค่ไหน?';
+          document.getElementById('answer-type').value = 'choice';
+          ['พร้อมมาก', 'พอไหว', 'ยังไม่พร้อม', ''].forEach((value, index) => {
+            document.getElementById(`option-input-${index + 1}`).value = value;
+          });
+          document.getElementById('options-wrap').style.display = 'grid';
+        } else {
+          document.getElementById('answer-type').value = 'short';
+          document.getElementById('options-wrap').style.display = 'none';
+        }
       }
       renderSession();
       timer = setInterval(async () => {
@@ -3018,7 +3054,7 @@
     function findLatestSession() {
       const cls = getClass();
       if (!cls) return;
-      const list = Object.values(sessions).filter(s => s.classroomId === cls.id).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+      const list = Object.values(sessions).filter(s => s.classroomId === cls.id && (!activityMode || s.purpose === 'attendance')).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
       activeCode = list[0]?.code || '';
       if (activeCode && !teacherFormDirty) {
         const s = sessions[activeCode];
@@ -3044,9 +3080,9 @@
         question: document.getElementById('question-input').value.trim() || 'วันนี้รู้สึกพร้อมเรียนแค่ไหน?',
         answerType: document.getElementById('answer-type').value,
         options: getOptions(),
-        purpose: 'add_students',
+        purpose: activityMode ? 'attendance' : 'add_students',
         status: 'open',
-        phase: previous.phase || 'waiting',
+        phase: previous.phase || (activityMode ? 'question' : 'waiting'),
         createdAt: previous.createdAt || new Date().toISOString(),
         studentsSnapshot: (cls.students || []).map(s => ({ id: s.id, name: s.name || '', no: s.no || s.studentNo || '', studentCode: s.studentCode || '', nickname: s.nickname || '' })),
         participants: keepResponses ? getSessionParticipants(previous) : [],
@@ -3201,6 +3237,7 @@
       renderJoinBackendStatus();
       const participants = getSessionParticipants(session);
       const answers = getSessionAnswers(session);
+      applyAttendanceActivityResponses(session, participants);
       const summary = getReviewSummary(participants, getClass());
       document.getElementById('stage-question').textContent = session.question || 'คำถามเปิดคาบ';
       document.getElementById('stage-total').textContent = participants.length;
@@ -3209,8 +3246,8 @@
       document.getElementById('stat-answered').textContent = answers.length;
       document.getElementById('stat-pending').textContent = summary.ready;
       const questionButton = document.getElementById('start-question-btn');
-      questionButton.style.visibility = 'visible';
-      questionButton.style.pointerEvents = 'auto';
+      questionButton.style.visibility = activityMode ? 'hidden' : 'visible';
+      questionButton.style.pointerEvents = activityMode ? 'none' : 'auto';
       questionButton.disabled = false;
       questionButton.className = `btn ${session.phase === 'question' ? 'is-back' : 'is-start'}`;
       questionButton.innerHTML = session.phase === 'question'
@@ -3237,6 +3274,37 @@
       }
       const normalized = normalizeAnswerOptionLabel(raw);
       return options.findIndex(option => normalizeAnswerOptionLabel(option) === normalized);
+    }
+
+    function applyAttendanceActivityResponses(session, participants) {
+      if (!activityMode || session?.purpose !== 'attendance') return;
+      const cls = getClass() || (state.classes || []).find(item => item.id === session.classroomId);
+      if (!cls) return;
+      const answers = getSessionAnswers(session);
+      const byParticipant = new Map((participants || []).map(item => [String(item.id || item.participantId || ''), item]));
+      const date = new Date();
+      const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      if (!cls.attendance) cls.attendance = {};
+      if (!cls.attendance[dateKey]) cls.attendance[dateKey] = {};
+      let changed = false;
+      answers.forEach(answer => {
+        const participant = byParticipant.get(String(answer.participantId || answer.id || ''));
+        if (!participant) return;
+        const responseCode = normalizeIdentity(participant.code || participant.studentCode);
+        const responseNo = String(participant.no || participant.studentNo || '').trim();
+        const responseName = normalizeIdentity(participant.firstName || participant.name);
+        const student = (cls.students || []).find(item => {
+          const code = normalizeIdentity(item.studentCode);
+          const no = String(item.studentNo || item.no || '').trim();
+          const name = normalizeIdentity(item.name);
+          return (responseCode && code === responseCode) || (responseNo && no === responseNo && responseName && name.includes(responseName));
+        });
+        if (student && cls.attendance[dateKey][student.id] !== 'present') {
+          cls.attendance[dateKey][student.id] = 'present';
+          changed = true;
+        }
+      });
+      if (changed) saveClassState();
     }
 
     function renderLiveWall(session, responses, target = document.getElementById('live-wall')) {
@@ -3429,7 +3497,8 @@
     }
 
     function openPresentationWindow(code, targetWindow = null) {
-      const presentationUrl = `${location.pathname}?present=${encodeURIComponent(code)}`;
+      const modeQuery = activityMode ? '&mode=attendance' : '';
+      const presentationUrl = `${location.pathname}?present=${encodeURIComponent(code)}${modeQuery}`;
       presentationWindow = targetWindow || window.open(presentationUrl, '_blank');
       if (!presentationWindow) {
         alert('เบราว์เซอร์ปิดกั้นหน้าจอฉาย กรุณาอนุญาตหน้าต่างใหม่จากเว็บไซต์นี้');
@@ -3667,6 +3736,7 @@
 
     async function renderStudentView(code) {
       document.getElementById('student-view').style.display = 'grid';
+      configureAttendanceActivityView();
       const remoteSession = await remoteGetSession(code);
       if (remoteSession) {
         const localSession = sessions[code] || {};
@@ -3765,8 +3835,9 @@
       const profile = getStudentProfile();
       const missing = [
         !profile.firstName && 'ชื่อ-นามสกุล',
-        !profile.nickname && 'ชื่อเล่น',
-        !profile.no && 'เลขที่'
+        !activityMode && !profile.nickname && 'ชื่อเล่น',
+        activityMode && !profile.no && !profile.code && 'เลขที่หรือรหัสนักเรียน',
+        !activityMode && !profile.no && 'เลขที่'
       ].filter(Boolean);
       if (missing.length) {
         alert(`กรุณากรอกข้อมูลให้ครบ: ${missing.join(', ')}`);
