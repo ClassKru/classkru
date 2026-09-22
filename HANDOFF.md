@@ -428,3 +428,13 @@ Validation completed: `npm.cmd run test:media` (22/22), `node tests/navigation-s
 Added the first image-generation path using OpenRouter's dedicated `/api/v1/images` endpoint. Media Studio image jobs reuse the configured planner key temporarily, use `OPENROUTER_MEDIA_IMAGE_MODEL` (default `google/gemini-3.1-flash-image`), persist the base64 image privately under the teacher's Media Storage, expose an authenticated image retrieval action, and show a Preview after the image job succeeds. The existing planner and HTML build paths remain separate.
 
 Validation completed: `npm.cmd run test:media` (23/23), navigation regression, syntax checks, and `git diff --check`. Pending: deploy and test with a real image model/key; image generation may incur provider charges.
+
+## 15. Editable image brief confirmation (2026-09-22)
+
+ปรับ Media Studio ให้ใช้ Planner brief เป็นข้อมูลหลักในแผงขวา แสดงหัวข้อ กลุ่มผู้เรียน สารที่อยากสื่อ แนวคิด โครงสร้างเนื้อหา ทิศทางภาพ โทน แนวทางแนะนำ และคำถามต่อยอด พร้อมปุ่ม `สร้างภาพ` เมื่อมีหัวข้อและประเภทสื่อเป็น `image` โดยไม่บังคับ `ready_to_build` ก่อนหน้า
+
+เมื่อกด `สร้างภาพ` ระบบเปิดหน้าต่างยืนยันตรงกลาง workspace ให้ครูแก้ไข เพิ่ม หรือลบข้อความสรุปได้ แล้วส่งข้อความที่แก้ไขผ่าน `image_prompt` ไปยัง image adapter ก่อนยืนยันสร้างภาพ ปุ่ม `กลับไปคุยต่อ` ปิดหน้าต่างโดยไม่สร้างงาน และ image preview จะไม่ซ้ำเมื่อมีการโหลด/poll ซ้ำ
+
+Backend เก็บ `image_prompt` ไว้ใน job และใช้เป็น prompt จริงของ OpenRouter image request; request-key เดิมจะถูกตรวจสอบ prompt ด้วยเพื่อป้องกันการนำงานคนละ prompt กลับมาใช้ซ้ำ Asset version ถูก bump เป็น `492`.
+
+Validation completed: `npm.cmd run test:media` (23/23), `node tests/navigation-shell.test.cjs`, syntax checks for changed JS files, and `git diff --check`. Pending: deploy commit to Vercel Production and test the modal/edit/confirm flow with a real image model/key.
