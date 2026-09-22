@@ -1751,6 +1751,116 @@
       color: rgba(18,59,49,.55);
     }
 
+    /* Calm teacher workspace — lighter controls, with color reserved for hierarchy. */
+    #teacher-view .brand-mark {
+      width: 52px;
+      height: 52px;
+      border: 1px solid color-mix(in srgb, var(--arcade-blue-sh) 28%, var(--border));
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--arcade-blue) 10%, var(--card));
+      box-shadow: none;
+    }
+    #teacher-view .brand-mark i { color: var(--arcade-blue-sh); font-size: 1.35rem; }
+    #teacher-view .brand h1 { font-weight: 800; }
+    #teacher-view .topbar > .btn {
+      border: 1px solid color-mix(in srgb, var(--arcade-pink-sh) 28%, var(--border));
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--arcade-pink) 8%, var(--card));
+      color: var(--arcade-pink-sh);
+      box-shadow: none;
+    }
+    #teacher-view .card {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--sh);
+      background: var(--card);
+    }
+    #teacher-view .settings-card { border-top: 3px solid color-mix(in srgb, var(--arcade-green) 68%, var(--border)); box-shadow: var(--sh); }
+    #teacher-view .qr-card { border-top: 3px solid color-mix(in srgb, var(--arcade-blue) 68%, var(--border)); box-shadow: var(--sh); }
+    #teacher-view .stage-card { border-top: 3px solid color-mix(in srgb, var(--arcade-purple) 60%, var(--border)); box-shadow: var(--sh); }
+    #teacher-view .backstage-card { border-top: 3px solid color-mix(in srgb, var(--arcade-yellow) 72%, var(--border)); box-shadow: var(--sh); }
+    #teacher-view .setup-summary {
+      border: 1px solid color-mix(in srgb, var(--arcade-yellow-sh) 28%, var(--border));
+      border-left: 4px solid color-mix(in srgb, var(--arcade-yellow) 76%, var(--arcade-yellow-sh));
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--arcade-yellow) 12%, var(--card));
+      box-shadow: none;
+    }
+    #teacher-view .input {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      box-shadow: none;
+      font-weight: 700;
+    }
+    #teacher-view .input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--pbg); }
+    #teacher-view .btn {
+      min-height: 46px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--card);
+      box-shadow: none;
+      font-weight: 800;
+    }
+    #teacher-view .btn:hover { transform: translateY(-1px); box-shadow: var(--sh); }
+    #teacher-view .btn:active { transform: none; box-shadow: none; }
+    #teacher-view .btn i { opacity: .78; font-size: 1.05em; }
+    #teacher-view .btn-primary,
+    #teacher-view .btn-primary:hover,
+    #teacher-view .backstage-head .btn-primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--card);
+      box-shadow: none;
+    }
+    #teacher-view #start-question-btn.is-start,
+    #teacher-view #start-question-btn.is-start:hover {
+      background: color-mix(in srgb, var(--arcade-pink) 14%, var(--card));
+      border-color: color-mix(in srgb, var(--arcade-pink-sh) 30%, var(--border));
+      color: var(--arcade-pink-sh);
+      box-shadow: none;
+    }
+    #teacher-view #presentation-toggle-btn { color: var(--arcade-purple-sh); }
+    #teacher-view .qr-card { min-height: 430px; background: var(--card); color: var(--text); }
+    #teacher-view .qr-card h2::before {
+      border: 1px solid color-mix(in srgb, var(--arcade-blue-sh) 25%, var(--border));
+      background: color-mix(in srgb, var(--arcade-blue) 9%, var(--card));
+      box-shadow: none;
+    }
+    #teacher-view .qr-card .qr-box {
+      border: 7px solid color-mix(in srgb, var(--arcade-blue) 12%, var(--card));
+      border-radius: 20px;
+      box-shadow: var(--sh);
+    }
+    #teacher-view .join-status.is-ok,
+    #teacher-view .stat {
+      border: 1px solid color-mix(in srgb, var(--arcade-blue-sh) 22%, var(--border));
+      background: color-mix(in srgb, var(--arcade-blue) 8%, var(--card));
+      box-shadow: none;
+    }
+    #teacher-view .join-status.is-ok { color: var(--pk); }
+    #teacher-view .stat { color: var(--arcade-blue-sh); }
+    #teacher-view .stat b { font-size: 1.65rem; }
+    #teacher-view .stage-kicker,
+    #teacher-view .stage-meta {
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+    #teacher-view .stage-kicker { background: color-mix(in srgb, var(--arcade-purple) 9%, var(--card)); }
+    #teacher-view .stage-meta { background: color-mix(in srgb, var(--arcade-pink) 8%, var(--card)); }
+    #teacher-view .lobby-chip,
+    #teacher-view .student-row {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: none;
+      font-weight: 700;
+    }
+    #teacher-view .wall .empty {
+      border: 1px dashed color-mix(in srgb, var(--arcade-yellow-sh) 32%, var(--border));
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--arcade-yellow) 5%, var(--card));
+    }
+
     #presentation-view {
       --arcade-ink: #123b31;
       --arcade-surface: #e9f6ef;
