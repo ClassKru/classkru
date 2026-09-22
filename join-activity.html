@@ -1762,6 +1762,7 @@
     }
     #teacher-view .brand-mark i { color: var(--arcade-blue-sh); font-size: 1.35rem; }
     #teacher-view .brand h1 { font-weight: 800; }
+    #teacher-view .brand p { color: var(--muted); font-weight: 600; opacity: .82; margin-top: 5px; }
     #teacher-view .topbar > .btn {
       border: 1px solid color-mix(in srgb, var(--arcade-pink-sh) 28%, var(--border));
       border-radius: 14px;
@@ -1777,13 +1778,13 @@
     }
     #teacher-view .settings-card { border-top: 3px solid color-mix(in srgb, var(--arcade-green) 68%, var(--border)); box-shadow: var(--sh); }
     #teacher-view .qr-card { border-top: 3px solid color-mix(in srgb, var(--arcade-blue) 68%, var(--border)); box-shadow: var(--sh); }
-    #teacher-view .stage-card { border-top: 3px solid color-mix(in srgb, var(--arcade-purple) 60%, var(--border)); box-shadow: var(--sh); }
-    #teacher-view .backstage-card { border-top: 3px solid color-mix(in srgb, var(--arcade-yellow) 72%, var(--border)); box-shadow: var(--sh); }
+    #teacher-view .stage-card { border-top: 3px solid color-mix(in srgb, var(--arcade-blue) 58%, var(--border)); box-shadow: var(--sh); }
+    #teacher-view .backstage-card { border-top: 3px solid color-mix(in srgb, var(--primary) 58%, var(--border)); box-shadow: var(--sh); }
     #teacher-view .setup-summary {
-      border: 1px solid color-mix(in srgb, var(--arcade-yellow-sh) 28%, var(--border));
-      border-left: 4px solid color-mix(in srgb, var(--arcade-yellow) 76%, var(--arcade-yellow-sh));
+      border: 1px solid color-mix(in srgb, var(--primary) 25%, var(--border));
+      border-left: 4px solid var(--primary);
       border-radius: 14px;
-      background: color-mix(in srgb, var(--arcade-yellow) 12%, var(--card));
+      background: var(--pbg);
       box-shadow: none;
     }
     #teacher-view .input {
@@ -1813,21 +1814,28 @@
       color: var(--card);
       box-shadow: none;
     }
+    #teacher-view #start-question-btn,
     #teacher-view #start-question-btn.is-start,
     #teacher-view #start-question-btn.is-start:hover {
-      background: color-mix(in srgb, var(--arcade-pink) 14%, var(--card));
-      border-color: color-mix(in srgb, var(--arcade-pink-sh) 30%, var(--border));
-      color: var(--arcade-pink-sh);
+      background: var(--card);
+      border-color: color-mix(in srgb, var(--arcade-blue-sh) 40%, var(--border));
+      color: var(--arcade-blue-sh);
       box-shadow: none;
     }
-    #teacher-view #presentation-toggle-btn { color: var(--arcade-purple-sh); }
-    #teacher-view .qr-card { min-height: 430px; background: var(--card); color: var(--text); }
+    #teacher-view #presentation-toggle-btn { color: var(--arcade-blue-sh); }
+    #teacher-view .settings-card,
+    #teacher-view .qr-card { padding: 20px; }
+    #teacher-view .settings-card textarea.input { min-height: 100px; }
+    #teacher-view .qr-card { min-height: 400px; background: var(--card); color: var(--text); }
     #teacher-view .qr-card h2::before {
       border: 1px solid color-mix(in srgb, var(--arcade-blue-sh) 25%, var(--border));
       background: color-mix(in srgb, var(--arcade-blue) 9%, var(--card));
       box-shadow: none;
     }
     #teacher-view .qr-card .qr-box {
+      width: 250px;
+      height: 250px;
+      margin-bottom: 8px;
       border: 7px solid color-mix(in srgb, var(--arcade-blue) 12%, var(--card));
       border-radius: 20px;
       box-shadow: var(--sh);
@@ -1846,7 +1854,11 @@
       border: 1px solid var(--border);
       box-shadow: none;
     }
-    #teacher-view .stage-kicker { background: color-mix(in srgb, var(--arcade-purple) 9%, var(--card)); }
+    #teacher-view .stage-kicker {
+      border-color: color-mix(in srgb, var(--arcade-blue-sh) 25%, var(--border));
+      background: color-mix(in srgb, var(--arcade-blue) 9%, var(--card));
+      color: var(--arcade-blue-sh);
+    }
     #teacher-view .stage-meta { background: color-mix(in srgb, var(--arcade-pink) 8%, var(--card)); }
     #teacher-view .lobby-chip,
     #teacher-view .student-row {
@@ -1856,9 +1868,9 @@
       font-weight: 700;
     }
     #teacher-view .wall .empty {
-      border: 1px dashed color-mix(in srgb, var(--arcade-yellow-sh) 32%, var(--border));
+      border: 1px dashed var(--border);
       border-radius: 16px;
-      background: color-mix(in srgb, var(--arcade-yellow) 5%, var(--card));
+      background: var(--soft);
     }
 
     #presentation-view {
