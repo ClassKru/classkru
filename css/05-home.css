@@ -1,36 +1,23 @@
 /* HOME SCREEN                                 */
 /* ========================================== */
-#web-screen-dashboard {
-  min-height: calc(100dvh - 42px);
-  padding: clamp(18px, 2.2vw, 28px);
-  border: clamp(3px, 0.34vw, 6px) solid var(--primary-deep);
-  border-radius: clamp(22px, 2.2vw, 34px);
-  background:
-    radial-gradient(circle at 11% 12%, color-mix(in srgb, var(--primary-light), transparent 16%), transparent 28%),
-    radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--color-late-bg), transparent 10%), transparent 26%),
-    radial-gradient(circle at 92% 92%, color-mix(in srgb, var(--color-absent-bg), transparent 26%), transparent 25%),
-    linear-gradient(135deg, color-mix(in srgb, var(--primary-light), #fff 38%) 0%, var(--bg-card) 48%, color-mix(in srgb, var(--color-leave-bg), #fff 58%) 100%);
-  box-shadow: 0 12px 0 var(--primary-deep), var(--shadow-lg);
-}
-
 .home-date-status-row {
   display: grid;
   grid-template-columns: 1fr;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   gap: 16px;
   align-items: stretch;
 }
 
 .home-hero-card {
-  min-height: 172px;
+  min-height: 150px;
   background:
-    radial-gradient(circle at 13% 50%, color-mix(in srgb, var(--primary-light), transparent 20%), transparent 31%),
-    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--color-leave-bg), transparent 22%), transparent 29%),
-    linear-gradient(135deg, var(--bg-card) 0%, color-mix(in srgb, var(--primary-light), #fff 42%) 100%);
-  border: 2px solid var(--primary-deep);
+    radial-gradient(circle at 14% 50%, rgba(249,115,22,0.055), transparent 30%),
+    radial-gradient(circle at 88% 18%, rgba(59,127,212,0.045), transparent 28%),
+    linear-gradient(135deg, #ffffff 0%, #fbfcfb 62%, #f7faf9 100%);
+  border: 1px solid var(--border-color);
   border-radius: 24px;
-  padding: 22px 30px;
-  box-shadow: 0 7px 0 var(--primary-deep), var(--shadow-md);
+  padding: 20px 28px;
+  box-shadow: var(--shadow-sm);
   display: grid;
   grid-template-columns: 168px minmax(0, 1fr);
   gap: 24px;
@@ -41,15 +28,15 @@
 
 .home-date-card {
   background: rgba(255,255,255,0.88) !important;
-  border: 1.5px solid var(--primary-light-border);
-  border-radius: 20px;
+  border: 1.5px solid color-mix(in srgb, var(--home-day-accent), #fff 66%);
+  border-radius: 22px;
   padding: 18px 18px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  box-shadow: var(--shadow-sm) !important;
+  box-shadow: 0 12px 28px rgba(15,23,42,0.08) !important;
   position: relative;
   /* ปล่อยให้ปฏิทินซึ่งเป็นลูกของการ์ดแสดงออกมาด้านล่างได้ */
   overflow: visible;
@@ -66,7 +53,7 @@
   right: 20px;
   height: 5px;
   border-radius: 0 0 999px 999px;
-  background: var(--primary);
+  background: var(--home-day-accent);
 }
 .home-date-card > * {
   position: relative;
@@ -74,13 +61,13 @@
 }
 .home-date-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md) !important;
+  box-shadow: 0 16px 34px rgba(15,23,42,0.12) !important;
 }
 
 .home-day-name {
   font-size: 0.95rem;
   font-weight: 800;
-  color: var(--primary-deep);
+  color: var(--home-day-accent);
   margin-bottom: 4px;
 }
 
@@ -206,8 +193,8 @@
 .cal-today-btn:hover { background: #ede9fe; }
 
 .home-status-badge {
-  background: rgba(255,255,255,0.82);
-  border: 1px solid var(--primary-light-border);
+  background: var(--bg-card);
+  border: 0;
   border-radius: 22px;
   padding: 12px;
   display: grid;
@@ -239,8 +226,8 @@
   display: block;
 }
 .home-stat-present { background: var(--color-present-bg); color: var(--color-present); }
-.home-stat-late    { background: color-mix(in srgb, var(--primary-light), #fff 40%); color: var(--primary-deep); }
-.home-stat-absent  { background: color-mix(in srgb, var(--color-absent-bg), #fff 38%); color: var(--color-absent); }
+.home-stat-late    { background: var(--color-late-bg);    color: var(--color-late-text); }
+.home-stat-absent  { background: var(--color-absent-bg);  color: var(--color-absent); }
 .home-stat-leave   { background: var(--color-leave-bg);   color: var(--color-leave); }
 
 /* keep legacy class names for backward-compat */
@@ -386,16 +373,8 @@
 .home-dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-  gap: 20px;
+  gap: 18px;
   align-items: stretch;
-}
-
-.home-ai-action {
-  margin: 18px 0 0;
-}
-
-.home-ai-action .btn {
-  box-shadow: 0 5px 0 var(--primary-deep), var(--shadow-sm);
 }
 
 .home-setup-card {
@@ -406,8 +385,7 @@
   gap: 20px;
   padding: 22px 24px;
   border-color: var(--primary-light-border);
-  background: rgba(255,255,255,0.86);
-  box-shadow: var(--shadow-sm);
+  background: var(--bg-card);
 }
 
 .home-setup-kicker {
@@ -428,9 +406,8 @@
 }
 
 .home-schedule-card {
-  border: 2px solid color-mix(in srgb, var(--color-leave), #fff 28%);
   border-radius: var(--radius-lg);
-  box-shadow: 0 7px 0 color-mix(in srgb, var(--color-leave), var(--primary-deep) 18%), var(--shadow-md);
+  box-shadow: var(--shadow-md);
 }
 
 .home-schedule-head {
@@ -438,8 +415,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-leave-bg), var(--border-color) 42%);
-  background: color-mix(in srgb, var(--color-leave-bg), #fff 48%);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .home-schedule-row {
@@ -455,7 +431,7 @@
 .home-schedule-row:last-child { border-bottom: none; }
 
 .home-schedule-row:hover { background: var(--row-hover, var(--primary-light)); }
-.home-schedule-row.is-now { background: linear-gradient(90deg, var(--color-leave-bg), rgba(255,255,255,0)); }
+.home-schedule-row.is-now { background: linear-gradient(90deg, rgba(234,241,251,0.72), rgba(255,255,255,0)); }
 
 .home-schedule-time {
   font-size: 0.88rem;
@@ -503,9 +479,8 @@
 
 .home-insight-card {
   border-radius: var(--radius-lg);
-  border: 2px solid var(--primary-light-border);
-  background: rgba(255,255,255,0.86);
-  box-shadow: 0 7px 0 var(--primary-light-border), var(--shadow-sm);
+  border-color: transparent;
+  box-shadow: var(--shadow-sm);
   padding: 18px 20px 20px;
 }
 
@@ -536,9 +511,9 @@
 }
 .home-insight-item {
   width: 100%;
-  border: 1px solid var(--border-color);
-  background: rgba(255,255,255,0.84);
-  border-radius: 14px;
+  border: 1px solid transparent;
+  background: #fafafa;
+  border-radius: 16px;
   padding: 13px 14px;
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto;
@@ -550,8 +525,8 @@
   transition: var(--transition-normal);
 }
 .home-insight-item:hover {
-  border-color: var(--primary-light-border);
-  background: var(--bg-card);
+  border-color: var(--border-color);
+  background: #fff;
 }
 .home-insight-icon {
   width: 32px;
@@ -564,14 +539,14 @@
   color: var(--primary);
   font-size: 1rem;
 }
-.home-insight-item.warning .home-insight-icon { background: var(--color-late-bg); color: var(--color-late-text); }
+.home-insight-item.warning .home-insight-icon { background: #fff7ed; color: #f97316; }
 .home-insight-item.danger .home-insight-icon { background: var(--color-absent-bg); color: var(--color-absent); }
 .home-insight-item.info .home-insight-icon { background: var(--color-leave-bg); color: var(--color-leave); }
 .home-insight-item.done .home-insight-icon { background: var(--color-present-bg); color: var(--color-present); }
-.home-insight-item.warning { background: color-mix(in srgb, var(--color-late-bg), #fff 48%); }
-.home-insight-item.danger { background: color-mix(in srgb, var(--color-absent-bg), #fff 50%); }
-.home-insight-item.info { background: color-mix(in srgb, var(--color-leave-bg), #fff 46%); }
-.home-insight-item.done { background: color-mix(in srgb, var(--color-present-bg), #fff 44%); }
+.home-insight-item.warning { background: #fffbf4; }
+.home-insight-item.danger { background: #fff7f7; }
+.home-insight-item.info { background: #f7fbff; }
+.home-insight-item.done { background: #f7fcfa; }
 .home-insight-copy strong {
   display: block;
   color: var(--text-main);
@@ -594,14 +569,6 @@
 
 /* Mobile tweaks for home */
 @media (max-width: 768px) {
-  #web-screen-dashboard {
-    min-height: auto;
-    padding: 12px;
-    border-width: 2px;
-    border-radius: 22px;
-    box-shadow: 0 6px 0 var(--primary-deep), var(--shadow-md);
-  }
-
   .home-date-status-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 12px;
@@ -618,15 +585,15 @@
     min-width: 0;
     min-height: 142px;
     padding: 18px 12px 16px;
-    border: 1.5px solid var(--primary-light-border);
+    border: none;
     border-radius: 18px;
-    background: rgba(255,255,255,0.88) !important;
-    box-shadow: var(--shadow-sm) !important;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--home-day-accent), #fff 18%), var(--home-day-accent)) !important;
+    box-shadow: var(--shadow-md) !important;
   }
   .home-date-card::before { display: none; }
-  .home-day-name { color: var(--primary-deep); font-size: 0.9rem; }
-  .home-date-big { color: var(--text-main); font-size: 1.82rem; }
-  .home-year { color: var(--text-muted); font-size: 0.78rem; }
+  .home-day-name { color: rgba(255,255,255,0.9); font-size: 0.9rem; }
+  .home-date-big { color: #fff; font-size: 1.82rem; }
+  .home-year { color: rgba(255,255,255,0.86); font-size: 0.78rem; }
   .home-status-badge {
     grid-column: 2;
     order: 2;
@@ -681,7 +648,6 @@
     display: none;
   }
   .home-dashboard-grid { grid-template-columns: 1fr; gap: 12px; }
-  .home-ai-action .btn { width: 100%; }
   .home-insight-card { padding: 18px; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
   .home-insight-item { grid-template-columns: 30px minmax(0, 1fr); }
   .home-insight-arrow { display: none; }
