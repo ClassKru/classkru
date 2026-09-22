@@ -88,7 +88,7 @@
           <label>ชื่อเล่น<input id="public-nickname" class="form-control" placeholder="เช่น บอล"></label>
           <div class="ck-public-two-col">
             <label>เลขที่<input id="public-student-no" class="form-control" inputmode="numeric" placeholder="12"></label>
-            <label>รหัสนักเรียน<input id="public-student-code" class="form-control" placeholder="ไม่บังคับ"></label>
+            <label>รหัสนักเรียน<input id="public-student-code" class="form-control" inputmode="numeric" pattern="[0-9]*" autocomplete="off" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="ไม่บังคับ"></label>
           </div>
         </div>
         <p class="ck-public-note">ข้อมูลนี้จะถูกส่งให้ครูตรวจสอบก่อนเพิ่มเข้ารายชื่อห้องเรียน</p>
