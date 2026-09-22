@@ -506,3 +506,31 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
   - `game`: กลไกเดียว, 3–5 รายการ, keyboard usable, feedback มีประโยชน์, สถานะจบและเริ่มใหม่, ไม่เก็บคะแนนข้ามการรีเฟรช
 - รักษาข้อห้ามเดิม: network/CDN/external asset, personal student data, dependency เพิ่ม, และการขยาย scope นอก Brief
 - ใช้กฎกลางเดียวกันเป็น baseline ของ Mini Project เพื่อเปรียบเทียบผลของโมเดลอย่างยุติธรรม ก่อนนำไปใช้ใน Production
+
+## 23. ความคืบหน้า Mini Project และแนวทาง AI pipeline (2026-09-23)
+
+สร้าง Mini Project แยกเฉพาะเครื่องที่ `C:\Users\USER\ClassKru-media-lab` เพื่อทดสอบ OpenRouter โดยเก็บ SQLite (`data/media-lab.sqlite`), raw response และ artifact ไว้ local เท่านั้น ไม่เชื่อม Supabase/Production
+
+### Flow ที่ทำแล้วใน Mini Project
+
+- มี Planner Chat: ครูพิมพ์ไอเดีย → Planner สรุป Draft Brief → ครูตรวจ/แก้ใน Confirmed Brief modal แนว ClassKru → Builder สร้างสื่อ
+- `image` เรียก OpenRouter Image Generation API (`/api/v1/images`) และเก็บผลเป็น PNG/JPG/WebP/SVG จริงใน `artifacts/`
+- `motion` และ `game` ใช้ Builder สร้าง Web Media HTML/CSS/JS แบบ single-file artifact
+- กฎกลางส่งร่วมกับ Planner และ Builder; runtime เก็บ raw response ก่อน parse และรับเฉพาะ JSON object ที่มี field `title`, `summary`, `html`, `css`, `js`
+- Builder จำกัด `max_tokens: 8000`; Planner จำกัด `max_tokens: 1800`; ใช้ `response_format: json_object`
+- Mini Project ดึงรายการโมเดลจาก OpenRouter และมีคำแนะนำคะแนนเบื้องต้นเพื่อเลือกทดสอบ
+
+### ข้อค้นพบจากการทดสอบ
+
+- Image Generation API ติดต่อสำเร็จ แต่บัญชี OpenRouter ของ key ทดสอบยังไม่มีเครดิต จึงสร้าง raster/vector image จริงไม่ได้ (`Insufficient credits`)
+- โมเดลฟรีบางรุ่นไม่ส่ง artifact JSON ตาม contract: ส่ง prose/reasoning, safety text หรือ response ว่าง จึงต้อง reject อย่างปลอดภัย ไม่ตัดข้อความแบบเดา
+- `openrouter/free` เหมาะทดสอบความพร้อม แต่ไม่ควรเป็น baseline หลัก เพราะ router เปลี่ยนโมเดลและ structured output ไม่คงที่
+
+### แนวทาง pipeline ที่ตกลงไว้
+
+1. AI 1 **Planner**: สนทนาและสร้าง/ปรับ Confirmed Brief
+2. AI 2 **Builder**: สร้างภาพจริงหรือ artifact code ตาม Brief ที่ครูยืนยัน
+3. AI 3 **Critic** (เมื่อจำเป็น): ตรวจความตรง Brief, scope, UX และ accessibility; ส่ง issue/retry instruction แต่ไม่แก้หรือตัด code เอง
+4. **Runtime Validator**: เป็นด่าน deterministic สำหรับ JSON/schema/security/syntax และเป็นผู้เดียวที่ประกอบหรือเปิด artifact
+
+ห้ามใช้ AI 3 เพื่อตัด prose โดยเดาตำแหน่ง code; การรับ code ต้องเกิดจาก structured JSON และ validation เท่านั้น
