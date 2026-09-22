@@ -1217,6 +1217,12 @@ function setAllSwipePresent() {
 
 function openAttendanceActivity() {
   if (!swipeClassId) return;
+  try {
+    // หน้ากิจกรรมเปิดเป็นหน้าต่างใหม่ จึงส่ง appState ล่าสุดไปให้ก่อนเปิด
+    localStorage.setItem('classkru_mobile_v4', JSON.stringify(appState));
+  } catch (error) {
+    console.warn('Unable to sync classroom state before opening activity:', error);
+  }
   const params = new URLSearchParams({ classId: swipeClassId, mode: 'attendance' });
   window.open(`join-activity.html?${params.toString()}`, '_blank');
 }

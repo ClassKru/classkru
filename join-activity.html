@@ -2737,6 +2737,11 @@
     function getOptions() {
       return [1, 2, 3, 4].map(index => document.getElementById(`option-input-${index}`).value.trim()).filter(Boolean);
     }
+    function syncAnswerTypeFields() {
+      const answerType = document.getElementById('answer-type')?.value;
+      const optionsWrap = document.getElementById('options-wrap');
+      if (optionsWrap) optionsWrap.style.display = answerType === 'choice' ? 'grid' : 'none';
+    }
     function getSessionParticipants(session) {
       if (!session) return [];
       if (Array.isArray(session.participants)) return session.participants;
@@ -3007,7 +3012,7 @@
       configureAttendanceActivityView();
       const classSelect = document.getElementById('class-select');
       classSelect.innerHTML = (state.classes || []).map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.subject || 'วิชา')} (${escapeHtml(c.className || 'ห้องเรียน')}) · ${(c.students || []).length} คน</option>`).join('');
-      if (!currentClassId && state.classes && state.classes[0]) currentClassId = state.classes[0].id;
+      if (!(state.classes || []).some(c => c.id === currentClassId) && state.classes && state.classes[0]) currentClassId = state.classes[0].id;
       classSelect.value = currentClassId;
       classSelect.onchange = () => {
         currentClassId = classSelect.value;
@@ -3019,7 +3024,7 @@
       ['question-input','answer-type','option-input-1','option-input-2','option-input-3','option-input-4'].forEach(id => {
         document.getElementById(id).addEventListener('input', () => {
           teacherFormDirty = true;
-          document.getElementById('options-wrap').style.display = document.getElementById('answer-type').value === 'choice' ? 'grid' : 'none';
+          syncAnswerTypeFields();
         });
       });
       updateRoomLabel();
@@ -3031,12 +3036,13 @@
           ['พร้อมมาก', 'พอไหว', 'ยังไม่พร้อม', ''].forEach((value, index) => {
             document.getElementById(`option-input-${index + 1}`).value = value;
           });
-          document.getElementById('options-wrap').style.display = 'grid';
+          syncAnswerTypeFields();
         } else {
           document.getElementById('answer-type').value = 'short';
-          document.getElementById('options-wrap').style.display = 'none';
+          syncAnswerTypeFields();
         }
       }
+      syncAnswerTypeFields();
       renderSession();
       timer = setInterval(async () => {
         if (joinRemoteMode) await refreshRemoteTeacherSession();
