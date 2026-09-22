@@ -2159,6 +2159,50 @@
       grid-template-columns: minmax(0, 1.15fr) minmax(0, .45fr) minmax(0, .7fr) minmax(0, 1fr) minmax(110px, .8fr);
     }
 
+    /* Scale answers use the same button pattern as the other answer choices. */
+    #student-view .scale {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+    #student-view .scale label {
+      min-width: 0;
+      min-height: 56px;
+      padding: 8px;
+      border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
+      border-radius: 16px;
+      background: var(--card);
+      color: var(--pk);
+      box-shadow: var(--sh);
+      font-size: 1.1rem;
+      font-weight: 900;
+      transition: var(--tr);
+    }
+    #student-view .scale label input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+    #student-view .scale label span {
+      display: grid;
+      width: 100%;
+      height: 100%;
+      place-items: center;
+    }
+    #student-view .scale label:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--pbg), var(--sh-md);
+    }
+    #student-view .scale label:has(input:checked) {
+      border-color: var(--primary);
+      background: var(--pbg);
+      color: var(--pk);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent), var(--sh-md);
+      transform: translateY(-1px);
+    }
+
     @media (max-width: 900px) {
       .review-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
