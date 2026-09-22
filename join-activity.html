@@ -2204,22 +2204,32 @@
     }
 
     /* The presentation screen needs the result rows to use the full stage width. */
+    #presentation-view .presentation-stage.is-question .presentation-output {
+      flex: 1 1 0;
+      min-height: 0;
+      padding: clamp(14px, 2vw, 28px);
+      overflow: hidden;
+    }
     #presentation-view .result-bars {
       width: 100%;
       max-width: 1080px;
-      gap: clamp(10px, 1.2vw, 16px);
+      height: 100%;
+      min-height: 0;
+      grid-template-rows: repeat(var(--answer-count, 1), minmax(0, 1fr));
+      gap: clamp(6px, .8vw, 12px);
       margin-inline: auto;
     }
     #presentation-view .result-row {
       grid-template-columns: 56px minmax(0, 1fr) 56px;
-      min-height: 66px;
-      padding: 10px 14px;
+      min-height: 0;
+      height: 100%;
+      padding: clamp(4px, .6vw, 8px) 14px;
       gap: 14px;
     }
     #presentation-view .result-label,
     #presentation-view .result-count {
-      width: 42px;
-      height: 42px;
+      width: clamp(30px, 2.3vw, 42px);
+      height: clamp(30px, 2.3vw, 42px);
       display: grid;
       place-items: center;
       justify-self: center;
@@ -2244,7 +2254,7 @@
       line-height: 1.25;
     }
     #presentation-view .result-track {
-      height: clamp(14px, 1.5vw, 22px);
+      height: clamp(10px, 1.2vw, 18px);
     }
 
     @media (max-width: 900px) {
@@ -2319,6 +2329,7 @@
       #presentation-view .presentation-stage.is-waiting .presentation-output {
         min-height: 280px;
         padding: 18px;
+        overflow: visible;
       }
       #presentation-view .presentation-footer {
         display: grid;
@@ -2489,7 +2500,7 @@
             <input id="student-no" class="input" required aria-required="true" inputmode="numeric" placeholder="12">
           </label>
           <label>รหัสนักเรียน <span class="optional-label">ถ้ามี</span>
-            <input id="student-code-input" class="input" placeholder="เช่น 13001">
+            <input id="student-code-input" class="input" inputmode="numeric" pattern="[0-9]*" placeholder="เช่น 13001">
           </label>
         </div>
         <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="submitStudentProfile()"><i class="hgi-stroke hgi-door-01"></i> เข้าห้องรอ</button>
@@ -3157,7 +3168,7 @@
         return;
       }
       const max = Math.max(1, ...entries.map(item => item[1]));
-      wall.innerHTML = `<div class="result-bars">${entries.map(([answer, count], index) => {
+      wall.innerHTML = `<div class="result-bars" style="--answer-count:${entries.length}">${entries.map(([answer, count], index) => {
         const marker = session.answerType === 'scale' ? answer : String(index + 1);
         return `<div class="result-row ${count > 0 ? 'has-votes' : ''}" style="--row-index:${index}" title="${escapeHtml(answer)}"><span class="result-label">${escapeHtml(marker)}</span><span class="result-answer"><span class="result-answer-text">${escapeHtml(answer)}</span><span class="result-track"><span class="result-fill" style="width:${Math.max(4, count / max * 100)}%"></span></span></span><span class="result-count">${count}</span></div>`;
       }).join('')}</div>`;
