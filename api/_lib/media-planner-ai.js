@@ -21,7 +21,11 @@ async function ask(data){
     provider:{data_collection:'deny',require_parameters:true},response_format:{type:'json_schema',json_schema:{name:'media_studio_planner',strict:true,schema}},
     messages:[{role:'system',content:instructions+'\nReturn JSON only according to this schema: '+JSON.stringify(schema)},{role:'user',content:JSON.stringify(data)}]
   })});
-  if(!response.ok) throw fail(response.status===429?'ai_busy':'ai_request_failed',502);
+  if(!response.ok) {
+    const detail=(await response.text().catch(()=>'' )).slice(0,1200);
+    console.error(`[media-planner] OpenRouter ${response.status}`,detail);
+    throw fail(response.status===429?'ai_busy':'ai_request_failed',502);
+  }
   const payload=await response.json(),choice=payload.choices?.[0];
   if(choice?.finish_reason!=='stop') throw fail('ai_incomplete',502);
   try{return JSON.parse(String(choice.message?.content||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,''));}catch(_){throw fail('ai_invalid_response',502);}
