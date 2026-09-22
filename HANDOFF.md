@@ -453,3 +453,6 @@ Validation completed: `npm.cmd run test:media` (23/23), `node tests/navigation-s
 ## 19. Static image artifact support (2026-09-22)
 
 Build prompt now defines `image` as static Web Media (poster/infographic/worksheet/diagram) built with HTML/CSS/inline SVG, while motion and game remain compact web artifacts. Static image artifacts may return an empty `js` string; the artifact validator accepts this safely and continues to validate all HTML/CSS and any non-empty JavaScript. Tests cover the empty-JS static artifact case and assert the build contract includes media-type guidance.
+## 20. Media artifact preview and publish UI (2026-09-22)
+
+Media Studio now shows a “สื่อที่สร้างแล้ว” card in the planner panel after a reviewed build version succeeds. Teachers can use `ทดลองเล่น` to issue and open a 15-minute Preview link on Media Host, then `เผยแพร่` after confirmation to create a published link; the card then shows `เปิดลิงก์สื่อ`. This reuses existing preview/publish APIs and encrypted artifact storage. Asset version is `495`.
