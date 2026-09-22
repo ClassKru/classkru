@@ -158,7 +158,7 @@ async function run(teacher,projectId,jobId) {
     // or charge for an automatic retry. A committed success wins over failure.
     const saved=await outcome(teacher,job);
     if(saved?.status==='succeeded') return {started:true,status:'succeeded'};
-    const allowed=new Set(['project_archived','ai_not_configured','ai_busy','ai_request_failed','ai_incomplete','ai_refused','ai_invalid_response','invalid_artifact','unsafe_html','unsafe_css','unsafe_script','invalid_javascript','preview_failed','preview_layout_failed','preview_timeout','job_expired','storage_unavailable','storage_integrity_failed']);
+    const allowed=new Set(['project_archived','ai_not_configured','ai_busy','ai_request_failed','ai_auth_failed','ai_credit_required','ai_request_invalid','ai_provider_failed','ai_incomplete','ai_refused','ai_invalid_response','invalid_artifact','unsafe_html','unsafe_css','unsafe_script','invalid_javascript','preview_failed','preview_layout_failed','preview_timeout','job_expired','storage_unavailable','storage_integrity_failed']);
     const code=allowed.has(error.code)?error.code:'generation_failed';
     await db.put(`${base(teacher)}/results/failed/${name}`,{status:'failed',error_code:code,finished_at:now()});
     return {started:true,status:'failed',error_code:code};

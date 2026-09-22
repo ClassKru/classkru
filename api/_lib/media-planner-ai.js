@@ -24,7 +24,8 @@ async function ask(data){
   if(!response.ok) {
     const detail=(await response.text().catch(()=>'' )).slice(0,1200);
     console.error(`[media-planner] OpenRouter ${response.status}`,detail);
-    throw fail(response.status===429?'ai_busy':'ai_request_failed',502);
+    const code=response.status===401||response.status===403?'ai_auth_failed':response.status===402?'ai_credit_required':response.status===400?'ai_request_invalid':response.status===429?'ai_busy':response.status>=500?'ai_provider_failed':'ai_request_failed';
+    throw fail(code,502);
   }
   const payload=await response.json(),choice=payload.choices?.[0];
   if(choice?.finish_reason!=='stop') throw fail('ai_incomplete',502);
