@@ -422,3 +422,9 @@ Validation completed: `node --check api/_lib/media-ai.js`, `npm.cmd run test:med
 Added `api/_lib/media-planner-ai.js` for Media Studio plan jobs. It uses `OPENROUTER_MEDIA_PLANNER_API_KEY` and `OPENROUTER_MEDIA_PLANNER_MODEL` when configured, with the legacy router key/model retained only as a backward-compatible fallback. The planner returns a strict `media_brief`, suggested directions, open questions, and `ready_to_build`; the existing build adapter remains unchanged. `media-service.js` normalizes the new brief and keeps legacy display aliases during UI migration. No database table or browser credential changes are required.
 
 Validation completed: `npm.cmd run test:media` (22/22), `node tests/navigation-shell.test.cjs`, syntax checks, and `git diff --check`. Pending: add the new key/model to Vercel Production and Preview, deploy, then test a new conversation.
+
+## 14. Image generation first flow (2026-09-22)
+
+Added the first image-generation path using OpenRouter's dedicated `/api/v1/images` endpoint. Media Studio image jobs reuse the configured planner key temporarily, use `OPENROUTER_MEDIA_IMAGE_MODEL` (default `google/gemini-3.1-flash-image`), persist the base64 image privately under the teacher's Media Storage, expose an authenticated image retrieval action, and show a Preview after the image job succeeds. The existing planner and HTML build paths remain separate.
+
+Validation completed: `npm.cmd run test:media` (23/23), navigation regression, syntax checks, and `git diff --check`. Pending: deploy and test with a real image model/key; image generation may incur provider charges.

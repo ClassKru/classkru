@@ -5,7 +5,8 @@ const db = require('../_lib/media-db');
 const service = require('../_lib/media-service');
 const legacyAi = require('../_lib/media-ai');
 const plannerAi = require('../_lib/media-planner-ai');
-const configured = () => legacyAi.configured() || plannerAi.configured();
+const imageAi = require('../_lib/media-image-ai');
+const configured = () => legacyAi.configured() || plannerAi.configured() || imageAi.configured();
 module.exports = async function handler(req,res) {
   if (!['GET','POST'].includes(req.method)) return sendJson(res,405,{error:'method_not_allowed'});
   if (!requestOriginIsValid(req)) return sendJson(res,403,{error:'invalid_origin'});
@@ -29,12 +30,13 @@ module.exports = async function handler(req,res) {
       result={project:await service.create(teacher.id,body.title,{})};
     } else if (req.method==='POST' && action==='enqueue') {
       if (!configured()) throw db.fail('ai_not_configured',503);
-      if (!['plan','build'].includes(body.kind)) throw db.fail('invalid_kind');
+      if (!['plan','build','image'].includes(body.kind)) throw db.fail('invalid_kind');
       if (body.kind==='build') service.mediaOrigin();
       const message=service.text(body.message,6000);
       if (message.length<3) throw db.fail('invalid_message');
       result={job:await service.enqueue(teacher.id,body.project_id,body.kind,message,body.request_key,body.media_type)};
     } else if (req.method==='POST' && action==='run') result=await service.run(teacher.id,body.project_id,body.job_id);
+    else if (req.method==='GET' && action==='image') result=await service.imageData(teacher.id,req.query.id,req.query.version_id);
     else if (req.method==='POST' && ['preview','publish'].includes(action)) {
       if (action==='publish' && body.reviewed!==true) throw db.fail('review_required');
       result=await service.issueLink(teacher.id,body.project_id,body.version_id,action==='publish'?'published':'preview');

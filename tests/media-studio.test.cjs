@@ -61,6 +61,18 @@ test('Media Studio planner uses its dedicated key and structured brief schema',a
   assert.equal(result.media_brief.topic,'ระบบสุริยะ');assert.equal(request.model,'planner-model');assert.equal(request.response_format.json_schema.name,'media_studio_planner');assert.equal(request.response_format.json_schema.strict,true);assert.equal(auth,'Bearer planner-secret');
   fetchMock.mock.restore();
 });
+test('Media Studio image adapter reuses the planner key and decodes image output',async t=>{
+  const image=require('../api/_lib/media-image-ai');
+  const names=['OPENROUTER_MEDIA_PLANNER_API_KEY','OPENROUTER_MEDIA_IMAGE_API_KEY','OPENROUTER_MEDIA_IMAGE_MODEL'];
+  const old=Object.fromEntries(names.map(key=>[key,process.env[key]]));
+  t.after(()=>{for(const key of names){if(old[key]===undefined)delete process.env[key];else process.env[key]=old[key];}});
+  process.env.OPENROUTER_MEDIA_PLANNER_API_KEY='planner-secret';delete process.env.OPENROUTER_MEDIA_IMAGE_API_KEY;process.env.OPENROUTER_MEDIA_IMAGE_MODEL='image-model';
+  let request,auth;
+  const fetchMock=t.mock.method(globalThis,'fetch',async(url,options)=>{request=JSON.parse(options.body);auth=options.headers.Authorization;return {ok:true,json:async()=>({data:[{b64_json:'aGVsbG8=',media_type:'image/png'}]})};});
+  const result=await image.generate({topic:'ระบบสุริยะ',concept:'โปสเตอร์การเรียนรู้'});
+  assert.deepEqual(result,{b64_json:'aGVsbG8=',mime_type:'image/png'});assert.equal(request.model,'image-model');assert.equal(request.n,1);assert.equal(auth,'Bearer planner-secret');
+  fetchMock.mock.restore();
+});
 test('HTTP rejects unauthenticated requests and cross-origin writes',async()=>{
   const handler=require('../api/media-studio');
   const recorder=()=>({headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.statusCode=n;return this;},json(body){this.body=body;}});
