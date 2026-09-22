@@ -2117,6 +2117,65 @@
       font-size: 1.6rem;
       font-weight: 900;
     }
+
+    /* Keep answer and QR-import rows inside their parent at every width. */
+    .result-row,
+    .review-row,
+    .student-row {
+      min-width: 0;
+    }
+    .result-answer,
+    .result-track,
+    .review-field,
+    .review-status,
+    .student-row-main {
+      min-width: 0;
+    }
+    .result-answer-text,
+    .review-status small,
+    .student-row-main strong,
+    .student-row-main span,
+    .lobby-chip,
+    .word {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .result-answer-text {
+      max-width: 100%;
+    }
+    .result-track {
+      width: 100%;
+    }
+    .lobby-chip,
+    .word {
+      max-width: 100%;
+      white-space: normal;
+      text-align: center;
+    }
+    .review-status small {
+      max-width: 100%;
+    }
+    .review-row {
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, .45fr) minmax(0, .7fr) minmax(0, 1fr) minmax(110px, .8fr);
+    }
+
+    @media (max-width: 900px) {
+      .review-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+      }
+      .review-status {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .review-status small {
+        text-align: right;
+      }
+    }
+
     @media (max-width: 760px) {
       #teacher-view .answer-config-grid,
       #teacher-view .choice-inputs,
@@ -2181,6 +2240,20 @@
       #presentation-view .presentation-footer span {
         text-align: center;
         border-radius: 22px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .review-row {
+        grid-template-columns: 1fr;
+      }
+      .review-status {
+        grid-column: auto;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .review-status small {
+        text-align: left;
       }
     }
 
