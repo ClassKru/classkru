@@ -429,6 +429,12 @@ Added the first image-generation path using OpenRouter's dedicated `/api/v1/imag
 
 Validation completed: `npm.cmd run test:media` (23/23), navigation regression, syntax checks, and `git diff --check`. Pending: deploy and test with a real image model/key; image generation may incur provider charges.
 
+## 16. Motion/game web build flow (2026-09-22)
+
+เปลี่ยนปุ่มสร้างสื่อใน Media Studio ให้รองรับ `motion` และ `game` ก่อน โดยใช้ build adapter เดิมที่สร้าง artifact เป็น HTML/CSS/JavaScript และไม่เรียก Image API. ปุ่มยืนยันจะแสดงสรุปแนวทางที่แก้ไขได้ แล้วส่ง `kind: build`, `media_type` และ `prompt_override` ไปยัง Planner build flow; backend ใช้ prompt ที่แก้ไขแล้วเป็นคำสั่งสร้าง artifact และยังผ่าน artifact policy/browser review เดิม.
+
+Asset version ถูก bump เป็น `493`. Validation: media tests 23/23, navigation regression, syntax checks และ `git diff --check` ผ่าน. ต้อง deploy Production แล้วทดสอบโปรเจกต์ที่ Planner เลือก `motion` หรือ `game`; ขั้นถัดไปคือเชื่อมปุ่ม preview/link ไปยัง Media Host หลัง artifact สร้างสำเร็จ.
+
 ## 15. Editable image brief confirmation (2026-09-22)
 
 ปรับ Media Studio ให้ใช้ Planner brief เป็นข้อมูลหลักในแผงขวา แสดงหัวข้อ กลุ่มผู้เรียน สารที่อยากสื่อ แนวคิด โครงสร้างเนื้อหา ทิศทางภาพ โทน แนวทางแนะนำ และคำถามต่อยอด พร้อมปุ่ม `สร้างภาพ` เมื่อมีหัวข้อและประเภทสื่อเป็น `image` โดยไม่บังคับ `ready_to_build` ก่อนหน้า

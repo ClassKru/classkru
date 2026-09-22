@@ -72,7 +72,7 @@ async function state(teacher,projectId) {
   const [lastPlan]=await db.documents(`${base(teacher)}/results/plan`,{limit:1,search:`${p.id}_`});
   return {project:{...p,plan:lastPlan?.plan||null},turns,versions:vs,images:images.map(v=>({id:v.id,title:v.title,mime_type:v.mime_type,created_at:v.created_at})),jobs:records.slice(0,10).map(safeJob),links:links.map(l=>({id:l.id,version_id:l.version_id,url:linkUrl(l)}))};
 }
-async function enqueue(teacher,projectId,kind,message,requestKey,preferredMediaType,imagePrompt) {
+async function enqueue(teacher,projectId,kind,message,requestKey,preferredMediaType,promptOverride) {
   projectId=id(projectId);requestKey=id(requestKey);
   if(!['plan','build','image'].includes(kind)) throw db.fail('invalid_kind');
   message=text(message,6000);if(message.length<3) throw db.fail('invalid_message');
@@ -81,7 +81,7 @@ async function enqueue(teacher,projectId,kind,message,requestKey,preferredMediaT
     const p=await project(teacher,projectId),name=key(p.id,requestKey);
     const previous=await db.get(`${base(teacher)}/jobs/${name}`);
     if(previous) {
-      if(previous.kind!==kind||previous.message!==message||(previous.media_type||'')!==preferredMediaType||(previous.image_prompt||'')!==text(imagePrompt,12000)) throw db.fail('request_conflict',409);
+      if(previous.kind!==kind||previous.message!==message||(previous.media_type||'')!==preferredMediaType||(previous.prompt_override||previous.image_prompt||'')!==text(promptOverride,12000)) throw db.fail('request_conflict',409);
       return safeJob(await status(teacher,previous,p));
     }
     if(p.archived) throw db.fail('project_archived');
@@ -105,7 +105,7 @@ async function enqueue(teacher,projectId,kind,message,requestKey,preferredMediaT
       if((await db.list(quota,{limit:40})).length>=40) throw db.fail('daily_limit',429);
       await db.put(`${quota}/${name}`,{created_at:now()});
     }
-    const job={id:requestKey,project_id:p.id,kind,message,media_type:preferredMediaType||null,image_prompt:kind==='image'?text(imagePrompt,12000):'',share_epoch:p.share_epoch,created_at:now()};
+    const job={id:requestKey,project_id:p.id,kind,message,media_type:preferredMediaType||null,prompt_override:text(promptOverride,12000),image_prompt:kind==='image'?text(promptOverride,12000):'',share_epoch:p.share_epoch,created_at:now()};
     await db.put(`${base(teacher)}/jobs/${name}`,job);
     return safeJob({...job,status:'queued'});
   });
@@ -130,7 +130,7 @@ async function run(teacher,projectId,jobId) {
     if(!claimed) return {started:false};
     const current=await state(teacher,p.id);
     if(current.project.archived||current.project.share_epoch!==job.share_epoch) throw db.fail('project_archived');
-    const input={message:job.message,preferred_media_type:mediaType(job.media_type),context:context(p.context),plan:current.project.plan,recent_conversation:current.turns.slice(-12).map(t=>({role:t.role,text:t.message.slice(0,3000)}))};
+    const input={message:job.prompt_override||job.message,preferred_media_type:mediaType(job.media_type),context:context(p.context),plan:current.project.plan,recent_conversation:current.turns.slice(-12).map(t=>({role:t.role,text:t.message.slice(0,3000)}))};
     let message,plan=null,version=null;
     if(job.kind==='plan') {
       const raw=await plannerAi.ask(input),brief=raw?.media_brief;
@@ -143,7 +143,7 @@ async function run(teacher,projectId,jobId) {
       message=text(raw.assistant_message,6000);
     } else if(job.kind==='image') {
       const brief=current.project.plan?.media_brief||current.project.plan||{};
-      const image=await imageAi.generate({...brief,topic:brief.topic||current.project.title,prompt_override:job.image_prompt});
+      const image=await imageAi.generate({...brief,topic:brief.topic||current.project.title,prompt_override:job.prompt_override||job.image_prompt});
       const storage_path=`${base(teacher)}/artifacts/image/${name}`;
       await db.put(storage_path,image);
       const digest=crypto.createHash('sha256').update(image.b64_json).digest('hex');
