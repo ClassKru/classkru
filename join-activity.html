@@ -2229,10 +2229,54 @@
       height: 100%;
       min-height: 0;
       display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: end;
+      gap: clamp(10px, 1.5vw, 18px);
+      padding: clamp(12px, 2vw, 22px) clamp(14px, 2vw, 26px) clamp(8px, 1vw, 14px);
+    }
+    #presentation-view .presentation-chart-wrap {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #presentation-view .presentation-chart-heading {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--arcade-text);
+      font-size: clamp(.9rem, 1.4vw, 1.15rem);
+      font-weight: 900;
+    }
+    #presentation-view .presentation-chart-heading span {
+      color: rgba(15,23,42,.56);
+      font-size: .82em;
+      font-weight: 800;
+    }
+    #presentation-view .presentation-chart-axis {
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 4px 0 54px;
+      color: rgba(15,23,42,.52);
+      font-size: clamp(.68rem, 1vw, .86rem);
+      font-weight: 800;
+      line-height: 1;
+      text-align: right;
+    }
+    #presentation-view .presentation-chart-plot {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      display: grid;
       grid-template-columns: repeat(var(--answer-count, 1), minmax(64px, 1fr));
       align-items: end;
       gap: clamp(18px, 3vw, 42px);
-      padding: clamp(24px, 3vw, 38px) clamp(14px, 2vw, 26px) clamp(8px, 1vw, 14px);
       background-image:
         linear-gradient(to top, rgba(15,23,42,.22) 0 2px, transparent 2px),
         repeating-linear-gradient(to top, transparent 0 calc(25% - 1px), rgba(15,23,42,.08) calc(25% - 1px) 25%);
@@ -2400,11 +2444,12 @@
         text-align: center;
         border-radius: 22px;
       }
-      #presentation-view .presentation-chart {
+      #presentation-view .presentation-chart { padding-inline: 4px; }
+      #presentation-view .presentation-chart-plot {
         grid-template-columns: repeat(var(--answer-count, 1), minmax(44px, 1fr));
         gap: 10px;
-        padding-inline: 4px;
       }
+      #presentation-view .presentation-chart-heading span { display: none; }
       #presentation-view .presentation-chart-bar {
         width: min(54px, 76%);
       }
@@ -3227,11 +3272,16 @@
       }
       const max = Math.max(1, ...entries.map(item => item[1]));
       if (wall.id === 'presentation-output') {
-        wall.innerHTML = `<div class="presentation-chart" style="--answer-count:${entries.length}">${entries.map(([answer, count], index) => {
+        const total = entries.reduce((sum, [, count]) => sum + count, 0);
+        const axisMax = Math.max(max, 1);
+        const axisValues = [axisMax, Math.round(axisMax * .75), Math.round(axisMax * .5), Math.round(axisMax * .25), 0];
+        const axisTicks = axisValues.map((value, index) => index === 0 || index === axisValues.length - 1 || value !== axisValues[index - 1] ? value : '');
+        const subLabel = session.answerType === 'scale' ? 'ระดับคะแนน' : 'ตัวเลือก';
+        wall.innerHTML = `<div class="presentation-chart-wrap"><div class="presentation-chart-heading"><strong>จำนวนผู้ตอบ</strong><span>${total} คน · ${subLabel}</span></div><div class="presentation-chart" style="--answer-count:${entries.length}"><div class="presentation-chart-axis" aria-hidden="true">${axisTicks.map(value => `<span>${value}</span>`).join('')}</div><div class="presentation-chart-plot">${entries.map(([answer, count], index) => {
           const marker = session.answerType === 'scale' ? answer : String(index + 1);
           const height = count > 0 ? Math.max(6, count / max * 100) : 0;
-          return `<div class="presentation-chart-column ${count > 0 ? 'has-votes' : ''}" title="${escapeHtml(answer)}"><span class="presentation-chart-count">${count}</span><span class="presentation-chart-bar-space"><span class="presentation-chart-bar" style="--bar-value:${height}%"></span></span><span class="presentation-chart-label"><strong>${escapeHtml(marker)}</strong><span>${escapeHtml(answer)}</span></span></div>`;
-        }).join('')}</div>`;
+          return `<div class="presentation-chart-column ${count > 0 ? 'has-votes' : ''}" title="${escapeHtml(answer)}"><span class="presentation-chart-count">${count}</span><span class="presentation-chart-bar-space"><span class="presentation-chart-bar" style="--bar-value:${height}%"></span></span><span class="presentation-chart-label"><strong>${escapeHtml(marker)}</strong><span>${session.answerType === 'scale' ? 'คะแนน' : escapeHtml(answer)}</span></span></div>`;
+        }).join('')}</div></div></div>`;
         return;
       }
       wall.innerHTML = `<div class="result-bars" style="--answer-count:${entries.length}">${entries.map(([answer, count], index) => {
