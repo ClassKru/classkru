@@ -599,7 +599,10 @@ async function trySyncRelationalState(email) {
   // first pull is awaiting several network requests. Keep those edits and
   // replay them after the remote snapshot has been read instead of allowing
   // that snapshot to overwrite the current tab state.
-  const replayLocalChangesAfterSync = !localBaselineBeforeSync;
+  // The initial baseline is created before the first cloud request finishes.
+  // A classroom can be created while that request is in flight, so always
+  // replay the local state delta after the remote snapshot is loaded.
+  const replayLocalChangesAfterSync = true;
   let localStateAtSeed = null;
   let seedSourceWasLocal = false;
   await detectRelationalMode(email);
