@@ -4,6 +4,7 @@ const db=require('./media-db');
 const {id,base,key,project,publicArtifact}=require('./media-records');
 const leases=require('./media-lease');
 const ai=require('./media-ai');
+const plannerAi=require('./media-planner-ai');
 const artifactTools=require('./media-artifact');
 function text(value,max) { return String(value||'').trim().slice(0,max); }
 function context(value={}) { return {subject:text(value?.subject,100),classroom:text(value?.classroom,100),goal:text(value?.goal,800),duration_minutes:Math.max(3,Math.min(180,Number(value?.duration_minutes)||15))}; }
@@ -130,9 +131,12 @@ async function run(teacher,projectId,jobId) {
     const input={message:job.message,preferred_media_type:mediaType(job.media_type),context:context(p.context),plan:current.project.plan,recent_conversation:current.turns.slice(-12).map(t=>({role:t.role,text:t.message.slice(0,3000)}))};
     let message,plan=null,version=null;
     if(job.kind==='plan') {
-      const raw=await ai.ask('plan',input);
-      if(!raw||!['assistant_message','title','objective','observation','mission'].every(k=>typeof raw[k]==='string')||!Array.isArray(raw.variables)||!Array.isArray(raw.next_questions)||![...raw.variables,...raw.next_questions].every(x=>typeof x==='string')) throw db.fail('ai_invalid_response',502);
-      plan={title:text(raw.title,120),objective:text(raw.objective,1200),observation:text(raw.observation,1200),variables:raw.variables.slice(0,5).map(x=>text(x,100)),mission:text(raw.mission,1200),next_questions:raw.next_questions.slice(0,3).map(x=>text(x,180))};
+      const raw=await plannerAi.ask(input),brief=raw?.media_brief;
+      if(!raw||typeof raw.assistant_message!=='string'||!brief||!['topic','audience','learning_message','media_type','concept','content_structure','visual_direction','interaction_direction','tone'].every(k=>typeof brief[k]==='string')||!['image','motion','game',''].includes(brief.media_type)||!Array.isArray(brief.constraints)||!Array.isArray(raw.suggested_directions)||!Array.isArray(raw.open_questions)||typeof raw.ready_to_build!=='boolean') throw db.fail('ai_invalid_response',502);
+      const constraints=brief.constraints.slice(0,8).map(x=>text(x,300)),openQuestions=raw.open_questions.slice(0,3).map(x=>text(x,300));
+      plan={topic:text(brief.topic,200),audience:text(brief.audience,200),learning_message:text(brief.learning_message,1200),media_type:brief.media_type,concept:text(brief.concept,1600),content_structure:text(brief.content_structure,1600),visual_direction:text(brief.visual_direction,1200),interaction_direction:text(brief.interaction_direction,1200),tone:text(brief.tone,300),constraints,suggested_directions:raw.suggested_directions.slice(0,3).filter(x=>x&&typeof x.title==='string'&&typeof x.description==='string'&&['image','motion','game'].includes(x.media_type)).map(x=>({title:text(x.title,160),description:text(x.description,500),media_type:x.media_type})),open_questions:openQuestions,ready_to_build:raw.ready_to_build,
+        // Keep the existing panel readable while clients migrate to media_brief fields.
+        title:text(brief.topic,200),objective:text(brief.learning_message,1200),observation:text(brief.content_structure,1200),variables:constraints.slice(0,5),mission:text(brief.concept,1200),next_questions:openQuestions};
       message=text(raw.assistant_message,6000);
     } else {
       if(current.versions[0]) input.previous_artifact=await db.get(current.versions[0].storage_path);

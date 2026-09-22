@@ -416,3 +416,9 @@ git branch -f main HEAD
 Production jobs reached the worker and OpenRouter but failed as `ai_invalid_response` because the OpenRouter request only instructed the model to return JSON; it did not enforce the Planner schema. `api/_lib/media-ai.js` now sends OpenRouter `response_format` with strict JSON Schema and `provider.require_parameters=true`, while retaining the existing server-side validation. The adapter test asserts this contract. This is a backward-compatible request change; no database schema change is required.
 
 Validation completed: `node --check api/_lib/media-ai.js`, `npm.cmd run test:media` (21/21). Pending: deploy to Vercel Production, then submit one new message and verify the job changes from `queued` to `succeeded` and a `result` request appears in Network.
+
+## 13. Media Studio dedicated Planner contract (2026-09-22)
+
+Added `api/_lib/media-planner-ai.js` for Media Studio plan jobs. It uses `OPENROUTER_MEDIA_PLANNER_API_KEY` and `OPENROUTER_MEDIA_PLANNER_MODEL` when configured, with the legacy router key/model retained only as a backward-compatible fallback. The planner returns a strict `media_brief`, suggested directions, open questions, and `ready_to_build`; the existing build adapter remains unchanged. `media-service.js` normalizes the new brief and keeps legacy display aliases during UI migration. No database table or browser credential changes are required.
+
+Validation completed: `npm.cmd run test:media` (22/22), `node tests/navigation-shell.test.cjs`, syntax checks, and `git diff --check`. Pending: add the new key/model to Vercel Production and Preview, deploy, then test a new conversation.

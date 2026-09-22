@@ -3,7 +3,9 @@ const {authenticatedUser} = require('../_lib/supabase-user');
 const {sendJson,requestOriginIsValid} = require('../_lib/http');
 const db = require('../_lib/media-db');
 const service = require('../_lib/media-service');
-const {configured} = require('../_lib/media-ai');
+const legacyAi = require('../_lib/media-ai');
+const plannerAi = require('../_lib/media-planner-ai');
+const configured = () => legacyAi.configured() || plannerAi.configured();
 module.exports = async function handler(req,res) {
   if (!['GET','POST'].includes(req.method)) return sendJson(res,405,{error:'method_not_allowed'});
   if (!requestOriginIsValid(req)) return sendJson(res,403,{error:'invalid_origin'});

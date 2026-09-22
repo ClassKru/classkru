@@ -6,6 +6,7 @@ const db=require('../api/_lib/media-db');
 const leases=require('../api/_lib/media-lease');
 const service=require('../api/_lib/media-service');
 const ai=require('../api/_lib/media-ai');
+const plannerAi=require('../api/_lib/media-planner-ai');
 const browser=require('../api/_lib/media-check');
 const artifact=require('../api/_lib/media-artifact');
 const sample=require('./media-fixture.cjs');
@@ -15,6 +16,7 @@ const plan={assistant_message:'ลองปรับความสูงแล�
 function providers(t) {
   let calls=0;
   t.mock.method(ai,'ask',async kind=>{calls++;return kind==='plan'?plan:sample;});
+  t.mock.method(plannerAi,'ask',async()=>{calls++;return {assistant_message:plan.assistant_message,media_brief:{topic:plan.title,audience:'',learning_message:plan.objective,media_type:'',concept:plan.mission,content_structure:plan.observation,visual_direction:'',interaction_direction:'',tone:'',constraints:plan.variables},suggested_directions:[],open_questions:plan.next_questions,ready_to_build:false};});
   t.mock.method(browser,'checkInBrowser',async()=>({browser_check:'passed',policy_version:artifact.POLICY_VERSION}));
   return ()=>calls;
 }

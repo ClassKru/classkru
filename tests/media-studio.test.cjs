@@ -49,6 +49,18 @@ test('AI adapter reuses OpenRouter, keeps keys server-side and fails closed on i
   await ai.ask('build',{});assert.equal(endpoint,'https://api.openai.com/v1/responses');assert.equal(request.store,false);assert.equal(request.text.format.strict,true);
   delete process.env.OPENAI_API_KEY;await assert.rejects(ai.ask('plan',{}),{code:'ai_not_configured'});
 });
+test('Media Studio planner uses its dedicated key and structured brief schema',async t=>{
+  const planner=require('../api/_lib/media-planner-ai');
+  const names=['OPENROUTER_MEDIA_PLANNER_API_KEY','OPENROUTER_MEDIA_PLANNER_MODEL','OPENROUTER_API_KEY'];
+  const old=Object.fromEntries(names.map(key=>[key,process.env[key]]));
+  t.after(()=>{for(const key of names){if(old[key]===undefined)delete process.env[key];else process.env[key]=old[key];}});
+  process.env.OPENROUTER_MEDIA_PLANNER_API_KEY='planner-secret';process.env.OPENROUTER_MEDIA_PLANNER_MODEL='planner-model';delete process.env.OPENROUTER_API_KEY;
+  let request,auth;
+  const fetchMock=t.mock.method(globalThis,'fetch',async(url,options)=>{request=JSON.parse(options.body);auth=options.headers.Authorization;return {ok:true,json:async()=>({choices:[{finish_reason:'stop',message:{content:JSON.stringify({assistant_message:'เริ่มจากหัวข้อนี้ได้เลย',media_brief:{topic:'ระบบสุริยะ',audience:'',learning_message:'',media_type:'',concept:'',content_structure:'',visual_direction:'',interaction_direction:'',tone:'',constraints:[]},suggested_directions:[],open_questions:['อยากสร้างเป็นสื่อแบบไหน'],ready_to_build:false})}}]})};});
+  const result=await planner.ask({message:'ระบบสุริยะ',conversation:[],current_brief:{},selected_media_type:''});
+  assert.equal(result.media_brief.topic,'ระบบสุริยะ');assert.equal(request.model,'planner-model');assert.equal(request.response_format.json_schema.name,'media_studio_planner');assert.equal(request.response_format.json_schema.strict,true);assert.equal(auth,'Bearer planner-secret');
+  fetchMock.mock.restore();
+});
 test('HTTP rejects unauthenticated requests and cross-origin writes',async()=>{
   const handler=require('../api/media-studio');
   const recorder=()=>({headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.statusCode=n;return this;},json(body){this.body=body;}});
