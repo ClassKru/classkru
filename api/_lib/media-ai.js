@@ -15,7 +15,8 @@ HTML อนุญาต div span p h1-h4 section article header footer main asid
 ผูกเหตุการณ์ด้วย addEventListener ใน js ใช้ element ID อย่าใช้ inline event handler ใช้สี fill/stroke แบบค่าสีตรง ๆ ไม่มี url() หรือ @import ใน css
 ออกแบบมือถือ 390px และจอฉาย 1280px ไม่ล้นจอ มีคำอธิบายเริ่มต้น ปุ่มเริ่มใหม่ ตัวแปรและหน่วยชัดเจน feedback ตามการกระทำของเด็ก เคลื่อนไหวด้วย requestAnimationFrame ที่หยุดได้ ใช้เอกสารปัจจุบันเท่านั้น ไม่เปลี่ยน URL ของหน้า
 สูตรวิทยาศาสตร์ต้องสอดคล้อง กำหนดช่วงตัวแปรไม่หารศูนย์ หากจำลองแบบง่ายบอกข้อสมมติในเกม
-เมื่อแก้ไขให้รักษาแนวคิดเดิมตามที่ครูต้องการและส่งไฟล์ทั้งชุดใหม่ จำกัด html 20000 ตัวอักษร css 10000 js 28000 ใส่ summary อธิบายสิ่งที่สร้างและจุดที่ครูควรตรวจ`;
+เมื่อแก้ไขให้รักษาแนวคิดเดิมตามที่ครูต้องการและส่งไฟล์ทั้งชุดใหม่ จำกัด html 20000 ตัวอักษร css 10000 js 28000 ใส่ summary อธิบายสิ่งที่สร้างและจุดที่ครูควรตรวจ
+อ่าน preferred_media_type ในข้อมูลที่ได้รับเสมอ: image คือสื่อภาพแบบ static เช่น โปสเตอร์ อินโฟกราฟิก ใบงาน หรือแผนภาพ โดยใช้ HTML/CSS/inline SVG เท่านั้น ไม่เรียก image API และไม่อ้างว่าเป็นไฟล์ PNG/JPG; js ของ image ส่งเป็น string ว่างได้. motion คือ animation ขนาดเล็ก มี play/restart เพียงหนึ่งจุด. game คือกิจกรรมโต้ตอบขนาดเล็ก มีกติกาหลักเดียว 3-5 รายการ feedback และ restart. ทุกแบบต้องกระชับเพื่อให้ JSON จบครบ ห้ามใช้ asset ภายนอกหรือเสียง/ภาพจาก network`;
 async function ask(kind, data) {
   if (process.env.OPENROUTER_API_KEY) {
     const schema=kind==='build'?artifactSchema:planSchema;

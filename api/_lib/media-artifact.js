@@ -12,7 +12,7 @@ function validateArtifact(input) {
   const limits = { title: 120, summary: 1200, html: 65000, css: 32000, js: 85000 };
   const artifact = {};
   for (const [key, max] of Object.entries(limits)) {
-    if (typeof input[key] !== 'string' || !input[key].trim() || Buffer.byteLength(input[key]) > max) throw fail('invalid_artifact');
+    if (typeof input[key] !== 'string' || (key!=='js'&&!input[key].trim()) || Buffer.byteLength(input[key]) > max) throw fail('invalid_artifact');
     artifact[key] = input[key];
   }
   const root = parseFragment(artifact.html);

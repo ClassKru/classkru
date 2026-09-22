@@ -19,6 +19,7 @@ test('artifact policy rejects executable markup, external CSS and forbidden APIs
   const artifact=validateArtifact(fixture);assert.equal(hash(artifact).length,64);
   for(const html of ['<script>alert(1)</script>','<img src="https://evil.test">','<svg><foreignObject>bad</foreignObject></svg>','<button onclick="alert(1)">x</button>','<input type="password">'])assert.throws(()=>validateArtifact({...fixture,html}));
   for(const js of ['fetch("/api");','new Function("return 1")();','import("x");','top.location="https://evil.test"','const = 1;'])assert.throws(()=>validateArtifact({...fixture,js}));
+  assert.doesNotThrow(()=>validateArtifact({...fixture,js:''}));
   assert.throws(()=>validateArtifact({...fixture,css:'body{background:url(https://evil.test)}'}));
   const output=render(artifact);assert.match(output.csp,/sandbox allow-scripts/);assert.match(output.csp,/connect-src 'none'/);assert.doesNotMatch(output.csp,/allow-same-origin/);
   assert.notEqual(render(artifact).csp,output.csp);
@@ -42,6 +43,7 @@ test('AI adapter reuses OpenRouter, keeps keys server-side and fails closed on i
   assert.deepEqual(request.provider,{data_collection:'deny',require_parameters:true});
   assert.equal(request.response_format.type,'json_schema');assert.equal(request.response_format.json_schema.strict,true);
   assert.equal(request.response_format.json_schema.name,'teaching_artifact');assert.ok(!JSON.stringify(request).includes('test-router-key'));
+  assert.match(request.messages[0].content,/preferred_media_type/);
   fetchMock.mock.mockImplementation(async()=>({ok:true,json:async()=>({choices:[{finish_reason:'length',message:{content:'{}'}}]})}));
   await assert.rejects(ai.ask('build',{}),{code:'ai_incomplete'});
   delete process.env.OPENROUTER_API_KEY;

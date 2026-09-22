@@ -450,3 +450,6 @@ Validation completed: `npm.cmd run test:media` (23/23), `node tests/navigation-s
 ## 18. Media Studio daily quota removed (2026-09-22)
 
 ปลด daily request quota ของ Media Studio ออกแล้ว จึงไม่มี `daily_limit` สำหรับการสนทนาและสร้างสื่ออีกต่อไป แต่คง pending queue, project และ version limits เพื่อกันงานซ้อนและรักษาความเสถียรของระบบ. Regression test ยืนยันว่า quota records เก่าไม่บล็อกการ enqueue งานใหม่.
+## 19. Static image artifact support (2026-09-22)
+
+Build prompt now defines `image` as static Web Media (poster/infographic/worksheet/diagram) built with HTML/CSS/inline SVG, while motion and game remain compact web artifacts. Static image artifacts may return an empty `js` string; the artifact validator accepts this safely and continues to validate all HTML/CSS and any non-empty JavaScript. Tests cover the empty-JS static artifact case and assert the build contract includes media-type guidance.
