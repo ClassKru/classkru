@@ -410,3 +410,9 @@ git branch -f main HEAD
 - `node tests/score-report.test.cjs` ผ่าน
 - `node tests/relational-sync.test.cjs` ผ่าน
 - `git diff --check` ผ่าน
+
+## 12. Media Studio AI response-format fix (2026-09-22)
+
+Production jobs reached the worker and OpenRouter but failed as `ai_invalid_response` because the OpenRouter request only instructed the model to return JSON; it did not enforce the Planner schema. `api/_lib/media-ai.js` now sends OpenRouter `response_format` with strict JSON Schema and `provider.require_parameters=true`, while retaining the existing server-side validation. The adapter test asserts this contract. This is a backward-compatible request change; no database schema change is required.
+
+Validation completed: `node --check api/_lib/media-ai.js`, `npm.cmd run test:media` (21/21). Pending: deploy to Vercel Production, then submit one new message and verify the job changes from `queued` to `succeeded` and a `result` request appears in Network.

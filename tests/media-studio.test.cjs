@@ -39,7 +39,9 @@ test('AI adapter reuses OpenRouter, keeps keys server-side and fails closed on i
   const fetchMock=t.mock.method(globalThis,'fetch',async(url,options)=>{endpoint=url;request=JSON.parse(options.body);return {ok:true,json:async()=>({choices:[{finish_reason:'stop',message:{content:JSON.stringify(fixture)}}]})};});
   assert.deepEqual(await ai.ask('build',{message:'สร้างเกม'}),fixture);
   assert.equal(endpoint,'https://openrouter.ai/api/v1/chat/completions');assert.equal(request.model,'test-model');
-  assert.deepEqual(request.provider,{data_collection:'deny'});assert.ok(!JSON.stringify(request).includes('test-router-key'));
+  assert.deepEqual(request.provider,{data_collection:'deny',require_parameters:true});
+  assert.equal(request.response_format.type,'json_schema');assert.equal(request.response_format.json_schema.strict,true);
+  assert.equal(request.response_format.json_schema.name,'teaching_artifact');assert.ok(!JSON.stringify(request).includes('test-router-key'));
   fetchMock.mock.mockImplementation(async()=>({ok:true,json:async()=>({choices:[{finish_reason:'length',message:{content:'{}'}}]})}));
   await assert.rejects(ai.ask('build',{}),{code:'ai_incomplete'});
   delete process.env.OPENROUTER_API_KEY;

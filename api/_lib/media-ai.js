@@ -24,7 +24,8 @@ async function ask(kind, data) {
       method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${process.env.OPENROUTER_API_KEY}`,'HTTP-Referer':process.env.OPENROUTER_SITE_URL||process.env.CLASSKRU_APP_ORIGIN||'https://classkru-kohl.vercel.app','X-Title':'ClassKru'},
       signal:AbortSignal.timeout(kind==='build'?170000:60000),
       body:JSON.stringify({model:process.env.OPENROUTER_MEDIA_MODEL||process.env.OPENROUTER_MODEL||'qwen/qwen3-30b-a3b-instruct-2507',temperature:0.25,max_tokens:kind==='build'?14000:2500,
-        provider:{data_collection:'deny'},
+        provider:{data_collection:'deny',require_parameters:true},
+        response_format:{type:'json_schema',json_schema:{name:kind==='build'?'teaching_artifact':'teaching_plan',strict:true,schema}},
         messages:[{role:'system',content:instructions+'\nคืน JSON ล้วนตาม schema นี้: '+JSON.stringify(schema)},{role:'user',content:JSON.stringify(data)}]})
     });
     if(!response.ok)throw fail(response.status===429?'ai_busy':'ai_request_failed',502);
