@@ -2203,6 +2203,50 @@
       transform: translateY(-1px);
     }
 
+    /* The presentation screen needs the result rows to use the full stage width. */
+    #presentation-view .result-bars {
+      width: 100%;
+      max-width: 1080px;
+      gap: clamp(10px, 1.2vw, 16px);
+      margin-inline: auto;
+    }
+    #presentation-view .result-row {
+      grid-template-columns: 56px minmax(0, 1fr) 56px;
+      min-height: 66px;
+      padding: 10px 14px;
+      gap: 14px;
+    }
+    #presentation-view .result-label,
+    #presentation-view .result-count {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      justify-self: center;
+      border-radius: 50%;
+      font-size: clamp(1rem, 1.8vw, 1.35rem);
+      font-weight: 900;
+    }
+    #presentation-view .result-label {
+      background: var(--result-soft, #eff6ff);
+      color: var(--result-accent, #3b82f6);
+    }
+    #presentation-view .result-count {
+      background: var(--result-soft, #eff6ff);
+      color: var(--result-accent, #3b82f6);
+    }
+    #presentation-view .result-row.has-votes .result-count {
+      background: var(--result-accent, #3b82f6);
+      color: #fff;
+    }
+    #presentation-view .result-answer-text {
+      font-size: clamp(.95rem, 1.8vw, 1.35rem);
+      line-height: 1.25;
+    }
+    #presentation-view .result-track {
+      height: clamp(14px, 1.5vw, 22px);
+    }
+
     @media (max-width: 900px) {
       .review-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2284,6 +2328,16 @@
       #presentation-view .presentation-footer span {
         text-align: center;
         border-radius: 22px;
+      }
+      #presentation-view .result-row {
+        grid-template-columns: 42px minmax(0, 1fr) 42px;
+        gap: 8px;
+        padding-inline: 8px;
+      }
+      #presentation-view .result-label,
+      #presentation-view .result-count {
+        width: 34px;
+        height: 34px;
       }
     }
 
