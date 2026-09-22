@@ -1223,8 +1223,8 @@ function openAttendanceActivity() {
   } catch (error) {
     console.warn('Unable to sync classroom state before opening activity:', error);
   }
-  const params = new URLSearchParams({ classId: swipeClassId, mode: 'attendance' });
-  window.open(`join-activity.html?${params.toString()}`, '_blank');
+  const params = new URLSearchParams({ classId: swipeClassId, mode: 'teacher' });
+  window.open(`activity-checkin.html?${params.toString()}`, '_blank');
 }
 
 function clearSwipeChecks() {
