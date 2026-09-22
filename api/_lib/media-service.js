@@ -7,6 +7,11 @@ const ai=require('./media-ai');
 const artifactTools=require('./media-artifact');
 function text(value,max) { return String(value||'').trim().slice(0,max); }
 function context(value={}) { return {subject:text(value?.subject,100),classroom:text(value?.classroom,100),goal:text(value?.goal,800),duration_minutes:Math.max(3,Math.min(180,Number(value?.duration_minutes)||15))}; }
+function mediaType(value) {
+  if (value===undefined || value===null || value==='') return '';
+  if (!['image','motion','game'].includes(value)) throw db.fail('invalid_media_type');
+  return value;
+}
 function mediaOrigin() {
   const value=process.env.MEDIA_ORIGIN,app=process.env.CLASSKRU_APP_ORIGIN||'https://classkru-kohl.vercel.app';
   if(!value) throw db.fail('media_host_not_configured',503);
@@ -64,15 +69,16 @@ async function state(teacher,projectId) {
   const [lastPlan]=await db.documents(`${base(teacher)}/results/plan`,{limit:1,search:`${p.id}_`});
   return {project:{...p,plan:lastPlan?.plan||null},turns,versions:vs,jobs:records.slice(0,10).map(safeJob),links:links.map(l=>({id:l.id,version_id:l.version_id,url:linkUrl(l)}))};
 }
-async function enqueue(teacher,projectId,kind,message,requestKey) {
+async function enqueue(teacher,projectId,kind,message,requestKey,preferredMediaType) {
   projectId=id(projectId);requestKey=id(requestKey);
   if(!['plan','build'].includes(kind)) throw db.fail('invalid_kind');
   message=text(message,6000);if(message.length<3) throw db.fail('invalid_message');
+  preferredMediaType=mediaType(preferredMediaType);
   return leases.admission(id(teacher),async()=>{
     const p=await project(teacher,projectId),name=key(p.id,requestKey);
     const previous=await db.get(`${base(teacher)}/jobs/${name}`);
     if(previous) {
-      if(previous.kind!==kind||previous.message!==message) throw db.fail('request_conflict',409);
+      if(previous.kind!==kind||previous.message!==message||(previous.media_type||'')!==preferredMediaType) throw db.fail('request_conflict',409);
       return safeJob(await status(teacher,previous,p));
     }
     if(p.archived) throw db.fail('project_archived');
@@ -96,7 +102,7 @@ async function enqueue(teacher,projectId,kind,message,requestKey) {
       if((await db.list(quota,{limit:40})).length>=40) throw db.fail('daily_limit',429);
       await db.put(`${quota}/${name}`,{created_at:now()});
     }
-    const job={id:requestKey,project_id:p.id,kind,message,share_epoch:p.share_epoch,created_at:now()};
+    const job={id:requestKey,project_id:p.id,kind,message,media_type:preferredMediaType||null,share_epoch:p.share_epoch,created_at:now()};
     await db.put(`${base(teacher)}/jobs/${name}`,job);
     return safeJob({...job,status:'queued'});
   });
@@ -121,7 +127,7 @@ async function run(teacher,projectId,jobId) {
     if(!claimed) return {started:false};
     const current=await state(teacher,p.id);
     if(current.project.archived||current.project.share_epoch!==job.share_epoch) throw db.fail('project_archived');
-    const input={message:job.message,context:context(p.context),plan:current.project.plan,recent_conversation:current.turns.slice(-12).map(t=>({role:t.role,text:t.message.slice(0,3000)}))};
+    const input={message:job.message,preferred_media_type:mediaType(job.media_type),context:context(p.context),plan:current.project.plan,recent_conversation:current.turns.slice(-12).map(t=>({role:t.role,text:t.message.slice(0,3000)}))};
     let message,plan=null,version=null;
     if(job.kind==='plan') {
       const raw=await ai.ask('plan',input);
@@ -186,4 +192,4 @@ async function revoke(teacher,projectId,linkId) {
   if(!link) throw db.fail('not_found',404);
   await db.put(`revoked/${link.token}.json`,{created_at:now()});return true;
 }
-module.exports={id,text,context,mediaOrigin,safeJob,state,jobStatus,list,create,enqueue,run,archive,issueLink,revoke,publicArtifact};
+module.exports={id,text,context,mediaType,mediaOrigin,safeJob,state,jobStatus,list,create,enqueue,run,archive,issueLink,revoke,publicArtifact};

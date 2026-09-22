@@ -6,7 +6,7 @@ const {createServer}=require('../scripts/media-dev.cjs');
 const {launchBrowser}=require('../api/_lib/media-check');
 const projectId='00000000-0000-4000-8000-000000000001',jobId='00000000-0000-4000-8000-000000000003';
 const current={project:{id:projectId,title:'พลังงานกับการเคลื่อนที่',context:{subject:'',classroom:'',goal:'',duration_minutes:15},archived:false},turns:[],versions:[],jobs:[],links:[]};
-let exists=false;
+let exists=false,failNext=false;
 async function mockApi(req,res){
   assert.equal(req.headers.authorization,'Bearer test-session');
   const body=typeof req.body==='string'?JSON.parse(req.body):req.body||{};
@@ -20,8 +20,11 @@ async function mockApi(req,res){
   else if(action==='jobs')data={jobs:current.jobs};
   else if(action==='enqueue'){
     assert.equal(body.kind,'plan');
+    assert.equal(body.media_type,undefined);
+    failNext=body.message==='ทดสอบข้อผิดพลาด';
     current.turns.push({role:'teacher',message:body.message});current.jobs=[{id:jobId,status:'queued',kind:'plan'}];data={job:current.jobs[0]};
   } else if(action==='run') {
+    if(failNext){current.jobs[0].status='failed';current.jobs[0].error_code='ai_request_failed';data={started:true,status:'failed'};return res.status(200).json(data);}
     current.jobs[0].status='succeeded';
     current.turns.push({role:'assistant',message:'ให้เด็กปรับความสูงและสังเกตความเร็ว'});
     current.project.plan={title:'ห้องทดลองพลังงาน',objective:'อธิบายการเปลี่ยนรูปพลังงาน',observation:'ความสูงลด ความเร็วเพิ่ม',variables:['ความสูง'],mission:'ทำนายก่อนทดลอง',next_questions:['เพิ่มแรงเสียดทานไหม?']};
@@ -38,18 +41,27 @@ async function main(){
   let browser;
   try{
     browser=await launchBrowser();const page=await browser.newPage();const errors=[];page.on('pageerror',error=>errors.push(error.message));
-    await page.setViewport({width:1440,height:1050});await page.goto(appOrigin+'/harness');await page.click('button');
+    await page.setViewport({width:1440,height:900});await page.goto(appOrigin+'/harness');await page.click('button');
     await page.waitForFunction(()=>!document.getElementById('ms-send').disabled);
     assert.equal(await page.$eval('#ms-build',element=>element.disabled),true);
-    assert.equal(await page.$eval('#ms-input',element=>element.getAttribute('placeholder')),null);
+    assert.equal(await page.$$eval('[data-media-type]',elements=>elements.length),3);
+    assert.equal(await page.$$eval('[data-starter]',elements=>elements.length),4);
+    assert.equal(await page.$$eval('.ms-message',elements=>elements.length),0);
+    assert.equal(await page.$eval('#ms-input',element=>element.getAttribute('placeholder')),'เล่าสิ่งที่อยากทำได้เลย ไม่ต้องเขียนเป็นคำสั่ง');
+    assert.equal(await page.$eval('#ms-ai-help',element=>!element.hidden),true);
+    await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'true');await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'false');
+    await page.click('[data-starter="topic"]');assert.equal(await page.$eval('#ms-input',element=>element.placeholder),'กำลังจะสอนเรื่องอะไรครับ?');
+    fs.mkdirSync(path.join(__dirname,'../test-results'),{recursive:true});await page.screenshot({path:path.join(__dirname,'../test-results/media-studio-initial-desktop.png'),fullPage:true});
     await page.type('#ms-input','อยากให้นักเรียนเข้าใจพลังงานศักย์และพลังงานจลน์');await page.click('#ms-send');
     await page.waitForFunction(()=>document.querySelectorAll('.ms-message').length===2&&document.getElementById('ms-plan').textContent.includes('ความสูงลด'));
     assert.equal(await page.$eval('#ms-input',element=>element.value),'');
     assert.equal(await page.$eval('#ms-followups',element=>element.textContent),'เพิ่มแรงเสียดทานไหม?');
     fs.mkdirSync(path.join(__dirname,'../test-results'),{recursive:true});await page.screenshot({path:path.join(__dirname,'../test-results/media-studio-desktop.png'),fullPage:true});
-    await page.click('#ms-close');await page.click('body>button');await page.waitForSelector('[data-project]');await page.click('[data-project]');
-    await page.waitForFunction(()=>document.querySelectorAll('.ms-message').length===2);
-    await page.setViewport({width:390,height:844});await page.screenshot({path:path.join(__dirname,'../test-results/media-studio-mobile.png'),fullPage:true});
+    await page.type('#ms-input','ทดสอบข้อผิดพลาด');await page.click('#ms-send');await page.waitForFunction(()=>document.getElementById('ms-job').textContent.includes('ติดต่อ AI ไม่สำเร็จ'));
+    assert.equal(await page.$eval('#ms-conversation-view',element=>!element.hidden),true);
+    await page.click('#ms-close');await page.setViewport({width:390,height:844});await page.click('body>button');await page.waitForFunction(()=>!document.getElementById('ms-send').disabled);assert.equal(await page.$$eval('.ms-message',elements=>elements.length),0);await page.screenshot({path:path.join(__dirname,'../test-results/media-studio-initial-mobile.png'),fullPage:true});await page.click('#ms-history-toggle');await page.waitForSelector('[data-project]');await page.click('[data-project]');
+    await page.waitForFunction(()=>document.querySelectorAll('.ms-message').length===3);
+    await page.screenshot({path:path.join(__dirname,'../test-results/media-studio-mobile.png'),fullPage:true});
     const overflow=await page.evaluate(()=>document.querySelector('.ms-dialog').scrollWidth>document.querySelector('.ms-dialog').clientWidth+1);assert.equal(overflow,false);
     assert.deepEqual(errors,[]);
     console.log('Browser QA passed: chat, automatic AI reply, conversation resume, guidance panel and mobile layout');

@@ -25,6 +25,7 @@ test('artifact policy rejects executable markup, external CSS and forbidden APIs
 });
 test('context strips personal fields and media origin cannot be app origin',()=>{
   assert.deepEqual(Object.keys(service.context({students:['private'],subject:'วิทยาศาสตร์'})),['subject','classroom','goal','duration_minutes']);
+  assert.equal(service.mediaType('game'),'game');assert.equal(service.mediaType(undefined),'');assert.throws(()=>service.mediaType('video'),{code:'invalid_media_type'});
   process.env.CLASSKRU_APP_ORIGIN='https://app.example.test';process.env.MEDIA_ORIGIN='https://app.example.test';
   assert.throws(()=>service.mediaOrigin());process.env.MEDIA_ORIGIN='https://media.example.test';assert.equal(service.mediaOrigin(),'https://media.example.test');
 });

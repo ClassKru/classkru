@@ -1,137 +1,50 @@
 // Teacher-owned conversation workspace. The active phase is chat and planning only.
 (() => {
   'use strict';
-  let root, selected=null, snapshot=null, config=null, poll=null, busy=false, returnFocus=null, epoch=0, authListener=null;
+  let root, selected=null, snapshot=null, config=null, poll=null, busy=false, returnFocus=null, epoch=0, authListener=null, selectedMediaType='', selectedStarter='';
   const running=new Set();
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const $=id=>document.getElementById(`ms-${id}`);
-  const errors={
-    authentication_required:'กรุณาเข้าสู่ระบบก่อนใช้พื้นที่สนทนา',invalid_session:'หมดเวลาเข้าสู่ระบบ กรุณาล็อกอินใหม่',
-    ai_not_configured:'ยังไม่ได้เปิดบริการ AI กรุณาติดต่อผู้ดูแล',storage_not_configured:'พื้นที่เก็บบทสนทนาหรือกุญแจเข้ารหัสยังไม่พร้อม กรุณาติดต่อผู้ดูแล',storage_bucket_unsafe:'พื้นที่เก็บบทสนทนาต้องเป็นส่วนตัว กรุณาติดต่อผู้ดูแล',storage_integrity_failed:'ตรวจสอบข้อมูลบทสนทนาไม่ผ่าน กรุณาติดต่อผู้ดูแล',storage_unavailable:'ติดต่อพื้นที่เก็บบทสนทนาไม่ได้ กรุณาลองใหม่',workspace_busy:'บัญชีนี้กำลังบันทึกงาน กรุณารอสักครู่แล้วลองใหม่',request_conflict:'คำขอนี้ถูกใช้แล้ว กรุณาส่งใหม่',
-    daily_limit:'วันนี้ใช้โควตาคุยกับ AI ครบแล้ว ลองใหม่ภายหลัง',project_limit:'มีบทสนทนาครบ 100 รายการแล้ว',project_busy:'บทสนทนานี้กำลังประมวลผล กรุณารอให้เสร็จก่อน',queue_limit:'มีข้อความรออยู่หลายรายการ กรุณารอก่อน',
-    ai_busy:'ผู้ให้บริการ AI กำลังรับงานมาก ลองส่งใหม่ภายหลัง',ai_incomplete:'AI ส่งคำตอบมาไม่ครบ ลองส่งใหม่อีกครั้ง',ai_refused:'AI ไม่สามารถทำตามคำขอนี้ ลองปรับข้อความใหม่',ai_request_failed:'ติดต่อ AI ไม่สำเร็จ กรุณาลองใหม่',ai_invalid_response:'คำตอบจาก AI ไม่ครบตามรูปแบบ กรุณาลองใหม่',
-    job_expired:'คำขอนี้หมดเวลาประมวลผล คุณส่งใหม่ได้',generation_failed:'AI ตอบกลับไม่สำเร็จ กรุณาลองใหม่',project_archived:'บทสนทนานี้ถูกเก็บเข้ากรุแล้ว',not_found:'ไม่พบบทสนทนานี้หรือบัญชีนี้ไม่มีสิทธิ์เปิด'
-  };
+  const errors={authentication_required:'กรุณาเข้าสู่ระบบก่อนใช้พื้นที่สนทนา',invalid_session:'หมดเวลาเข้าสู่ระบบ กรุณาล็อกอินใหม่',ai_not_configured:'ยังไม่ได้เปิดบริการ AI กรุณาติดต่อผู้ดูแล',storage_not_configured:'พื้นที่เก็บบทสนทนายังไม่พร้อม กรุณาติดต่อผู้ดูแล',storage_bucket_unsafe:'พื้นที่เก็บบทสนทนาต้องเป็นส่วนตัว กรุณาติดต่อผู้ดูแล',storage_integrity_failed:'ตรวจสอบข้อมูลบทสนทนาไม่ผ่าน กรุณาติดต่อผู้ดูแล',storage_unavailable:'ติดต่อพื้นที่เก็บบทสนทนาไม่ได้ กรุณาลองใหม่',workspace_busy:'บัญชีนี้กำลังบันทึกงาน กรุณารอสักครู่แล้วลองใหม่',request_conflict:'คำขอนี้ถูกใช้แล้ว กรุณาส่งใหม่',daily_limit:'วันนี้ใช้โควตาคุยกับ AI ครบแล้ว ลองใหม่ภายหลัง',project_limit:'มีบทสนทนาครบ 100 รายการแล้ว',project_busy:'บทสนทนานี้กำลังประมวลผล กรุณารอให้เสร็จก่อน',queue_limit:'มีข้อความรออยู่หลายรายการ กรุณารอก่อน',ai_busy:'ผู้ให้บริการ AI กำลังรับงานมาก ลองส่งใหม่ภายหลัง',ai_incomplete:'AI ส่งคำตอบมาไม่ครบ ลองส่งใหม่อีกครั้ง',ai_refused:'AI ไม่สามารถทำตามคำขอนี้ ลองปรับข้อความใหม่',ai_request_failed:'ติดต่อ AI ไม่สำเร็จ กรุณาลองใหม่',ai_invalid_response:'คำตอบจาก AI ไม่ครบตามรูปแบบ กรุณาลองใหม่',job_expired:'คำขอนี้หมดเวลาประมวลผล คุณส่งใหม่ได้',generation_failed:'AI ตอบกลับไม่สำเร็จ กรุณาลองใหม่',project_archived:'บทสนทนานี้ถูกเก็บเข้ากรุแล้ว',invalid_media_type:'ประเภทสื่อไม่ถูกต้อง'};
+  const mediaTypes={image:{label:'สื่อภาพ',description:'ภาพประกอบ อินโฟกราฟิก โปสเตอร์ ใบงาน',icon:'hgi-image-01'},motion:{label:'สื่อเคลื่อนไหว',description:'วิดีโอสั้น การ์ตูน แอนิเมชัน สไลด์เคลื่อนไหว',icon:'hgi-play'},game:{label:'เกม',description:'เกมตอบคำถาม ลากวาง จับคู่ จำลองสถานการณ์',icon:'hgi-game-controller-03'}};
+  const starters={help:{title:'ช่วยคิดให้หน่อย',copy:'เริ่มจากเรื่องที่กำลังจะสอน หรือปัญหาที่กำลังเจอได้เลยครับ',placeholder:'เล่าสิ่งที่กำลังคิดอยู่ได้เลย'},topic:{title:'ฉันมีหัวข้อแล้ว',copy:'บอกหัวข้อคร่าว ๆ แล้วเราจะค่อย ๆ ต่อยอดด้วยกัน',placeholder:'กำลังจะสอนเรื่องอะไรครับ?'},problem:{title:'อยากแก้ปัญหาในห้องเรียน',copy:'เช่น เด็กไม่ค่อยมีส่วนร่วม / จำเนื้อหาไม่ได้ / อยากให้ทำงานเป็นกลุ่ม',placeholder:'ปัญหาในห้องเรียนที่อยากแก้คืออะไรครับ?'},inspire:{title:'หาแรงบันดาลใจ',copy:'เลือกแนวทางที่น่าสนใจ แล้วปรับให้เข้ากับคาบของคุณ',placeholder:'มีแนวไหนที่อยากลองเป็นพิเศษไหม?'}};
   const errorText=error=>errors[String(error.code||'').toLowerCase()]||error.message||'เกิดข้อผิดพลาด กรุณาลองใหม่';
-  function notice(message,isError=false) { if ($('notice')) { $('notice').textContent=message; $('notice').classList.toggle('ms-error',isError); } }
-  async function api(action,data={},get=false) {
-    if (typeof supabaseClient==='undefined' || !supabaseClient) throw {code:'authentication_required'};
-    const {data:session,error}=await supabaseClient.auth.getSession();
-    if (error || !session.session) throw {code:'authentication_required'};
+  function notice(message,isError=false){if($('notice')){$('notice').textContent=message;$('notice').classList.toggle('ms-error',isError);}}
+  async function api(action,data={},get=false){
+    if(typeof supabaseClient==='undefined'||!supabaseClient)throw {code:'authentication_required'};
+    const {data:session,error}=await supabaseClient.auth.getSession();if(error||!session.session)throw {code:'authentication_required'};
     const query=get?'?'+new URLSearchParams({action,...data}):'';
     const response=await fetch('/api/media-studio'+query,{method:get?'GET':'POST',headers:{Authorization:`Bearer ${session.session.access_token}`,'Content-Type':'application/json'},body:get?undefined:JSON.stringify({action,...data})});
-    const result=await response.json().catch(()=>({error:'server_unavailable'}));
-    if (!response.ok) throw {code:result.error,message:errors[result.error]||'เชื่อมต่อระบบไม่สำเร็จ กรุณาลองใหม่'};
-    return result;
+    const result=await response.json().catch(()=>({error:'server_unavailable'}));if(!response.ok)throw {code:result.error,message:errors[result.error]||'เชื่อมต่อระบบไม่สำเร็จ กรุณาลองใหม่'};return result;
   }
-  function close() {
-    epoch++;clearTimeout(poll);root?.remove();root=null;selected=null;snapshot=null;busy=false;
-    authListener?.unsubscribe();authListener=null;
-    document.body.classList.remove('modal-open');returnFocus?.focus();
+  function close(){epoch++;clearTimeout(poll);root?.remove();root=null;selected=null;snapshot=null;busy=false;selectedMediaType='';selectedStarter='';authListener?.unsubscribe();authListener=null;document.body.classList.remove('modal-open');returnFocus?.focus();}
+  function renderLibrary(projects=[]){if($('library'))$('library').innerHTML=projects.length?projects.map(project=>`<button type="button" class="ms-project ${selected===project.id?'active':''}" data-project="${esc(project.id)}"><strong>${esc(project.title)}</strong><small>บทสนทนาล่าสุด · ${new Date(project.updated_at).toLocaleDateString('th-TH')}</small></button>`).join(''):'<p class="ms-empty">ยังไม่มีบทสนทนาก่อนหน้า</p>';}
+  async function list(){renderLibrary((await api('list',{},true)).projects);}
+  function updateMediaTypeButtons(){root?.querySelectorAll('[data-media-type]').forEach(button=>{const active=button.dataset.mediaType===selectedMediaType;button.classList.toggle('is-selected',active);button.setAttribute('aria-pressed',String(active));});if($('media-context'))$('media-context').textContent=selectedMediaType?`AI จะคำนึงถึงสื่อประเภท “${mediaTypes[selectedMediaType].label}” เป็นพิเศษ`:'ยังไม่เลือกก็เริ่มคุยได้';}
+  function updateStarterButtons(){root?.querySelectorAll('[data-starter]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.starter===selectedStarter)));}
+  function selectMediaType(type){selectedMediaType=selectedMediaType===type?'':type;updateMediaTypeButtons();}
+  function selectStarter(key){selectedStarter=key;updateStarterButtons();const starter=starters[key];$('starter-copy').textContent=starter.copy;$('input').placeholder=starter.placeholder;$('inspiration').innerHTML=key==='inspire'?['เริ่มคาบด้วยเกมสั้น ๆ','ชวนเด็กเล่าเรื่องจากภาพ','ทำภารกิจเป็นกลุ่ม','สรุปบทเรียนแบบเลือกเส้นทาง'].map(prompt=>`<button type="button" class="ms-inspiration-chip" data-prompt="${esc(prompt)}">${esc(prompt)}</button>`).join(''):'';$('input').focus();}
+  function setWorkspaceState(isInitial){root?.classList.toggle('ms-initial-state',isInitial);$('initial')?.toggleAttribute('hidden',!isInitial);$('conversation-view')?.toggleAttribute('hidden',isInitial);$('ai-help')?.toggleAttribute('hidden',!isInitial);$('plan-wrap')?.toggleAttribute('hidden',isInitial);if(isInitial){$('input').placeholder=starters[selectedStarter]?.placeholder||'เล่าสิ่งที่อยากทำได้เลย ไม่ต้องเขียนเป็นคำสั่ง';updateMediaTypeButtons();updateStarterButtons();}}
+  function controls(){const active=snapshot?.jobs?.some(job=>['queued','running'].includes(job.status)),archived=snapshot?.project?.archived;$('send').disabled=busy||active||archived||!config?.ai||!config?.storage;$('build').disabled=true;}
+  function renderState(data){
+    snapshot=data;const isInitial=!selected;setWorkspaceState(isInitial);if(isInitial){controls();return;}
+    $('conversation').innerHTML=data.turns.length?data.turns.map(turn=>`<article class="ms-message ${turn.role}"><strong>${turn.role==='teacher'?'คุณครู':'AI ผู้ช่วยออกแบบ'}</strong><p>${esc(turn.message)}</p></article>`).join(''):'<p class="ms-empty ms-conversation-empty">เริ่มจากไอเดียของคุณครูได้เลย</p>';$('conversation').scrollTop=$('conversation').scrollHeight;
+    const plan=data.project.plan;$('plan').innerHTML=plan?`<h3>${esc(plan.title)}</h3>${[['เป้าหมาย',plan.objective],['สิ่งที่เด็กจะสังเกต',plan.observation],['ตัวแปร',(plan.variables||[]).join(' · ')],['ภารกิจ',plan.mission]].map(([label,value])=>`<div class="ms-plan-row"><small>${label}</small><p>${esc(value)}</p></div>`).join('')}`:'<p class="ms-empty">AI จะค่อย ๆ สรุปสิ่งที่รู้จากบทสนทนาของเรา</p>';
+    $('followups').innerHTML=(plan?.next_questions||[]).map(question=>`<button class="btn" type="button" data-question="${esc(question)}">${esc(question)}</button>`).join('');const job=data.jobs[0];$('job').textContent=job?.status==='queued'?'กำลังส่งข้อความให้ AI…':job?.status==='running'?'AI กำลังเรียบเรียงคำตอบ…':job?.status==='failed'?errorText({code:job.error_code}):'';if(job?.status==='succeeded')notice('AI ตอบกลับแล้ว');controls();
   }
-  async function list() {
-    const result=await api('list',{},true);
-    if (!root) return;
-    $('library').innerHTML=result.projects.length
-      ?result.projects.map(p=>`<button type="button" class="ms-project ${selected===p.id?'active':''}" data-project="${esc(p.id)}"><strong>${esc(p.title)}</strong><small>บทสนทนาล่าสุด · ${new Date(p.updated_at).toLocaleDateString('th-TH')}</small></button>`).join('')
-      :'<p class="ms-empty">ยังไม่มีบทสนทนา</p>';
-  }
-  function controls() {
-    const active=snapshot?.jobs?.some(job=>['queued','running'].includes(job.status));
-    const archived=snapshot?.project?.archived;
-    $('send').disabled=busy||active||archived||!config?.ai||!config?.storage;
-    $('build').disabled=true;
-  }
-  function renderState(data) {
-    snapshot=data;
-    $('title').textContent=data.project.title;
-    $('conversation').innerHTML=data.turns.map(turn=>`<article class="ms-message ${turn.role}"><strong>${turn.role==='teacher'?'คุณครู':'AI ผู้ช่วยออกแบบ'}</strong><p>${esc(turn.message)}</p></article>`).join('');
-    $('conversation').scrollTop=$('conversation').scrollHeight;
-    const plan=data.project.plan;
-    $('plan').innerHTML=plan
-      ?`<h3>${esc(plan.title)}</h3>${[['เป้าหมาย',plan.objective],['สิ่งที่เด็กจะสังเกต',plan.observation],['ตัวแปร',(plan.variables||[]).join(' · ')],['ภารกิจ',plan.mission]].map(([label,value])=>`<div class="ms-plan-row"><small>${label}</small><p>${esc(value)}</p></div>`).join('')}`
-      :'<p class="ms-empty">—</p>';
-    $('followups').innerHTML=(plan?.next_questions||[]).map(question=>`<button class="btn" type="button" data-question="${esc(question)}">${esc(question)}</button>`).join('');
-    const job=data.jobs[0];
-    $('job').textContent=job?.status==='queued'?'กำลังส่งข้อความให้ AI…':job?.status==='running'?'AI กำลังเรียบเรียงคำตอบ…':job?.status==='failed'?errorText({code:job.error_code}):'';
-    if(job?.status==='succeeded') notice('AI ตอบกลับแล้ว');
-    controls();
-  }
-  async function load(projectId) {
-    const stamp=epoch;
-    const data=await api('get',{id:projectId},true);
-    if (!root||selected!==projectId||stamp!==epoch) return;
-    renderState(data);
-    clearTimeout(poll);
-    const active=data.jobs.filter(job=>['queued','running'].includes(job.status));
-    for(const job of active.filter(job=>job.status==='queued')) processJob(job.id,projectId);
-    if(active.length) poll=setTimeout(()=>pollJobs(projectId),5000);
-  }
-  async function pollJobs(projectId) {
-    const stamp=epoch;
-    try {
-      const data=await api('jobs',{id:projectId},true);
-      if(!root||selected!==projectId||stamp!==epoch)return;
-      if(JSON.stringify(data.jobs)!==JSON.stringify(snapshot?.jobs))return await load(projectId);
-      for(const job of data.jobs.filter(job=>job.status==='queued'))processJob(job.id,projectId);
-      if(data.jobs.some(job=>['queued','running'].includes(job.status)))poll=setTimeout(()=>pollJobs(projectId),5000);
-    } catch(error) {
-      if(root&&selected===projectId&&stamp===epoch){notice(errorText(error),true);poll=setTimeout(()=>pollJobs(projectId),10000);}
-    }
-  }
-  function processJob(jobId,projectId) {
-    if(running.has(jobId))return;
-    running.add(jobId);
-    api('run',{project_id:projectId,job_id:jobId}).then(result=>{if(result.started&&root&&selected===projectId)return load(projectId);}).catch(error=>{if(root)notice(errorText(error),true);}).finally(()=>running.delete(jobId));
-  }
-  async function choose(projectId) {
-    epoch++;clearTimeout(poll);selected=projectId;snapshot=null;
-    notice('กำลังเปิดบทสนทนา…');await load(projectId);await list();notice('บทสนทนานี้เก็บไว้ในบัญชีของคุณครู');
-  }
-  async function send() {
-    if(busy)return;
-    const message=$('input').value.trim();
-    if(message.length<3){notice('พิมพ์ข้อความอย่างน้อย 3 ตัวอักษร',true);return;}
-    busy=true;controls();
-    try {
-      if(!selected){const result=await api('create',{title:message.slice(0,70)});selected=result.project.id;}
-      const result=await api('enqueue',{project_id:selected,kind:'plan',message,request_key:crypto.randomUUID()});
-      $('input').value='';notice('กำลังรอคำตอบจาก AI…');
-      await load(selected);await list();processJob(result.job.id,selected);
-    } catch(error){notice(errorText(error),true);}
-    finally {busy=false;if(root)controls();}
-  }
-  async function action(event) {
-    const button=event.target.closest('button');if(!button)return;
-    try {
-      if(button.dataset.project)return await choose(button.dataset.project);
-      if(button.dataset.question){$('input').value=button.dataset.question;$('input').focus();return;}
-      if(button.id==='ms-close')close();
-      if(button.id==='ms-new'){
-        epoch++;clearTimeout(poll);selected=null;snapshot=null;
-        renderState({project:{title:'การสนทนาใหม่'},turns:[],jobs:[]});await list();$('input').focus();
-      }
-    }catch(error){notice(errorText(error),true);}
-  }
-  window.openInteractiveMediaStudio=async function() {
-    if(root)return;
-    config=null;returnFocus=document.activeElement;root=document.createElement('div');root.className='ms-overlay';
-    root.innerHTML=`<section class="ms-dialog" role="dialog" aria-modal="true" aria-labelledby="ms-title"><header class="ms-header"><div><small>ClassKru · พื้นที่สนทนา</small><h2 id="ms-title">การสนทนาใหม่</h2></div><button id="ms-close" type="button" class="btn" aria-label="ปิดหน้าต่าง">ปิด</button></header>
-      <div class="ms-layout"><aside class="ms-library"><button id="ms-new" type="button" class="btn btn-primary">+ บทสนทนาใหม่</button><h3>บทสนทนาก่อนหน้า</h3><div id="ms-library"></div></aside>
-      <main class="ms-main"><p id="ms-notice" role="status">กำลังเปิดคลังบทสนทนา…</p><p class="ms-privacy">ข้อความจะส่งให้ AI และเก็บไว้ในบัญชีของคุณครูเพื่อกลับมาปรับต่อ</p><div class="ms-workspace"><div class="ms-chat"><div id="ms-conversation" role="log" aria-live="polite"></div><form id="ms-form"><label for="ms-input">ข้อความถึง AI</label><textarea id="ms-input" rows="3" maxlength="6000"></textarea><div class="ms-composer-actions"><button id="ms-send" type="submit" class="btn btn-primary">ส่งข้อความ</button><button id="ms-build" type="button" class="btn" disabled>สร้างสื่อ · เร็ว ๆ นี้</button></div></form><p id="ms-job" role="status"></p></div><aside class="ms-plan"><h3>แนวทางจาก AI</h3><div id="ms-plan"></div><div id="ms-followups"></div></aside></div></main></div></section>`;
-    document.body.append(root);document.body.classList.add('modal-open');root.addEventListener('click',action);
-    root.addEventListener('keydown',event=>{
-      if(event.key==='Escape'){close();return;}
-      if(event.key==='Tab'){const items=[...root.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href]')].filter(element=>element.offsetParent!==null);const first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
-    });
-    $('form').addEventListener('submit',event=>{event.preventDefault();send();});
-    renderState({project:{title:'การสนทนาใหม่'},turns:[],jobs:[]});$('close').focus();
-    try {
-      config=await api('config',{},true);await list();
-      if(!root)return;
-      notice(!config.ai?'คลังพร้อม · บริการ AI ยังรอผู้ดูแลตั้งค่า':!config.storage?'คลังยังไม่พร้อม · พื้นที่เก็บบทสนทนายังรอผู้ดูแลตั้งค่า':'เลือกบทสนทนาเดิม หรือเริ่มบทสนทนาใหม่');controls();
-      const {data}=await supabaseClient.auth.getSession();const owner=data.session?.user.id;
-      authListener=supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||(session&&session.user.id!==owner))close();}).data.subscription;
-    } catch(error){notice(errorText(error),true);if(root)controls();}
+  async function load(projectId){const stamp=epoch,data=await api('get',{id:projectId},true);if(!root||selected!==projectId||stamp!==epoch)return;renderState(data);clearTimeout(poll);const active=data.jobs.filter(job=>['queued','running'].includes(job.status));active.filter(job=>job.status==='queued').forEach(job=>processJob(job.id,projectId));if(active.length)poll=setTimeout(()=>pollJobs(projectId),5000);}
+  async function pollJobs(projectId){const stamp=epoch;try{const data=await api('jobs',{id:projectId},true);if(!root||selected!==projectId||stamp!==epoch)return;if(JSON.stringify(data.jobs)!==JSON.stringify(snapshot?.jobs))return load(projectId);data.jobs.filter(job=>job.status==='queued').forEach(job=>processJob(job.id,projectId));if(data.jobs.some(job=>['queued','running'].includes(job.status)))poll=setTimeout(()=>pollJobs(projectId),5000);}catch(error){if(root&&selected===projectId&&stamp===epoch){notice(errorText(error),true);poll=setTimeout(()=>pollJobs(projectId),10000);}}}
+  function processJob(jobId,projectId){if(running.has(jobId))return;running.add(jobId);api('run',{project_id:projectId,job_id:jobId}).then(result=>{if(result.started&&root&&selected===projectId)return load(projectId);}).catch(error=>{if(root)notice(errorText(error),true);}).finally(()=>running.delete(jobId));}
+  function closeLibrary(){$('library-panel').hidden=true;root?.classList.remove('ms-history-open');$('history-toggle').setAttribute('aria-expanded','false');}
+  function toggleLibrary(){const opening=$('library-panel').hidden;$('library-panel').hidden=!opening;root?.classList.toggle('ms-history-open',opening);$('history-toggle').setAttribute('aria-expanded',String(opening));}
+  async function choose(projectId){epoch++;clearTimeout(poll);selected=projectId;snapshot=null;closeLibrary();notice('กำลังเปิดบทสนทนา…');await load(projectId);await list();notice('บทสนทนานี้เก็บไว้ในบัญชีของคุณครู');}
+  function startConversationShell(message){setWorkspaceState(false);$('conversation').innerHTML=`<article class="ms-message teacher"><strong>คุณครู</strong><p>${esc(message)}</p></article>`;$('conversation-view').classList.remove('ms-enter');void $('conversation-view').offsetWidth;$('conversation-view').classList.add('ms-enter');}
+  async function send(){if(busy)return;const message=$('input').value.trim();if(message.length<3){notice('พิมพ์ข้อความอย่างน้อย 3 ตัวอักษร',true);return;}busy=true;controls();try{if(!selected){const result=await api('create',{title:message.slice(0,70)});selected=result.project.id;startConversationShell(message);}const result=await api('enqueue',{project_id:selected,kind:'plan',message,media_type:selectedMediaType||undefined,request_key:crypto.randomUUID()});$('input').value='';notice('กำลังรอคำตอบจาก AI…');await load(selected);await list();processJob(result.job.id,selected);}catch(error){notice(errorText(error),true);}finally{busy=false;if(root)controls();}}
+  async function action(event){const button=event.target.closest('button');if(!button)return;try{if(button.dataset.project)return choose(button.dataset.project);if(button.dataset.question){$('input').value=button.dataset.question;$('input').focus();return;}if(button.dataset.mediaType)return selectMediaType(button.dataset.mediaType);if(button.dataset.starter)return selectStarter(button.dataset.starter);if(button.dataset.prompt){$('input').value=button.dataset.prompt;$('input').focus();return;}if(button.id==='ms-close')return close();if(button.id==='ms-history-toggle')return toggleLibrary();if(button.id==='ms-new'){epoch++;clearTimeout(poll);selected=null;snapshot=null;selectedMediaType='';selectedStarter='';closeLibrary();renderState({project:{title:'สื่อใหม่'},turns:[],jobs:[]});$('starter-copy').textContent='เลือกทางที่ใกล้กับสิ่งที่คิดอยู่ แล้วพิมพ์ต่อได้ทันที';$('inspiration').innerHTML='';$('input').value='';$('input').focus();}}catch(error){notice(errorText(error),true);}}
+  window.openInteractiveMediaStudio=async function(){
+    if(root)return;config=null;returnFocus=document.activeElement;root=document.createElement('div');root.className='ms-overlay ms-initial-state';
+    root.innerHTML=`<section class="ms-dialog" role="dialog" aria-modal="true" aria-labelledby="ms-title"><header class="ms-header"><div><small>ClassKru · Interactive Media Studio</small><h2 id="ms-title">สร้างสื่อการสอนกับ AI</h2></div><div class="ms-header-actions"><button id="ms-history-toggle" type="button" class="btn ms-history-toggle" aria-expanded="false" aria-controls="ms-library-panel">บทสนทนาก่อนหน้า</button><button id="ms-close" type="button" class="btn" aria-label="ปิดหน้าต่างสร้างสื่อกับ AI">ปิด</button></div></header><div class="ms-layout"><aside id="ms-library-panel" class="ms-library" hidden><button id="ms-new" type="button" class="btn btn-primary">+ เริ่มบทสนทนาใหม่</button><h3>บทสนทนาก่อนหน้า</h3><div id="ms-library"></div></aside><main class="ms-main"><p id="ms-notice" role="status" aria-live="polite">กำลังเตรียมพื้นที่ให้คุณครู…</p><div class="ms-workspace"><div class="ms-primary"><section id="ms-initial" class="ms-initial"><div class="ms-hero"><p class="ms-kicker">AI Thinking Partner</p><h1>สร้างสื่อการสอนกับ AI</h1><p>บอกไอเดียคร่าว ๆ หรือเลือกจากตัวเลือกด้านล่าง<br>เดี๋ยว AI ช่วยคิดต่อให้</p><small>ไอเดียดี ๆ เริ่มได้จากคำง่าย ๆ</small></div><section class="ms-media-types" aria-labelledby="ms-media-type-title"><div class="ms-section-heading"><div><h3 id="ms-media-type-title">อยากเริ่มจากสื่อแบบไหน?</h3><p id="ms-media-context">ยังไม่เลือกก็เริ่มคุยได้</p></div></div><div class="ms-media-type-grid">${Object.entries(mediaTypes).map(([key,type])=>`<button type="button" class="ms-media-type ms-media-type--${key}" data-media-type="${key}" aria-pressed="false"><i class="hgi-stroke ${type.icon}" aria-hidden="true"></i><span><strong>${type.label}</strong><small>${type.description}</small></span></button>`).join('')}</div></section><section class="ms-starters" aria-labelledby="ms-starter-title"><div class="ms-section-heading"><div><h3 id="ms-starter-title">หรือเริ่มจากไอเดีย</h3><p id="ms-starter-copy">เลือกทางที่ใกล้กับสิ่งที่คิดอยู่ แล้วพิมพ์ต่อได้ทันที</p></div></div><div class="ms-starter-grid">${Object.entries(starters).map(([key,starter])=>`<button type="button" class="ms-starter" data-starter="${key}" aria-pressed="false"><strong>${key==='inspire'?'✨ ':''}${starter.title}</strong><small>${key==='help'?'ยังไม่มีไอเดีย':key==='topic'?'อยากค่อย ๆ ต่อยอด':key==='problem'?'เริ่มจากสิ่งที่เจอจริง':'ดูแนวทางที่น่าสนใจ'}</small></button>`).join('')}</div><div id="ms-inspiration" class="ms-inspiration" aria-live="polite"></div></section></section><section id="ms-conversation-view" class="ms-conversation-view" hidden><div id="ms-conversation" role="log" aria-live="polite"></div></section><form id="ms-form" class="ms-composer"><label for="ms-input">เล่าสิ่งที่อยากทำได้เลย ไม่ต้องเขียนเป็นคำสั่ง</label><textarea id="ms-input" rows="4" maxlength="6000" placeholder="เล่าสิ่งที่อยากทำได้เลย ไม่ต้องเขียนเป็นคำสั่ง"></textarea><p class="ms-composer-example">เช่น “พรุ่งนี้จะสอนเรื่องระบบสุริยะ ป.6 แต่อยากให้เด็กสนุกและมีส่วนร่วมมากขึ้น”</p><div class="ms-composer-actions"><button id="ms-attach" type="button" class="btn ms-attach" disabled aria-label="แนบไฟล์ (เร็ว ๆ นี้)" title="การแนบไฟล์จะเปิดในช่วงถัดไป"><i class="hgi-stroke hgi-attachment-01" aria-hidden="true"></i> แนบไฟล์ · เร็ว ๆ นี้</button><button id="ms-send" type="submit" class="btn btn-primary">ส่งให้ AI <span aria-hidden="true">↑</span></button><button id="ms-build" type="button" class="btn" disabled>สร้างสื่อ · เร็ว ๆ นี้</button></div><p id="ms-job" role="status" aria-live="polite"></p></form></div><aside class="ms-side-panel"><section id="ms-ai-help" class="ms-ai-help"><p class="ms-panel-kicker">✨ AI จะช่วยคุณ</p><ul><li>แตกไอเดียจากสิ่งที่คุณมี</li><li>เสนอรูปแบบสื่อที่เหมาะสม</li><li>ช่วยออกแบบกิจกรรมให้เหมาะกับนักเรียน</li><li>ปรับให้ตรงกับเวลาและบริบทในห้องเรียน</li></ul><p>ไม่ต้องคิดรายละเอียดให้ครบตั้งแต่แรก<br>เราจะค่อย ๆ คิดไปด้วยกัน</p></section><section id="ms-plan-wrap" class="ms-plan" hidden><p class="ms-panel-kicker">สิ่งที่เรารู้ตอนนี้</p><div id="ms-plan"></div><div id="ms-followups" aria-label="คำถามต่อยอดจาก AI"></div></section></aside></div><p class="ms-privacy">ข้อความจะส่งให้ AI และเก็บไว้ในบัญชีของคุณครูเพื่อกลับมาปรับต่อ</p></main></div></section>`;
+    document.body.append(root);document.body.classList.add('modal-open');root.addEventListener('click',action);root.addEventListener('keydown',event=>{if(event.key==='Escape'){close();return;}if((event.ctrlKey||event.metaKey)&&event.key==='Enter'&&event.target===$('input')){event.preventDefault();send();return;}if(event.key==='Tab'){const items=[...root.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href]')].filter(element=>element.offsetParent!==null),first=items[0],last=items[items.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}});$('form').addEventListener('submit',event=>{event.preventDefault();send();});renderState({project:{title:'สื่อใหม่'},turns:[],jobs:[]});$('close').focus();
+    try{config=await api('config',{},true);await list();if(!root)return;notice(!config.ai?'พื้นที่พร้อมแล้ว · บริการ AI ยังรอผู้ดูแลตั้งค่า':!config.storage?'พื้นที่ยังไม่พร้อม · ระบบเก็บบทสนทนายังรอผู้ดูแลตั้งค่า':'เริ่มจากไอเดียสั้น ๆ ได้เลย');controls();const {data}=await supabaseClient.auth.getSession(),owner=data.session?.user.id;authListener=supabaseClient.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||(session&&session.user.id!==owner))close();}).data.subscription;}catch(error){notice(errorText(error),true);if(root)controls();}
   };
 })();

@@ -31,7 +31,7 @@ module.exports = async function handler(req,res) {
       if (body.kind==='build') service.mediaOrigin();
       const message=service.text(body.message,6000);
       if (message.length<3) throw db.fail('invalid_message');
-      result={job:await service.enqueue(teacher.id,body.project_id,body.kind,message,body.request_key)};
+      result={job:await service.enqueue(teacher.id,body.project_id,body.kind,message,body.request_key,body.media_type)};
     } else if (req.method==='POST' && action==='run') result=await service.run(teacher.id,body.project_id,body.job_id);
     else if (req.method==='POST' && ['preview','publish'].includes(action)) {
       if (action==='publish' && body.reviewed!==true) throw db.fail('review_required');
