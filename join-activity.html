@@ -2634,10 +2634,10 @@
             <input id="student-nickname" class="input" required aria-required="true" placeholder="เช่น บอล">
           </label>
           <label>เลขที่ <span class="required-label" title="จำเป็น" aria-label="จำเป็น">*</span>
-            <input id="student-no" class="input" required aria-required="true" inputmode="numeric" placeholder="12">
+            <input id="student-no" class="input" required aria-required="true" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="12">
           </label>
           <label>รหัสนักเรียน <span class="optional-label">ถ้ามี</span>
-            <input id="student-code-input" class="input" inputmode="numeric" pattern="[0-9]*" placeholder="เช่น 13001">
+            <input id="student-code-input" class="input" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="เช่น 13001">
           </label>
         </div>
         <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="submitStudentProfile()"><i class="hgi-stroke hgi-door-01"></i> เข้าห้องรอ</button>
