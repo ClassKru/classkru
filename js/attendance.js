@@ -21,6 +21,44 @@ function escapeAttendanceHtml(value) {
   })[ch]);
 }
 
+// รับผลเช็คชื่อจากหน้ากิจกรรมที่เปิดเป็นหน้าต่างย่อย แล้วบันทึกผ่านระบบหลัก
+// เพื่อให้หน้ารายชื่อและข้อมูลบน cloud ใช้แหล่งข้อมูลเดียวกัน
+window.addEventListener('message', event => {
+  if (event.origin !== window.location.origin) return;
+  const data = event.data || {};
+  if (data.type !== 'classkru:activity-attendance') return;
+
+  const classId = String(data.classId || '');
+  const dateKey = String(data.dateKey || '');
+  const marks = Array.isArray(data.marks) ? data.marks.map(String) : [];
+  const classroom = appState.classes.find(item => item.id === classId);
+  if (!classroom || !dateKey || !marks.length) return;
+
+  if (!classroom.attendance) classroom.attendance = {};
+  if (!classroom.attendance[dateKey]) classroom.attendance[dateKey] = {};
+
+  let changed = false;
+  marks.forEach(studentId => {
+    if (!classroom.students.some(student => String(student.id) === studentId)) return;
+    if (classroom.attendance[dateKey][studentId] !== 'present') {
+      classroom.attendance[dateKey][studentId] = 'present';
+      changed = true;
+    }
+  });
+  if (!changed) return;
+
+  saveState();
+  if (typeof loadWebAttendanceMatrix === 'function' && appState.activeWebScreen === 'attendance') {
+    loadWebAttendanceMatrix();
+  }
+  if (swipeClassId === classId) {
+    swipeResults = { ...(classroom.attendance[dateKey] || {}) };
+    updateSwipeSummary();
+    if (typeof renderDesktopSwipeTable === 'function') renderDesktopSwipeTable();
+    if (typeof renderSwipeCard === 'function') renderSwipeCard();
+  }
+});
+
 // วันในสัปดาห์ที่ห้องนี้มีคาบตามตาราง
 function classScheduledDoWs(classId) {
   const set = new Set();
