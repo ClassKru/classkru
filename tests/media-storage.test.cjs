@@ -138,7 +138,11 @@ test('archive during generation prevents publication; artifact integrity and rev
 });
 test('authenticated HTTP ignores forged owner fields and requires explicit teacher review',async t=>{
   const f=fixture(t);providers(t);const a=uuid(),b=uuid();f.sessions.set('Bearer teacher-a',a);
+  // Exercise the protected workflow itself; production defaults to paused.
+  const handlerPath=require.resolve('../api/media-studio'),previous=process.env.MEDIA_STUDIO_ENABLED;
+  process.env.MEDIA_STUDIO_ENABLED='true';delete require.cache[handlerPath];
   const handler=require('../api/media-studio');
+  t.after(()=>{if(previous===undefined)delete process.env.MEDIA_STUDIO_ENABLED;else process.env.MEDIA_STUDIO_ENABLED=previous;delete require.cache[handlerPath];});
   const call=async body=>{
     const res={setHeader(){},status(n){this.statusCode=n;return this;},json(v){this.body=v;}};
     await handler({method:'POST',headers:{host:'app.test',origin:'https://app.test',authorization:'Bearer teacher-a'},body},res);return res;

@@ -34,7 +34,7 @@ async function mockApi(req,res){
 }
 async function main(){
   if(!process.env.MEDIA_BROWSER_EXECUTABLE&&process.platform==='win32')process.env.MEDIA_BROWSER_EXECUTABLE='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-  const harness=`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/css/01-base-layout.css"><link rel="stylesheet" href="/css/media-studio.css"></head><body><button onclick="openInteractiveMediaStudio()">เปิด Studio</button><script>const supabaseClient={auth:{getSession:async()=>({data:{session:{access_token:'test-session',user:{id:'teacher'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}};</script><script src="/js/media-studio.js"></script></body></html>`;
+  const harness=`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/css/01-base-layout.css"><link rel="stylesheet" href="/css/media-studio.css"></head><body><button onclick="openInteractiveMediaStudio()">เปิด Studio</button><script>window.MEDIA_STUDIO_ENABLED=true;const supabaseClient={auth:{getSession:async()=>({data:{session:{access_token:'test-session',user:{id:'teacher'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}};</script><script src="/js/media-studio.js"></script></body></html>`;
   const app=createServer({harness,handler:mockApi});
   await new Promise(resolve=>app.listen(0,'127.0.0.1',resolve));
   const appOrigin=`http://127.0.0.1:${app.address().port}`;

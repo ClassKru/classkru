@@ -7,12 +7,16 @@ const legacyAi = require('../_lib/media-ai');
 const plannerAi = require('../_lib/media-planner-ai');
 const imageAi = require('../_lib/media-image-ai');
 const configured = () => legacyAi.configured() || plannerAi.configured() || imageAi.configured();
+// Default to paused. Re-enable deliberately with MEDIA_STUDIO_ENABLED=true only
+// after the live AI, Storage, and access-control checks have been completed.
+const MEDIA_STUDIO_ENABLED = process.env.MEDIA_STUDIO_ENABLED === 'true';
 module.exports = async function handler(req,res) {
   if (!['GET','POST'].includes(req.method)) return sendJson(res,405,{error:'method_not_allowed'});
   if (!requestOriginIsValid(req)) return sendJson(res,403,{error:'invalid_origin'});
   try {
     const teacher = await authenticatedUser(req);
     if (!teacher.id) throw db.fail('authentication_required',401);
+    if (!MEDIA_STUDIO_ENABLED) return sendJson(res,503,{error:'media_studio_paused'});
     let body = req.body || {};
     if (typeof body === 'string') { if (Buffer.byteLength(body)>32000) throw db.fail('body_too_large',413); try {body=JSON.parse(body);} catch (_) {throw db.fail('invalid_json');} }
     if (!body || typeof body!=='object' || Buffer.byteLength(JSON.stringify(body))>32000) throw db.fail('body_too_large',413);

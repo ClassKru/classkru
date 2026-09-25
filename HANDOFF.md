@@ -2,6 +2,8 @@
 
 > อัปเดตล่าสุด: 22 กันยายน 2569
 >
+> **25 ก.ย. 2569 — ปิด Media Studio ชั่วคราว:** ซ่อนทางเข้า “คุยออกแบบสื่อกับ AI” จากเครื่องมือ/คลัง และเปลี่ยนปุ่มหน้าหลักให้เปิดคลังสื่อปกติแทน; API `/api/media-studio` ปิดเป็นค่าเริ่มต้นด้วย `MEDIA_STUDIO_ENABLED=false` (ตอบ `media_studio_paused`) จึงไม่สามารถข้าม UI เพื่อเรียก AI, สร้างงาน, preview หรือ publish ได้. งานและข้อมูลเดิมไม่ถูกลบ และลิงก์สื่อที่เผยแพร่แล้วบน media host ยังทำงานตามเดิม. เมื่อต้องการเปิดใหม่ ให้ตั้ง `MEDIA_STUDIO_ENABLED=true` ใน Vercel ของแอปหลัก แล้ว deploy หลังตรวจ AI/Storage/RLS จริงอีกครั้ง.
+>
 > **งานที่กำลังส่งขึ้นเว็บหลัก: AI Interactive Media Studio — Storage-only JSON** บน `feature/media-studio-live`, workspace `C:\Users\USER\ClassKru\_worktrees\media-studio-live` เท่านั้น ห้าม push ต้นแบบ/งานอื่นที่ค้างในโฟลเดอร์หลักทับ branch นี้
 >
 > **22 ก.ย. 2569 — Initial / Empty State:** ปรับหน้าเริ่มต้นของ “สร้างสื่อการสอนกับ AI” ให้เป็น AI Thinking Partner: hero, ตัวเลือกสื่อเพียง `สื่อภาพ / สื่อเคลื่อนไหว / เกม`, idea starters 4 แบบ, composer ที่อธิบายว่าพิมพ์ไอเดียคร่าว ๆ ได้ และแผง “AI จะช่วยคุณ” โดยไม่แสดงบทสนทนาเก่าใน initial state. เลือก/ยกเลิกประเภทสื่อได้แต่ไม่บังคับก่อนส่ง; `media_type` (`image|motion|game`) ส่งเข้า Planner เป็น context แบบ backward-compatible และ server validate ค่า. ส่งข้อความแรกแล้วเปลี่ยนเป็น chat/“สิ่งที่เรารู้ตอนนี้” พร้อม animation เบา ๆ; เปิด history จากปุ่มเมื่อครูต้องการเท่านั้น. ไม่มี upload ใน flow เดิม จึงแสดงปุ่มแนบไฟล์ disabled ว่าเร็ว ๆ นี้ ไม่หลอกว่าส่งไฟล์ได้. เพิ่ม browser regression สำหรับ initial/selection/starter/send-without-type/transition/error/resume และตรวจ 1440×900, 390×844; `npm.cmd run test:media`, `npm.cmd run test:media:browser`, syntax และ navigation regression ผ่าน. Asset version `488`.
