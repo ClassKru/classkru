@@ -102,6 +102,39 @@ async function handler(req, res) {
       });
     }
 
+    if (resource === 'business') {
+      const teachers = await selectRows('teacher_profiles', {
+        select: 'teacher_id,email,subscription_status,paid_until,updated_at',
+        order: 'updated_at.desc',
+        limit: 5000
+      });
+      const orders = await selectRows('payment_orders', {
+        select: 'id,teacher_id,plan_id,amount_satang,status,paid_at,created_at',
+        order: 'created_at.desc',
+        limit: 5000
+      });
+      const now = Date.now();
+      const paidOrders = orders.filter(row => row.status === 'paid');
+      const paidTeacherIds = new Set(paidOrders.map(row => row.teacher_id).filter(Boolean));
+      const activeTeachers = teachers.filter(row => row.subscription_status !== 'expired' && row.subscription_status !== 'suspended' && (!row.paid_until || new Date(row.paid_until).getTime() >= now));
+      return sendJson(res, 200, {
+        generatedAt: new Date().toISOString(),
+        available: { accounts: true, subscriptions: true, payments: true, onlineNow: false, dailyActive: false, documentUsage: false, aiUsage: false },
+        accounts: {
+          total: teachers.length,
+          active: activeTeachers.length,
+          trial: teachers.filter(row => row.subscription_status === 'trial').length,
+          paid: paidTeacherIds.size,
+          expired: teachers.filter(row => row.subscription_status === 'expired').length,
+          suspended: teachers.filter(row => row.subscription_status === 'suspended').length
+        },
+        payments: {
+          paidOrders: paidOrders.length,
+          paidAmountSatang: paidOrders.reduce((total, row) => total + Number(row.amount_satang || 0), 0)
+        }
+      });
+    }
+
     return sendJson(res, 400, { error: 'unknown_resource' });
   } catch (error) {
     const status = error.code === 'SUPABASE_NOT_CONFIGURED' ? 503 : 502;

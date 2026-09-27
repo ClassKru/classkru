@@ -1,6 +1,6 @@
 'use strict';
 
-const state = { view: 'overview', overview: null, reports: [], billing: null, ideas: { biggy: [], petchpetch: [] }, mediaModels: null, mediaCatalog: { text: [], image: [] } };
+const state = { view: 'overview', overview: null, business: null, businessAccountSort: 'registered', reports: [], billing: null, ideas: { biggy: [], petchpetch: [] }, mediaModels: null, mediaCatalog: { text: [], image: [] } };
 const byId = id => document.getElementById(id);
 const ui = {
   loginView: byId('login-view'), consoleView: byId('console-view'), loginForm: byId('login-form'),
@@ -13,7 +13,8 @@ const ui = {
   loadTable: byId('load-table-button'), databaseTable: byId('database-table'), modal: byId('detail-modal'),
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
   ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table'), billingSalesTable: byId('billing-sales-table'),
-  mediaModelsForm: byId('media-models-form'), mediaModelsUpdated: byId('media-models-updated'), mediaModelCatalogKind: byId('media-model-catalog-kind'), mediaModelSearch: byId('media-model-search'), mediaModelRefresh: byId('media-model-refresh'), mediaPlannerModel: byId('media-planner-model'), mediaBuilderModel: byId('media-builder-model'), mediaImageModel: byId('media-image-model'), mediaModelSave: byId('media-model-save'), mediaModelSaveStatus: byId('media-model-save-status')
+  mediaModelsForm: byId('media-models-form'), mediaModelsUpdated: byId('media-models-updated'), mediaModelCatalogKind: byId('media-model-catalog-kind'), mediaModelSearch: byId('media-model-search'), mediaModelRefresh: byId('media-model-refresh'), mediaPlannerModel: byId('media-planner-model'), mediaBuilderModel: byId('media-builder-model'), mediaImageModel: byId('media-image-model'), mediaModelSave: byId('media-model-save'), mediaModelSaveStatus: byId('media-model-save-status'),
+  businessSummary: byId('business-summary'), businessAvailable: byId('business-available'), businessFuture: byId('business-future'), businessUpdated: byId('business-updated'), businessAccountList: byId('business-account-list'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'), usageList: byId('usage-list'), usageCount: byId('usage-count'), usageUpdated: byId('usage-updated')
 };
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
@@ -495,6 +496,51 @@ async function saveMediaModels(event) {
   } finally {
     ui.mediaModelSave.disabled = false;
   }
+function renderBusiness(data) {
+  state.business = data;
+  const accounts = data.accounts || {};
+  const payments = data.payments || {};
+  const paidAmount = (Number(payments.paidAmountSatang || 0) / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+  ui.businessSummary.replaceChildren();
+  [
+    ['บัญชีทั้งหมด', accounts.total, 'business-total'],
+    ['บัญชีที่ใช้งานได้', accounts.active, 'business-active'],
+    ['บัญชีทดลอง', accounts.trial, 'business-trial'],
+    ['บัญชีที่จ่ายเงินแล้ว', accounts.paid, 'business-paid'],
+    ['หมดอายุ', accounts.expired, 'business-expired'],
+    ['ยอดชำระสำเร็จ', `${paidAmount} บาท`, 'business-revenue']
+  ].forEach(([label, value, type]) => {
+    const card = element('article', `summary-card ${type}`);
+    card.append(element('span', '', label), element('strong', '', value ?? '—'));
+    ui.businessSummary.append(card);
+  });
+  const renderList = (target, rows, disabled = false) => {
+    target.replaceChildren();
+    rows.forEach(([title, detail]) => {
+      const item = element('div', `business-availability-item${disabled ? ' is-disabled' : ''}`);
+      item.append(element('strong', '', title), element('span', '', detail));
+      target.append(item);
+    });
+  };
+  renderList(ui.businessAvailable, [
+    ['บัญชีผู้ใช้', 'จำนวนจาก teacher_profiles'],
+    ['สถานะสมาชิก', 'ทดลอง ใช้งานได้ หมดอายุ และถูกระงับ'],
+    ['คำสั่งซื้อที่ชำระแล้ว', `${payments.paidOrders || 0} รายการ`],
+    ['ยอดชำระรวม', `${paidAmount} บาท`]
+  ]);
+  renderList(ui.businessFuture, [
+    ['ออนไลน์ตอนนี้', 'ต้องเพิ่ม heartbeat หรือ session presence'],
+    ['ผู้ใช้งานวันนี้ / 7 วัน / 30 วัน', 'ต้องเพิ่ม activity log'],
+    ['เอกสารที่สร้าง', 'ต้องเพิ่ม document usage event'],
+    ['AI token และค่าใช้จ่าย', 'ต้องเพิ่ม AI usage ledger']
+  ], true);
+  ui.businessUpdated.textContent = `อัปเดต ${formatDate(data.generatedAt, true)}`;
+}
+
+async function loadBusiness() {
+  ui.globalStatus.textContent = 'กำลังโหลดภาพรวมธุรกิจ…';
+  try { renderBusiness(await request('/api/dev/data?resource=business')); ui.globalStatus.textContent = ''; }
+  catch (error) { handleDataError(error); }
 }
 
 function handleDataError(error) {
@@ -516,6 +562,7 @@ function switchView(view) {
     if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
   });
   if (view === 'overview') loadOverview();
+  if (view === 'business') loadBusiness();
   if (view === 'reports') loadReports();
   if (view === 'ideas-biggy') loadIdeas('biggy');
   if (view === 'ideas-petchpetch') loadIdeas('petchpetch');

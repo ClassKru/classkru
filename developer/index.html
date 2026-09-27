@@ -44,6 +44,7 @@
 
       <nav class="console-nav" aria-label="เมนู Developer Console">
         <button class="nav-button active" type="button" data-view="overview" aria-current="page">ภาพรวม</button>
+        <button class="nav-button" type="button" data-view="business">ภาพรวมธุรกิจ</button>
         <button class="nav-button" type="button" data-view="reports">ความคิดเห็น</button>
         <button class="nav-button" type="button" data-view="ideas-biggy">Biggy</button>
         <button class="nav-button" type="button" data-view="ideas-petchpetch">PetchPetch</button>
@@ -51,6 +52,10 @@
         <button class="nav-button" type="button" data-view="database">ข้อมูลในฐานข้อมูล</button>
         <button class="nav-button" type="button" data-view="billing">สมาชิกและการชำระเงิน</button>
         <button class="nav-button" type="button" data-view="media-models">ตั้งค่า AI Media Studio</button>
+        <button class="nav-button" type="button" data-view="business">ภาพรวมธุรกิจ</button>
+        <button class="nav-button nav-button-disabled" type="button" disabled title="จะเปิดเมื่อเริ่มเก็บ activity log">การใช้งาน</button>
+        <button class="nav-button nav-button-disabled" type="button" disabled title="จะเปิดเมื่อเริ่มเก็บ AI usage log">AI Usage</button>
+        <button class="nav-button" type="button" data-view="usage">การใช้งาน</button>
       </nav>
 
       <div id="global-status" class="global-status" role="status" aria-live="polite"></div>
@@ -60,6 +65,16 @@
         <div id="summary-grid" class="summary-grid" aria-label="สรุปจำนวนรายงาน"></div>
         <div class="dashboard-grid single-column">
           <article class="panel"><div class="panel-heading"><div><p class="eyebrow">LATEST</p><h3>รายการล่าสุด</h3></div><button type="button" data-open-view="reports">ดูทั้งหมด</button></div><div id="recent-list" class="recent-list"></div></article>
+        </div>
+      </section>
+
+      <section id="view-business" class="workspace-view" aria-labelledby="business-title">
+        <div class="section-heading"><div><p class="eyebrow">BUSINESS SNAPSHOT</p><h2 id="business-title">ภาพรวมธุรกิจ</h2></div><p id="business-updated">ยังไม่ได้โหลดข้อมูล</p></div>
+        <p class="business-note">หน้านี้แสดงเฉพาะข้อมูลที่ระบบเก็บอยู่แล้ว ตัวเลขผู้ใช้งานจริง ออนไลน์ เอกสาร และ AI จะเปิดเมื่อมีการบันทึกข้อมูลส่วนนั้น</p>
+        <div id="business-summary" class="summary-grid business-summary" aria-label="สรุปบัญชีและการชำระเงิน"></div>
+        <div class="dashboard-grid">
+          <article class="panel"><div class="panel-heading"><div><p class="eyebrow">AVAILABLE NOW</p><h3>ข้อมูลที่ดูได้แล้ว</h3></div></div><div id="business-available" class="business-availability"></div></article>
+          <article class="panel"><div class="panel-heading"><div><p class="eyebrow">COMING LATER</p><h3>ข้อมูลที่รอการเก็บ</h3></div></div><div id="business-future" class="business-availability"></div></article>
         </div>
       </section>
 
