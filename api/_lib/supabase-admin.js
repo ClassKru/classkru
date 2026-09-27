@@ -19,6 +19,8 @@ async function selectRows(table, options = {}) {
   query.set('select', options.select || '*');
   if (options.order) query.set('order', options.order);
   if (options.limit) query.set('limit', String(options.limit));
+  if (Number.isInteger(options.offset) && options.offset >= 0) query.set('offset', String(options.offset));
+  for (const [column, filter] of Object.entries(options.filters || {})) query.set(column, filter);
   const headers = { apikey: key };
   if (!key.startsWith('sb_secret_')) headers.Authorization = `Bearer ${key}`;
   const response = await fetch(`${url}/rest/v1/${table}?${query.toString()}`, { headers });

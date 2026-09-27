@@ -3,6 +3,7 @@
 const { sendJson } = require('../_lib/http');
 const { verifySession } = require('../_lib/dev-auth');
 const { selectRows } = require('../_lib/supabase-admin');
+const { loadBusinessAnalytics } = require('../_lib/business-analytics');
 
 const ISSUE_REPORT_FIELDS = 'id,reporter_id,category,message,page_url,browser_info,status,created_at,updated_at';
 const LEGACY_ISSUE_REPORT_FIELDS = 'id,reporter_id,message,page_url,browser_info,status,created_at,updated_at';
@@ -52,6 +53,7 @@ async function handler(req, res) {
 
   try {
     const resource = normalize(req.query.resource || 'overview', 30);
+    if (resource === 'business') return sendJson(res, 200, await loadBusinessAnalytics());
     const reportRows = await loadReportRows();
 
     if (resource === 'overview') {
@@ -99,39 +101,6 @@ async function handler(req, res) {
         paidAmountSatang: paidOrders.reduce((total, row) => total + Number(row.amount_satang || 0), 0),
         rows: teachers,
         orders
-      });
-    }
-
-    if (resource === 'business') {
-      const teachers = await selectRows('teacher_profiles', {
-        select: 'teacher_id,email,subscription_status,paid_until,updated_at',
-        order: 'updated_at.desc',
-        limit: 5000
-      });
-      const orders = await selectRows('payment_orders', {
-        select: 'id,teacher_id,plan_id,amount_satang,status,paid_at,created_at',
-        order: 'created_at.desc',
-        limit: 5000
-      });
-      const now = Date.now();
-      const paidOrders = orders.filter(row => row.status === 'paid');
-      const paidTeacherIds = new Set(paidOrders.map(row => row.teacher_id).filter(Boolean));
-      const activeTeachers = teachers.filter(row => row.subscription_status !== 'expired' && row.subscription_status !== 'suspended' && (!row.paid_until || new Date(row.paid_until).getTime() >= now));
-      return sendJson(res, 200, {
-        generatedAt: new Date().toISOString(),
-        available: { accounts: true, subscriptions: true, payments: true, onlineNow: false, dailyActive: false, documentUsage: false, aiUsage: false },
-        accounts: {
-          total: teachers.length,
-          active: activeTeachers.length,
-          trial: teachers.filter(row => row.subscription_status === 'trial').length,
-          paid: paidTeacherIds.size,
-          expired: teachers.filter(row => row.subscription_status === 'expired').length,
-          suspended: teachers.filter(row => row.subscription_status === 'suspended').length
-        },
-        payments: {
-          paidOrders: paidOrders.length,
-          paidAmountSatang: paidOrders.reduce((total, row) => total + Number(row.amount_satang || 0), 0)
-        }
       });
     }
 
