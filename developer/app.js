@@ -1,6 +1,6 @@
 'use strict';
 
-const state = { view: 'overview', overview: null, reports: [], billing: null, ideas: { biggy: [], petchpetch: [] } };
+const state = { view: 'overview', overview: null, business: null, businessAccountSort: 'registered', reports: [], billing: null, ideas: { biggy: [], petchpetch: [] } };
 const byId = id => document.getElementById(id);
 const ui = {
   loginView: byId('login-view'), consoleView: byId('console-view'), loginForm: byId('login-form'),
@@ -12,7 +12,10 @@ const ui = {
   reportsCards: byId('reports-cards'), reportsEmpty: byId('reports-empty'), tableSelect: byId('table-select'),
   loadTable: byId('load-table-button'), databaseTable: byId('database-table'), modal: byId('detail-modal'),
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
-  ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table'), billingSalesTable: byId('billing-sales-table')
+  ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table'), billingSalesTable: byId('billing-sales-table'),
+  businessSummary: byId('business-summary'), businessAvailable: byId('business-available'), businessFuture: byId('business-future'), businessUpdated: byId('business-updated'),
+  businessAccountList: byId('business-account-list'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'),
+  usageList: byId('usage-list'), usageCount: byId('usage-count'), usageUpdated: byId('usage-updated')
 };
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
@@ -409,6 +412,141 @@ async function loadBilling() {
   catch (error) { handleDataError(error); }
 }
 
+function renderBusiness(data) {
+  state.business = data;
+  const accounts = data.accounts || {};
+  const payments = data.payments || {};
+  const paidAmount = (Number(payments.paidAmountSatang || 0) / 100).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+  ui.businessSummary.replaceChildren();
+  [
+    ['บัญชีทั้งหมด', accounts.total, 'business-total'],
+    ['มีห้องเรียนแล้ว', accounts.activated, 'business-active'],
+    ['บันทึกงานวันนี้', accounts.recordedToday, 'business-active'],
+    ['บันทึกงานใน 7 วัน', accounts.recorded7d, 'business-active'],
+    ['บันทึกงานใน 30 วัน', accounts.recorded30d, 'business-active'],
+    ['บัญชีทดลอง', accounts.trial, 'business-trial'],
+    ['บัญชีที่จ่ายเงินแล้ว', accounts.paid, 'business-paid'],
+    ['ยอดชำระสำเร็จ', `${paidAmount} บาท`, 'business-revenue']
+  ].forEach(([label, value, type]) => {
+    const card = element('article', `summary-card ${type}`);
+    card.append(element('span', '', label), element('strong', '', value ?? '—'));
+    ui.businessSummary.append(card);
+  });
+  const renderList = (target, rows, disabled = false) => {
+    target.replaceChildren();
+    rows.forEach(([title, detail]) => {
+      const item = element('div', `business-availability-item${disabled ? ' is-disabled' : ''}`);
+      item.append(element('strong', '', title), element('span', '', detail));
+      target.append(item);
+    });
+  };
+  renderList(ui.businessAvailable, [
+    ['บัญชีผู้ใช้', 'จำนวนจาก teacher_profiles'],
+    ['มีห้องเรียนแล้ว', `${accounts.activated ?? 0} จาก ${accounts.total ?? 0} บัญชี`],
+    ['สถานะสมาชิก', `${accounts.eligible ?? 0} บัญชีสถานะปกติ · ${accounts.expired ?? 0} หมดอายุ`],
+    ['คำสั่งซื้อที่ชำระแล้ว', `${payments.paidOrders || 0} รายการ`],
+    ['ยอดชำระรวม', `${paidAmount} บาท`]
+  ]);
+  renderList(ui.businessFuture, [
+    ['ออนไลน์ตอนนี้', 'ต้องเพิ่ม heartbeat หรือ session presence'],
+    ['เปิดเว็บโดยไม่บันทึกงาน', 'ต้องเพิ่ม activity log'],
+    ['เอกสารที่สร้าง', 'ต้องเพิ่ม document usage event'],
+    ['AI token และค่าใช้จ่าย', 'ต้องเพิ่ม AI usage ledger']
+  ], true);
+  ui.businessUpdated.textContent = `อัปเดต ${formatDate(data.generatedAt, true)}`;
+  renderBusinessAccounts();
+  renderUsage();
+}
+
+function renderBusinessAccounts() {
+  const rows = [...(state.business?.rows || [])];
+  const sort = state.businessAccountSort;
+  rows.sort((a, b) => {
+    if (sort === 'classrooms') return (b.classrooms || 0) - (a.classrooms || 0) || String(a.email).localeCompare(String(b.email));
+    if (sort === 'activity') return (Date.parse(b.lastRecordedAt || '') || 0) - (Date.parse(a.lastRecordedAt || '') || 0) || String(a.email).localeCompare(String(b.email));
+    return (Date.parse(b.registeredAt || '') || 0) - (Date.parse(a.registeredAt || '') || 0) || String(a.email).localeCompare(String(b.email));
+  });
+  ui.businessAccountList.replaceChildren();
+  rows.slice(0, 5).forEach(row => {
+    const button = element('button', 'account-preview-item');
+    button.type = 'button';
+    const detail = sort === 'classrooms' ? `${row.classrooms || 0} ห้องเรียน` : sort === 'activity' ? (row.lastRecordedAt ? formatDate(row.lastRecordedAt, true) : 'ยังไม่พบงานที่บันทึก') : formatDate(row.registeredAt, true);
+    button.append(element('strong', '', row.email), element('span', '', detail));
+    button.addEventListener('click', () => accountDetail(row));
+    ui.businessAccountList.append(button);
+  });
+  if (!rows.length) ui.businessAccountList.append(element('p', 'database-note', 'ยังไม่มีบัญชีผู้ใช้'));
+}
+
+function accountDetail(row) {
+  ui.modalTitle.textContent = row.email || 'รายละเอียดบัญชี';
+  ui.modalContent.replaceChildren();
+  const fields = [
+    ['อีเมล', row.email],
+    ['สถานะสมาชิก', row.subscriptionStatus || 'ไม่ระบุ'],
+    ['สมัครเมื่อ', formatDate(row.registeredAt, true)],
+    ['วันหมดอายุ', formatDate(row.paidUntil)],
+    ['เคยชำระเงิน', row.hasPaid ? 'ใช่' : 'ยังไม่พบรายการชำระสำเร็จ'],
+    ['จำนวนห้องเรียน', row.classrooms ?? 0],
+    ['รายการตารางสอน', row.timetableEntries ?? 0],
+    ['รายการเช็กชื่อที่แก้ไขใน 30 วัน', row.attendance30d ?? 0],
+    ['หัวข้อคะแนนที่แก้ไขใน 30 วัน', row.scoreItems30d ?? 0],
+    ['คะแนนนักเรียนที่แก้ไขใน 30 วัน', row.studentScores30d ?? 0],
+    ['งานล่าสุดที่พบ', formatDate(row.lastRecordedAt, true)],
+    ['บัญชี ID', row.teacherId]
+  ];
+  fields.forEach(([label, value]) => {
+    const box = element('div', 'detail-field');
+    box.append(element('span', '', label), element('p', '', value ?? '—'));
+    ui.modalContent.append(box);
+  });
+  ui.modal.hidden = false;
+  ui.closeModal.focus();
+}
+
+function renderUsage() {
+  const data = state.business;
+  if (!data) return;
+  const query = ui.usageSearch.value.trim().toLocaleLowerCase('th-TH');
+  const filter = ui.usageFilter.value;
+  const rows = (data.rows || []).filter(row => {
+    if (query && !String(row.email || '').toLocaleLowerCase('th-TH').includes(query)) return false;
+    if (filter === 'recorded7d') return row.recorded7d;
+    if (filter === 'recorded30d') return row.recorded30d;
+    if (filter === 'activated') return row.classrooms > 0;
+    if (filter === 'unactivated') return row.classrooms === 0;
+    if (filter === 'paid') return row.hasPaid;
+    return true;
+  });
+  ui.usageList.replaceChildren();
+  rows.forEach(row => {
+    const card = element('article', 'usage-account-card');
+    const main = element('div', 'usage-account-main');
+    main.append(element('strong', '', row.email), element('span', '', `สถานะ ${row.subscriptionStatus || 'ไม่ระบุ'} · สมัคร ${formatDate(row.registeredAt)}`));
+    const metrics = element('div', 'usage-account-metrics');
+    metrics.append(
+      element('span', '', `${row.classrooms} ห้องเรียน`),
+      element('span', '', `เช็กชื่อ 30 วัน ${row.attendance30d}`),
+      element('span', '', row.recorded7d ? 'บันทึกงานใน 7 วัน' : 'ไม่พบบันทึกงานใน 7 วัน'),
+      element('span', '', row.lastRecordedAt ? `งานล่าสุด ${formatDate(row.lastRecordedAt, true)}` : 'ยังไม่พบงานที่บันทึก')
+    );
+    const button = element('button', 'row-button', 'รายละเอียด');
+    button.type = 'button';
+    button.addEventListener('click', () => accountDetail(row));
+    card.append(main, metrics, button);
+    ui.usageList.append(card);
+  });
+  if (!rows.length) ui.usageList.append(element('div', 'empty-state', 'ไม่พบบัญชีที่ตรงกับตัวกรอง'));
+  ui.usageCount.textContent = `แสดง ${rows.length} จาก ${data.rows?.length || 0} บัญชี`;
+  ui.usageUpdated.textContent = `อัปเดต ${formatDate(data.generatedAt, true)}`;
+}
+
+async function loadBusiness() {
+  ui.globalStatus.textContent = 'กำลังโหลดภาพรวมธุรกิจ…';
+  try { renderBusiness(await request('/api/dev/data?resource=business')); ui.globalStatus.textContent = ''; }
+  catch (error) { handleDataError(error); }
+}
+
 function handleDataError(error) {
   if (error.status === 401) {
     showLogin('Session หมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง');
@@ -428,6 +566,7 @@ function switchView(view) {
     if (active) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
   });
   if (view === 'overview') loadOverview();
+  if (view === 'business' || view === 'usage') loadBusiness();
   if (view === 'reports') loadReports();
   if (view === 'ideas-biggy') loadIdeas('biggy');
   if (view === 'ideas-petchpetch') loadIdeas('petchpetch');
@@ -469,6 +608,17 @@ ui.logout.addEventListener('click', async () => {
 });
 ui.refresh.addEventListener('click', () => switchView(state.view));
 ui.reportFilters.addEventListener('submit', event => { event.preventDefault(); loadReports(); });
+ui.usageSearch.addEventListener('input', renderUsage);
+ui.usageFilter.addEventListener('change', renderUsage);
+document.querySelectorAll('[data-account-sort]').forEach(button => button.addEventListener('click', () => {
+  state.businessAccountSort = button.dataset.accountSort;
+  document.querySelectorAll('[data-account-sort]').forEach(tab => {
+    const active = tab === button;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-selected', String(active));
+  });
+  renderBusinessAccounts();
+}));
 ui.loadTable.addEventListener('click', loadDatabase);
 ui.closeModal.addEventListener('click', () => { ui.modal.hidden = true; });
 ui.modal.addEventListener('click', event => { if (event.target === ui.modal) ui.modal.hidden = true; });
