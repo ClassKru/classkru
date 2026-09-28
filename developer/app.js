@@ -1,6 +1,6 @@
 'use strict';
 
-const state = { view: 'overview', overview: null, business: null, reports: [], billing: null, ideas: { biggy: [], petchpetch: [] } };
+const state = { view: 'overview', overview: null, business: null, businessAccountSort: 'registered', reports: [], billing: null, ideas: { biggy: [], petchpetch: [] } };
 const byId = id => document.getElementById(id);
 const ui = {
   loginView: byId('login-view'), consoleView: byId('console-view'), loginForm: byId('login-form'),
@@ -14,7 +14,7 @@ const ui = {
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
   ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table'), billingSalesTable: byId('billing-sales-table'),
   businessSummary: byId('business-summary'), businessAvailable: byId('business-available'), businessFuture: byId('business-future'), businessUpdated: byId('business-updated'),
-  businessRecentAccounts: byId('business-recent-accounts'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'),
+  businessAccountList: byId('business-account-list'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'),
   usageList: byId('usage-list'), usageCount: byId('usage-count'), usageUpdated: byId('usage-updated')
 };
 
@@ -454,17 +454,28 @@ function renderBusiness(data) {
     ['AI token และค่าใช้จ่าย', 'ต้องเพิ่ม AI usage ledger']
   ], true);
   ui.businessUpdated.textContent = `อัปเดต ${formatDate(data.generatedAt, true)}`;
-  ui.businessRecentAccounts.replaceChildren();
-  const recent = (data.rows || []).filter(row => row.lastRecordedAt).slice(0, 5);
-  recent.forEach(row => {
+  renderBusinessAccounts();
+  renderUsage();
+}
+
+function renderBusinessAccounts() {
+  const rows = [...(state.business?.rows || [])];
+  const sort = state.businessAccountSort;
+  rows.sort((a, b) => {
+    if (sort === 'classrooms') return (b.classrooms || 0) - (a.classrooms || 0) || String(a.email).localeCompare(String(b.email));
+    if (sort === 'activity') return (Date.parse(b.lastRecordedAt || '') || 0) - (Date.parse(a.lastRecordedAt || '') || 0) || String(a.email).localeCompare(String(b.email));
+    return (Date.parse(b.registeredAt || '') || 0) - (Date.parse(a.registeredAt || '') || 0) || String(a.email).localeCompare(String(b.email));
+  });
+  ui.businessAccountList.replaceChildren();
+  rows.slice(0, 5).forEach(row => {
     const button = element('button', 'account-preview-item');
     button.type = 'button';
-    button.append(element('strong', '', row.email), element('span', '', formatDate(row.lastRecordedAt, true)));
+    const detail = sort === 'classrooms' ? `${row.classrooms || 0} ห้องเรียน` : sort === 'activity' ? (row.lastRecordedAt ? formatDate(row.lastRecordedAt, true) : 'ยังไม่พบงานที่บันทึก') : formatDate(row.registeredAt, true);
+    button.append(element('strong', '', row.email), element('span', '', detail));
     button.addEventListener('click', () => accountDetail(row));
-    ui.businessRecentAccounts.append(button);
+    ui.businessAccountList.append(button);
   });
-  if (!recent.length) ui.businessRecentAccounts.append(element('p', 'database-note', 'ยังไม่มีงานที่บันทึกบนคลาวด์'));
-  renderUsage();
+  if (!rows.length) ui.businessAccountList.append(element('p', 'database-note', 'ยังไม่มีบัญชีผู้ใช้'));
 }
 
 function accountDetail(row) {
@@ -599,6 +610,15 @@ ui.refresh.addEventListener('click', () => switchView(state.view));
 ui.reportFilters.addEventListener('submit', event => { event.preventDefault(); loadReports(); });
 ui.usageSearch.addEventListener('input', renderUsage);
 ui.usageFilter.addEventListener('change', renderUsage);
+document.querySelectorAll('[data-account-sort]').forEach(button => button.addEventListener('click', () => {
+  state.businessAccountSort = button.dataset.accountSort;
+  document.querySelectorAll('[data-account-sort]').forEach(tab => {
+    const active = tab === button;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-selected', String(active));
+  });
+  renderBusinessAccounts();
+}));
 ui.loadTable.addEventListener('click', loadDatabase);
 ui.closeModal.addEventListener('click', () => { ui.modal.hidden = true; });
 ui.modal.addEventListener('click', event => { if (event.target === ui.modal) ui.modal.hidden = true; });

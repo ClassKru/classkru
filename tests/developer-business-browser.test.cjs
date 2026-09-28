@@ -57,13 +57,16 @@ test('developer business and per-account usage work on desktop and mobile', asyn
     await page.click('[data-view="business"]');
     await page.waitForFunction(() => document.querySelectorAll('#business-summary .summary-card').length === 8);
     assert.match(await page.$eval('#business-summary', node => node.textContent), /บันทึกงานใน 7 วัน/);
+    await page.click('[data-account-sort="classrooms"]');
+    assert.equal(await page.$eval('#business-account-list .account-preview-item strong', node => node.textContent), 'active@example.test');
+    await page.click('[data-account-sort="registered"]');
     await page.click('[data-view="usage"]');
     await page.waitForFunction(() => document.querySelectorAll('.usage-account-card').length === 2);
     await page.select('#usage-filter', 'recorded7d');
     assert.equal(await page.$$eval('.usage-account-card', nodes => nodes.length), 1);
-    await page.click('.usage-account-card .row-button');
+    await page.$eval('.usage-account-card .row-button', node => node.click());
     assert.match(await page.$eval('#detail-content', node => node.textContent), /คะแนนนักเรียนที่แก้ไขใน 30 วัน/);
-    await page.click('#close-modal');
+    await page.$eval('#close-modal', node => node.click());
     await page.setViewport({ width: 390, height: 844 });
     const layout = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
     assert.ok(layout.scroll <= layout.viewport + 2, `mobile overflow: ${JSON.stringify(layout)}`);
