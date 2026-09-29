@@ -1,0 +1,9 @@
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-02-qr-score/frames/frame-00.png'
+duration 1.6
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-02-qr-score/frames/frame-01.png'
+duration 1.25
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-02-qr-score/frames/frame-02.png'
+duration 1.35
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-02-qr-score/frames/frame-03.png'
+duration 1.8
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-02-qr-score/frames/frame-03.png'

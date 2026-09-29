@@ -1,3 +1,5 @@
 _archive/
 tests/
 .DS_Store
+*.xlsx
+*.xls

@@ -1,0 +1,11 @@
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-01-checkin/frames/frame-00.png'
+duration 1.6
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-01-checkin/frames/frame-01.png'
+duration 1.1
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-01-checkin/frames/frame-02.png'
+duration 1.2
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-01-checkin/frames/frame-03.png'
+duration 1.2
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-01-checkin/frames/frame-04.png'
+duration 1.8
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-01-checkin/frames/frame-04.png'

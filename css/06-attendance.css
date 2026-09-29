@@ -688,7 +688,9 @@
     touch-action: manipulation;
   }
 .swipe-photo-source-actions i { color: var(--primary); font-size: 1.25rem; }
+}
 
+/* Student detail is available on desktop and mobile; keep its photo dialog global. */
 .student-detail-photo-source-sheet {
   display: none;
   position: fixed;
@@ -729,6 +731,7 @@
 }
 .student-detail-photo-source-actions i { color: var(--primary); font-size: 1.25rem; }
 
+@media (max-width: 768px) {
   .swipe-mobile-edit-sheet.show {
     display: flex;
   }

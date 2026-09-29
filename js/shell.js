@@ -98,10 +98,11 @@ window.addEventListener('hashchange', () => {
 // เมนูทุกขนาดจอใช้ข้อมูลกลางชุดเดียว เพิ่ม/ย้ายเมนูได้โดยไม่ต้องแก้ HTML ซ้ำหลายจุด
 const APP_NAVIGATION = [
   { id: 'dashboard', label: 'หน้าหลัก', mobileLabel: 'หน้าหลัก', icon: 'hgi-home-01', screens: ['dashboard'], desktopOrder: 1, mobileOrder: 1 },
-  { id: 'classrooms', label: 'ห้องเรียนของฉัน', mobileLabel: 'ห้องเรียน', icon: 'hgi-school', screens: ['classrooms', 'students', 'scores', 'reports'], desktopScreens: ['classrooms', 'students', 'scores', 'reports', 'checkin'], desktopOrder: 2, mobileOrder: 5 },
-  { id: 'timetable', label: 'ตารางสอน', mobileLabel: 'ตารางสอน', icon: 'hgi-calendar-03', screens: ['timetable'], desktopOrder: 3, mobileOrder: 2 },
+  { id: 'media', label: 'AI ช่วยสร้างสื่อ', mobileLabel: 'AI สร้างสื่อ', icon: 'hgi-magic-wand-01', screens: ['media'], desktopOrder: 2, mobileOrder: 2 },
+  { id: 'classrooms', label: 'ห้องเรียนของฉัน', mobileLabel: 'ห้องเรียน', icon: 'hgi-school', screens: ['classrooms', 'students', 'scores', 'reports'], desktopScreens: ['classrooms', 'students', 'scores', 'reports', 'checkin'], desktopOrder: 3, mobileOrder: 5 },
+  { id: 'timetable', label: 'ตารางสอน', mobileLabel: 'ตารางสอน', icon: 'hgi-calendar-03', screens: ['timetable'], desktopOrder: 4, moreOrder: 1 },
   { id: 'checkin', label: 'เช็คชื่อ', mobileLabel: 'เช็คชื่อ', icon: 'hgi-task-done-01', screens: ['checkin'], mobileOrder: 3, className: 'checkin-btn', action: 'mobileCheckinTap()' },
-  { id: 'tools', label: 'เครื่องมือช่วยสอน', mobileLabel: 'เครื่องมือ', icon: 'hgi-magic-wand-01', screens: ['tools'], desktopOrder: 4, moreOrder: 1 },
+  { id: 'tools', label: 'เครื่องมือช่วยสอน', mobileLabel: 'เครื่องมือ', icon: 'hgi-tools', screens: ['tools'], desktopOrder: 5, moreOrder: 2 },
   { id: 'qr-score', label: 'กรอกคะแนนด้วย QR', mobileLabel: 'QR คะแนน', icon: 'hgi-qr-code', screens: [], desktopOrder: 5, mobileOrder: 4, className: 'qr-score-mobile-nav', action: 'openQrScoreScanner()' },
   { id: 'games', label: 'เกมการศึกษา', mobileLabel: 'เกม', icon: 'hgi-rocket-01', screens: ['games'], desktopOrder: 6, moreOrder: 2 },
   { id: 'curriculum', label: 'คลังตัวชี้วัด', mobileLabel: 'ตัวชี้วัด', icon: 'hgi-book-open-01', screens: ['curriculum'], desktopOrder: 7, moreOrder: 3 },
@@ -248,7 +249,7 @@ function navigateToWebScreen(screenId, param) {
   // hashchange ที่ตามมาจะเห็นว่าตรงกับ activeWebScreen อยู่แล้ว → ไม่ navigate ซ้ำ (กัน loop)
   setRouteHash(detailClassId ? `#${screenId}:${detailClassId}` : '#' + screenId);
 
-  const screens = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','curriculum','tools','games','settings'];
+  const screens = ['dashboard','media','help','classrooms','students','timetable','attendance','scores','reports','curriculum','tools','games','settings'];
   screens.forEach(s => {
     const el = document.getElementById(`web-screen-${s}`);
     if (el) el.style.display = s === screenId ? 'block' : 'none';
@@ -261,6 +262,7 @@ function navigateToWebScreen(screenId, param) {
   const subEl = document.getElementById('web-header-subtitle');
   const titles = {
     dashboard: ['หน้าหลัก', 'ตารางสอนและเช็คชื่อด่วน'],
+    media: ['AI ช่วยสร้างสื่อ', 'ออกแบบสื่อการเรียนรู้กับ AI และจัดการคลังสื่อของคุณ'],
     help: ['ศูนย์ช่วยเหลือ', 'วิธีใช้งาน แจ้งปัญหา และติดต่อทีมงาน'],
     classrooms: ['ห้องเรียนของฉัน', 'จัดการรายวิชาและเช็คชื่อด่วน'],
     students: ['จัดการรายชื่อเด็ก', 'เพิ่ม ลบ แก้ไข ย้ายห้อง'],

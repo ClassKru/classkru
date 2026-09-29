@@ -19,19 +19,22 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=443">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=443">
-  <link rel="stylesheet" href="css/03-reports.css?v=443">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=443">
-  <link rel="stylesheet" href="css/05-home.css?v=443">
-  <link rel="stylesheet" href="css/06-attendance.css?v=443">
-  <link rel="stylesheet" href="css/07-scores.css?v=443">
-  <link rel="stylesheet" href="css/pp5.css?v=443">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=443">
-    <link rel="stylesheet" href="css/09-games.css?v=443">
-  <link rel="stylesheet" href="css/10-help.css?v=443">
-  <link rel="stylesheet" href="css/11-public-help.css?v=443">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=443">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=450">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=450">
+  <link rel="stylesheet" href="css/03-reports.css?v=450">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=450">
+  <link rel="stylesheet" href="css/05-home.css?v=450">
+  <link rel="stylesheet" href="css/06-attendance.css?v=450">
+  <link rel="stylesheet" href="css/07-scores.css?v=450">
+  <link rel="stylesheet" href="css/pp5.css?v=450">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=450">
+    <link rel="stylesheet" href="css/09-games.css?v=450">
+  <link rel="stylesheet" href="css/10-help.css?v=450">
+  <link rel="stylesheet" href="css/11-public-help.css?v=450">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=450">
+  <link rel="stylesheet" href="css/media-dashboard.css?v=1">
+  <link rel="stylesheet" href="css/media-dashboard-illustration.css?v=1">
+  <link rel="stylesheet" href="css/media-studio.css?v=450">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -302,6 +305,53 @@
 
           <!-- legacy warning target kept for existing scripts; desktop summary now lives in the right panel -->
           <div id="home-unchecked-card" style="display:none;"></div>
+        </div>
+
+        <!-- INTERACTIVE AI MEDIA DASHBOARD -->
+        <div id="web-screen-media" class="fade-in" style="display:none;">
+          <section class="media-dashboard" aria-labelledby="media-dashboard-title">
+            <div class="media-dashboard-main">
+              <header class="media-hero">
+                <div class="media-hero-copy">
+                  <span class="media-eyebrow"><i class="hgi-stroke hgi-magic-wand-01"></i> ClassKru AI Studio</span>
+                  <h1 id="media-dashboard-title">สร้างสื่อการเรียนรู้แบบโต้ตอบ</h1>
+                  <p>เปลี่ยนบทเรียนของคุณให้เป็นประสบการณ์การเรียนรู้ที่นักเรียนมีส่วนร่วมได้จริง</p>
+                  <form class="media-idea-bar" id="media-idea-form">
+                    <i class="hgi-stroke hgi-search-01" aria-hidden="true"></i>
+                    <input id="media-idea-input" maxlength="6000" placeholder="วันนี้อยากให้นักเรียนเรียนรู้เรื่องอะไร?" aria-label="ไอเดียสื่อการเรียนรู้">
+                    <button class="btn btn-primary" type="submit"><i class="hgi-stroke hgi-magic-wand-01"></i> เริ่มสร้าง <i class="hgi-stroke hgi-arrow-right-01"></i></button>
+                  </form>
+                  <div class="media-suggestions" aria-label="ตัวอย่างไอเดีย">
+                    <span>ตัวอย่าง:</span>
+                    <button type="button" data-media-idea="สร้างกิจกรรมเรื่องการหักเหของแสง สำหรับ ม.2">การหักเหของแสง</button>
+                    <button type="button" data-media-idea="สร้างเกมจับคู่เศษส่วน สำหรับ ป.5">เศษส่วน</button>
+                    <button type="button" data-media-idea="สร้างสื่อเรื่องระบบสุริยะ สำหรับ ป.6">ระบบสุริยะ</button>
+                    <button type="button" data-media-idea="สร้างกิจกรรมวิเคราะห์แผนที่ สำหรับ ม.1">การวิเคราะห์แผนที่</button>
+                  </div>
+                </div>
+                <div class="media-hero-art" aria-hidden="true">
+                  <img src="assets/media-teacher-ai.png" alt="">
+                  <div class="media-hero-orbit orbit-one"></div><div class="media-hero-orbit orbit-two"></div>
+                </div>
+              </header>
+
+              <section class="media-section">
+                <div class="media-section-heading"><div><h2>💡 เริ่มจากไอเดียกิจกรรม</h2><p>เลือกแนวการเรียนรู้ที่เหมาะกับบทเรียนของคุณ แล้วต่อยอดเป็นสื่อได้เลย</p></div></div>
+                <div class="media-activity-grid" id="media-activity-grid"></div>
+              </section>
+
+              <section class="media-section">
+                <div class="media-section-heading"><div><h2>🎓 ตัวอย่างสื่อโต้ตอบ ตามวิชา</h2><p>เริ่มเร็วขึ้นด้วยไอเดียที่ออกแบบเพื่อห้องเรียน</p></div><button class="media-text-link" type="button" onclick="openInteractiveMediaStudio()">คลังของฉัน <i class="hgi-stroke hgi-arrow-right-01"></i></button></div>
+                <div class="media-chip-row" id="media-subject-chips"></div>
+                <div class="media-template-grid" id="media-template-grid"></div>
+              </section>
+            </div>
+            <aside class="media-dashboard-side">
+              <section class="media-side-card"><div class="media-side-head"><h2>สื่อของฉัน</h2><button class="media-text-link" type="button" onclick="openInteractiveMediaStudio()">คลังทั้งหมด <i class="hgi-stroke hgi-arrow-right-01"></i></button></div><div class="media-my-library" id="media-my-library"></div></section>
+              <section class="media-side-card media-help-card"><div class="media-help-icon">💡</div><div><h2>ยังไม่มีไอเดีย?</h2><p>ให้ AI ช่วยเสนอไอเดียจากบทเรียนของคุณ</p></div><button class="btn" type="button" id="media-brainstorm"><i class="hgi-stroke hgi-ai-brain-01"></i> ช่วยคิดกิจกรรมให้หน่อย <i class="hgi-stroke hgi-arrow-right-01"></i></button></section>
+              <section class="media-side-card media-how-card"><h2>วิธีใช้งานแบบง่าย ๆ</h2><ol><li><span>1</span><p><strong>บอกหัวข้อหรือเลือกไอเดีย</strong>พิมพ์พร้อมสื่อที่อยากได้</p></li><li><span>2</span><p><strong>ดูตัวอย่างและปรับแต่ง</strong>AI จะแนะนำไอเดียให้คุณ</p></li><li><span>3</span><p><strong>ยืนยันรายละเอียดสื่อ</strong>ตรวจความเหมาะสมก่อนใช้</p></li><li><span>4</span><p><strong>สร้างสื่อและนำไปใช้</strong>ได้ลิงก์พร้อมใช้ในห้องเรียน</p></li></ol></section>
+            </aside>
+          </section>
         </div>
 
         <!-- HELP CENTER -->
@@ -1470,31 +1520,33 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=443"></script>
-  <script defer src="js/relational-sync.js?v=443"></script>
-  <script defer src="js/auth.js?v=443"></script>
-  <script defer src="js/shell.js?v=443"></script>
-  <script defer src="js/dashboard.js?v=443"></script>
-  <script defer src="js/classrooms.js?v=443"></script>
-  <script defer src="js/students.js?v=443"></script>
-  <script defer src="js/timetable.js?v=443"></script>
-  <script defer src="js/reports.js?v=443"></script>
-  <script defer src="js/attendance.js?v=443"></script>
-  <script defer src="js/curriculum-thai-2551.js?v=443"></script>
-  <script defer src="js/curriculum-math-2560.js?v=443"></script>
-  <script defer src="js/curriculum-science-2560.js?v=443"></script>
-  <script defer src="js/curriculum-social-2560.js?v=443"></script>
-  <script defer src="js/curriculum-health-2551.js?v=443"></script>
-  <script defer src="js/curriculum-art-2551.js?v=443"></script>
-  <script defer src="js/curriculum-career-2551.js?v=443"></script>
-  <script defer src="js/curriculum-foreign-2551.js?v=443"></script>
-  <script defer src="js/curriculum-catalog.js?v=443"></script>
-  <script defer src="js/scores.js?v=443"></script>
-  <script defer src="js/pp5.js?v=443"></script>
-  <script defer src="js/qr-scores.js?v=443"></script>
-  <script defer src="js/tools.js?v=443"></script>
-  <script defer src="js/shared-utils.js?v=443"></script>
-  <script defer src="js/extras.js?v=443"></script>
-  <script defer src="js/help.js?v=443"></script>
+  <script defer src="js/core.js?v=450"></script>
+  <script defer src="js/relational-sync.js?v=450"></script>
+  <script defer src="js/auth.js?v=450"></script>
+  <script defer src="js/shell.js?v=450"></script>
+  <script defer src="js/dashboard.js?v=450"></script>
+  <script defer src="js/classrooms.js?v=450"></script>
+  <script defer src="js/students.js?v=450"></script>
+  <script defer src="js/timetable.js?v=450"></script>
+  <script defer src="js/reports.js?v=450"></script>
+  <script defer src="js/attendance.js?v=450"></script>
+  <script defer src="js/curriculum-thai-2551.js?v=450"></script>
+  <script defer src="js/curriculum-math-2560.js?v=450"></script>
+  <script defer src="js/curriculum-science-2560.js?v=450"></script>
+  <script defer src="js/curriculum-social-2560.js?v=450"></script>
+  <script defer src="js/curriculum-health-2551.js?v=450"></script>
+  <script defer src="js/curriculum-art-2551.js?v=450"></script>
+  <script defer src="js/curriculum-career-2551.js?v=450"></script>
+  <script defer src="js/curriculum-foreign-2551.js?v=450"></script>
+  <script defer src="js/curriculum-catalog.js?v=450"></script>
+  <script defer src="js/scores.js?v=450"></script>
+  <script defer src="js/pp5.js?v=450"></script>
+  <script defer src="js/qr-scores.js?v=450"></script>
+  <script defer src="js/tools.js?v=450"></script>
+  <script defer src="js/media-dashboard.js?v=1"></script>
+  <script defer src="js/media-studio.js?v=450"></script>
+  <script defer src="js/shared-utils.js?v=450"></script>
+  <script defer src="js/extras.js?v=450"></script>
+  <script defer src="js/help.js?v=450"></script>
 </body>
 </html>

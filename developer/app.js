@@ -1,6 +1,6 @@
 'use strict';
 
-const state = { view: 'overview', overview: null, reports: [], ideas: { biggy: [], petchpetch: [] } };
+const state = { view: 'overview', overview: null, reports: [], ideas: { biggy: [], petchpetch: [] }, aiEncryptionReady: false };
 const byId = id => document.getElementById(id);
 const ui = {
   loginView: byId('login-view'), consoleView: byId('console-view'), loginForm: byId('login-form'),
@@ -10,6 +10,10 @@ const ui = {
   recent: byId('recent-list'), lastUpdated: byId('last-updated'), reportFilters: byId('report-filters'),
   searchFilter: byId('search-filter'), categoryFilter: byId('category-filter'), statusFilter: byId('status-filter'),
   reportsCards: byId('reports-cards'), reportsEmpty: byId('reports-empty'), tableSelect: byId('table-select'),
+  aiSettingsForm: byId('ai-settings-form'), aiPlannerModel: byId('ai-planner-model'), aiBuilderModel: byId('ai-builder-model'),
+  aiApiKey: byId('ai-api-key'), aiModelList: byId('ai-model-list'), aiSettingsState: byId('ai-settings-state'),
+  aiKeyState: byId('ai-key-state'), aiSettingsMessage: byId('ai-settings-message'), aiSave: byId('ai-save-settings'),
+  aiLoadModels: byId('ai-load-models'), aiClearKey: byId('ai-clear-key'),
   loadTable: byId('load-table-button'), databaseTable: byId('database-table'), modal: byId('detail-modal'),
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
 };
@@ -369,6 +373,65 @@ function handleDataError(error) {
     : 'ไม่สามารถโหลดข้อมูลได้ในขณะนี้';
 }
 
+async function loadAISettings() {
+  ui.aiSettingsMessage.textContent = '';
+  try {
+    const settings = await request('/api/dev/ai-settings');
+    ui.aiPlannerModel.value = settings.planner_model;
+    ui.aiBuilderModel.value = settings.builder_model;
+    ui.aiSettingsState.textContent = settings.saved ? 'บันทึกในฐานข้อมูลแล้ว' : 'ใช้ค่าจาก Environment Variables';
+    ui.aiKeyState.textContent = `${settings.has_api_key ? 'มี API key พร้อมใช้' : 'ยังไม่มี API key'} · ${settings.encryption_configured ? 'ระบบเข้ารหัสพร้อม' : 'ต้องตั้ง DEV_CONFIG_ENCRYPTION_KEY ฝั่งเซิร์ฟเวอร์'}`;
+    state.aiEncryptionReady = Boolean(settings.encryption_configured);
+    ui.aiSave.disabled = !state.aiEncryptionReady;
+  } catch (error) {
+    state.aiEncryptionReady = false;
+    ui.aiSave.disabled = true;
+    ui.aiSettingsState.textContent = 'โหลดการตั้งค่าไม่สำเร็จ';
+    ui.aiSettingsMessage.textContent = error.status === 503 ? 'ตรวจ Supabase migration และ Environment Variables ของ Developer Console' : 'ไม่สามารถโหลดการตั้งค่า AI ได้';
+  }
+}
+
+async function loadAIModels() {
+  ui.aiLoadModels.disabled = true;
+  ui.aiSettingsMessage.textContent = 'กำลังโหลดรายชื่อโมเดลจาก OpenAI…';
+  try {
+    const result = await request('/api/dev/ai-settings?action=models');
+    ui.aiModelList.replaceChildren(...result.models.map(model => {
+      const option = document.createElement('option'); option.value = model; return option;
+    }));
+    ui.aiSettingsMessage.textContent = `${result.models.length} โมเดลพร้อมเลือก`;
+  } catch (_) {
+    ui.aiSettingsMessage.textContent = 'โหลดโมเดลไม่สำเร็จ ตรวจ API key และลองอีกครั้ง';
+  } finally { ui.aiLoadModels.disabled = false; }
+}
+
+async function saveAISettings(event) {
+  event.preventDefault();
+  ui.aiSave.disabled = true;
+  ui.aiSettingsMessage.textContent = 'กำลังบันทึก…';
+  try {
+    await request('/api/dev/ai-settings', { method: 'POST', body: JSON.stringify({
+      planner_model: ui.aiPlannerModel.value, builder_model: ui.aiBuilderModel.value, api_key: ui.aiApiKey.value
+    }) });
+    ui.aiApiKey.value = '';
+    ui.aiSettingsMessage.textContent = 'บันทึกการตั้งค่าแล้ว';
+    await loadAISettings();
+  } catch (error) {
+    ui.aiSettingsMessage.textContent = error.status === 503 ? 'ตั้งค่าระบบเข้ารหัสหรือฐานข้อมูลไม่ครบ ตรวจ Environment Variables และ migration' : error.payload?.error === 'api_key_required' ? 'กรุณากรอก API key ก่อนบันทึก' : 'บันทึกไม่สำเร็จ ตรวจโมเดลและการเชื่อมต่อ';
+  } finally { ui.aiSave.disabled = !state.aiEncryptionReady; }
+}
+
+async function clearAIKey() {
+  if (!window.confirm('ลบ API key ที่บันทึกไว้หรือไม่?')) return;
+  ui.aiClearKey.disabled = true;
+  try {
+    await request('/api/dev/ai-settings', { method: 'POST', body: JSON.stringify({ action: 'clear_key' }) });
+    ui.aiSettingsMessage.textContent = 'ลบคีย์ที่บันทึกแล้ว';
+    await loadAISettings();
+  } catch (_) { ui.aiSettingsMessage.textContent = 'ลบคีย์ไม่สำเร็จ'; }
+  finally { ui.aiClearKey.disabled = false; }
+}
+
 function switchView(view) {
   state.view = view;
   document.querySelectorAll('.workspace-view').forEach(panel => panel.classList.toggle('active', panel.id === `view-${view}`));
@@ -381,6 +444,7 @@ function switchView(view) {
   if (view === 'reports') loadReports();
   if (view === 'ideas-biggy') loadIdeas('biggy');
   if (view === 'ideas-petchpetch') loadIdeas('petchpetch');
+  if (view === 'ai-settings') loadAISettings();
   if (view === 'database') loadDatabase();
 }
 
@@ -418,6 +482,9 @@ ui.logout.addEventListener('click', async () => {
 });
 ui.refresh.addEventListener('click', () => switchView(state.view));
 ui.reportFilters.addEventListener('submit', event => { event.preventDefault(); loadReports(); });
+ui.aiSettingsForm.addEventListener('submit', saveAISettings);
+ui.aiLoadModels.addEventListener('click', loadAIModels);
+ui.aiClearKey.addEventListener('click', clearAIKey);
 ui.loadTable.addEventListener('click', loadDatabase);
 ui.closeModal.addEventListener('click', () => { ui.modal.hidden = true; });
 ui.modal.addEventListener('click', event => { if (event.target === ui.modal) ui.modal.hidden = true; });

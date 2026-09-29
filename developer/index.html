@@ -47,10 +47,29 @@
         <button class="nav-button" type="button" data-view="ideas-biggy">Biggy</button>
         <button class="nav-button" type="button" data-view="ideas-petchpetch">PetchPetch</button>
         <button class="nav-button" type="button" data-view="roadmap">Roadmap</button>
+        <button class="nav-button" type="button" data-view="ai-settings">ตั้งค่า AI</button>
         <button class="nav-button" type="button" data-view="database">ข้อมูลในฐานข้อมูล</button>
       </nav>
 
       <div id="global-status" class="global-status" role="status" aria-live="polite"></div>
+
+      <section id="view-ai-settings" class="workspace-view" aria-labelledby="ai-settings-title">
+        <div class="section-heading"><div><p class="eyebrow">MEDIA AI</p><h2 id="ai-settings-title">ตั้งค่าโมเดลสร้างสื่อ</h2></div><p id="ai-settings-state">กำลังโหลดการตั้งค่า…</p></div>
+        <article class="panel ai-settings-panel">
+          <p class="database-note">ตั้งค่าผู้ให้บริการ OpenAI และเลือกโมเดลแยกตามงาน ระบบใช้โมเดลวางแผนเมื่อตอบโต้กับครู และโมเดลสร้างสื่อเมื่อสร้างชิ้นงาน คีย์ API จะเข้ารหัสก่อนบันทึกและไม่แสดงกลับในหน้านี้</p>
+          <form id="ai-settings-form" class="ai-settings-form">
+            <label>OpenAI API key<input id="ai-api-key" type="password" autocomplete="new-password" placeholder="เว้นว่างเพื่อคงคีย์เดิม" maxlength="300"></label>
+            <p class="database-note" id="ai-key-state">ยังไม่ได้ตรวจสอบ</p>
+            <div class="ai-model-grid">
+              <label for="ai-planner-model">โมเดลวางแผนและสนทนา<input id="ai-planner-model" list="ai-model-list" maxlength="120" required></label>
+              <label for="ai-builder-model">โมเดลสร้างสื่อการสอน<input id="ai-builder-model" list="ai-model-list" maxlength="120" required></label>
+            </div>
+            <datalist id="ai-model-list"></datalist>
+            <div class="ai-settings-actions"><button class="secondary-button" id="ai-load-models" type="button">โหลดโมเดลจากบัญชี</button><button class="primary-button" id="ai-save-settings" type="submit">บันทึกการตั้งค่า</button><button class="secondary-button" id="ai-clear-key" type="button">ลบคีย์ที่บันทึก</button></div>
+            <p id="ai-settings-message" class="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </article>
+      </section>
 
       <section id="view-overview" class="workspace-view active" aria-labelledby="overview-title">
         <div class="section-heading"><div><p class="eyebrow">FEEDBACK MONITOR</p><h2 id="overview-title">ภาพรวมความคิดเห็น</h2></div><p id="last-updated">ยังไม่ได้โหลดข้อมูล</p></div>

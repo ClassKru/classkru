@@ -1,0 +1,11 @@
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-04-teaching-tools/frames/frame-00.png'
+duration 1.45
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-04-teaching-tools/frames/frame-01.png'
+duration 1.6
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-04-teaching-tools/frames/frame-02.png'
+duration 1.6
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-04-teaching-tools/frames/frame-03.png'
+duration 1.6
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-04-teaching-tools/frames/frame-04.png'
+duration 1.8
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-04-teaching-tools/frames/frame-04.png'

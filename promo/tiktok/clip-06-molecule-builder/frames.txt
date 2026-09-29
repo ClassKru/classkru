@@ -1,0 +1,11 @@
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-06-molecule-builder/frames/frame-00.png'
+duration 1.6
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-06-molecule-builder/frames/frame-01.png'
+duration 1.4
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-06-molecule-builder/frames/frame-02.png'
+duration 1.45
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-06-molecule-builder/frames/frame-03.png'
+duration 1.4
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-06-molecule-builder/frames/frame-04.png'
+duration 1.9
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-06-molecule-builder/frames/frame-04.png'

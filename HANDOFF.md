@@ -1,6 +1,10 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 10 กันยายน 2569
+> อัปเดตล่าสุด: 20 กันยายน 2569
+>
+> **ต่อ Media Studio ให้ไปที่ `C:\Users\USER\ClassKru\_worktrees\media-studio-live`** แล้วอ่าน HANDOFF/คู่มือติดตั้งใน worktree นั้น งานจริงอิง GitHub ล่าสุด `687a617` ใช้ OpenRouter เดิม และ push เป็น [PR #75](https://github.com/ClassKru/classkru/pull/75) แล้ว โค้ด media ที่ค้างในโฟลเดอร์หลักนี้เป็นต้นแบบเก่า ไม่ใช่ชุดส่งขึ้น Git ห้าม push ทั้ง worktree นี้เพราะมีงานอื่นของผู้ใช้ปนอยู่
+>
+> ปรับเป็น **ไฟล์ JSON เข้ารหัสใน Supabase Storage เดิม ไม่เพิ่มตาราง SQL** แล้ว (asset 485) commit `6b2c4cb` push PR #75 และผ่านทั้ง CI + Vercel Preview แล้ว; local tests media 14 + Word 10 + browser/syntax ผ่าน แต่ยังต้องตั้ง server key/`MEDIA_STORAGE_KEY`/media origin และตรวจสิทธิ์บัญชี ClassKru จริง ยังไม่ merge/เปิด Production บัญชี CLI ยังเห็นเพียงทีม DOAI; ไม่ deploy ข้ามทีม รายละเอียดให้ดู HANDOFF/คู่มือติดตั้งของ worktree ใหม่
 >
 > เวอร์ชัน 428: เพิ่มตารางกรอกผลประเมินเพิ่มเติมแยกจากรายงาน ให้แก้รายคน/รายช่องได้ พร้อมกรอกเร็วหลายคนแบบทั้งห้อง/เฉพาะช่องว่าง; เอกสารรายงานและไฟล์พิมพ์ไม่มี footer ข้อความ ClassKru
 > เวอร์ชัน 427: ถอยตาราง ปพ.5 “ผลประเมินเพิ่มเติม/คุณลักษณะฯ” กลับเป็นรายงานผลแบบ plain table ตามรูปแบบเดิม ไม่มี select/input ในตัวกระดาษ; แผงกรอกเร็วหลายคนอยู่ด้านบนแยกจากรายงาน
@@ -358,3 +362,62 @@ git branch -f main HEAD
 - `node tests/score-report.test.cjs` ผ่าน
 - `node tests/relational-sync.test.cjs` ผ่าน
 - `git diff --check` ผ่าน
+
+---
+
+## 12. สื่อสาธิตการสอนแบบวิดีโอแนวตั้ง
+
+สถานะ ณ 19 กันยายน 2569:
+
+- สร้างสื่อสาธิตแบบเงียบ อัตราส่วน 9:16 แล้ว 6 คลิปใน `promo/tiktok/` ได้แก่ เช็กชื่อ, กรอกคะแนนด้วย QR, ตารางสอน, เครื่องมือหน้าชั้น, เกมการศึกษา และ `clip-06-molecule-builder`.
+- คลิปที่ 6 แสดงการสร้างน้ำ `H₂O` ในเกม **Molecule Builder**: เลือก H 2 อะตอมกับ O 1 อะตอม, เชื่อมพันธะเดี่ยว 2 จุด, ตรวจเวเลนซ์ และได้ข้อมูลสาร/ภารกิจต่อไป. ใช้เกมและข้อมูลจำลองเท่านั้น.
+- ไฟล์ผลิตซ้ำคือ `tools-shoot-tiktok-molecule-builder.cjs`; ต้องเปิด static server ของโครงการที่ `127.0.0.1:3500` ก่อนรัน `node tools-shoot-tiktok-molecule-builder.cjs`.
+- ผลลัพธ์อยู่ที่ `promo/tiktok/clip-06-molecule-builder/classkru-molecule-builder.mp4` เป็น H.264 ขนาด 1080×1920, 30 fps, ยาวประมาณ 7.7 วินาที. ตรวจ syntax และดูภาพตัวอย่างต้นทาง/ระหว่างสร้าง/สำเร็จแล้ว.
+
+สิ่งที่ต้องตัดสินใจก่อนทำคลิปถัดไป:
+
+1. เลือกหัวข้อเกมหรือสื่อการเรียนรู้ลำดับถัดไป เพื่อไม่ให้ซ้ำกับ 6 คลิปที่มี
+2. กำหนดช่องทางและรูปแบบเผยแพร่ (เช่น TikTok, Reels หรือใช้ในหน้าคู่มือ) ก่อนเพิ่มเสียงบรรยาย, ดนตรี หรือคำกระตุ้นให้ใช้งาน
+
+---
+
+## 13. Product design — Interactive Media Studio
+
+- เอกสารแนวคิดอยู่ที่ `docs/product/interactive-media-studio.md`; เอกสารออกแบบ MVP ต่ออยู่ที่ `docs/product/interactive-media-studio-mvp-spec.md`. ทั้งคู่เป็น **ข้อเสนอออกแบบเท่านั้น** ยังไม่อนุมัติให้สร้าง feature, migration หรือเชื่อม AI จริง.
+- MVP ที่เสนอ: pilot ม.1–ม.3, เริ่ม template `matching`, ครูนำบนจอฉายหรือให้นักเรียนลองแบบไม่เก็บข้อมูลรายบุคคล, และใช้ Source Pack จากตัวชี้วัด/ข้อความที่ครูให้.
+- สถาปัตยกรรมที่ตกลงเป็นข้อเสนอ: `brief + source pack → planner ที่คืน proposal patch → project/version → template runtime`. AI ห้ามสร้างหรือรัน HTML/JS อิสระ และทุกการแก้ draft ต้องรอครูยืนยัน.
+- `stage.html` ปัจจุบันรับ BroadcastChannel แบบ same-origin; หากต่อยอดต้องส่ง activity definition ที่ตรวจ schema แล้ว ไม่ส่ง markup จาก AI. `join-activity` ปัจจุบันรองรับคำถามเดียวต่อ session จึงไม่ควรนำตารางเดิมมาเก็บ state ของสื่อ; QR run ต้องออกแบบเป็นชั้นใหม่หลัง runtime ผ่าน pilot.
+- ก่อนเริ่มพัฒนา ให้ผู้ใช้ตัดสินใจ pilot/template, นโยบาย Source Pack และไฟล์แนบ, สิทธิ์ลิงก์เผยแพร่, ระดับ offline, และผู้รับผิดชอบความถูกต้องของเนื้อหา ตามหัวข้อ 9 ใน MVP spec.
+
+### Security note สำหรับ AI Custom Studio
+
+- เพิ่ม `docs/product/interactive-media-studio-security.md` สำหรับกรณีที่ AI สร้าง HTML/CSS/JS/asset ของสื่อใหม่จริง. ห้ามเสิร์ฟหรือรัน artifact บน origin/session เดียวกับ ClassKru หลัก.
+- แนวทางที่เสนอ: staging private → validate/scan/bundle → sandbox preview → ครู publish เป็น immutable version → media host คนละ origin + iframe `sandbox="allow-scripts"` + CSP deny-by-default.
+- Artifact เรียก API หลักไม่ได้เอง; หากจำเป็นใช้ Media SDK ผ่าน nonce + MessageChannel + capability/schema/rate limit. ห้ามส่งรายชื่อและข้อมูลผลการเรียนเข้า AI โดยค่าเริ่มต้น และ public bundle ห้ามติด Source Pack/chat/draft assets ไปด้วย.
+- ก่อนพัฒนา ต้องตัดสินใจ media host/CSP, dependency policy, scanner/bundler runtime, สิทธิ์ไฟล์และ retention, นโยบายผู้ให้บริการ AI, และ kill switch/incident owner.
+
+---
+
+## 14. Prototype — หน้าต่างสร้างสื่อการสอนกับ AI
+
+- เพิ่มรายการ “สร้างสื่อกับ AI” ในฮับเครื่องมือช่วยสอน (`js/tools.js`) แล้วเปิดหน้าต่าง co-creation workspace ได้จากหน้าเครื่องมือทั้ง desktop และ mobile.
+- Prototype มีแผนสื่อฝั่งซ้าย, แชตผู้ช่วยออกแบบฝั่งขวา, ทางเลือก `สื่อจับคู่ / เกมตอบคำถาม / แบบจำลองปรับค่า`, การปรับแผนตามทางเลือก, การส่งข้อความจำลอง และ preview ขนาดเล็ก.
+- หน้าต่างระบุชัดว่า **ยังไม่ส่งข้อความไป AI และไม่บันทึกข้อมูลหรือไฟล์**; ไม่มี API, Source Pack, Storage, database หรือการเผยแพร่จริงในรอบนี้.
+- CSS อยู่ใน `css/08-responsive-toast.css`; layout desktop เป็นสองคอลัมน์และ mobile เรียงเป็นแผงเลื่อนแนวตั้ง. Asset version ปัจจุบันเป็น `450`.
+- ตรวจ `node --check js/tools.js`, `git diff --check`, และ browser QA ที่ 1440×900 / 390×844: เปิด dialog, เลือกเกมตอบคำถาม, ส่งข้อความ, preview และ responsive layout ผ่าน.
+- ปรับ Prototype ด้วยสถานการณ์ตัวอย่าง “พลังงานศักย์–พลังงานจลน์” สำหรับวิทยาศาสตร์ ม.2: เปิดมาเห็นโจทย์ของครูและ AI เสนอ `รางรถไฟพลังงาน / นักออกแบบสเก็ตพาร์ก / ห้องทดลองลูกบอล` (แนะนำ) แล้วครูเลือกแนวทางเพื่อให้แผนด้านซ้ายและข้อความตอบกลับเปลี่ยนตาม. มีปุ่มต่อยอดเรื่องตัวแปร, ภารกิจ, และระดับ ม.2 ก่อนดูร่างสื่อ.
+- Browser QA ล่าสุดตรวจบทสนทนาเริ่มต้น 2 ข้อความ, กดคำถามต่อยอด + เลือกแนวคิด + ดูร่างสื่อแล้วได้ 6 ข้อความและแผนเปลี่ยนตาม, ไม่มี horizontal overflow ที่ desktop/mobile. บนมือถือจะโฟกัสปุ่มปิดแทนช่องพิมพ์ เพื่อให้เริ่มเห็นหัวข้อและต้นบทสนทนา ไม่ถูกเลื่อนไปท้ายหน้าจอทันที.
+- เพิ่มเส้นกรอบ/พื้นหลังแยกส่วนให้เห็นลำดับชัดขึ้น: เป้าหมายและบริบท, รายการแผนสื่อ, กล่องบทสนทนา, กล่องไอเดียเริ่มต้น, กล่องคำถามต่อยอด และช่องพิมพ์. เปลี่ยนการโฟกัสเริ่มต้นเป็นปุ่มปิดทุกขนาดหน้าจอ เพื่อเปิดมาเห็นหัวข้อและบทสนทนาตั้งแต่ต้น.
+- เปลี่ยนจาก Prototype เป็น AI planner ที่เรียก API จริง: `api/media-studio/plan.js` ต้องตรวจ Supabase access token ก่อน, จำกัด best-effort 8 คำขอต่อครูต่อ 60 วินาที, ส่ง OpenAI เฉพาะข้อความครู/ประวัติย่อ/วิชา-ห้อง-เวลา (ไม่มีรายชื่อนักเรียน), ใช้ Responses Structured Outputs + `store: false`, แล้วคืนข้อความและร่างสื่อ 1–3 แนวทาง. ครูกด “ยืนยันใช้ร่างนี้” เอง; รอบนี้ยังไม่บันทึกบทสนทนา ไม่สร้างเกม และไม่เผยแพร่สื่อ.
+- หน้าเว็บ `js/tools.js` เริ่มจากช่องข้อความว่าง ไม่ใช้ร่างพลังงาน hard-code แล้ว; plan ด้านซ้ายเป็นข้อเสนอจาก API และแสดงแนวคิด/เวลา/สิ่งที่เด็กเห็น/ตัวแปร/ภารกิจ/สถานะ Source Pack. เอกสารตั้งค่าอยู่ที่ `docs/product/interactive-media-studio-api-setup.md`.
+- ต้องตั้ง `OPENAI_API_KEY` ใน Vercel ก่อนใช้งานจริง (เครื่องและ repo ไม่มี key ณ เวลาพัฒนา); optional `OPENAI_MEDIA_STUDIO_MODEL=gpt-5.6-luna`. `python -m http.server` ไม่รัน Vercel Function จึงทดสอบ API local ต้องใช้ `vercel dev` หลังตั้ง key.
+- ตรวจ `node --check api/_lib/supabase-user.js api/media-studio/plan.js js/tools.js`, `node tests/media-studio-plan.test.cjs`, `node tests/navigation-shell.test.cjs`, `git diff --check`, และ UI QA ด้วย API mock: ส่งข้อความ → รับร่าง → เลือก → ยืนยัน, ไม่มี horizontal overflow.
+
+## 15. Media Studio — developer model settings
+
+- ย้ายทางเข้าใช้งานสื่อให้เหลือแท็บหลัก `AI ช่วยสร้างสื่อ`; เอาปุ่มทางลัดบนหน้าแรกและการ์ดสร้างสื่อในฮับเครื่องมือออกตามภาพอ้างอิง.
+- เพิ่มแท็บ `ตั้งค่า AI` ใน Developer Console สำหรับ API key และการเลือกโมเดลแยกงานวางแผน/สนทนากับงานสร้างสื่อ. รายชื่อโมเดลดึงจากบัญชี OpenAI และ API ใช้ค่าที่บันทึกโดยไม่ต้อง deploy ใหม่.
+- คีย์ถูกเข้ารหัส AES-256-GCM ก่อนบันทึกใน `developer_ai_settings`; ต้องตั้ง `DEV_CONFIG_ENCRYPTION_KEY` (สุ่มอย่างน้อย 32 ตัวอักษร) และรัน `supabase/migrations/202609290001_media_ai_settings.sql` ก่อนเปิดใช้.
+- สื่อของครูยังเก็บในตาราง Media Studio ที่ผูก `teacher_id` และมี RLS จาก migration `202609190001_media_studio.sql`.
+- ยังไม่ได้ deploy หรือรัน migration ใน Supabase. โมเดลที่เลือกต้องรองรับ Responses API และ JSON Schema; catalog ของบัญชีอาจแสดงโมเดลที่ไม่รองรับ.
+- ตรวจ syntax ของไฟล์ JavaScript ที่แก้และ `git diff --check`; ไม่ได้รัน test suite หรือทดสอบ UI ตามคำขอรอบนี้.

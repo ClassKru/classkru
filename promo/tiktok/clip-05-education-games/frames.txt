@@ -1,0 +1,11 @@
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-05-education-games/frames/frame-00.png'
+duration 1.45
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-05-education-games/frames/frame-01.png'
+duration 1.35
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-05-education-games/frames/frame-02.png'
+duration 1.55
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-05-education-games/frames/frame-03.png'
+duration 1.5
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-05-education-games/frames/frame-04.png'
+duration 1.65
+file 'C:/Users/USER/ClassKru/promo/tiktok/clip-05-education-games/frames/frame-04.png'

@@ -19,6 +19,7 @@ async function selectRows(table, options = {}) {
   query.set('select', options.select || '*');
   if (options.order) query.set('order', options.order);
   if (options.limit) query.set('limit', String(options.limit));
+  Object.entries(options.filters || {}).forEach(([column, value]) => query.set(column, String(value)));
   const headers = { apikey: key };
   if (!key.startsWith('sb_secret_')) headers.Authorization = `Bearer ${key}`;
   const response = await fetch(`${url}/rest/v1/${table}?${query.toString()}`, { headers });
@@ -33,7 +34,7 @@ async function selectRows(table, options = {}) {
 async function mutateRows(table, method, options = {}) {
   const { url, key } = configuration();
   const query = new URLSearchParams(options.query || {});
-  const headers = { apikey: key, 'Content-Type': 'application/json', Prefer: 'return=representation' };
+  const headers = { apikey: key, 'Content-Type': 'application/json', Prefer: options.prefer || 'return=representation' };
   if (!key.startsWith('sb_secret_')) headers.Authorization = `Bearer ${key}`;
   const response = await fetch(`${url}/rest/v1/${table}?${query.toString()}`, {
     method,

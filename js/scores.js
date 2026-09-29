@@ -31,6 +31,13 @@ const SCORE_TYPES = [
 ];
 
 const SCORE_GRADES = ['4', '3.5', '3', '2.5', '2', '1.5', '1', '0'];
+// Preview-only access while the curriculum, report, and ปพ.5 workspaces are in development.
+// This controls the client UI only; it must not be used as a data-security boundary.
+const SCORE_PREVIEW_EMAILS = new Set(['petch.0231@gmail.com']);
+function canAccessScorePreview() {
+  const email = String(localStorage.getItem('classmanager_email') || '').trim().toLowerCase();
+  return SCORE_PREVIEW_EMAILS.has(email);
+}
 let scoreWorkspaceMode = 'overview';
 let quickScoreItemId = null;
 let scoreCurriculumFilters = {
@@ -170,11 +177,12 @@ function viewClassScores(classId) {
 }
 
 function scoreWorkTabsHtml(c) {
+  const previewAccess = canAccessScorePreview();
   const tabs = [
     { key: 'overview', label: 'คะแนน', icon: 'hgi-table' },
-    { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01', locked: true },
-    { key: 'report', label: 'รายงานผล', icon: 'hgi-table', locked: true },
-    { key: 'pp5', label: 'ปพ.5', icon: 'hgi-book-open-01', locked: true }
+    { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01', locked: !previewAccess },
+    { key: 'report', label: 'รายงานผล', icon: 'hgi-table', locked: !previewAccess },
+    { key: 'pp5', label: 'ปพ.5', icon: 'hgi-book-open-01', locked: !previewAccess }
   ];
   return `<div class="score-worktabs">${tabs.map(t => `
     <button class="score-worktab${scoreWorkspaceMode === t.key ? ' active' : ''}${t.locked ? ' is-locked' : ''}" ${t.locked ? 'type="button" disabled aria-disabled="true" title="เตรียมเปิดใช้งานเร็ว ๆ นี้"' : `onclick="setScoreWorkspaceMode('${t.key}','${c.id}')"`}>
@@ -184,7 +192,7 @@ function scoreWorkTabsHtml(c) {
 }
 
 function setScoreWorkspaceMode(mode, classId) {
-  if (['curriculum', 'report', 'pp5'].includes(mode)) {
+  if (['curriculum', 'report', 'pp5'].includes(mode) && !canAccessScorePreview()) {
     scoreWorkspaceMode = 'overview';
     showToast('เตรียมเปิดใช้งานเร็ว ๆ นี้ ใช้หน้าคะแนนหลักได้ตามปกติ', 'info');
     const c = appState.classes.find(x => x.id === classId);
@@ -201,7 +209,7 @@ function setScoreWorkspaceMode(mode, classId) {
 }
 
 function renderScoreWorkspace(c) {
-  if (['curriculum', 'report', 'pp5'].includes(scoreWorkspaceMode)) scoreWorkspaceMode = 'overview';
+  if (['curriculum', 'report', 'pp5'].includes(scoreWorkspaceMode) && !canAccessScorePreview()) scoreWorkspaceMode = 'overview';
   const holder = document.getElementById('score-worktab-holder');
   if (holder) holder.innerHTML = scoreWorkTabsHtml(c);
   const wrap = document.getElementById('web-scores-matrix-wrap');
