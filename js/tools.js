@@ -3,7 +3,6 @@
 // ไม่ต้องแตะโครง ฮับ render กริดจากลิสต์เอง (ดู OWNERSHIP.md — ไฟล์นี้เพิ่มเครื่องมือได้อิสระ)
 
 const TEACHING_TOOLS = [
-  { id:'media-studio',name:'คุยออกแบบสื่อกับ AI',desc:'บันทึกบทสนทนาและกลับมาปรับต่อได้',icon:'hgi-magic-wand-01',tint:'purple',status:'ready',open:()=>openInteractiveMediaStudio() },
   { id:'random-name',   name:'สุ่มรายชื่อ',  desc:'สุ่มผู้ตอบคำถาม',   icon:'hgi-shuffle',        tint:'green',  status:'ready', open: openRandomNameTool },
   { id:'random-group',  name:'สุ่มจับกลุ่ม',  desc:'แบ่งกลุ่มอัตโนมัติ', icon:'hgi-user-group',     tint:'blue',   status:'ready', open: openRandomGroupTool },
   { id:'countdown',     name:'นับถอยหลัง',   desc:'ตั้งเวลากิจกรรม',    icon:'hgi-alarm-clock',    tint:'coral',  status:'ready', open: openCountdownTool },
