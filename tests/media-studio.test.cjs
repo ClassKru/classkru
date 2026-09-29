@@ -38,8 +38,8 @@ test('AI adapter reuses OpenRouter, keeps keys server-side and fails closed on i
   process.env.OPENROUTER_API_KEY='test-router-key';process.env.OPENAI_API_KEY='test-openai-key';process.env.OPENROUTER_MEDIA_MODEL='test-model';
   let endpoint,request;
   const fetchMock=t.mock.method(globalThis,'fetch',async(url,options)=>{endpoint=url;request=JSON.parse(options.body);return {ok:true,json:async()=>({choices:[{finish_reason:'stop',message:{content:JSON.stringify(fixture)}}]})};});
-  assert.deepEqual(await ai.ask('build',{message:'สร้างเกม'}),fixture);
-  assert.equal(endpoint,'https://openrouter.ai/api/v1/chat/completions');assert.equal(request.model,'test-model');
+  assert.deepEqual(await ai.ask('build',{message:'สร้างเกม'},'developer-selected-model'),fixture);
+  assert.equal(endpoint,'https://openrouter.ai/api/v1/chat/completions');assert.equal(request.model,'developer-selected-model');
   assert.deepEqual(request.provider,{data_collection:'deny',require_parameters:true});
   assert.equal(request.response_format.type,'json_schema');assert.equal(request.response_format.json_schema.strict,true);
   assert.equal(request.response_format.json_schema.name,'teaching_artifact');assert.ok(!JSON.stringify(request).includes('test-router-key'));
@@ -59,8 +59,8 @@ test('Media Studio planner uses its dedicated key and structured brief schema',a
   process.env.OPENROUTER_MEDIA_PLANNER_API_KEY='planner-secret';process.env.OPENROUTER_MEDIA_PLANNER_MODEL='planner-model';delete process.env.OPENROUTER_API_KEY;
   let request,auth;
   const fetchMock=t.mock.method(globalThis,'fetch',async(url,options)=>{request=JSON.parse(options.body);auth=options.headers.Authorization;return {ok:true,json:async()=>({choices:[{finish_reason:'stop',message:{content:JSON.stringify({assistant_message:'เริ่มจากหัวข้อนี้ได้เลย',media_brief:{topic:'ระบบสุริยะ',audience:'',learning_message:'',media_type:'',concept:'',content_structure:'',visual_direction:'',interaction_direction:'',tone:'',constraints:[]},suggested_directions:[],open_questions:['อยากสร้างเป็นสื่อแบบไหน'],ready_to_build:false})}}]})};});
-  const result=await planner.ask({message:'ระบบสุริยะ',conversation:[],current_brief:{},selected_media_type:''});
-  assert.equal(result.media_brief.topic,'ระบบสุริยะ');assert.equal(request.model,'planner-model');assert.equal(request.response_format.json_schema.name,'media_studio_planner');assert.equal(request.response_format.json_schema.strict,true);assert.equal(auth,'Bearer planner-secret');
+  const result=await planner.ask({message:'ระบบสุริยะ',conversation:[],current_brief:{},selected_media_type:''},'developer-planner-model');
+  assert.equal(result.media_brief.topic,'ระบบสุริยะ');assert.equal(request.model,'developer-planner-model');assert.equal(request.response_format.json_schema.name,'media_studio_planner');assert.equal(request.response_format.json_schema.strict,true);assert.equal(auth,'Bearer planner-secret');
   fetchMock.mock.restore();
 });
 test('Media Studio image adapter reuses the planner key and decodes image output',async t=>{
@@ -71,8 +71,8 @@ test('Media Studio image adapter reuses the planner key and decodes image output
   process.env.OPENROUTER_MEDIA_PLANNER_API_KEY='planner-secret';delete process.env.OPENROUTER_MEDIA_IMAGE_API_KEY;process.env.OPENROUTER_MEDIA_IMAGE_MODEL='image-model';
   let request,auth;
   const fetchMock=t.mock.method(globalThis,'fetch',async(url,options)=>{request=JSON.parse(options.body);auth=options.headers.Authorization;return {ok:true,json:async()=>({data:[{b64_json:'aGVsbG8=',media_type:'image/png'}]})};});
-  const result=await image.generate({topic:'ระบบสุริยะ',concept:'โปสเตอร์การเรียนรู้'});
-  assert.deepEqual(result,{b64_json:'aGVsbG8=',mime_type:'image/png'});assert.equal(request.model,'image-model');assert.equal(request.n,1);assert.equal(auth,'Bearer planner-secret');
+  const result=await image.generate({topic:'ระบบสุริยะ',concept:'โปสเตอร์การเรียนรู้'},'developer-image-model');
+  assert.deepEqual(result,{b64_json:'aGVsbG8=',mime_type:'image/png'});assert.equal(request.model,'developer-image-model');assert.equal(request.n,1);assert.equal(auth,'Bearer planner-secret');
   fetchMock.mock.restore();
 });
 test('HTTP rejects unauthenticated requests and cross-origin writes',async()=>{

@@ -17,14 +17,14 @@ HTML อนุญาต div span p h1-h4 section article header footer main asid
 สูตรวิทยาศาสตร์ต้องสอดคล้อง กำหนดช่วงตัวแปรไม่หารศูนย์ หากจำลองแบบง่ายบอกข้อสมมติในเกม
 เมื่อแก้ไขให้รักษาแนวคิดเดิมตามที่ครูต้องการและส่งไฟล์ทั้งชุดใหม่ จำกัด html 20000 ตัวอักษร css 10000 js 28000 ใส่ summary อธิบายสิ่งที่สร้างและจุดที่ครูควรตรวจ
 อ่าน preferred_media_type ในข้อมูลที่ได้รับเสมอ: image คือสื่อภาพแบบ static เช่น โปสเตอร์ อินโฟกราฟิก ใบงาน หรือแผนภาพ โดยใช้ HTML/CSS/inline SVG เท่านั้น ไม่เรียก image API และไม่อ้างว่าเป็นไฟล์ PNG/JPG; js ของ image ส่งเป็น string ว่างได้. motion คือ animation ขนาดเล็ก มี play/restart เพียงหนึ่งจุด. game คือกิจกรรมโต้ตอบขนาดเล็ก มีกติกาหลักเดียว 3-5 รายการ feedback และ restart. ทุกแบบต้องกระชับเพื่อให้ JSON จบครบ ห้ามใช้ asset ภายนอกหรือเสียง/ภาพจาก network`;
-async function ask(kind, data) {
+async function ask(kind, data, modelOverride) {
   if (process.env.OPENROUTER_API_KEY) {
     const schema=kind==='build'?artifactSchema:planSchema;
     const instructions=kind==='build'?buildInstructions:`${common}\nคุณกำลังคุยในพื้นที่ร่วมออกแบบ ไม่ใช่รับคำสั่งสร้างโค้ดทันที เริ่ม assistant_message ด้วยการสรุปความตั้งใจของครูอย่างเห็นอกเห็นใจ ระบุ “สมมติฐานที่ใช้” เมื่อข้อมูลระดับชั้น เวลา หรืออุปกรณ์ยังไม่ครบ หากโจทย์กว้าง เสนอทางเลือกกิจกรรม 2–3 ทางที่ตั้งชื่อชัดเจน พร้อมเหตุผลสั้น ๆ และแนะนำ 1 ทางที่เหมาะที่สุด อย่าถามหลายคำถามในย่อหน้าเดียว คำถามสำคัญให้ใส่ใน next_questions เพื่อแสดงเป็นปุ่ม ครูสามารถข้ามคำถามได้\nกรอกร่างแผนที่เหมาะที่สุดในช่องอื่น: objective คือสิ่งที่ผู้เรียนทำได้, observation คือสิ่งที่ผู้เรียนเห็นหรือสังเกต, variables คือสิ่งที่ปรับได้, mission คือภารกิจที่ตรวจความเข้าใจได้ ตัวแปรไม่เกิน 5 ตัว คำถามต่อไม่เกิน 3 ข้อ ห้ามอ้างว่าสร้างสื่อเสร็จแล้ว`;
     const response=await fetch('https://openrouter.ai/api/v1/chat/completions',{
       method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${process.env.OPENROUTER_API_KEY}`,'HTTP-Referer':process.env.OPENROUTER_SITE_URL||process.env.CLASSKRU_APP_ORIGIN||'https://classkru-kohl.vercel.app','X-Title':'ClassKru'},
       signal:AbortSignal.timeout(kind==='build'?170000:60000),
-      body:JSON.stringify({model:process.env.OPENROUTER_MEDIA_MODEL||process.env.OPENROUTER_MODEL||'qwen/qwen3-30b-a3b-instruct-2507',temperature:0.25,max_tokens:kind==='build'?14000:2500,
+      body:JSON.stringify({model:modelOverride||process.env.OPENROUTER_MEDIA_MODEL||process.env.OPENROUTER_MODEL||'qwen/qwen3-30b-a3b-instruct-2507',temperature:0.25,max_tokens:kind==='build'?14000:2500,
         provider:{data_collection:'deny',require_parameters:true},
         response_format:{type:'json_schema',json_schema:{name:kind==='build'?'teaching_artifact':'teaching_plan',strict:true,schema}},
         messages:[{role:'system',content:instructions+'\nคืน JSON ล้วนตาม schema นี้: '+JSON.stringify(schema)},{role:'user',content:JSON.stringify(data)}]})

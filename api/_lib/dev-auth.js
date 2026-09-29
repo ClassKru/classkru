@@ -34,7 +34,7 @@ function sign(payload) {
 
 function createSessionToken() {
   const payload = encode(JSON.stringify({
-    scope: 'classkru:developer:read',
+    scope: 'classkru:developer:manage',
     exp: Math.floor(Date.now() / 1000) + SESSION_SECONDS,
     nonce: crypto.randomBytes(12).toString('hex')
   }));
@@ -58,7 +58,7 @@ function verifySession(req) {
   if (!payload || !signature || !safeEqual(signature, sign(payload))) return { ok: false, reason: 'invalid' };
   try {
     const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    if (claims.scope !== 'classkru:developer:read' || claims.exp <= Math.floor(Date.now() / 1000)) {
+    if (claims.scope !== 'classkru:developer:manage' || claims.exp <= Math.floor(Date.now() / 1000)) {
       return { ok: false, reason: 'expired' };
     }
     return { ok: true, claims };

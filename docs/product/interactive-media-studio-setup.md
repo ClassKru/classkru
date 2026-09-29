@@ -68,6 +68,10 @@ Node.js 24.x, ใช้ package-lock, Fluid Compute และ function `api/medi
 | `CLASSKRU_APP_ORIGIN` | origin เว็บหลัก |
 | `MEDIA_ORIGIN` | origin เว็บเปิดสื่อจากข้อ 3 ต้องต่างจากเว็บหลัก |
 
+### 1.1 การเลือกโมเดลสำหรับ Media Studio
+
+รัน migration `supabase/migrations/202609290001_media_ai_model_settings.sql` ใน Supabase ของ ClassKru หนึ่งครั้ง แล้วผู้พัฒนาล็อกอินที่ `/developer/` → **ตั้งค่า AI Media Studio** เพื่อเลือก Planner, Builder และ Image Builder จาก OpenRouter catalog ได้โดยไม่ต้อง redeploy. ตารางนี้ไม่เก็บ API key และ RLS ไม่อนุญาต `anon` หรือ `authenticated`; เฉพาะ server ที่ใช้ Supabase service role อ่านค่าก่อนเริ่มงานใหม่เท่านั้น. งานที่เข้าคิวหรือเสร็จแล้วไม่ถูกแก้ย้อนหลัง.
+
 สร้างกุญแจเข้ารหัสครั้งเดียวบนเครื่องที่เชื่อถือ แล้วนำไปตั้งใน Vercel Environment Variables:
 
 ```powershell

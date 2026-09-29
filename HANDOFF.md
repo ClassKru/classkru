@@ -2,6 +2,8 @@
 
 > อัปเดตล่าสุด: 22 กันยายน 2569
 >
+> **29 ก.ย. 2569 — เลือกโมเดลจาก Developer Console:** เพิ่มแท็บ “ตั้งค่า AI Media Studio” ที่ `/developer/` หลังล็อกอินด้วย Developer session ผู้พัฒนาเลือกโมเดลแยก Planner, Builder (สื่อเคลื่อนไหว/เกม) และ Image Builder ได้จาก OpenRouter catalog; server ตรวจประเภทโมเดลซ้ำก่อนบันทึก และงานใหม่อ่านค่าเดียวกันจาก Supabase table `media_ai_model_settings` โดย API key ยังอยู่เฉพาะ Vercel. ต้องรัน migration `supabase/migrations/202609290001_media_ai_model_settings.sql` ใน Supabase ClassKru ก่อนกดบันทึก; RLS ปิด browser ทั้งหมดและอนุญาตเฉพาะ service role. session Developer เดิมถูก invalidate เพื่อยกระดับ scope เป็น `classkru:developer:manage` ให้ล็อกอินใหม่. MiniLab และ DOAI ไม่ถูกแก้ไข.
+>
 > **29 ก.ย. 2569 — แก้ทางเข้า Media Studio ให้สอดคล้องกับ feature flag จริง:** เอา guard `window.MEDIA_STUDIO_ENABLED` ฝั่ง browser ออก เพราะ ClassKru ไม่มีจุดใดกำหนดค่านี้ ทำให้หน้าเว็บปฏิเสธการเปิด Studio เสมอแม้ API ถูกเปิดแล้ว; คง `MEDIA_STUDIO_ENABLED` ที่ API เป็นด่านควบคุมฝั่ง server ตามเดิม และเพิ่ม Browser QA ที่ไม่ inject global ดังกล่าว. **ยังไม่เปิด Production** จนตรวจ AI/Storage/access control จริงตาม checklist ข้อ 4 และตั้ง env ใน Vercel ClassKru; ห้าม deploy Production ด้วย CLI.
 >
 > **25 ก.ย. 2569 — ปิด Media Studio ชั่วคราว:** ซ่อนทางเข้า “คุยออกแบบสื่อกับ AI” จากเครื่องมือ/คลัง และเปลี่ยนปุ่มหน้าหลักให้เปิดคลังสื่อปกติแทน; API `/api/media-studio` ปิดเป็นค่าเริ่มต้นด้วย `MEDIA_STUDIO_ENABLED=false` (ตอบ `media_studio_paused`) จึงไม่สามารถข้าม UI เพื่อเรียก AI, สร้างงาน, preview หรือ publish ได้. งานและข้อมูลเดิมไม่ถูกลบ และลิงก์สื่อที่เผยแพร่แล้วบน media host ยังทำงานตามเดิม. เมื่อต้องการเปิดใหม่ ให้ตั้ง `MEDIA_STUDIO_ENABLED=true` ใน Vercel ของแอปหลัก แล้ว deploy หลังตรวจ AI/Storage/RLS จริงอีกครั้ง.

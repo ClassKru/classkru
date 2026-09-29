@@ -9,6 +9,7 @@
   <title>ClassKru Developer Console</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="roadmap.css">
+  <link rel="stylesheet" href="media-models.css">
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -49,6 +50,7 @@
         <button class="nav-button" type="button" data-view="roadmap">Roadmap</button>
         <button class="nav-button" type="button" data-view="database">ข้อมูลในฐานข้อมูล</button>
         <button class="nav-button" type="button" data-view="billing">สมาชิกและการชำระเงิน</button>
+        <button class="nav-button" type="button" data-view="media-models">ตั้งค่า AI Media Studio</button>
       </nav>
 
       <div id="global-status" class="global-status" role="status" aria-live="polite"></div>
@@ -102,6 +104,24 @@
         <div id="billing-sales-table" class="table-shell database-table"></div>
         <h3>สมาชิกทั้งหมด</h3>
         <div id="billing-table" class="table-shell database-table"></div>
+      </section>
+
+      <section id="view-media-models" class="workspace-view" aria-labelledby="media-models-title">
+        <div class="section-heading"><div><p class="eyebrow">MEDIA STUDIO · AI ROUTING</p><h2 id="media-models-title">ตั้งค่าโมเดล AI</h2></div><p id="media-models-updated">กำลังโหลดการตั้งค่า…</p></div>
+        <p class="database-note">เลือกโมเดลแยกตามหน้าที่ การเปลี่ยนแปลงบันทึกใน Supabase และมีผลกับงานที่เริ่มหลังจากนี้ทันที ไม่แสดงหรือแก้ไข API key ในหน้านี้ เกมและสื่อเคลื่อนไหวใช้ Builder สร้าง HTML/CSS/JS ส่วนสื่อภาพใช้ Image Generation API</p>
+        <form id="media-models-form" class="media-models-form">
+          <div class="media-model-controls">
+            <label for="media-model-catalog-kind">แสดงรายการโมเดล<select id="media-model-catalog-kind"><option value="text">โมเดลข้อความ (Planner / Builder)</option><option value="image">โมเดลสร้างภาพ</option></select></label>
+            <label for="media-model-search">ค้นหาโมเดล<input id="media-model-search" type="search" maxlength="100" placeholder="ชื่อหรือรหัสโมเดล"></label>
+            <button id="media-model-refresh" class="secondary-button" type="button">โหลดรายการโมเดล</button>
+          </div>
+          <div class="media-model-grid">
+            <label for="media-planner-model">Planner · วางแผนและสรุป Brief<select id="media-planner-model" required></select><small>ใช้โมเดลข้อความที่รองรับ structured JSON</small></label>
+            <label for="media-builder-model">Builder · สร้างสื่อเคลื่อนไหวและเกม<select id="media-builder-model" required></select><small>ใช้โมเดลข้อความที่รองรับ structured JSON</small></label>
+            <label for="media-image-model">Image Builder · สื่อภาพ<select id="media-image-model" required></select><small>ใช้โมเดลที่รองรับการสร้างภาพผ่าน OpenRouter</small></label>
+          </div>
+          <div class="media-model-actions"><span id="media-model-save-status" role="status" aria-live="polite"></span><button id="media-model-save" class="primary-button" type="submit">บันทึกการตั้งค่า</button></div>
+        </form>
       </section>
 
       <section id="view-database" class="workspace-view" aria-labelledby="database-title">

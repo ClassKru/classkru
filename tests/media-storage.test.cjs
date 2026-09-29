@@ -76,7 +76,10 @@ test('Storage-only chat/build/reopen/version/share/revoke/archive flow keeps ten
   const preview=await service.issueLink(a,p.id,build.id,'preview'),previewToken=new URL(preview.url).searchParams.get('token');
   const real=Date.now();t.mock.method(Date,'now',()=>real+16*60000);
   await assert.rejects(service.publicArtifact(previewToken),{code:'not_found'});
-  assert.ok(f.calls.every(c=>!c.path.includes('/rest/')));
+  // Teacher work stays in encrypted Storage. The only SQL request is the
+  // developer-controlled global model selector introduced after this flow.
+  const relationalCalls=f.calls.filter(c=>c.path.includes('/rest/'));
+  assert.ok(relationalCalls.every(c=>c.path==='/rest/v1/media_ai_model_settings'));
 });
 test('same request from simultaneous tabs creates at most one job; run claims once',async t=>{
   fixture(t);const calls=providers(t),owner=uuid(),p=await service.create(owner,'test',{}),request=uuid();

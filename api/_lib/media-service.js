@@ -6,6 +6,7 @@ const leases=require('./media-lease');
 const ai=require('./media-ai');
 const plannerAi=require('./media-planner-ai');
 const imageAi=require('./media-image-ai');
+const modelSettings=require('./media-model-settings');
 const artifactTools=require('./media-artifact');
 function text(value,max) { return String(value||'').trim().slice(0,max); }
 function context(value={}) { return {subject:text(value?.subject,100),classroom:text(value?.classroom,100),goal:text(value?.goal,800),duration_minutes:Math.max(3,Math.min(180,Number(value?.duration_minutes)||15))}; }
@@ -126,9 +127,10 @@ async function run(teacher,projectId,jobId) {
     const current=await state(teacher,p.id);
     if(current.project.archived||current.project.share_epoch!==job.share_epoch) throw db.fail('project_archived');
     const input={message:job.prompt_override||job.message,preferred_media_type:mediaType(job.media_type),context:context(p.context),plan:current.project.plan,recent_conversation:current.turns.slice(-12).map(t=>({role:t.role,text:t.message.slice(0,3000)}))};
+    const selectedModels=await modelSettings.get();
     let message,plan=null,version=null;
     if(job.kind==='plan') {
-      const raw=await plannerAi.ask(input),brief=raw?.media_brief;
+      const raw=await plannerAi.ask(input,selectedModels.planner_model),brief=raw?.media_brief;
       if(!raw||typeof raw.assistant_message!=='string'||!brief||!['topic','audience','learning_message','media_type','concept','content_structure','visual_direction','interaction_direction','tone'].every(k=>typeof brief[k]==='string')||!['image','motion','game',''].includes(brief.media_type)||!Array.isArray(brief.constraints)||!Array.isArray(raw.suggested_directions)||!Array.isArray(raw.open_questions)||typeof raw.ready_to_build!=='boolean') throw db.fail('ai_invalid_response',502);
       const constraints=brief.constraints.slice(0,8).map(x=>text(x,300)),openQuestions=raw.open_questions.slice(0,3).map(x=>text(x,300));
       const chosenMediaType=brief.media_type||mediaType(input.preferred_media_type);
@@ -138,7 +140,7 @@ async function run(teacher,projectId,jobId) {
       message=text(raw.assistant_message,6000);
     } else if(job.kind==='image') {
       const brief=current.project.plan?.media_brief||current.project.plan||{};
-      const image=await imageAi.generate({...brief,topic:brief.topic||current.project.title,prompt_override:job.prompt_override||job.image_prompt});
+      const image=await imageAi.generate({...brief,topic:brief.topic||current.project.title,prompt_override:job.prompt_override||job.image_prompt},selectedModels.image_model);
       const storage_path=`${base(teacher)}/artifacts/image/${name}`;
       await db.put(storage_path,image);
       const digest=crypto.createHash('sha256').update(image.b64_json).digest('hex');
@@ -146,7 +148,7 @@ async function run(teacher,projectId,jobId) {
       message=`สร้างภาพ “${version.title}” แล้ว`;
     } else {
       if(current.versions[0]) input.previous_artifact=await db.get(current.versions[0].storage_path);
-      const artifact=artifactTools.validateArtifact(await ai.ask('build',input));
+      const artifact=artifactTools.validateArtifact(await ai.ask('build',input,selectedModels.builder_model));
       const review=await require('./media-check').checkInBrowser(artifact),storage_path=`${base(teacher)}/artifacts/${name}`;
       await db.put(storage_path,artifact);
       version={id:job.id,project_id:p.id,title:artifact.title,summary:artifact.summary,storage_path,sha256:artifactTools.hash(artifact),review,created_at:now()};
