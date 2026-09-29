@@ -47,7 +47,7 @@ async function main(){
     assert.equal(await page.$$eval('[data-media-type]',elements=>elements.length),3);
     assert.equal(await page.$$eval('[data-starter]',elements=>elements.length),4);
     assert.equal(await page.$$eval('.ms-message',elements=>elements.length),0);
-    assert.equal(await page.$eval('#ms-input',element=>element.getAttribute('placeholder')),'เล่าสิ่งที่อยากทำได้เลย ไม่ต้องเขียนเป็นคำสั่ง');
+    assert.equal(await page.$eval('#ms-input',element=>element.getAttribute('placeholder')),'วันนี้อยากให้นักเรียนเรียนรู้อะไร?');
     assert.equal(await page.$eval('#ms-ai-help',element=>!element.hidden),true);
     await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'true');await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'false');
     await page.click('[data-starter="topic"]');assert.equal(await page.$eval('#ms-input',element=>element.placeholder),'กำลังจะสอนเรื่องอะไรครับ?');
