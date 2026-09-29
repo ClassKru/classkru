@@ -2,7 +2,7 @@
 
 > อัปเดตล่าสุด: 22 กันยายน 2569
 >
-> **29 ก.ย. 2569 — เปิดใช้งาน Production:** ส่งชุด Media Studio ที่ผ่าน `npm.cmd run test:media` (23/23) และ Browser QA เข้า `main` แบบ fast-forward ที่ commit `039929e` แล้ว. ตรวจ Vercel Production พบ OpenRouter, Storage, Supabase และ media origin ครบ; ตั้ง `MEDIA_STUDIO_ENABLED=true` แล้ว. Commit สถานะนี้ต้องถูก push เข้า `main` เพื่อให้ Vercel สร้าง deployment ใหม่ที่รับค่า flag จาก Production; หลัง Vercel Ready ให้ตรวจ HTML asset version, `/api/media-studio/plan` ใน session ครูจริง และการเข้าใช้งานจากคลังสื่อการสอน.
+> **29 ก.ย. 2569 — เปิดใช้งาน Production:** ส่งชุด Media Studio ที่ผ่าน `npm.cmd run test:media` (23/23) และ Browser QA เข้า `main` แบบ fast-forward ที่ commit `039929e` แล้ว. ตรวจ Vercel Production พบ OpenRouter, Storage, Supabase และ media origin ครบ; ตั้ง `MEDIA_STUDIO_ENABLED=true` แล้ว. Deployment `classkru-44zugybjo-classkru-dev.vercel.app` ขึ้น Ready และผูกกับ `https://classkru-kohl.vercel.app`; หน้าเว็บตอบ HTTP 200 พร้อม `js/media-studio.js?v=500`. Endpoint `/api/media-studio` ปฏิเสธคำขอไม่มี session ด้วย `401 authentication_required` ตามขอบเขตสิทธิ์. การสร้าง/เผยแพร่สื่อด้วยบัญชีครูจริงยังต้องทำ E2E ใน browser ที่ล็อกอินเท่านั้น.
 >
 > **29 ก.ย. 2569 — ทางเข้าครูใน ClassKru:** เพิ่มการ์ด “AI ช่วยสร้างสื่อ → ออกแบบสื่อกับ AI” ใน คลังสื่อการสอน (`js/content-library.js`) ให้กดเปิด Media Studio ได้จากหน้าใช้งานปกติของครู; ไม่คืนปุ่ม “สื่อสำหรับคาบนี้” หรือการ์ดบทสนทนาเก่าที่ผู้ใช้ขอให้นำออก. commit `2c5b7c8` ผ่าน `npm.cmd run test:media` 23/23 และ Browser QA แล้ว; Preview `https://classkru-kjvp6azq4-classkru-dev.vercel.app` Ready โดย alias branch เดิม.
 >
