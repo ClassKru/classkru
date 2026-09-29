@@ -2,6 +2,8 @@
 
 > อัปเดตล่าสุด: 22 กันยายน 2569
 >
+> **29 ก.ย. 2569 — แก้ทางเข้า Media Studio ให้สอดคล้องกับ feature flag จริง:** เอา guard `window.MEDIA_STUDIO_ENABLED` ฝั่ง browser ออก เพราะ ClassKru ไม่มีจุดใดกำหนดค่านี้ ทำให้หน้าเว็บปฏิเสธการเปิด Studio เสมอแม้ API ถูกเปิดแล้ว; คง `MEDIA_STUDIO_ENABLED` ที่ API เป็นด่านควบคุมฝั่ง server ตามเดิม และเพิ่ม Browser QA ที่ไม่ inject global ดังกล่าว. **ยังไม่เปิด Production** จนตรวจ AI/Storage/access control จริงตาม checklist ข้อ 4 และตั้ง env ใน Vercel ClassKru; ห้าม deploy Production ด้วย CLI.
+>
 > **25 ก.ย. 2569 — ปิด Media Studio ชั่วคราว:** ซ่อนทางเข้า “คุยออกแบบสื่อกับ AI” จากเครื่องมือ/คลัง และเปลี่ยนปุ่มหน้าหลักให้เปิดคลังสื่อปกติแทน; API `/api/media-studio` ปิดเป็นค่าเริ่มต้นด้วย `MEDIA_STUDIO_ENABLED=false` (ตอบ `media_studio_paused`) จึงไม่สามารถข้าม UI เพื่อเรียก AI, สร้างงาน, preview หรือ publish ได้. งานและข้อมูลเดิมไม่ถูกลบ และลิงก์สื่อที่เผยแพร่แล้วบน media host ยังทำงานตามเดิม. เมื่อต้องการเปิดใหม่ ให้ตั้ง `MEDIA_STUDIO_ENABLED=true` ใน Vercel ของแอปหลัก แล้ว deploy หลังตรวจ AI/Storage/RLS จริงอีกครั้ง.
 >
 > **งานที่กำลังส่งขึ้นเว็บหลัก: AI Interactive Media Studio — Storage-only JSON** บน `feature/media-studio-live`, workspace `C:\Users\USER\ClassKru\_worktrees\media-studio-live` เท่านั้น ห้าม push ต้นแบบ/งานอื่นที่ค้างในโฟลเดอร์หลักทับ branch นี้

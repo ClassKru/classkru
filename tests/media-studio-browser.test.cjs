@@ -27,14 +27,14 @@ async function mockApi(req,res){
     if(failNext){current.jobs[0].status='failed';current.jobs[0].error_code='ai_request_failed';data={started:true,status:'failed'};return res.status(200).json(data);}
     current.jobs[0].status='succeeded';
     current.turns.push({role:'assistant',message:'ให้เด็กปรับความสูงและสังเกตความเร็ว'});
-    current.project.plan={title:'ห้องทดลองพลังงาน',objective:'อธิบายการเปลี่ยนรูปพลังงาน',observation:'ความสูงลด ความเร็วเพิ่ม',variables:['ความสูง'],mission:'ทำนายก่อนทดลอง',next_questions:['เพิ่มแรงเสียดทานไหม?']};
+    current.project.plan={topic:'ห้องทดลองพลังงาน',audience:'นักเรียน',learning_message:'ความสูงลด ความเร็วเพิ่ม',concept:'อธิบายการเปลี่ยนรูปพลังงาน',media_type:'game',interaction_direction:'ทำนายก่อนทดลอง',open_questions:['เพิ่มแรงเสียดทานไหม?'],next_questions:['เพิ่มแรงเสียดทานไหม?']};
     data={started:true,status:'succeeded'};
   } else throw new Error('Unexpected action '+action);
   res.status(200).json(data);
 }
 async function main(){
   if(!process.env.MEDIA_BROWSER_EXECUTABLE&&process.platform==='win32')process.env.MEDIA_BROWSER_EXECUTABLE='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-  const harness=`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/css/01-base-layout.css"><link rel="stylesheet" href="/css/media-studio.css"></head><body><button onclick="openInteractiveMediaStudio()">เปิด Studio</button><script>window.MEDIA_STUDIO_ENABLED=true;const supabaseClient={auth:{getSession:async()=>({data:{session:{access_token:'test-session',user:{id:'teacher'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}};</script><script src="/js/media-studio.js"></script></body></html>`;
+  const harness=`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/css/01-base-layout.css"><link rel="stylesheet" href="/css/media-studio.css"></head><body><button onclick="openInteractiveMediaStudio()">เปิด Studio</button><script>const supabaseClient={auth:{getSession:async()=>({data:{session:{access_token:'test-session',user:{id:'teacher'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}};</script><script src="/js/media-studio.js"></script></body></html>`;
   const app=createServer({harness,handler:mockApi});
   await new Promise(resolve=>app.listen(0,'127.0.0.1',resolve));
   const appOrigin=`http://127.0.0.1:${app.address().port}`;
