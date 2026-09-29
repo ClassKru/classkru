@@ -35,6 +35,8 @@
   <link rel="stylesheet" href="css/media-studio.css?v=502">
   <link rel="stylesheet" href="css/13-content-library.css?v=502">
   <link rel="stylesheet" href="css/15-subscription.css?v=502">
+  <style id="hide-interactive-media-ui">#content-library-root .cl-create-card[data-create-action="interactive"]{display:none!important}</style>
+  <link rel="stylesheet" href="css/15-subscription.css?v=502">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -289,7 +291,7 @@
             </aside>
           </div>
 
-          <div style="margin:16px 0"><button class="btn btn-primary" type="button" onclick="navigateToWebScreen('library')"><i class="hgi-stroke hgi-book-02"></i> สื่อสำหรับคาบนี้ · เปิดคลังสื่อของฉัน</button></div>
+          <div style="display:none;margin:16px 0" aria-hidden="true"><button class="btn btn-primary" type="button" onclick="navigateToWebScreen('library')"><i class="hgi-stroke hgi-book-02"></i> สื่อสำหรับคาบนี้ · เปิดคลังสื่อของฉัน</button></div>
           <section id="home-setup-card" class="card home-setup-card" style="display:none;">
             <div>
               <span class="home-setup-kicker"><i class="hgi-stroke hgi-rocket-01"></i> เริ่มต้นใช้งาน</span>
