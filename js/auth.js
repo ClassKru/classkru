@@ -17,6 +17,14 @@ function onLoginSuccess(email) {
   // เข้าหน้าตาม deep-link ถ้ามี (เช่นเปิดจาก LINE OA มาที่ #reports) ไม่งั้นหน้าหลัก
   navigateToWebScreen(pendingDeepLink || 'dashboard', pendingDeepLinkParam);
 
+  // Developer Console test entry: still requires the normal teacher Supabase login,
+  // then opens the hidden AI Media Studio UI for the test account only.
+  if (new URLSearchParams(window.location.search).get('media_test') === '1') {
+    window.setTimeout(() => {
+      if (typeof openInteractiveMediaStudio === 'function') openInteractiveMediaStudio();
+    }, 0);
+  }
+
   // มาจากลิงก์ตั้งรหัสใหม่ในอีเมล → เด้ง modal ตั้งรหัสทันทีหลังแอปโผล่
   if (pendingPasswordRecovery) { pendingPasswordRecovery = false; startPasswordRecovery(); }
 }
