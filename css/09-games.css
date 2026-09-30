@@ -88,16 +88,6 @@
 .game-meta span { padding: 3px 6px; border-radius: 6px; color: var(--text-muted); background: var(--bg-light); font-size: .66rem; font-weight: 700; }
 .games-play-button { align-self: flex-start; width: auto; min-height: 32px; margin-top: 10px; padding: 5px 12px; border-color: var(--primary-light-border); border-radius: 9px; color: var(--primary-deep); background: var(--primary-light); font-size: .76rem; font-weight: 800; text-decoration: none; }
 .games-play-button:hover { color: var(--bg-card); background: var(--primary); }
-.games-launch-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.games-launch-actions .games-play-button { margin-top: 0; }
-.games-classroom-button { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 5px 2px; border: 0; color: var(--text-muted); background: transparent; font: inherit; font-size: .74rem; font-weight: 700; cursor: pointer; }
-.games-classroom-button:hover { color: var(--primary-deep); }
-.games-classroom-sheet { width: 420px; max-width: calc(100vw - 28px); }
-.games-classroom-game { display: grid; gap: 2px; margin: 0 0 16px; padding: 11px 12px; border: 1px solid var(--primary-light-border); border-radius: 12px; background: var(--primary-light); }
-.games-classroom-game strong { color: var(--text-main); font-size: .94rem; }
-.games-classroom-game span, .games-classroom-note { color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
-.games-classroom-note { margin: 0 0 16px; }
-.games-classroom-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .games-empty-state { display: grid; place-items: center; margin-bottom: 18px; padding: 24px; text-align: center; }
 .games-empty-state span { font-size: 1.5rem; }
 .games-empty-state strong { margin-top: 5px; }
