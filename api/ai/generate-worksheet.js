@@ -24,7 +24,7 @@ module.exports = async function handler(req, res) {
     if (!user?.id) return sendJson(res, 401, { error:'authentication_required', message:'กรุณาเข้าสู่ระบบใหม่ก่อนใช้งาน AI' });
     const body = parseBody(req); const title = clean(body.title, 240);
     const indicators = Array.isArray(body.indicators) ? body.indicators.slice(0, 12).map(item => `${clean(item.code,80)}: ${clean(item.text,800)}`).filter(Boolean) : [];
-    if (title.length < 3 || !indicators.length) return sendJson(res, 400, { error:'invalid_request', message:'กรุณาระบุชื่อใบงานและตัวชี้วัดอย่างน้อย 1 ข้อ' });
+    if (title.length < 3) return sendJson(res, 400, { error:'invalid_request', message:'กรุณาระบุชื่อใบงาน' });
     const formatId = clean(body.worksheetType, 40);
     const format = clean(body.worksheetTypeLabel || formatId, 120);
     const formatSpec = {
@@ -61,7 +61,7 @@ module.exports = async function handler(req, res) {
 - สิ่งที่อยากให้นักเรียนทำหรือส่ง: ${clean(body.learnerOutput,1200) || 'ไม่ระบุ'}
 - อุปกรณ์หรือข้อจำกัด: ${clean(body.resources,1000) || 'ไม่ระบุ'}
 - สิ่งที่ครูอยากเน้น: ${clean(body.focus,1000) || 'ไม่ระบุ'}
-ตัวชี้วัดที่เลือกไว้:\n${indicators.map(item => `- ${item}`).join('\n')}
+ตัวชี้วัดที่เลือกไว้:\n${indicators.length ? indicators.map(item => `- ${item}`).join('\n') : '- ไม่ระบุ (สร้างจากหัวข้อและรายละเอียดที่ครูกรอก)'}
 
 ทำตามคำสั่งแม่แบบด้านบนเท่านั้น สร้างโจทย์จริงที่นักเรียนทำได้ทันที มีข้อมูล ตัวเลข หรือข้อความครบ ห้ามอ้างภาพหรือเอกสารที่ไม่ได้แนบ ห้ามบอกเพียงว่า "สร้างตาราง"
 จำนวนที่เลือกเป็นเป้าหมายของกิจกรรมหลัก: question นับจำนวนโจทย์หลัก, table นับจำนวนแถว, matching นับจำนวนคู่, drawing_form นับจำนวนภารกิจหลัก ตัวเลขหรือรายการย่อยภายในคำสั่งไม่ให้นับเพิ่ม เช่น “ระบุธาตุอาหาร 3 ชนิด” ยังเป็น 1 ภารกิจวาดภาพ หากเป็นคำถามหรือวาดภาพให้คงองค์ประกอบย่อยไว้เพื่อให้ผลลัพธ์ครบ ไม่ตัดทิ้งเพียงเพื่อให้ตัวเลขตรง ส่วน table และ matching ต้องตรงแบบพอดี
