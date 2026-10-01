@@ -51,7 +51,11 @@
   // after this module has defined its public opener, and wait for session recovery.
   let developerLaunchAttempts = 0;
   const launchFromDeveloperLink = () => {
-    if (new URLSearchParams(window.location.search).get('media_test') !== '1' || root || !supabaseClient) return;
+    if (new URLSearchParams(window.location.search).get('media_test') !== '1' || root) return;
+    if (!supabaseClient) {
+      if (++developerLaunchAttempts < 50) setTimeout(launchFromDeveloperLink, 100);
+      return;
+    }
     supabaseClient.auth.getSession().then(({ data }) => {
       if (data?.session && !root) window.openInteractiveMediaStudio();
       else if (++developerLaunchAttempts < 50) setTimeout(launchFromDeveloperLink, 100);
@@ -59,6 +63,7 @@
       if (++developerLaunchAttempts < 50) setTimeout(launchFromDeveloperLink, 100);
     });
   };
+  window.addEventListener('classkru:authenticated', launchFromDeveloperLink);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', launchFromDeveloperLink, { once:true });
   else setTimeout(launchFromDeveloperLink, 0);
 })();

@@ -30,6 +30,7 @@ function onLoginSuccess(email) {
     };
     openMediaStudio();
   }
+  window.dispatchEvent(new Event('classkru:authenticated'));
 
   // มาจากลิงก์ตั้งรหัสใหม่ในอีเมล → เด้ง modal ตั้งรหัสทันทีหลังแอปโผล่
   if (pendingPasswordRecovery) { pendingPasswordRecovery = false; startPasswordRecovery(); }
