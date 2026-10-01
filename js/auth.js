@@ -17,10 +17,8 @@ function onLoginSuccess(email) {
   // เข้าหน้าตาม deep-link ถ้ามี (เช่นเปิดจาก LINE OA มาที่ #reports) ไม่งั้นหน้าหลัก
   navigateToWebScreen(pendingDeepLink || 'dashboard', pendingDeepLinkParam);
 
-  // Developer Console deep-link: open the AI Media Studio directly after login.
-  if (new URLSearchParams(window.location.search).get('media_test') === '1' && typeof openInteractiveMediaStudio === 'function') {
-    setTimeout(() => openInteractiveMediaStudio(), 250);
-  }
+  // Notify the Media Studio deep-link handler only after the signed-in app is ready.
+  window.dispatchEvent(new Event('classkru:authenticated'));
 
   // มาจากลิงก์ตั้งรหัสใหม่ในอีเมล → เด้ง modal ตั้งรหัสทันทีหลังแอปโผล่
   if (pendingPasswordRecovery) { pendingPasswordRecovery = false; startPasswordRecovery(); }
