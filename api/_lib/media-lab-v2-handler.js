@@ -188,7 +188,10 @@ async function handler(req, res) {
       const promptModule = await prompts(), model = selectedModel(input, user);
       const result = await callOpenRouter(model, promptModule.buildV2ArtifactPrompt('', history), { maxTokens: 8000, temperature: 0.25, jsonMode: true });
       await recordUsage(root, sessionId, 'v2_build', model, result);
-      const artifact = promptModule.parseV2Artifact(result.text), validation = promptModule.validateV2Html(artifact.html);
+      let artifact;
+      try { artifact = promptModule.parseV2Artifact(result.text); }
+      catch (_) { return sendJson(res, 422, { error: 'ai_output_unparseable', message: 'AI ส่งผลลัพธ์ที่แปลงเป็นสื่อไม่ได้ กรุณากดสร้างอีกครั้ง' }); }
+      const validation = promptModule.validateV2Html(artifact.html);
       if (!validation.ok) return sendJson(res, 422, { error: 'v2_output_invalid', message: 'ผลลัพธ์ยังไม่ผ่านการตรวจสอบ', details: validation.errors });
       const id = uuid(), created_at = now();
       const run = { id, session_id: sessionId, title: artifact.title || 'สื่อการเรียนรู้', summary: artifact.summary || '', html: artifact.html, status: 'passed', created_at };
