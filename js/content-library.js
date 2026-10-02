@@ -90,21 +90,29 @@
 
   function bindCreationCardActions(root) {
     root.querySelectorAll('[data-create-action]').forEach(card => {
+      if (card.dataset.createAction === 'interactive') {
+        const status = card.querySelector('.cl-media-studio-status');
+        if (isClassKruMediaDeveloper()) {
+          const link = document.createElement('a');
+          link.className = card.className;
+          link.href = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:4178/v2' : new URL('/mini-lab-v2', window.location.origin).href;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.setAttribute('aria-describedby', 'cl-media-studio-status');
+          link.innerHTML = card.innerHTML;
+          if (status) status.textContent = 'เปิด Mini Lab V2';
+          card.replaceWith(link);
+          return;
+        }
+        if (status) status.textContent = 'เตรียมเปิดใช้งานเร็ว ๆ นี้';
+        card.addEventListener('click', () => showToast('Mini Lab V2 ยังเปิดให้ใช้เฉพาะบัญชีผู้พัฒนา', 'info'));
+        return;
+      }
       card.addEventListener('click', () => {
         const action = card.dataset.createAction;
         if (action === 'worksheet') window.openWorksheetCreator();
         if (action === 'quiz') window.openQuizCreator();
         if (action === 'lesson-plan') window.openLessonPlanCreator();
-        if (action === 'interactive') {
-          showToast('กำลังเปิด Mini Lab V2 ในแท็บใหม่', 'info');
-          if (!isClassKruMediaDeveloper()) return;
-          const isLocalClassKru = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-          if (isLocalClassKru) {
-            window.open('http://127.0.0.1:4178/v2', '_blank', 'noopener,noreferrer');
-            return;
-          }
-          window.open(new URL('/mini-lab-v2', window.location.origin).href, '_blank', 'noopener,noreferrer');
-        }
       });
     });
   }
