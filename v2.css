@@ -57,6 +57,21 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .eyebrow { display: block; color: var(--purple); font-size: .75rem; font-weight: 800; letter-spacing: .03em; }
 .intro h1 { max-width: 730px; margin: 8px 0; color: var(--heading); font-size: clamp(1.65rem, 3vw, 2.25rem); line-height: 1.13; letter-spacing: -.035em; }
 .intro p { max-width: 740px; margin: 0; color: #43516d; font-size: .94rem; line-height: 1.65; }
+.idea-starters { padding: 19px 20px 20px; border: 1px solid #e3e9f5; border-radius: 16px; background: #fff; box-shadow: 0 5px 20px #27375a08; }
+.idea-starters-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+.idea-eyebrow { color: #6257cb; font-size: .7rem; font-weight: 850; letter-spacing: .04em; }
+.idea-starters-heading h2 { margin: 3px 0 2px; color: var(--heading); font-size: 1.02rem; }
+.idea-starters-heading p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
+.idea-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.idea-card { display: flex; min-height: 132px; flex-direction: column; align-items: flex-start; padding: 13px; border: 1px solid #e6eaf5; border-radius: 13px; background: #fafbff; color: var(--ink); text-align: left; cursor: pointer; transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease; }
+.idea-card:hover { transform: translateY(-2px); border-color: #bcb6f1; box-shadow: 0 8px 20px #4b38c812; }
+.idea-card:focus-visible { outline: 3px solid #7ba2ff66; outline-offset: 2px; }
+.idea-icon { display: grid; width: 30px; height: 30px; place-items: center; margin-bottom: 9px; border-radius: 9px; background: #efedff; color: #594cc7; font-size: 1.05rem; font-weight: 800; }
+.idea-card strong { margin-bottom: 3px; font-size: .82rem; }
+.idea-card small { color: var(--muted); font-size: .71rem; line-height: 1.45; }
+.idea-match .idea-icon { background: #eaf4ff; color: #3476c7; }
+.idea-decide .idea-icon { background: #fff2e7; color: #c67330; }
+.idea-order .idea-icon { background: #eaf7f0; color: #328265; }
 
 .chat-card, .result-panel {
   min-width: 0;
@@ -141,6 +156,9 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
   .intro { min-height: 0; padding: 22px 17px; }
   .intro h1 { font-size: 1.62rem; }
   .intro p { font-size: .84rem; }
+  .idea-starters { padding: 15px 13px; }
+  .idea-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .idea-card { min-height: 122px; padding: 11px; }
   .chat-card, .result-panel { padding: 13px; }
   .chat-log { min-height: 150px; max-height: 42vh; }
   .message { max-width: 96%; font-size: .83rem; }
@@ -156,4 +174,8 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
   .lab-settings-trigger { right: 14px; bottom: 16px; }
   .lab-settings-trigger span { display: none; }
   .settings-dialog header, .settings-dialog main { padding-right: 16px; padding-left: 16px; }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .idea-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

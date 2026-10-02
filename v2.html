@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f8fc">
-  <title>ClassKru Media Lab V2</title>
-  <link rel="stylesheet" href="/v2.css?v=2">
+  <title>ClassKru Media</title>
+  <link rel="stylesheet" href="/v2.css?v=3">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <section id="auth-panel" class="auth-panel" hidden aria-labelledby="auth-title">
     <form id="auth-form" class="auth-card">
-      <a class="brand auth-brand" href="/v2" aria-label="ClassKru Media Lab V2"><span class="brand-mark">K</span><span>ClassKru <small>Media Lab V2</small></span></a>
+      <a class="brand auth-brand" href="/mini-lab-v2" aria-label="ClassKru Media"><span class="brand-mark">K</span><span>ClassKru <small>Media</small></span></a>
       <h1 id="auth-title">เข้าสู่ระบบเพื่อใช้ Mini Lab V2</h1>
       <p>ใช้บัญชีครู ClassKru เพื่อบันทึกและกลับมาแก้ไขสื่อของคุณ</p>
       <label for="auth-email">อีเมล ClassKru</label><input id="auth-email" name="email" type="email" autocomplete="username" required>
@@ -22,12 +22,21 @@
   </section>
   <main class="app-shell" hidden>
     <header class="topbar">
-      <a class="brand" href="/v2" aria-label="ClassKru Media Lab V2"><span class="brand-mark">K</span><span>ClassKru <small>Media Lab V2</small></span></a>
+      <a class="brand" href="/mini-lab-v2" aria-label="ClassKru Media"><span class="brand-mark">K</span><span>ClassKru <small>Media</small></span></a>
       <div class="top-actions"><span id="backend-label" class="backend-label">กำลังเตรียมระบบ…</span><button id="my-works-open" class="secondary-button" type="button">สื่อของฉัน</button><button id="new-session-open" class="secondary-button" type="button">สร้างสื่อใหม่</button><button id="signout-button" class="secondary-button" type="button">ออกจากระบบ</button></div>
     </header>
 
     <section class="workspace" aria-label="สนทนาเพื่อออกแบบสื่อการเรียนรู้">
-      <div class="intro"><div class="eyebrow">✦ ClassKru AI Studio · Media Lab V2</div><h1>สร้างสื่อการเรียนรู้แบบโต้ตอบ</h1><p>เล่าไอเดียหรือปัญหาในห้องเรียน แล้วช่วยกันเปลี่ยนให้เป็นประสบการณ์การเรียนรู้ ไม่ต้องรู้คำสั่งทางเทคนิค</p></div>
+      <div class="intro"><div class="eyebrow">✦ ClassKru AI Studio</div><h1>สร้างสื่อการเรียนร่วมกับ ClassKru ผู้ช่วย AI</h1><p>เล่าไอเดียหรือปัญหาในห้องเรียน แล้วช่วยกันเปลี่ยนให้เป็นประสบการณ์การเรียนรู้</p></div>
+      <section class="idea-starters" aria-labelledby="idea-starters-title">
+        <div class="idea-starters-heading"><div><span class="idea-eyebrow">จุดประกายไอเดีย</span><h2 id="idea-starters-title">อยากเริ่มจากกิจกรรมแบบไหน?</h2><p>เลือกการ์ดเพื่อใส่แนวคิดลงในช่องสนทนา แล้วปรับให้เข้ากับบทเรียนของคุณ</p></div></div>
+        <div class="idea-grid">
+          <button class="idea-card idea-explore" type="button" data-idea="ช่วยออกแบบสื่อให้นักเรียนทดลองเปลี่ยนตัวแปรเรื่อง [หัวข้อ] แล้วสังเกตผลที่เกิดขึ้น"><span class="idea-icon" aria-hidden="true">⌁</span><strong>ลองแล้วสังเกต</strong><small>ทดลอง ปรับเปลี่ยน และค้นพบผลลัพธ์</small></button>
+          <button class="idea-card idea-match" type="button" data-idea="ช่วยสร้างกิจกรรมให้นักเรียนจับคู่ [คำศัพท์หรือแนวคิด] กับตัวอย่างที่สัมพันธ์กัน พร้อมคำอธิบาย"><span class="idea-icon" aria-hidden="true">↔</span><strong>จับคู่และเชื่อมโยง</strong><small>มองเห็นความสัมพันธ์ของเนื้อหา</small></button>
+          <button class="idea-card idea-decide" type="button" data-idea="ช่วยสร้างสถานการณ์จำลองเรื่อง [หัวข้อ] ให้นักเรียนเลือกวิธีแก้ปัญหาและเห็นผลจากการตัดสินใจ"><span class="idea-icon" aria-hidden="true">✦</span><strong>เลือกแล้วเห็นผล</strong><small>คิด ตัดสินใจ และเรียนรู้จากผลที่เกิดขึ้น</small></button>
+          <button class="idea-card idea-order" type="button" data-idea="ช่วยออกแบบกิจกรรมให้นักเรียนเรียงลำดับ [ขั้นตอนหรือเหตุการณ์] พร้อมอธิบายเหตุผล"><span class="idea-icon" aria-hidden="true">☷</span><strong>เรียงลำดับความคิด</strong><small>จัดขั้นตอนและอธิบายเหตุผล</small></button>
+        </div>
+      </section>
       <section class="chat-card" aria-label="บทสนทนาออกแบบสื่อ">
         <div id="chat-log" class="chat-log" aria-live="polite" aria-label="บทสนทนา"></div>
         <form id="chat-form" class="composer">
@@ -58,7 +67,7 @@
     <div class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
       <header><div><small>Local Lab settings</small><h2 id="settings-title">เลือกโมเดล API AI</h2></div><button id="settings-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
       <main>
-        <p>ตั้งค่าเส้นทางและโมเดล AI สำหรับการสนทนาและสร้างสื่อใน Media Lab V2</p>
+        <p>ตั้งค่าเส้นทางและโมเดล AI สำหรับ ClassKru Media</p>
         <label>ระบบ AI<select id="backend-select"><option value="openrouter">OpenRouter API (เดิม)</option><option value="local">โมเดลในเครื่อง · Local model</option><option value="codex">Codex CLI · บัญชีที่ล็อกอิน</option></select><small>เลือกใช้ API หรือโมเดลในเครื่องได้ โดยไม่เปลี่ยนการตั้งค่าของ V1</small></label>
         <label id="provider-row" hidden>Local provider<select id="provider-select"><option value="ollama">Ollama</option><option value="lmstudio">LM Studio</option></select></label>
         <label>โมเดล<select id="model-select" disabled><option value="">เลือกช่องทาง AI ก่อน</option></select><small>เลือกจากโมเดลที่ใช้ได้ใน backend นี้ โมเดลเดียวกันใช้ทั้งสนทนาและสร้าง HTML</small></label>
@@ -69,6 +78,6 @@
       </main>
     </div>
   </section>
-  <script type="module" src="/v2.js?v=2"></script>
+  <script type="module" src="/v2.js?v=3"></script>
 </body>
 </html>

@@ -536,4 +536,12 @@ $('#message-input').addEventListener('keydown', event => {
   if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); $('#chat-form').requestSubmit(); }
 });
 
+document.querySelectorAll('[data-idea]').forEach(card => card.addEventListener('click', () => {
+  const input = $('#message-input');
+  const current = input.value.trim();
+  input.value = current ? `${current}\n${card.dataset.idea}` : card.dataset.idea;
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+}));
+
 initialize();
