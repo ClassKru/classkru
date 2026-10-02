@@ -176,7 +176,7 @@ async function handler(req, res) {
       await storage.ensureBucket();
       const id = uuid(), timestamp = now();
       await writeSessionEvent(root, id, { id, title: 'สื่อใหม่', created_at: timestamp, updated_at: timestamp });
-      await addMessage(root, id, 'assistant', 'เล่าไอเดียหรือสิ่งที่อยากให้นักเรียนเรียนรู้ได้เลย ไม่ต้องเขียนเป็นข้อกำหนดทางเทคนิค', 'v2_welcome');
+      await addMessage(root, id, 'assistant', 'เริ่มจากเล่าไอเดีย หรือเลือกการ์ดจุดประกายด้านบนได้เลย', 'v2_welcome');
       return sendJson(res, 201, { session: await sessionData(root, id, isDeveloper) });
     }
     if (action === 'sessions' && req.method === 'GET' && parts.length === 1) {

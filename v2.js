@@ -48,7 +48,7 @@ function addMessage(role, text, pending = false) {
 function renderMessages(messages = []) {
   $('#chat-log').replaceChildren();
   for (const message of messages) {
-    if (message.kind !== 'v2_welcome' && message.kind !== 'v2_chat' && message.kind !== 'v2_build_completed') continue;
+    if (message.kind !== 'v2_chat' && message.kind !== 'v2_build_completed') continue;
     addMessage(message.role === 'teacher' ? 'teacher' : 'assistant', message.content);
   }
 }
