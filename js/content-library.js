@@ -92,20 +92,17 @@
     root.querySelectorAll('[data-create-action]').forEach(card => {
       if (card.dataset.createAction === 'interactive') {
         const status = card.querySelector('.cl-media-studio-status');
-        if (isClassKruMediaDeveloper()) {
-          const link = document.createElement('a');
-          link.className = card.className;
-          link.href = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:4178/v2' : new URL('/mini-lab-v2', window.location.origin).href;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          link.setAttribute('aria-describedby', 'cl-media-studio-status');
-          link.innerHTML = card.innerHTML;
-          if (status) status.textContent = 'เปิด Mini Lab V2';
-          card.replaceWith(link);
-          return;
-        }
-        if (status) status.textContent = 'เตรียมเปิดใช้งานเร็ว ๆ นี้';
-        card.addEventListener('click', () => showToast('Mini Lab V2 ยังเปิดให้ใช้เฉพาะบัญชีผู้พัฒนา', 'info'));
+        const link = document.createElement('a');
+        link.className = card.className;
+        link.href = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:4178/v2' : new URL('/mini-lab-v2', window.location.origin).href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.setAttribute('aria-describedby', 'cl-media-studio-status');
+        link.innerHTML = card.innerHTML;
+        if (status) status.textContent = 'เปิด Mini Lab V2';
+        const description = link.querySelector('p');
+        if (description) description.textContent = 'เล่าไอเดียหรือหัวข้อบทเรียน ให้ AI ช่วยสร้างสื่อโต้ตอบ แล้วบันทึกไว้กลับมาแก้ไขได้';
+        card.replaceWith(link);
         return;
       }
       card.addEventListener('click', () => {
