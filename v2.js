@@ -297,7 +297,7 @@ $('#build-button').addEventListener('click', async () => {
     if (!$('#work-dialog').hidden) await loadWorkList();
     $('#result-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
-    addMessage('assistant', `ยังสร้างไฟล์ไม่สำเร็จ: ${error.message} คุณแก้โจทย์หรือกดสร้างใหม่ได้`);
+    addMessage('assistant', `ยังสร้างสื่อไม่สำเร็จ: ${error.message}`);
     if (error.payload?.usage) renderUsage(error.payload.usage);
   } finally { setBusy(false); }
 });

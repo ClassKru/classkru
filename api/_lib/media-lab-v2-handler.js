@@ -120,12 +120,12 @@ async function addMessage(root, sessionId, role, content, kind = 'v2_chat') {
   await storage.put(`${root}/messages/${recordName(sessionId, 'message', message.id)}`, message);
   return message;
 }
-async function callOpenRouter(model, prompt, { maxTokens, temperature, jsonMode = false }) {
+async function callOpenRouter(model, prompt, { maxTokens, temperature, jsonMode = false, timeoutMs = jsonMode ? 220000 : 90000 }) {
   const key = openRouterKey();
   if (!key) { const error = new Error('ai_not_configured'); error.status = 503; error.code = 'ai_not_configured'; throw error; }
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'HTTP-Referer': process.env.OPENROUTER_SITE_URL || 'https://classkru-kohl.vercel.app', 'X-Title': 'ClassKru Mini Lab V2' },
-    signal: AbortSignal.timeout(jsonMode ? 220000 : 90000),
+    signal: AbortSignal.timeout(timeoutMs),
     body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature, max_tokens: maxTokens, ...(jsonMode ? { response_format: { type: 'json_object' } } : {}) })
   });
   const payload = await response.json().catch(() => ({}));
@@ -209,6 +209,7 @@ async function handler(req, res) {
       return sendJson(res, 200, { reply: answer.text, ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
     }
     if (action === 'sessions' && isId(parts[1]) && parts.length === 3 && req.method === 'POST' && parts[2] === 'build') {
+      const buildStarted = Date.now();
       const sessionId = parts[1], current = await sessionData(root, sessionId, isDeveloper);
       if (!current) return sendJson(res, 404, { error: 'session_not_found' });
       const history = current.messages.filter(item => item.kind === 'v2_chat');
@@ -219,8 +220,24 @@ async function handler(req, res) {
       let artifact;
       try { artifact = promptModule.parseV2Artifact(result.text); }
       catch (_) { return sendJson(res, 422, { error: 'ai_output_unparseable', message: 'AI ส่งผลลัพธ์ที่แปลงเป็นสื่อไม่ได้ กรุณากดสร้างอีกครั้ง' }); }
-      const validation = promptModule.validateV2Html(artifact.html);
-      if (!validation.ok) return sendJson(res, 422, { error: 'v2_output_invalid', message: 'ผลลัพธ์ยังไม่ผ่านการตรวจสอบ', details: validation.errors });
+      let validation = promptModule.validateV2Html(artifact.html);
+      let attemptedRepair = false;
+      if (!validation.ok) {
+        console.warn('v2_build_validation_failed', validation.errors);
+        const repairTimeout = Math.min(150000, 275000 - (Date.now() - buildStarted));
+        if (repairTimeout >= 30000) {
+          attemptedRepair = true;
+          try {
+            const repair = await callOpenRouter(model, promptModule.buildV2RepairPrompt(artifact, validation.errors), { maxTokens: 8000, temperature: 0.15, jsonMode: true, timeoutMs: repairTimeout });
+            await recordUsage(root, sessionId, 'v2_repair', model, repair);
+            const repairedArtifact = promptModule.parseV2Artifact(repair.text);
+            const repairedValidation = promptModule.validateV2Html(repairedArtifact.html);
+            if (repairedValidation.ok) { artifact = repairedArtifact; validation = repairedValidation; }
+            else { validation = repairedValidation; console.warn('v2_build_repair_validation_failed', validation.errors); }
+          } catch (error) { console.warn('v2_build_repair_failed', error.code || error.name || 'unknown_error'); }
+        }
+      }
+      if (!validation.ok) return sendJson(res, 422, { error: 'v2_output_invalid', message: attemptedRepair ? 'AI สร้างสื่อไม่ผ่านการตรวจสอบหลังลองปรับอัตโนมัติ กรุณากดสร้างอีกครั้ง' : 'AI สร้างสื่อไม่ผ่านการตรวจสอบ กรุณากดสร้างอีกครั้ง', details: validation.errors });
       const id = uuid(), created_at = now();
       const run = { id, session_id: sessionId, title: artifact.title || 'สื่อการเรียนรู้', summary: artifact.summary || '', html: artifact.html, status: 'passed', created_at };
       await storage.put(`${root}/runs/${recordName(sessionId, 'run', id)}`, run);
