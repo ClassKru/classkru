@@ -57,31 +57,38 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .eyebrow { display: block; color: var(--purple); font-size: .75rem; font-weight: 800; letter-spacing: .03em; }
 .intro h1 { max-width: 730px; margin: 8px 0; color: var(--heading); font-size: clamp(1.65rem, 3vw, 2.25rem); line-height: 1.13; letter-spacing: -.035em; }
 .intro p { max-width: 740px; margin: 0; color: #43516d; font-size: .94rem; line-height: 1.65; }
-.idea-starters { padding: 19px 20px 20px; border: 1px solid #e3e9f5; border-radius: 16px; background: #fff; box-shadow: 0 5px 20px #27375a08; }
-.idea-starters-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
-.idea-eyebrow { color: #6257cb; font-size: .7rem; font-weight: 850; letter-spacing: .04em; }
-.idea-starters-heading h2 { margin: 3px 0 2px; color: var(--heading); font-size: 1.02rem; }
-.idea-starters-heading p { margin: 0; color: var(--muted); font-size: .78rem; line-height: 1.5; }
-.idea-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.idea-card { display: flex; min-height: 132px; flex-direction: column; align-items: flex-start; padding: 13px; border: 1px solid #e6eaf5; border-radius: 13px; background: #fafbff; color: var(--ink); text-align: left; cursor: pointer; transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease; }
-.idea-card:hover { transform: translateY(-2px); border-color: #bcb6f1; box-shadow: 0 8px 20px #4b38c812; }
-.idea-card:focus-visible { outline: 3px solid #7ba2ff66; outline-offset: 2px; }
-.idea-icon { display: grid; width: 30px; height: 30px; place-items: center; margin-bottom: 9px; border-radius: 9px; background: #efedff; color: #594cc7; font-size: 1.05rem; font-weight: 800; }
-.idea-card strong { margin-bottom: 3px; font-size: .82rem; }
-.idea-card small { color: var(--muted); font-size: .71rem; line-height: 1.45; }
-.idea-match .idea-icon { background: #eaf4ff; color: #3476c7; }
-.idea-decide .idea-icon { background: #fff2e7; color: #c67330; }
-.idea-order .idea-icon { background: #eaf7f0; color: #328265; }
-.idea-guide-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 10px; margin: 17px 0 8px; }
-.idea-guide-heading > span { color: #394766; font-size: .77rem; font-weight: 800; }
-.idea-guide-heading > small { color: var(--muted); font-size: .7rem; }
-.idea-guide-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.idea-guide-card { display: grid; min-height: 66px; grid-template-columns: 25px 1fr; grid-template-rows: auto auto; align-content: center; align-items: center; column-gap: 7px; padding: 9px 10px; border: 1px solid #e8edf5; border-radius: 11px; background: #fbfcff; color: #344460; text-align: left; cursor: pointer; transition: border-color .16s ease, background .16s ease; }
-.idea-guide-card:hover { border-color: #c5c0ef; background: #f8f7ff; }
-.idea-guide-card:focus-visible { outline: 3px solid #7ba2ff66; outline-offset: 2px; }
-.idea-guide-card > span { grid-row: 1 / span 2; display: grid; width: 24px; height: 24px; place-items: center; border-radius: 8px; background: #f0efff; color: #6257cb; font-size: .9rem; font-weight: 800; }
-.idea-guide-card strong { font-size: .73rem; }
-.idea-guide-card small { color: var(--muted); font-size: .66rem; line-height: 1.35; }
+.idea-starters { padding: 23px 24px 25px; border: 1px solid #e0e5f2; border-radius: 20px; background: linear-gradient(145deg, #fff 58%, #faf9ff); box-shadow: 0 10px 34px #27375a0b; }
+.idea-starters-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 17px; }
+.idea-eyebrow { display: inline-block; padding: 4px 9px; border-radius: 99px; background: #efedff; color: #6257cb; font-size: .7rem; font-weight: 850; letter-spacing: .04em; }
+.idea-starters-heading h2 { margin: 9px 0 3px; color: var(--heading); font-size: 1.1rem; }
+.idea-starters-heading p { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.55; }
+.idea-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.idea-card { --idea-color: #6958d6; --idea-pale: #eeebff; position: relative; display: flex; min-height: 158px; flex-direction: column; align-items: flex-start; overflow: hidden; padding: 19px 17px 17px; border: 1px solid color-mix(in srgb, var(--idea-color) 23%, white); border-radius: 17px; background: linear-gradient(145deg, #fff 38%, var(--idea-pale)); box-shadow: 0 5px 16px #2634550b; color: var(--ink); font: inherit; text-align: left; cursor: pointer; transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease; }
+.idea-card::before { position: absolute; inset: 0 0 auto; height: 4px; background: var(--idea-color); content: ''; }
+.idea-card::after { position: absolute; top: 17px; right: 17px; display: grid; width: 29px; height: 29px; place-items: center; border: 1px solid color-mix(in srgb, var(--idea-color) 22%, white); border-radius: 50%; background: #ffffffc9; color: var(--idea-color); content: '↗'; font-size: 1rem; font-weight: 800; }
+.idea-card:hover { transform: translateY(-4px); border-color: var(--idea-color); box-shadow: 0 14px 28px #2634551b; }
+.idea-card:active { transform: translateY(-1px); }
+.idea-card:focus-visible { outline: 3px solid color-mix(in srgb, var(--idea-color) 40%, white); outline-offset: 3px; }
+.idea-icon { display: grid; width: 39px; height: 39px; place-items: center; margin-bottom: auto; border-radius: 12px; background: var(--idea-pale); color: var(--idea-color); font-size: 1.2rem; font-weight: 800; }
+.idea-card strong { display: block; margin: 15px 0 4px; color: #22304d; font-size: .9rem; line-height: 1.35; }
+.idea-card small { color: #65728a; font-size: .73rem; line-height: 1.48; }
+.idea-match { --idea-color: #397bc0; --idea-pale: #eaf4ff; }
+.idea-decide { --idea-color: #b97430; --idea-pale: #fff1e2; }
+.idea-order { --idea-color: #338b70; --idea-pale: #e7f7ef; }
+.idea-guide-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 5px 10px; margin: 23px 0 11px; padding-top: 15px; border-top: 1px solid #e9eaf2; }
+.idea-guide-heading > span { color: #394766; font-size: .79rem; font-weight: 850; }
+.idea-guide-heading > small { color: var(--muted); font-size: .71rem; }
+.idea-guide-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+.idea-guide-card { display: grid; min-height: 82px; grid-template-columns: 34px 1fr; grid-template-rows: auto auto; align-content: center; align-items: center; column-gap: 9px; padding: 11px 12px; border: 1px solid #e5e8f2; border-radius: 13px; background: #fff; box-shadow: 0 3px 12px #26345508; color: #344460; font: inherit; text-align: left; cursor: pointer; transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease; }
+.idea-guide-card:hover { transform: translateY(-2px); border-color: #b5aeea; background: #fbfaff; box-shadow: 0 9px 20px #4b38c812; }
+.idea-guide-card:active { transform: translateY(0); }
+.idea-guide-card:focus-visible { outline: 3px solid #7ba2ff66; outline-offset: 3px; }
+.idea-guide-card > span { grid-row: 1 / span 2; display: grid; width: 32px; height: 32px; place-items: center; border-radius: 10px; background: #f0efff; color: #6257cb; font-size: 1rem; font-weight: 800; }
+.idea-guide-card:nth-child(2) > span { background: #eaf4ff; color: #397bc0; }
+.idea-guide-card:nth-child(3) > span { background: #fff1e2; color: #b97430; }
+.idea-guide-card:nth-child(4) > span { background: #e7f7ef; color: #338b70; }
+.idea-guide-card strong { color: #2c3954; font-size: .77rem; line-height: 1.35; }
+.idea-guide-card small { color: var(--muted); font-size: .68rem; line-height: 1.4; }
 
 .chat-card, .result-panel {
   min-width: 0;
@@ -191,4 +198,12 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 @media (min-width: 601px) and (max-width: 900px) {
   .idea-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .idea-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 390px) {
+  .idea-guide-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .idea-card, .idea-guide-card { transition: none; }
 }
