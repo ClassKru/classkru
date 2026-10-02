@@ -37,6 +37,8 @@
 .cl-create-card h4 { margin:0 0 5px; color:var(--text-main); font-size:1.03rem; }
 .cl-create-card p { margin:0; color:var(--text-muted); font-size:.84rem; line-height:1.55; }
 .cl-coming { position:absolute; top:14px; right:14px; padding:3px 8px; border-radius:99px; color:var(--text-muted); background:#f1f5f9; font-size:.7rem; font-weight:800; }
+.cl-media-studio-status { opacity:0; transform:translateY(-3px); transition:opacity .16s ease,transform .16s ease; }
+.cl-media-studio-entry:hover .cl-media-studio-status,.cl-media-studio-entry:focus-visible .cl-media-studio-status { opacity:1; transform:translateY(0); }
 .cl-saved-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:14px; }
 .cl-library-section { margin-bottom:24px; }
 .cl-library-toolbar { display:grid; grid-template-columns:minmax(280px,1fr) auto; align-items:center; gap:12px; padding:14px 0; margin-bottom:14px; border-top:1px solid var(--border-color); border-bottom:1px solid var(--border-color); }

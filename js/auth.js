@@ -1,3 +1,13 @@
+const CLASSKRU_MEDIA_DEVELOPER_EMAILS = new Set([
+  'petch.0231@gmail.com',
+  'supakit.radiation@gmail.com',
+  'classkru.dev@gmail.com'
+]);
+
+function isClassKruMediaDeveloper(email = localStorage.getItem('classmanager_email')) {
+  return CLASSKRU_MEDIA_DEVELOPER_EMAILS.has(String(email || '').trim().toLowerCase());
+}
+
 function showLoginOverlay() {
   const lo = document.getElementById('login-overlay');
   lo.classList.add('show');
@@ -17,9 +27,8 @@ function onLoginSuccess(email) {
   // เข้าหน้าตาม deep-link ถ้ามี (เช่นเปิดจาก LINE OA มาที่ #reports) ไม่งั้นหน้าหลัก
   navigateToWebScreen(pendingDeepLink || 'dashboard', pendingDeepLinkParam);
 
-  // Developer Console test entry: still requires the normal teacher Supabase login,
-  // then opens the hidden AI Media Studio UI for the test account only.
-  if (new URLSearchParams(window.location.search).get('media_test') === '1') {
+  // Developer-only test entry: requires a normal Supabase login from an allowlisted email.
+  if (new URLSearchParams(window.location.search).get('media_test') === '1' && isClassKruMediaDeveloper(email)) {
     window.setTimeout(() => {
       if (typeof openInteractiveMediaStudio === 'function') openInteractiveMediaStudio();
     }, 0);

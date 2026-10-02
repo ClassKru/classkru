@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fc">
+  <title>ClassKru Media Lab V2</title>
+  <link rel="stylesheet" href="/v2.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <section id="auth-panel" class="auth-panel" hidden aria-labelledby="auth-title">
+    <form id="auth-form" class="auth-card">
+      <a class="brand auth-brand" href="/v2" aria-label="ClassKru Media Lab V2"><span class="brand-mark">K</span><span>ClassKru <small>Media Lab V2</small></span></a>
+      <h1 id="auth-title">เข้าสู่ระบบเพื่อใช้ Mini Lab V2</h1>
+      <p>ใช้บัญชีครู ClassKru เพื่อบันทึกและกลับมาแก้ไขสื่อของคุณ</p>
+      <label for="auth-email">อีเมล ClassKru</label><input id="auth-email" name="email" type="email" autocomplete="username" required>
+      <label for="auth-password">รหัสผ่าน</label><input id="auth-password" name="password" type="password" autocomplete="current-password" required>
+      <button id="auth-submit" class="send-button" type="submit">เข้าสู่ระบบ</button>
+      <p id="auth-status" class="auth-status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+  <main class="app-shell" hidden>
+    <header class="topbar">
+      <a class="brand" href="/v2" aria-label="ClassKru Media Lab V2"><span class="brand-mark">K</span><span>ClassKru <small>Media Lab V2</small></span></a>
+      <div class="top-actions"><span id="backend-label" class="backend-label">กำลังเตรียมระบบ…</span><button id="my-works-open" class="secondary-button" type="button">สื่อของฉัน</button><button id="new-session-open" class="secondary-button" type="button">สร้างสื่อใหม่</button><button id="signout-button" class="secondary-button" type="button">ออกจากระบบ</button></div>
+    </header>
+
+    <section class="workspace" aria-label="สนทนาเพื่อออกแบบสื่อการเรียนรู้">
+      <div class="intro"><div class="eyebrow">✦ ClassKru AI Studio · Media Lab V2</div><h1>สร้างสื่อการเรียนรู้แบบโต้ตอบ</h1><p>เล่าไอเดียหรือปัญหาในห้องเรียน แล้วช่วยกันเปลี่ยนให้เป็นประสบการณ์การเรียนรู้ ไม่ต้องรู้คำสั่งทางเทคนิค</p></div>
+      <section class="chat-card" aria-label="บทสนทนาออกแบบสื่อ">
+        <div id="chat-log" class="chat-log" aria-live="polite" aria-label="บทสนทนา"></div>
+        <form id="chat-form" class="composer">
+          <label class="sr-only" for="message-input">พิมพ์ข้อความเพื่อคุยกับ AI</label>
+          <textarea id="message-input" rows="2" maxlength="6000" placeholder="วันนี้อยากให้นักเรียนเรียนรู้เรื่องอะไร?" required></textarea>
+          <div class="composer-footer"><span id="status-text" role="status">พิมพ์สั้น ๆ ได้เลย แล้วค่อยช่วยกันคิดต่อ</span><div class="composer-actions"><button id="send-button" class="send-button" type="submit" aria-label="ส่งข้อความ">ส่งข้อความ</button><button id="build-button" class="build-button" type="button" disabled>✦ สร้างสื่อ</button></div></div>
+        </form>
+      </section>
+      <section id="result-panel" class="result-panel" hidden aria-live="polite">
+        <div class="result-heading"><div><span class="eyebrow">YOUR LEARNING EXPERIENCE</span><h2 id="result-title">สื่อของคุณพร้อมแล้ว</h2><p id="result-summary"></p></div><a id="runtime-link" class="runtime-link" target="_blank" rel="noopener" hidden>เปิดหน้า Runtime</a></div>
+        <iframe id="preview-frame" title="ตัวอย่างสื่อที่สร้าง" sandbox="allow-scripts"></iframe>
+        <div id="validation-note" class="validation-note" hidden></div>
+      </section>
+      <details class="usage-details"><summary>การใช้ AI และโทเคน</summary><div id="usage-panel">ยังไม่มีการเรียก AI ในเซสชันนี้</div></details>
+    </section>
+  </main>
+
+  <button id="settings-open" class="lab-settings-trigger" type="button" hidden>⚙ <span>ตั้งค่า Lab</span></button>
+
+  <section id="work-dialog" class="settings-overlay" hidden aria-labelledby="work-title">
+    <div class="settings-dialog works-dialog" role="dialog" aria-modal="true" aria-labelledby="work-title" tabindex="-1">
+      <header><div><small>ผลงานของคุณ</small><h2 id="work-title">สื่อของฉัน</h2></div><button id="work-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
+      <main><p>เปิดบทสนทนาเดิมเพื่อดูและพัฒนาสื่อต่อ</p><div id="work-list" class="work-list" aria-live="polite"></div></main>
+    </div>
+  </section>
+
+  <section id="settings-dialog" class="settings-overlay" hidden aria-labelledby="settings-title">
+    <div class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="settings-title" tabindex="-1">
+      <header><div><small>Local Lab settings</small><h2 id="settings-title">เลือกโมเดล API AI</h2></div><button id="settings-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
+      <main>
+        <p>ตั้งค่าเส้นทางและโมเดล AI สำหรับการสนทนาและสร้างสื่อใน Media Lab V2</p>
+        <label>ระบบ AI<select id="backend-select"><option value="openrouter">OpenRouter API (เดิม)</option><option value="local">โมเดลในเครื่อง · Local model</option><option value="codex">Codex CLI · บัญชีที่ล็อกอิน</option></select><small>เลือกใช้ API หรือโมเดลในเครื่องได้ โดยไม่เปลี่ยนการตั้งค่าของ V1</small></label>
+        <label id="provider-row" hidden>Local provider<select id="provider-select"><option value="ollama">Ollama</option><option value="lmstudio">LM Studio</option></select></label>
+        <label>โมเดล<select id="model-select" disabled><option value="">เลือกช่องทาง AI ก่อน</option></select><small>เลือกจากโมเดลที่ใช้ได้ใน backend นี้ โมเดลเดียวกันใช้ทั้งสนทนาและสร้าง HTML</small></label>
+        <button id="codex-refresh" class="secondary-button" type="button" hidden>ตรวจสถานะ Codex และโหลดโมเดลอีกครั้ง</button>
+        <p id="backend-status" class="settings-note">รายการโมเดลจะแสดงตามช่องทาง AI ที่เลือก</p>
+        <p id="key-note" class="settings-note">API key ถูกอ่านจากการตั้งค่าฝั่ง local server เท่านั้น และไม่แสดงในหน้านี้</p>
+        <footer><button id="new-session" type="button">เริ่มบทสนทนาใหม่</button><button id="settings-save" type="button">บันทึกการตั้งค่า</button></footer>
+      </main>
+    </div>
+  </section>
+  <script type="module" src="/v2.js"></script>
+</body>
+</html>
