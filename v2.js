@@ -55,6 +55,7 @@ function renderMessages(messages = []) {
 
 function renderUsage(usage = {}) {
   const panel = $('#usage-panel');
+  if (!state.isDeveloper) { panel.replaceChildren(); return; }
   if (!usage.call_count) { panel.textContent = 'ยังไม่มีข้อมูลการเรียก AI ในเซสชันนี้'; return; }
   const summary = document.createElement('div');
   summary.className = 'usage-grid';
@@ -183,6 +184,9 @@ async function activateSession(session) {
   try {
     const config = await api('/api/v2/config');
     if (generation !== authGeneration) return;
+    state.isDeveloper = Boolean(config.developer);
+    document.body.classList.toggle('developer-mode', state.isDeveloper);
+    $('#settings-open').hidden = !state.isDeveloper;
     if (config.deployment) {
       for (const option of [...$('#backend-select').options]) if (option.value !== 'openrouter') option.remove();
       $('#provider-row').hidden = true;
@@ -223,6 +227,7 @@ async function activateSession(session) {
 function signOutView() {
   authGeneration++;
   state.userId = ''; state.email = ''; state.isDeveloper = false; state.sessionId = '';
+  document.body.classList.remove('developer-mode');
   $('.app-shell').hidden = true;
   $('#settings-open').hidden = true;
   $('#work-dialog').hidden = true;
@@ -443,6 +448,13 @@ async function loadWorkList() {
       open.textContent = 'ดู / แก้ไข';
       open.addEventListener('click', () => void openWork(session.id));
       actions.append(open);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'delete-work-button';
+      remove.textContent = 'ลบงาน';
+      remove.setAttribute('aria-label', `ลบงาน ${session.title || ''}`);
+      remove.addEventListener('click', () => void deleteWork(session.id, session.title, remove));
+      actions.append(remove);
       if (session.latest_run?.runtime_url) {
         const runtime = document.createElement('a');
         runtime.href = session.latest_run.runtime_url;
@@ -460,6 +472,25 @@ async function loadWorkList() {
     failure.className = 'work-empty';
     failure.textContent = `โหลดรายการสื่อไม่สำเร็จ: ${error.message}`;
     list.append(failure);
+  }
+}
+
+async function deleteWork(sessionId, title, button) {
+  if (!confirm(`ลบ “${title || 'สื่อไม่มีชื่อ'}” และบทสนทนาที่เกี่ยวข้องอย่างถาวรหรือไม่?`)) return;
+  button.disabled = true;
+  try {
+    await api(`${API}/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' });
+    if (state.sessionId === sessionId) {
+      localStorage.removeItem(userStorageKey(SESSION_KEY));
+      state.sessionId = '';
+      const result = await api(`${API}/sessions`, { method: 'POST', body: '{}' });
+      renderSession(result.session);
+      $('#status-text').textContent = 'ลบงานแล้ว เริ่มบทสนทนาใหม่ให้แล้ว';
+    }
+    await loadWorkList();
+  } catch (error) {
+    $('#status-text').textContent = `ลบงานไม่สำเร็จ: ${error.message}`;
+    button.disabled = false;
   }
 }
 

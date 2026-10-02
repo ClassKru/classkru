@@ -54,6 +54,30 @@ async function listSessions(root) {
     latest_run: latestRuns.has(item.id) ? { id: latestRuns.get(item.id), title: item.title, status: 'passed', runtime_url: `/api/v2/runtime/${latestRuns.get(item.id)}` } : null
   }));
 }
+async function listSessionObjects(prefix, sessionId) {
+  const output = [];
+  for (let offset = 0; offset < 20000; offset += 1000) {
+    const page = await storage.list(prefix, { limit: 1000, offset, search: `${sessionId}_`, column: 'name', order: 'asc' });
+    output.push(...page.filter(row => String(row.name || '').startsWith(`${sessionId}_`)));
+    if (page.length < 1000) return output;
+  }
+  throw Object.assign(new Error('session_has_too_many_objects'), { code: 'delete_limit_exceeded', status: 413 });
+}
+async function deleteSession(root, sessionId) {
+  if (!await sessionIndex(root, sessionId)) return false;
+  const prefixes = ['sessions', 'messages', 'runs', 'usage'];
+  const objects = await Promise.all(prefixes.map(name => listSessionObjects(`${root}/${name}`, sessionId)));
+  const files = objects.flatMap((rows, index) => rows.map(row => `${root}/${prefixes[index]}/${row.name}`));
+  const runRows = objects[2];
+  const runtimeIds = runRows.map(row => {
+    const name = String(row.name || ''), marker = name.indexOf('_run_');
+    const id = marker < 0 ? '' : name.slice(marker + 5).replace(/\.json$/i, '');
+    return isId(id) ? id : '';
+  }).filter(Boolean);
+  const deletions = [...files, ...runtimeIds.map(id => `mini-lab-v2/runtime/${id}.json`)];
+  for (let index = 0; index < deletions.length; index += 8) await Promise.all(deletions.slice(index, index + 8).map(name => storage.remove(name)));
+  return true;
+}
 async function usageData(root, sessionId) {
   const calls = await storage.documents(`${root}/usage`, { limit: 100, search: `${sessionId}_`, column: 'created_at', order: 'asc' });
   const byPhase = new Map();
@@ -81,13 +105,13 @@ async function recordUsage(root, sessionId, phase, model, result) {
     usage_source: providerUsage.total_tokens == null ? 'unavailable' : 'provider' };
   await storage.put(`${root}/usage/${recordName(sessionId, 'usage', call.id)}`, call);
 }
-async function sessionData(root, sessionId) {
+async function sessionData(root, sessionId, includeUsage = false) {
   const meta = await sessionIndex(root, sessionId);
   if (!meta) return null;
   const [messages, latest, usage] = await Promise.all([
     storage.documents(`${root}/messages`, { limit: 500, search: `${sessionId}_`, column: 'name', order: 'asc' }),
     storage.documents(`${root}/runs`, { limit: 1, search: `${sessionId}_`, column: 'created_at', order: 'desc' }),
-    usageData(root, sessionId)
+    includeUsage ? usageData(root, sessionId) : Promise.resolve(null)
   ]);
   return { id: sessionId, title: meta.title, messages: messages.filter(item => item.session_id === sessionId).sort((a, b) => a.created_at.localeCompare(b.created_at)), usage, latest_run_id: latest[0]?.id || null, latest_run: latest[0] ? { id: latest[0].id, title: latest[0].title, summary: latest[0].summary, status: 'passed', artifact_mime: 'text/html', runtime_url: `/api/v2/runtime/${latest[0].id}` } : null };
 }
@@ -130,7 +154,7 @@ async function handler(req, res) {
       return res.status(200).send(artifact.html);
     } catch (error) { return responseError(res, error); }
   }
-  if (!['GET', 'POST'].includes(req.method)) return sendJson(res, 405, { error: 'method_not_allowed' });
+  if (!['GET', 'POST', 'DELETE'].includes(req.method)) return sendJson(res, 405, { error: 'method_not_allowed' });
   if (!requestOriginIsValid(req)) return sendJson(res, 403, { error: 'invalid_origin' });
   try {
     const user = await authenticatedUser(req);
@@ -153,7 +177,7 @@ async function handler(req, res) {
       const id = uuid(), timestamp = now();
       await writeSessionEvent(root, id, { id, title: 'สื่อใหม่', created_at: timestamp, updated_at: timestamp });
       await addMessage(root, id, 'assistant', 'เล่าไอเดียหรือสิ่งที่อยากให้นักเรียนเรียนรู้ได้เลย ไม่ต้องเขียนเป็นข้อกำหนดทางเทคนิค', 'v2_welcome');
-      return sendJson(res, 201, { session: await sessionData(root, id) });
+      return sendJson(res, 201, { session: await sessionData(root, id, isDeveloper) });
     }
     if (action === 'sessions' && req.method === 'GET' && parts.length === 1) {
       const sessions = await listSessions(root);
@@ -161,11 +185,15 @@ async function handler(req, res) {
       return sendJson(res, 200, { sessions: result });
     }
     if (action === 'sessions' && isId(parts[1]) && parts.length === 2 && req.method === 'GET') {
-      const session = await sessionData(root, parts[1]);
+      const session = await sessionData(root, parts[1], isDeveloper);
       return session ? sendJson(res, 200, { session }) : sendJson(res, 404, { error: 'session_not_found' });
     }
+    if (action === 'sessions' && isId(parts[1]) && parts.length === 2 && req.method === 'DELETE') {
+      const deleted = await deleteSession(root, parts[1]);
+      return deleted ? sendJson(res, 200, { deleted: true }) : sendJson(res, 404, { error: 'session_not_found' });
+    }
     if (action === 'sessions' && isId(parts[1]) && parts.length === 3 && req.method === 'POST' && parts[2] === 'chat') {
-      const sessionId = parts[1], current = await sessionData(root, sessionId);
+      const sessionId = parts[1], current = await sessionData(root, sessionId, isDeveloper);
       if (!current) return sendJson(res, 404, { error: 'session_not_found' });
       const message = String(input.message || '').trim().slice(0, 6000);
       if (!message) return sendJson(res, 400, { error: 'message_required' });
@@ -178,10 +206,10 @@ async function handler(req, res) {
       const meta = await sessionIndex(root, sessionId);
       const title = meta.title === 'สื่อใหม่' ? message.replace(/\s+/g, ' ').slice(0, 80) : meta.title;
       await writeSessionEvent(root, sessionId, { ...meta, title, updated_at: now() });
-      return sendJson(res, 200, { reply: answer.text, usage: await usageData(root, sessionId) });
+      return sendJson(res, 200, { reply: answer.text, ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
     }
     if (action === 'sessions' && isId(parts[1]) && parts.length === 3 && req.method === 'POST' && parts[2] === 'build') {
-      const sessionId = parts[1], current = await sessionData(root, sessionId);
+      const sessionId = parts[1], current = await sessionData(root, sessionId, isDeveloper);
       if (!current) return sendJson(res, 404, { error: 'session_not_found' });
       const history = current.messages.filter(item => item.kind === 'v2_chat');
       if (!history.some(item => item.role === 'teacher')) return sendJson(res, 400, { error: 'conversation_required' });
@@ -200,7 +228,7 @@ async function handler(req, res) {
       const meta = await sessionIndex(root, sessionId);
       await writeSessionEvent(root, sessionId, { ...meta, title: artifact.title || meta.title, updated_at: now() });
       await addMessage(root, sessionId, 'assistant', `สร้างสื่อ HTML เสร็จแล้ว: ${run.title}`, 'v2_build_completed');
-      return sendJson(res, 200, { run: { id, title: run.title, summary: run.summary, status: 'passed', runtime_url: `/api/v2/runtime/${id}` }, artifact_url: `/api/v2/runtime/${id}`, usage: await usageData(root, sessionId) });
+      return sendJson(res, 200, { run: { id, title: run.title, summary: run.summary, status: 'passed', runtime_url: `/api/v2/runtime/${id}` }, artifact_url: `/api/v2/runtime/${id}`, ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
     }
     return sendJson(res, 404, { error: 'not_found' });
   } catch (error) { return responseError(res, error); }

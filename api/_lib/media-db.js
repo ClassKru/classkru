@@ -65,6 +65,10 @@ async function put(name,value) {
   path(name);
   return request(`object/${configuration().bucket}/${name}`,{method:'POST',body:seal(name,value),exclusive:true});
 }
+async function remove(name) {
+  path(name);
+  return request(`object/${configuration().bucket}/${name}`,{method:'DELETE',missing:true});
+}
 async function list(prefix,{limit=100,search='',column='created_at',order='desc',offset=0}={}) {
   path(prefix);
   const result=await request(`object/list/${configuration().bucket}`,{method:'POST',missing:true,body:{prefix,limit,offset,search,sortBy:{column,order}}});
@@ -80,4 +84,4 @@ async function documents(prefix,options) {
   if(result.some(x=>!x)) throw fail('storage_unavailable',502);
   return result;
 }
-module.exports={fail,configured,ensureBucket,get,put,list,documents};
+module.exports={fail,configured,ensureBucket,get,put,remove,list,documents};
