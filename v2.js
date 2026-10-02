@@ -477,19 +477,27 @@ async function loadWorkList() {
 
 async function deleteWork(sessionId, title, button) {
   if (!confirm(`ลบ “${title || 'สื่อไม่มีชื่อ'}” และบทสนทนาที่เกี่ยวข้องอย่างถาวรหรือไม่?`)) return;
+  const status = $('#work-status');
+  status.hidden = true;
   button.disabled = true;
   try {
     await api(`${API}/sessions/${encodeURIComponent(sessionId)}`, { method: 'DELETE' });
+    await loadWorkList();
     if (state.sessionId === sessionId) {
       localStorage.removeItem(userStorageKey(SESSION_KEY));
       state.sessionId = '';
-      const result = await api(`${API}/sessions`, { method: 'POST', body: '{}' });
-      renderSession(result.session);
-      $('#status-text').textContent = 'ลบงานแล้ว เริ่มบทสนทนาใหม่ให้แล้ว';
+      try {
+        const result = await api(`${API}/sessions`, { method: 'POST', body: '{}' });
+        renderSession(result.session);
+        $('#status-text').textContent = 'ลบงานแล้ว เริ่มบทสนทนาใหม่ให้แล้ว';
+      } catch (error) {
+        status.textContent = `ลบงานแล้ว แต่เริ่มบทสนทนาใหม่ไม่สำเร็จ: ${error.message}`;
+        status.hidden = false;
+      }
     }
-    await loadWorkList();
   } catch (error) {
-    $('#status-text').textContent = `ลบงานไม่สำเร็จ: ${error.message}`;
+    status.textContent = `ลบงานไม่สำเร็จ: ${error.message}`;
+    status.hidden = false;
     button.disabled = false;
   }
 }
@@ -520,6 +528,7 @@ async function createNewSession(button) {
 
 $('#my-works-open').addEventListener('click', async () => {
   $('#work-dialog').hidden = false;
+  $('#work-status').hidden = true;
   $('.app-shell').inert = true;
   $('#work-close').focus();
   await loadWorkList();

@@ -131,6 +131,7 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .work-row-actions .delete-work-button { border-color: #f1c5c2; color: #a33b31; }
 .work-row-actions .delete-work-button:hover,.work-row-actions .delete-work-button:focus-visible { border-color: #d97770; background: #fff7f6; }
 .work-empty { padding: 15px; border-radius: 10px; background: #f5f7fb; color: var(--muted); font-size: .82rem; text-align: center; }
+.work-status { margin: 0 0 12px !important; padding: 10px 12px; border-radius: 9px; background: #fff3f1; color: #a33b31 !important; font-size: .8rem !important; }
 #preview-frame { display: block; width: 100%; height: min(72vh, 720px); border: 1px solid #dce4f0; border-radius: 11px; background: #fff; }
 .validation-note { margin-top: 10px; color: #a33b31; font-size: .78rem; }
 .usage-details { display: none; color: #596982; font-size: .78rem; }
