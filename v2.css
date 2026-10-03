@@ -46,7 +46,10 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .lab-settings-trigger:hover, .lab-settings-trigger:focus-visible { border-color: #6f8fe6; color: #245bd4; }
 
 .workspace { display: grid; gap: 18px; }
-.app-shell[data-view="session"] .workspace > .intro,
+.app-shell[data-view="session"] .workspace > .intro { display: contents; }
+.app-shell[data-view="session"] .intro > .eyebrow,
+.app-shell[data-view="session"] .intro > h1,
+.app-shell[data-view="session"] .intro > p,
 .app-shell[data-view="session"] .workspace > .idea-starters { display: none; }
 .app-shell[data-view="session"] .composer-intro { display: none; }
 .app-shell[data-view="landing"] #chat-log,

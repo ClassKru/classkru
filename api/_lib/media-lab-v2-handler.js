@@ -221,7 +221,7 @@ async function handler(req, res) {
       const buildStarted = Date.now();
       const sessionId = parts[1], current = await sessionData(root, sessionId, isDeveloper);
       if (!current) return sendJson(res, 404, { error: 'session_not_found' });
-      const history = current.messages.filter(item => item.kind === 'v2_chat');
+      const history = current.messages.filter(item => item.kind === 'v2_chat' || item.kind === 'v2_pending_start');
       if (!history.some(item => item.role === 'teacher')) return sendJson(res, 400, { error: 'conversation_required' });
       const promptModule = await prompts(), model = selectedModel(input, user);
       const result = await callOpenRouter(model, promptModule.buildV2ArtifactPrompt('', history), { maxTokens: 8000, temperature: 0.25, jsonMode: true });
