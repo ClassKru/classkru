@@ -8,6 +8,7 @@ const state = { userId: '', email: '', isDeveloper: false, sessionId: '', backen
 let authGeneration = 0;
 
 function userStorageKey(key) { return `${key}:${state.userId}`; }
+function pendingStartKey(sessionId) { return `classkru.mediaLab.v2.pendingStart:${state.userId}:${sessionId}`; }
 
 async function api(path, options = {}) {
   const { data } = await supabaseClient.auth.getSession();
@@ -165,6 +166,7 @@ function renderRun(run) {
 
 function renderSession(session) {
   state.sessionId = session.id;
+  $('.app-shell').dataset.view = 'session';
   localStorage.setItem(userStorageKey(SESSION_KEY), state.sessionId);
   renderMessages(session.messages);
   renderUsage(session.usage);
@@ -203,19 +205,36 @@ async function activateSession(session) {
     $('#provider-row').hidden = state.backend !== 'local';
     if (state.isDeveloper && state.backend === 'openrouter' && !config.configured) $('#key-note').textContent = 'OpenRouter key ยังไม่พร้อมใน local server (.env.local)';
     backendLabel();
-    let sessionId = localStorage.getItem(userStorageKey(SESSION_KEY)) || '';
-    let result = await api(`${API}/sessions`);
-    if (!sessionId && result.sessions?.length) sessionId = result.sessions[0].id;
-    if (sessionId) {
-      try { result = await api(`${API}/sessions/${encodeURIComponent(sessionId)}`); }
-      catch { sessionId = ''; }
-    }
+    const sessionId = new URLSearchParams(location.search).get('session') || '';
     if (!sessionId) {
-      result = await api(`${API}/sessions`, { method: 'POST', body: '{}' });
-      renderSession(result.session);
+      state.sessionId = '';
+      $('.app-shell').dataset.view = 'landing';
+      renderMessages([]);
+      renderRun(null);
+      renderUsage({});
+      setBusy(false);
+      return;
+    }
+    let result;
+    try { result = await api(`${API}/sessions/${encodeURIComponent(sessionId)}`); }
+    catch (error) {
+      if (error.payload?.error !== 'session_not_found') throw error;
+      history.replaceState({}, '', '/mini-lab-v2');
+      state.sessionId = '';
+      $('.app-shell').dataset.view = 'landing';
+      renderMessages([]);
+      renderRun(null);
+      setBusy(false);
+      $('#status-text').textContent = 'ไม่พบงานนี้แล้ว เริ่มสื่อชิ้นใหม่ได้จากช่องด้านล่าง';
       return;
     }
     renderSession(result.session);
+    const pendingStart = sessionStorage.getItem(pendingStartKey(sessionId));
+    if (pendingStart) {
+      sessionStorage.removeItem(pendingStartKey(sessionId));
+      $('#message-input').value = pendingStart;
+      $('#chat-form').requestSubmit();
+    }
   } catch (error) {
     if (generation !== authGeneration) return;
     $('#auth-status').textContent = `เปิด Mini Lab ไม่สำเร็จ: ${error.message}`;
@@ -259,10 +278,14 @@ async function initialize() {
 
 $('#chat-form').addEventListener('submit', async event => {
   event.preventDefault();
-  if (state.busy || !state.sessionId) return;
+  if (state.busy) return;
   const input = $('#message-input');
   const message = input.value.trim();
   if (!message) return;
+  if (!state.sessionId) {
+    await startNewMedia(message);
+    return;
+  }
   addMessage('teacher', message);
   input.value = '';
   setBusy(true, 'AI กำลังคิดกับคุณ…');
@@ -281,6 +304,21 @@ $('#chat-form').addEventListener('submit', async event => {
     setBusy(false);
   }
 });
+
+async function startNewMedia(message) {
+  if (state.busy) return;
+  setBusy(true, 'กำลังเปิดพื้นที่สำหรับสื่อชิ้นใหม่…');
+  try {
+    const result = await api(`${API}/sessions`, { method: 'POST', body: '{}' });
+    const sessionId = result.session.id;
+    sessionStorage.setItem(pendingStartKey(sessionId), message);
+    localStorage.setItem(userStorageKey(SESSION_KEY), sessionId);
+    location.assign(`/mini-lab-v2?session=${encodeURIComponent(sessionId)}`);
+  } catch (error) {
+    setBusy(false);
+    $('#status-text').textContent = `เริ่มสร้างสื่อไม่สำเร็จ: ${error.message}`;
+  }
+}
 
 $('#build-button').addEventListener('click', async () => {
   if (state.busy || !state.sessionId) return;
@@ -486,14 +524,7 @@ async function deleteWork(sessionId, title, button) {
     if (state.sessionId === sessionId) {
       localStorage.removeItem(userStorageKey(SESSION_KEY));
       state.sessionId = '';
-      try {
-        const result = await api(`${API}/sessions`, { method: 'POST', body: '{}' });
-        renderSession(result.session);
-        $('#status-text').textContent = 'ลบงานแล้ว เริ่มบทสนทนาใหม่ให้แล้ว';
-      } catch (error) {
-        status.textContent = `ลบงานแล้ว แต่เริ่มบทสนทนาใหม่ไม่สำเร็จ: ${error.message}`;
-        status.hidden = false;
-      }
+      location.assign('/mini-lab-v2');
     }
   } catch (error) {
     status.textContent = `ลบงานไม่สำเร็จ: ${error.message}`;
@@ -503,27 +534,11 @@ async function deleteWork(sessionId, title, button) {
 }
 
 async function openWork(sessionId) {
-  try {
-    const result = await api(`${API}/sessions/${encodeURIComponent(sessionId)}`);
-    renderSession(result.session);
-    $('#work-dialog').hidden = true;
-    $('.app-shell').inert = false;
-    $('#status-text').textContent = 'เปิดสื่อของคุณแล้ว พิมพ์ต่อเพื่อแก้ไขได้เลย';
-    $('#message-input').focus();
-  } catch (error) { $('#status-text').textContent = `เปิดสื่อไม่สำเร็จ: ${error.message}`; }
+  location.assign(`/mini-lab-v2?session=${encodeURIComponent(sessionId)}`);
 }
 
 async function createNewSession(button) {
-  button.disabled = true;
-  try {
-    const result = await api(`${API}/sessions`, { method: 'POST', body: '{}' });
-    renderSession(result.session);
-    if (!$('#settings-dialog').hidden) closeSettings();
-    $('#work-dialog').hidden = true;
-    $('.app-shell').inert = false;
-    $('#status-text').textContent = 'เริ่มบทสนทนาใหม่แล้ว';
-  } catch (error) { $('#status-text').textContent = `เริ่มใหม่ไม่สำเร็จ: ${error.message}`; }
-  finally { button.disabled = false; }
+  location.assign('/mini-lab-v2');
 }
 
 $('#my-works-open').addEventListener('click', async () => {

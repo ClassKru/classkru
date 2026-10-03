@@ -46,6 +46,14 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .lab-settings-trigger:hover, .lab-settings-trigger:focus-visible { border-color: #6f8fe6; color: #245bd4; }
 
 .workspace { display: grid; gap: 18px; }
+.app-shell[data-view="session"] .workspace > .intro,
+.app-shell[data-view="session"] .workspace > .idea-starters { display: none; }
+.app-shell[data-view="landing"] #chat-log,
+.app-shell[data-view="landing"] #build-button,
+.app-shell[data-view="landing"] #new-session-open { display: none; }
+.app-shell[data-view="landing"] .chat-card { width: min(900px, 100%); margin: 0 auto; box-shadow: 0 12px 36px #27375a12; }
+.app-shell[data-view="landing"] .composer { padding-top: 0; border-top: 0; }
+.app-shell[data-view="landing"] .composer textarea { min-height: 116px; }
 .intro {
   position: relative;
   overflow: hidden;
