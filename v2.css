@@ -52,12 +52,12 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .app-shell[data-view="landing"] #chat-log,
 .app-shell[data-view="landing"] #build-button,
 .app-shell[data-view="landing"] #new-session-open { display: none; }
-.app-shell[data-view="landing"] .chat-card { width: min(900px, 100%); margin: 0 auto; padding: 15px; border-color: #bfc9ec; border-radius: 16px; background: linear-gradient(140deg, #fff, #fbfaff); box-shadow: 0 8px 20px #0f172a0c; }
+.app-shell[data-view="landing"] .chat-card { width: min(760px, 100%); margin: 16px 0 0; padding: 7px 7px 7px 17px; border: 0; border-radius: 15px; background: #fff; box-shadow: 0 6px 18px #5e72ac22; }
 .app-shell[data-view="landing"] .composer { padding: 0; border-top: 0; }
-.app-shell[data-view="landing"] .composer textarea { min-height: 94px; margin-top: 11px; padding: 6px 2px; border: 0; border-radius: 0; background: transparent; font-size: 1rem; }
+.app-shell[data-view="landing"] .composer textarea { min-height: 64px; margin-top: 6px; padding: 6px 2px; border: 0; border-radius: 0; background: transparent; font-size: .95rem; }
 .app-shell[data-view="landing"] .composer textarea:focus-visible { outline: 0; }
 .app-shell[data-view="landing"] .composer:focus-within { outline: 3px solid #7b8bea38; outline-offset: 4px; border-radius: 12px; }
-.app-shell[data-view="landing"] .composer-footer { margin-top: 5px; padding-top: 11px; border-top: 1px solid #e8eaf5; }
+.app-shell[data-view="landing"] .composer-footer { margin-top: 4px; padding-top: 8px; border-top: 1px solid #e8eaf5; }
 .app-shell[data-view="landing"] .send-button { min-width: 126px; border-color: #5d56cf; background: #5b50cf; color: #fff; box-shadow: 0 5px 12px #5b50cf2b; }
 .app-shell[data-view="landing"] .send-button:hover, .app-shell[data-view="landing"] .send-button:focus-visible { border-color: #4539b6; background: #4539b6; }
 .composer-intro { display: flex; align-items: center; gap: 10px; }
@@ -68,8 +68,8 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .intro {
   position: relative;
   overflow: hidden;
-  min-height: 178px;
-  padding: 26px 30px;
+  min-height: 246px;
+  padding: 30px 36px;
   border-radius: 18px;
   background: linear-gradient(115deg, #dceafe, #cbdcff 54%, #f2cfee);
 }
@@ -199,8 +199,8 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
   .idea-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
   .idea-guide-card { min-height: 62px; padding: 8px; }
   .chat-card, .result-panel { padding: 13px; }
-  .app-shell[data-view="landing"] .chat-card { padding: 13px; }
-  .app-shell[data-view="landing"] .composer textarea { min-height: 88px; font-size: .92rem; }
+  .app-shell[data-view="landing"] .chat-card { padding: 7px 7px 7px 13px; }
+  .app-shell[data-view="landing"] .composer textarea { min-height: 68px; font-size: .92rem; }
   .composer-intro small { font-size: .7rem; }
   .chat-log { min-height: 150px; max-height: 42vh; }
   .message { max-width: 96%; font-size: .83rem; }
