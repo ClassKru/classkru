@@ -67,7 +67,8 @@ async function put(name,value) {
 }
 async function remove(name) {
   path(name);
-  return request(`object/${configuration().bucket}/${name}`,{method:'DELETE',missing:true});
+  const {bucket}=configuration();
+  return request(`object/${bucket}`,{method:'DELETE',body:{prefixes:[name]}});
 }
 async function list(prefix,{limit=100,search='',column='created_at',order='desc',offset=0}={}) {
   path(prefix);

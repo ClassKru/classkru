@@ -30,6 +30,10 @@ test('private bucket auto-creation, authenticated encryption, no plaintext or ov
   await assert.rejects(db.get('test/two.json'),{code:'storage_integrity_failed'},'envelope cannot be moved to forge another record');
   const sealed=f.objects.get('test/one.json');sealed.data='broken';
   await assert.rejects(db.get('test/one.json'),{code:'storage_integrity_failed'});
+  await db.remove('test/one.json');
+  assert.equal(await db.get('test/one.json'),null);
+  const deletion=f.calls.find(call=>call.method==='DELETE');
+  assert.deepEqual(deletion,{path:'object/classkru-media-files',method:'DELETE',body:{prefixes:['test/one.json']}});
   await assert.rejects(db.get('../secret'),{code:'invalid_storage_path'});
   f.bucket.public=true;await assert.rejects(db.ensureBucket(),{code:'storage_bucket_unsafe'});
 });
