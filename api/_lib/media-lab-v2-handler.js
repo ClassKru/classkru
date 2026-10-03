@@ -184,7 +184,7 @@ async function handler(req, res) {
       await writeSessionEvent(root, id, { id, title: 'สื่อใหม่', created_at: timestamp, updated_at: timestamp });
       if (initialMessage) await addMessage(root, id, 'teacher', initialMessage, 'v2_pending_start');
       else await addMessage(root, id, 'assistant', 'เริ่มจากเล่าไอเดีย หรือเลือกการ์ดจุดประกายด้านบนได้เลย', 'v2_welcome');
-      return sendJson(res, 201, { session: await sessionData(root, id, isDeveloper) });
+      return sendJson(res, 201, { session: { id, title: 'สื่อใหม่' } });
     }
     if (action === 'sessions' && req.method === 'GET' && parts.length === 1) {
       const sessions = await listSessions(root);

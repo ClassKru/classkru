@@ -4,7 +4,7 @@ const SESSION_KEY = 'classkru.mediaLab.v2.sessionId';
 const SETTINGS_KEY = 'classkru.mediaLab.v2.settings';
 const DEVELOPER_EMAILS = new Set(['petch.0231@gmail.com', 'supakit.radiation@gmail.com', 'classkru.dev@gmail.com']);
 const supabaseClient = window.supabase?.createClient('https://dzntiiuyqvkaxqpqzxeh.supabase.co', 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc');
-const state = { userId: '', email: '', isDeveloper: false, sessionId: '', backend: 'openrouter', provider: 'ollama', model: 'openrouter/free', modelSelections: {}, busy: false };
+const state = { userId: '', email: '', isDeveloper: false, configReady: false, sessionId: '', backend: 'openrouter', provider: 'ollama', model: 'openrouter/free', modelSelections: {}, busy: false };
 let authGeneration = 0;
 
 function userStorageKey(key) { return `${key}:${state.userId}`; }
@@ -24,7 +24,7 @@ async function api(path, options = {}) {
 }
 
 function requestSettings() {
-  return state.isDeveloper ? { backend: state.backend, local_provider: state.provider, model: state.model } : {};
+  return state.isDeveloper && state.configReady ? { backend: state.backend, local_provider: state.provider, model: state.model } : {};
 }
 
 function setBusy(value, status = '') {
@@ -182,8 +182,8 @@ async function activateSession(session) {
   $('.app-shell').hidden = false;
   $('#auth-panel').hidden = true;
   $('#settings-open').hidden = !state.isDeveloper;
-  try {
-    const config = await api('/api/v2/config');
+  state.configReady = false;
+  const configTask = api('/api/v2/config').then(config => {
     if (generation !== authGeneration) return;
     state.isDeveloper = Boolean(config.developer);
     document.body.classList.toggle('developer-mode', state.isDeveloper);
@@ -199,11 +199,19 @@ async function activateSession(session) {
     state.model = String(saved.model || config.defaultBuilderModel || '');
     state.modelSelections = saved.modelSelections && typeof saved.modelSelections === 'object' ? saved.modelSelections : {};
     if (saved.model) state.modelSelections[modelSelectionKey(state.backend, state.provider)] ||= String(saved.model);
+    state.configReady = true;
     $('#backend-select').value = state.backend;
     $('#provider-select').value = state.provider;
     $('#provider-row').hidden = state.backend !== 'local';
     if (state.isDeveloper && state.backend === 'openrouter' && !config.configured) $('#key-note').textContent = 'OpenRouter key ยังไม่พร้อมใน local server (.env.local)';
     backendLabel();
+  }).catch(error => {
+    if (generation === authGeneration) {
+      console.warn('media_lab_config_unavailable', error);
+      $('#status-text').textContent = 'กำลังเริ่มบทสนทนา…';
+    }
+  });
+  try {
     const sessionId = new URLSearchParams(location.search).get('session') || '';
     if (!sessionId) {
       state.sessionId = '';
@@ -212,8 +220,12 @@ async function activateSession(session) {
       renderRun(null);
       renderUsage({});
       setBusy(false);
+      void configTask;
       return;
     }
+    state.sessionId = sessionId;
+    $('.app-shell').dataset.view = 'session';
+    setBusy(true, 'กำลังเปิดบทสนทนาของคุณ…');
     let result;
     try { result = await api(`${API}/sessions/${encodeURIComponent(sessionId)}`); }
     catch (error) {
@@ -227,6 +239,7 @@ async function activateSession(session) {
       $('#status-text').textContent = 'ไม่พบงานนี้แล้ว เริ่มสื่อชิ้นใหม่ได้จากช่องด้านล่าง';
       return;
     }
+    if (generation !== authGeneration) return;
     renderSession(result.session);
     if (result.session.pending_start) void resumePendingStart(result.session.pending_start);
   } catch (error) {
@@ -235,11 +248,12 @@ async function activateSession(session) {
     $('.app-shell').hidden = true;
     $('#auth-panel').hidden = false;
   }
+  void configTask;
 }
 
 function signOutView() {
   authGeneration++;
-  state.userId = ''; state.email = ''; state.isDeveloper = false; state.sessionId = '';
+  state.userId = ''; state.email = ''; state.isDeveloper = false; state.configReady = false; state.sessionId = '';
   document.body.classList.remove('developer-mode');
   $('.app-shell').hidden = true;
   $('#settings-open').hidden = true;
