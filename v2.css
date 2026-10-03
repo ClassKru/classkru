@@ -48,12 +48,23 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .workspace { display: grid; gap: 18px; }
 .app-shell[data-view="session"] .workspace > .intro,
 .app-shell[data-view="session"] .workspace > .idea-starters { display: none; }
+.app-shell[data-view="session"] .composer-intro { display: none; }
 .app-shell[data-view="landing"] #chat-log,
 .app-shell[data-view="landing"] #build-button,
 .app-shell[data-view="landing"] #new-session-open { display: none; }
-.app-shell[data-view="landing"] .chat-card { width: min(900px, 100%); margin: 0 auto; box-shadow: 0 12px 36px #27375a12; }
-.app-shell[data-view="landing"] .composer { padding-top: 0; border-top: 0; }
-.app-shell[data-view="landing"] .composer textarea { min-height: 116px; }
+.app-shell[data-view="landing"] .chat-card { width: min(900px, 100%); margin: 0 auto; padding: 15px; border-color: #bfc9ec; border-radius: 16px; background: linear-gradient(140deg, #fff, #fbfaff); box-shadow: 0 8px 20px #0f172a0c; }
+.app-shell[data-view="landing"] .composer { padding: 0; border-top: 0; }
+.app-shell[data-view="landing"] .composer textarea { min-height: 94px; margin-top: 11px; padding: 6px 2px; border: 0; border-radius: 0; background: transparent; font-size: 1rem; }
+.app-shell[data-view="landing"] .composer textarea:focus-visible { outline: 0; }
+.app-shell[data-view="landing"] .composer:focus-within { outline: 3px solid #7b8bea38; outline-offset: 4px; border-radius: 12px; }
+.app-shell[data-view="landing"] .composer-footer { margin-top: 5px; padding-top: 11px; border-top: 1px solid #e8eaf5; }
+.app-shell[data-view="landing"] .send-button { min-width: 126px; border-color: #5d56cf; background: #5b50cf; color: #fff; box-shadow: 0 5px 12px #5b50cf2b; }
+.app-shell[data-view="landing"] .send-button:hover, .app-shell[data-view="landing"] .send-button:focus-visible { border-color: #4539b6; background: #4539b6; }
+.composer-intro { display: flex; align-items: center; gap: 10px; }
+.composer-intro strong, .composer-intro small { display: block; }
+.composer-intro strong { color: #273554; font-size: .87rem; }
+.composer-intro small { margin-top: 2px; color: var(--muted); font-size: .75rem; line-height: 1.45; }
+.composer-spark { display: grid; flex: 0 0 auto; width: 34px; height: 34px; place-items: center; border-radius: 11px; background: #efedff; color: #5b50cf; font-size: 1.05rem; }
 .intro {
   position: relative;
   overflow: hidden;
@@ -188,6 +199,9 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
   .idea-guide-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
   .idea-guide-card { min-height: 62px; padding: 8px; }
   .chat-card, .result-panel { padding: 13px; }
+  .app-shell[data-view="landing"] .chat-card { padding: 13px; }
+  .app-shell[data-view="landing"] .composer textarea { min-height: 88px; font-size: .92rem; }
+  .composer-intro small { font-size: .7rem; }
   .chat-log { min-height: 150px; max-height: 42vh; }
   .message { max-width: 96%; font-size: .83rem; }
   .composer textarea { min-height: 68px; }

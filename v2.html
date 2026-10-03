@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f8fc">
   <title>ClassKru Media</title>
-  <link rel="stylesheet" href="/v2.css?v=5">
+  <link rel="stylesheet" href="/v2.css?v=6">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -28,6 +28,15 @@
 
     <section class="workspace" aria-label="สนทนาเพื่อออกแบบสื่อการเรียนรู้">
       <div class="intro"><div class="eyebrow">✦ ClassKru AI Studio</div><h1>สร้างสื่อการเรียนร่วมกับ ClassKru ผู้ช่วย AI</h1><p>เล่าไอเดียหรือปัญหาในห้องเรียน แล้วช่วยกันเปลี่ยนให้เป็นประสบการณ์การเรียนรู้</p></div>
+      <section class="chat-card" aria-label="บทสนทนาออกแบบสื่อ">
+        <div id="chat-log" class="chat-log" aria-live="polite" aria-label="บทสนทนา"></div>
+        <form id="chat-form" class="composer">
+          <label class="sr-only" for="message-input">พิมพ์ข้อความเพื่อคุยกับ AI</label>
+          <div class="composer-intro"><span class="composer-spark" aria-hidden="true">✦</span><div><strong>เริ่มจากสิ่งที่อยากให้เด็กได้เรียนรู้</strong><small>พิมพ์สั้น ๆ ได้เลย แล้ว ClassKru จะช่วยต่อยอดเป็นสื่อให้</small></div></div>
+          <textarea id="message-input" rows="2" maxlength="6000" placeholder="อยากสร้างสื่ออะไรให้นักเรียนได้ลองเรียนรู้?" required></textarea>
+          <div class="composer-footer"><span id="status-text" role="status">เริ่มจากหัวข้อ ปัญหา หรือกิจกรรมที่อยากให้เด็กได้ลองทำ</span><div class="composer-actions"><button id="send-button" class="send-button" type="submit" aria-label="ส่งข้อความ">เริ่มสร้างสื่อ</button><button id="build-button" class="build-button" type="button" disabled>✦ สร้างสื่อ</button></div></div>
+        </form>
+      </section>
       <section class="idea-starters" aria-labelledby="idea-starters-title">
         <div class="idea-starters-heading"><div><span class="idea-eyebrow">จุดประกายไอเดีย</span><h2 id="idea-starters-title">อยากเริ่มจากกิจกรรมแบบไหน?</h2><p>เลือกการ์ดเพื่อใส่แนวคิดลงในช่องสนทนา แล้วปรับให้เข้ากับบทเรียนของคุณ</p></div></div>
         <div class="idea-grid">
@@ -43,14 +52,6 @@
           <button class="idea-guide-card" type="button" data-idea="เรื่องใกล้ตัว: อยากเชื่อมบทเรียนนี้กับประสบการณ์หรือชีวิตประจำวันของนักเรียนอย่างไร"><span aria-hidden="true">⌂</span><strong>เชื่อมชีวิตจริง</strong><small>เรื่องนี้ใกล้ตัวเด็กอย่างไร?</small></button>
           <button class="idea-guide-card" type="button" data-idea="การสังเกตความเข้าใจ: อยากเห็นนักเรียนอธิบาย ตัดสินใจ หรือแสดงสิ่งที่เรียนรู้ออกมาแบบไหน"><span aria-hidden="true">✓</span><strong>สังเกตความเข้าใจ</strong><small>จะเห็นได้อย่างไรว่าเด็กเข้าใจ?</small></button>
         </div>
-      </section>
-      <section class="chat-card" aria-label="บทสนทนาออกแบบสื่อ">
-        <div id="chat-log" class="chat-log" aria-live="polite" aria-label="บทสนทนา"></div>
-        <form id="chat-form" class="composer">
-          <label class="sr-only" for="message-input">พิมพ์ข้อความเพื่อคุยกับ AI</label>
-          <textarea id="message-input" rows="2" maxlength="6000" placeholder="วันนี้อยากให้นักเรียนเรียนรู้เรื่องอะไร?" required></textarea>
-          <div class="composer-footer"><span id="status-text" role="status">พิมพ์สั้น ๆ ได้เลย แล้วค่อยช่วยกันคิดต่อ</span><div class="composer-actions"><button id="send-button" class="send-button" type="submit" aria-label="ส่งข้อความ">ส่งข้อความ</button><button id="build-button" class="build-button" type="button" disabled>✦ สร้างสื่อ</button></div></div>
-        </form>
       </section>
       <section id="result-panel" class="result-panel" hidden aria-live="polite">
         <div class="result-heading"><div><span class="eyebrow">YOUR LEARNING EXPERIENCE</span><h2 id="result-title">สื่อของคุณพร้อมแล้ว</h2><p id="result-summary"></p></div><a id="runtime-link" class="runtime-link" target="_blank" rel="noopener" hidden>เปิดหน้า Runtime</a></div>
@@ -85,6 +86,6 @@
       </main>
     </div>
   </section>
-  <script type="module" src="/v2.js?v=8"></script>
+  <script type="module" src="/v2.js?v=9"></script>
 </body>
 </html>
