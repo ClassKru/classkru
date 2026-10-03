@@ -8,7 +8,6 @@ const state = { userId: '', email: '', isDeveloper: false, sessionId: '', backen
 let authGeneration = 0;
 
 function userStorageKey(key) { return `${key}:${state.userId}`; }
-function pendingStartKey(sessionId) { return `classkru.mediaLab.v2.pendingStart:${state.userId}:${sessionId}`; }
 
 async function api(path, options = {}) {
   const { data } = await supabaseClient.auth.getSession();
@@ -49,7 +48,7 @@ function addMessage(role, text, pending = false) {
 function renderMessages(messages = []) {
   $('#chat-log').replaceChildren();
   for (const message of messages) {
-    if (message.kind !== 'v2_chat' && message.kind !== 'v2_build_completed') continue;
+    if (message.kind !== 'v2_chat' && message.kind !== 'v2_pending_start' && message.kind !== 'v2_build_completed') continue;
     addMessage(message.role === 'teacher' ? 'teacher' : 'assistant', message.content);
   }
 }
@@ -229,12 +228,7 @@ async function activateSession(session) {
       return;
     }
     renderSession(result.session);
-    const pendingStart = sessionStorage.getItem(pendingStartKey(sessionId));
-    if (pendingStart) {
-      sessionStorage.removeItem(pendingStartKey(sessionId));
-      $('#message-input').value = pendingStart;
-      $('#chat-form').requestSubmit();
-    }
+    if (result.session.pending_start) void resumePendingStart(result.session.pending_start);
   } catch (error) {
     if (generation !== authGeneration) return;
     $('#auth-status').textContent = `เปิด Mini Lab ไม่สำเร็จ: ${error.message}`;
@@ -309,14 +303,31 @@ async function startNewMedia(message) {
   if (state.busy) return;
   setBusy(true, 'กำลังเปิดพื้นที่สำหรับสื่อชิ้นใหม่…');
   try {
-    const result = await api(`${API}/sessions`, { method: 'POST', body: '{}' });
+    const result = await api(`${API}/sessions`, { method: 'POST', body: JSON.stringify({ initial_message: message }) });
     const sessionId = result.session.id;
-    sessionStorage.setItem(pendingStartKey(sessionId), message);
     localStorage.setItem(userStorageKey(SESSION_KEY), sessionId);
     location.assign(`/mini-lab-v2?session=${encodeURIComponent(sessionId)}`);
   } catch (error) {
     setBusy(false);
     $('#status-text').textContent = `เริ่มสร้างสื่อไม่สำเร็จ: ${error.message}`;
+  }
+}
+
+async function resumePendingStart(pendingStart) {
+  if (state.busy || !state.sessionId || !pendingStart?.id) return;
+  setBusy(true, 'AI กำลังอ่านไอเดียของคุณ…');
+  const pending = addMessage('assistant', 'กำลังอ่านบริบท…', true);
+  try {
+    const result = await api(`${API}/sessions/${encodeURIComponent(state.sessionId)}/chat`, { method: 'POST', body: JSON.stringify({ ...requestSettings(), pending_start_id: pendingStart.id }) });
+    pending.remove();
+    addMessage('assistant', result.reply);
+    renderUsage(result.usage);
+    setBusy(false);
+    $('#message-input').focus();
+  } catch (error) {
+    pending.remove();
+    addMessage('assistant', `ส่งข้อความไม่สำเร็จ: ${error.message}`);
+    setBusy(false);
   }
 }
 

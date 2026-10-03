@@ -113,7 +113,12 @@ async function sessionData(root, sessionId, includeUsage = false) {
     storage.documents(`${root}/runs`, { limit: 1, search: `${sessionId}_`, column: 'created_at', order: 'desc' }),
     includeUsage ? usageData(root, sessionId) : Promise.resolve(null)
   ]);
-  return { id: sessionId, title: meta.title, messages: messages.filter(item => item.session_id === sessionId).sort((a, b) => a.created_at.localeCompare(b.created_at)), usage, latest_run_id: latest[0]?.id || null, latest_run: latest[0] ? { id: latest[0].id, title: latest[0].title, summary: latest[0].summary, status: 'passed', artifact_mime: 'text/html', runtime_url: `/api/v2/runtime/${latest[0].id}` } : null };
+  const orderedMessages = messages.filter(item => item.session_id === sessionId).sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const waitingStartIndex = orderedMessages.findIndex(item => item.kind === 'v2_pending_start');
+  const waitingStart = waitingStartIndex < 0 ? null : orderedMessages[waitingStartIndex];
+  const startHasReply = waitingStart && orderedMessages.slice(waitingStartIndex + 1).some(item => item.kind === 'v2_chat' && item.role === 'assistant');
+  const pending_start = waitingStart && !startHasReply ? { id: waitingStart.id, content: waitingStart.content } : null;
+  return { id: sessionId, title: meta.title, messages: orderedMessages, pending_start, usage, latest_run_id: latest[0]?.id || null, latest_run: latest[0] ? { id: latest[0].id, title: latest[0].title, summary: latest[0].summary, status: 'passed', artifact_mime: 'text/html', runtime_url: `/api/v2/runtime/${latest[0].id}` } : null };
 }
 async function addMessage(root, sessionId, role, content, kind = 'v2_chat') {
   const message = { id: uuid(), session_id: sessionId, role, kind, content: String(content).slice(0, 6000), created_at: now() };
@@ -175,8 +180,10 @@ async function handler(req, res) {
     if (action === 'sessions' && req.method === 'POST' && parts.length === 1) {
       await storage.ensureBucket();
       const id = uuid(), timestamp = now();
+      const initialMessage = String(input.initial_message || '').trim().slice(0, 6000);
       await writeSessionEvent(root, id, { id, title: 'สื่อใหม่', created_at: timestamp, updated_at: timestamp });
-      await addMessage(root, id, 'assistant', 'เริ่มจากเล่าไอเดีย หรือเลือกการ์ดจุดประกายด้านบนได้เลย', 'v2_welcome');
+      if (initialMessage) await addMessage(root, id, 'teacher', initialMessage, 'v2_pending_start');
+      else await addMessage(root, id, 'assistant', 'เริ่มจากเล่าไอเดีย หรือเลือกการ์ดจุดประกายด้านบนได้เลย', 'v2_welcome');
       return sendJson(res, 201, { session: await sessionData(root, id, isDeveloper) });
     }
     if (action === 'sessions' && req.method === 'GET' && parts.length === 1) {
@@ -195,10 +202,12 @@ async function handler(req, res) {
     if (action === 'sessions' && isId(parts[1]) && parts.length === 3 && req.method === 'POST' && parts[2] === 'chat') {
       const sessionId = parts[1], current = await sessionData(root, sessionId, isDeveloper);
       if (!current) return sendJson(res, 404, { error: 'session_not_found' });
-      const message = String(input.message || '').trim().slice(0, 6000);
+      const pendingStartId = String(input.pending_start_id || '');
+      const savedStart = isId(pendingStartId) ? current.messages.find(item => item.id === pendingStartId && item.kind === 'v2_pending_start') : null;
+      const message = savedStart ? savedStart.content : String(input.message || '').trim().slice(0, 6000);
       if (!message) return sendJson(res, 400, { error: 'message_required' });
-      const history = [...current.messages, { role: 'teacher', content: message }].filter(item => item.kind === 'v2_chat' || item.role === 'teacher').slice(-16);
-      await addMessage(root, sessionId, 'teacher', message);
+      const history = [...current.messages, ...(savedStart ? [] : [{ role: 'teacher', content: message }])].filter(item => item.kind === 'v2_chat' || item.kind === 'v2_pending_start' || item.role === 'teacher').slice(-16);
+      if (!savedStart) await addMessage(root, sessionId, 'teacher', message);
       const model = selectedModel(input, user), promptModule = await prompts();
       const answer = await callOpenRouter(model, promptModule.buildV2ChatPrompt('', history), { maxTokens: 900, temperature: 0.5 });
       await recordUsage(root, sessionId, 'v2_chat', model, answer);
