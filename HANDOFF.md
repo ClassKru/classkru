@@ -555,3 +555,13 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 ขอบเขตข้อมูล: อ่านทุก published link และตรวจ revoked/archive/share epoch ก่อนแสดง งานเก่าของ Media Studio ไม่ได้เก็บ usage log จากผู้ให้บริการ จึงแสดงขีดแทนจำนวนโทเคน ไม่เดาตัวเลขย้อนหลัง
 
 สถานะ: ใช้งานจริงแล้วบน Production หลัง PR #85 merge (commit 321d9b6). ตารางใช้ published Media Studio โดยตรง และไม่อ่าน mini-lab-v2 แล้ว; ยังไม่ได้ทดสอบการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
+
+## 25. Developer Console: เปลี่ยนแหล่งข้อมูลเป็น ClassKru Media V2 (2026-10-04)
+
+ตามคำสั่งล่าสุด แท็บสื่อใน `/developer/` เปลี่ยนกลับมาอ่านข้อมูล Production ของ ClassKru Media V2 จาก `users/{teacher_id}/mini-lab-v2` โดยตรง และไม่อ่าน published link ของ Media Studio V1 แล้ว
+
+ตารางแสดงทุก Run/Version ที่สร้าง Runtime สำเร็จ ไม่จำกัดเฉพาะ Version ล่าสุดของ Session พร้อมอีเมลครู ชื่องาน วันเวลา รหัส Version แบบย่อ โทเคนสนทนา และโทเคนสร้างสื่อ ปุ่ม Runtime เปิด `/api/v2/runtime/{run_id}` ของ Version นั้น
+
+การแบ่งโทเคนทำตามลำดับเวลาในแต่ละ Session: usage หลัง Version ก่อนหน้าและไม่เกินเวลาสร้าง Version ปัจจุบันจะนับให้ Version ปัจจุบัน `v2_chat` อยู่ฝั่งสนทนา ส่วน `v2_build` และ `v2_repair` อยู่ฝั่งสร้างสื่อ จึงไม่แสดงยอด Session เดียวซ้ำในทุก Version
+
+สถานะ: แก้ไขอยู่บน branch `feature/developer-v2-media-source`; ยังไม่ได้ commit, push หรือ deploy ตามคำสั่งให้รอการอนุมัติ Push

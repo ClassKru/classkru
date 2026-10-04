@@ -651,7 +651,8 @@ function renderV2Media(data) {
     const tr = document.createElement('tr');
     tr.append(element('td', 'v2-media-user', row.teacher || '—'));
     const title = element('td', 'v2-media-title', row.title || 'สื่อการเรียนรู้');
-    title.append(element('small', '', formatDate(row.updatedAt, true)));
+    const version = row.versionId ? ` · Ver ${String(row.versionId).slice(0, 8)}` : '';
+    title.append(element('small', '', `${formatDate(row.updatedAt, true)}${version}`));
     tr.append(title, tokenCell(row.chat), tokenCell(row.build));
     const runtimeCell = document.createElement('td');
     if (row.runtimeUrl) {
@@ -670,7 +671,7 @@ function renderV2Media(data) {
     tr.firstElementChild.colSpan = 5;
     ui.v2MediaRows.append(tr);
   }
-  ui.v2MediaCount.textContent = `พบ ${rows.length.toLocaleString('th-TH')} สื่อที่เผยแพร่แล้ว จาก ${Number(data.publishedLinksScanned || 0).toLocaleString('th-TH')} ลิงก์ที่ตรวจ`;
+  ui.v2MediaCount.textContent = `พบ ${Number(data.generatedVersions || rows.length).toLocaleString('th-TH')} Version จาก ${Number(data.generatedSessions || 0).toLocaleString('th-TH')} Session · ตรวจ ${Number(data.scannedTeachers || 0).toLocaleString('th-TH')} บัญชี`;
   ui.v2MediaUpdated.textContent = `อัปเดต ${formatDate(data.generatedAt, true)}`;
 }
 
@@ -683,8 +684,8 @@ async function loadV2Media() {
   } catch (error) {
     if (error.status === 401) handleDataError(error);
     else ui.globalStatus.textContent = error.status === 503
-      ? 'ยังไม่พร้อมอ่านข้อมูลสื่อที่เผยแพร่ กรุณาตรวจการตั้งค่า Storage และฐานข้อมูล'
-      : 'โหลดรายการสื่อที่เผยแพร่ไม่สำเร็จ กรุณาลองใหม่';
+      ? 'ยังไม่พร้อมอ่านข้อมูล ClassKru Media V2 กรุณาตรวจการตั้งค่า Storage และฐานข้อมูล'
+      : 'โหลดรายการสื่อ ClassKru Media V2 ไม่สำเร็จ กรุณาลองใหม่';
   } finally {
     ui.v2MediaRefresh.disabled = false;
   }
