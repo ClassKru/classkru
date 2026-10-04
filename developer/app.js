@@ -679,7 +679,7 @@ async function loadV2Media() {
   ui.globalStatus.textContent = 'กำลังโหลดรายการสื่อและโทเคน…';
   ui.v2MediaRefresh.disabled = true;
   try {
-    renderV2Media(await request('/api/dev/v2-media'));
+    renderV2Media(await request('/api/dev/data?resource=v2-media'));
     ui.globalStatus.textContent = '';
   } catch (error) {
     if (error.status === 401) handleDataError(error);
