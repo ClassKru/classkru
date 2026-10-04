@@ -117,11 +117,11 @@ async function sessionData(root, sessionId, includeUsage = false) {
   const waitingStartIndex = orderedMessages.findIndex(item => item.kind === 'v2_pending_start');
   const waitingStart = waitingStartIndex < 0 ? null : orderedMessages[waitingStartIndex];
   const startHasReply = waitingStart && orderedMessages.slice(waitingStartIndex + 1).some(item => item.kind === 'v2_chat' && item.role === 'assistant');
-  const pending_start = waitingStart && !startHasReply ? { id: waitingStart.id, content: waitingStart.content } : null;
-  return { id: sessionId, title: meta.title, messages: orderedMessages, pending_start, usage, latest_run_id: latest[0]?.id || null, latest_run: latest[0] ? { id: latest[0].id, title: latest[0].title, summary: latest[0].summary, status: 'passed', artifact_mime: 'text/html', runtime_url: `/api/v2/runtime/${latest[0].id}` } : null };
+  const pending_start = waitingStart && !startHasReply ? { id: waitingStart.id, content: waitingStart.content, goal_id: waitingStart.goal_id || meta.goal_id || null, has_topic: waitingStart.has_topic !== false } : null;
+  return { id: sessionId, title: meta.title, goal_id: meta.goal_id || null, messages: orderedMessages, pending_start, usage, latest_run_id: latest[0]?.id || null, latest_run: latest[0] ? { id: latest[0].id, title: latest[0].title, summary: latest[0].summary, status: 'passed', artifact_mime: 'text/html', runtime_url: `/api/v2/runtime/${latest[0].id}` } : null };
 }
-async function addMessage(root, sessionId, role, content, kind = 'v2_chat') {
-  const message = { id: uuid(), session_id: sessionId, role, kind, content: String(content).slice(0, 6000), created_at: now() };
+async function addMessage(root, sessionId, role, content, kind = 'v2_chat', extra = {}) {
+  const message = { id: uuid(), session_id: sessionId, role, kind, content: String(content).slice(0, 6000), ...extra, created_at: now() };
   await storage.put(`${root}/messages/${recordName(sessionId, 'message', message.id)}`, message);
   return message;
 }
@@ -181,8 +181,13 @@ async function handler(req, res) {
       await storage.ensureBucket();
       const id = uuid(), timestamp = now();
       const initialMessage = String(input.initial_message || '').trim().slice(0, 6000);
-      await writeSessionEvent(root, id, { id, title: 'สื่อใหม่', created_at: timestamp, updated_at: timestamp });
-      if (initialMessage) await addMessage(root, id, 'teacher', initialMessage, 'v2_pending_start');
+      const goalId = String(input.goal_id || '').trim();
+      const goals = goalId ? (await prompts()).V2_TEACHING_GOALS : null;
+      const goal = goalId && goals && Object.hasOwn(goals, goalId) ? goals[goalId] : null;
+      if (goalId && !goal) return sendJson(res, 400, { error: 'invalid_teaching_goal' });
+      await writeSessionEvent(root, id, { id, title: 'สื่อใหม่', created_at: timestamp, updated_at: timestamp, ...(goal ? { goal_id: goalId } : {}) });
+      if (goal) await addMessage(root, id, 'teacher', initialMessage || `เริ่มจากเป้าหมายการสอน: ${goal.label}`, 'v2_pending_start', { goal_id: goalId, has_topic: Boolean(initialMessage) });
+      else if (initialMessage) await addMessage(root, id, 'teacher', initialMessage, 'v2_pending_start', { has_topic: true });
       else await addMessage(root, id, 'assistant', 'เริ่มจากเล่าไอเดีย หรือเลือกการ์ดจุดประกายด้านบนได้เลย', 'v2_welcome');
       return sendJson(res, 201, { session: { id, title: 'สื่อใหม่' } });
     }
@@ -204,16 +209,24 @@ async function handler(req, res) {
       if (!current) return sendJson(res, 404, { error: 'session_not_found' });
       const pendingStartId = String(input.pending_start_id || '');
       const savedStart = isId(pendingStartId) ? current.messages.find(item => item.id === pendingStartId && item.kind === 'v2_pending_start') : null;
-      const message = savedStart ? savedStart.content : String(input.message || '').trim().slice(0, 6000);
-      if (!message) return sendJson(res, 400, { error: 'message_required' });
-      const history = [...current.messages, ...(savedStart ? [] : [{ role: 'teacher', content: message }])].filter(item => item.kind === 'v2_chat' || item.kind === 'v2_pending_start' || item.role === 'teacher').slice(-16);
+      const message = savedStart ? (savedStart.has_topic === false ? '' : savedStart.content) : String(input.message || '').trim().slice(0, 6000);
+      if (!message && !savedStart?.goal_id) return sendJson(res, 400, { error: 'message_required' });
+      const history = [...current.messages, ...(savedStart ? [] : [{ role: 'teacher', kind: 'v2_chat', content: message }])]
+        .filter(item => item.kind === 'v2_chat' || (item.kind === 'v2_pending_start' && item.has_topic !== false))
+        .slice(-16);
       if (!savedStart) await addMessage(root, sessionId, 'teacher', message);
       const model = selectedModel(input, user), promptModule = await prompts();
-      const answer = await callOpenRouter(model, promptModule.buildV2ChatPrompt('', history), { maxTokens: 900, temperature: 0.5 });
+      const topic = current.messages.find(item => item.kind === 'v2_pending_start' && item.has_topic !== false)?.content
+        || current.messages.find(item => item.kind === 'v2_chat' && item.role === 'teacher')?.content
+        || (savedStart?.has_topic !== false ? message : '');
+      const chatPrompt = current.goal_id
+        ? promptModule.buildV2GoalChatPrompt('', current.goal_id, topic, history)
+        : promptModule.buildV2ChatPrompt('', history);
+      const answer = await callOpenRouter(model, chatPrompt, { maxTokens: 900, temperature: 0.5 });
       await recordUsage(root, sessionId, 'v2_chat', model, answer);
       await addMessage(root, sessionId, 'assistant', answer.text);
       const meta = await sessionIndex(root, sessionId);
-      const title = meta.title === 'สื่อใหม่' ? message.replace(/\s+/g, ' ').slice(0, 80) : meta.title;
+      const title = meta.title === 'สื่อใหม่' && message ? message.replace(/\s+/g, ' ').slice(0, 80) : meta.title;
       await writeSessionEvent(root, sessionId, { ...meta, title, updated_at: now() });
       return sendJson(res, 200, { reply: answer.text, ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
     }

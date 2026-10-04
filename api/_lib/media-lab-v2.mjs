@@ -1,5 +1,73 @@
 export const V2_PROMPT_VERSION = 'media-lab-v2-one-agent-v2';
 
+export const V2_TEACHING_GOALS = {
+  understand_concept: {
+    label: 'เข้าใจแนวคิดสำคัญ',
+    intent: 'ช่วยให้นักเรียนเข้าใจแนวคิดที่ยาก ซับซ้อน หรือนามธรรมให้ชัดเจนขึ้น',
+    question: 'มีเรื่องอะไรที่ครูอยากให้นักเรียนเข้าใจให้ชัดขึ้นครับ? บอกเป็นหัวข้อสั้น ๆ ก็ได้',
+    pattern: 'Visualize → Explore → Understand',
+    consider: 'ส่วนไหนเข้าใจยาก อะไรควรถูกทำให้เห็นภาพ นักเรียนควรเห็นหรือทดลองอะไร และจะทำให้ความสัมพันธ์ของแนวคิดชัดขึ้นอย่างไร'
+  },
+  experiment_discover: {
+    label: 'ทดลองและค้นพบ',
+    intent: 'ให้นักเรียนเรียนรู้ผ่านการทดลอง เปลี่ยนบางสิ่ง แล้วสังเกตผลด้วยตัวเอง',
+    question: 'อยากให้นักเรียนทดลองเรื่องอะไรครับ? บอกหัวข้อที่กำลังสอนได้เลย เดี๋ยวผมช่วยคิดว่าอะไรควรเปลี่ยนได้และควรสังเกตอะไร',
+    pattern: 'Change → Observe → Discover',
+    consider: 'อะไรเปลี่ยนได้ ตัวแปรคืออะไร นักเรียนควรสังเกตอะไร การเปลี่ยนแต่ละอย่างส่งผลอย่างไร และควรค้นพบความสัมพันธ์อะไร'
+  },
+  learn_through_game: {
+    label: 'เรียนผ่านเกม',
+    intent: 'ใช้เกมเป็นเครื่องมือในการเรียนรู้หรือฝึกทักษะ โดยวางเป้าหมายการเรียนรู้ก่อนธีมเกม',
+    question: 'อยากให้นักเรียนเรียนหรือฝึกเรื่องอะไรผ่านเกมครับ?',
+    pattern: 'Challenge → Action → Feedback → Progress',
+    consider: 'นักเรียนต้องเรียนหรือฝึกอะไร ต้องทำ action อะไร ความท้าทายคืออะไร feedback ควรเกิดอย่างไร และอะไรทำให้เล่นซ้ำแล้วเกิดการเรียนรู้ ห้ามเริ่มจากการตกแต่งธีมเกมก่อนเป้าหมายการเรียนรู้'
+  },
+  visualize_invisible: {
+    label: 'ทำสิ่งที่มองไม่เห็นให้มองเห็น',
+    intent: 'ทำให้แนวคิดหรือปรากฏการณ์ที่มองไม่เห็น จินตนาการยาก หรืออธิบายด้วยภาพนิ่งได้ยาก สำรวจได้ชัดขึ้น',
+    question: 'มีอะไรในบทเรียนที่นักเรียนมองไม่เห็นหรือจินตนาการตามได้ยากครับ?',
+    pattern: 'Reveal → Visualize → Explore → Understand',
+    consider: 'อะไรคือสิ่งที่มองไม่เห็น ส่วนใดควรถูกแสดงให้เห็น มีการเคลื่อนที่หรือความสัมพันธ์อะไร และนักเรียนควรสำรวจอะไรได้'
+  },
+  practice_problem_solving: {
+    label: 'ฝึกทักษะและแก้ปัญหา',
+    intent: 'ให้นักเรียนลงมือทำ ฝึก ลองผิดลองถูก และพัฒนาทักษะ',
+    question: 'ครูอยากให้นักเรียนฝึกทักษะหรือแก้ปัญหาเรื่องอะไรครับ?',
+    pattern: 'Problem → Attempt → Feedback → Retry',
+    consider: 'นักเรียนต้องทำอะไร โจทย์ควรเป็นแบบไหน จะลองตอบหรือแก้อย่างไร เมื่อผิดควรได้รับ feedback แบบใด และจะลองใหม่หรือเพิ่มความยากอย่างไร'
+  },
+  compare_observe: {
+    label: 'เปรียบเทียบและสังเกต',
+    intent: 'ให้นักเรียนค้นหาความเหมือน ความแตกต่าง รูปแบบ หรือความสัมพันธ์',
+    question: 'ครูอยากให้นักเรียนเปรียบเทียบหรือสังเกตเรื่องอะไรครับ?',
+    pattern: 'Compare → Observe → Identify → Understand',
+    consider: 'มีอะไรให้เปรียบเทียบ ควรสังเกตคุณสมบัติอะไร อะไรเหมือน อะไรต่าง และมีรูปแบบหรือความสัมพันธ์อะไรที่ควรค้นพบ'
+  },
+  understand_process: {
+    label: 'เข้าใจกระบวนการ',
+    intent: 'ให้นักเรียนเห็นขั้นตอน การเปลี่ยนแปลง หรือลำดับของสิ่งที่เกิดขึ้น',
+    question: 'ครูอยากให้นักเรียนเห็นกระบวนการหรือการเปลี่ยนแปลงของเรื่องอะไรครับ?',
+    pattern: 'Start → Process → Change → Result',
+    consider: 'จุดเริ่มต้น ขั้นตอนสำคัญ สิ่งที่เปลี่ยนระหว่างทาง เหตุและผล และผลลัพธ์สุดท้าย'
+  },
+  predict_test: {
+    label: 'ทำนายและตรวจสอบ',
+    intent: 'ให้นักเรียนคิดหรือทำนายก่อน แล้วทดลองหรือสำรวจเพื่อตรวจสอบความคิด',
+    question: 'อยากให้นักเรียนลองทำนายผลเกี่ยวกับเรื่องอะไรครับ?',
+    pattern: 'Predict → Test → Observe → Explain',
+    consider: 'นักเรียนทำนายอะไร ควรให้ข้อมูลอะไรก่อนเห็นผล จะตรวจสอบคำตอบอย่างไร ผลลัพธ์ควรแสดงอย่างไร และจะเปรียบเทียบสิ่งที่คิดกับสิ่งที่เกิดขึ้นจริงอย่างไร'
+  }
+};
+
+export function buildV2GoalChatPrompt(sharedRules, goalId, topic, messages) {
+  const goal = Object.hasOwn(V2_TEACHING_GOALS, goalId) ? V2_TEACHING_GOALS[goalId] : null;
+  if (!goal) throw new Error('v2_goal_not_found');
+  const start = topic
+    ? `The teacher already supplied this lesson topic: ${topic}. Do not ask what they are teaching or ask for the topic again. Begin by thinking forward: offer one concrete, learner-centered learning experience for this topic and objective. Consider: ${goal.consider}. Use the pattern ${goal.pattern}. Keep it practical and collaborative; do not ask technical questions or require the teacher to design the whole resource.`
+    : `The teacher has not supplied a lesson topic yet. Start with this short Thai question, or a natural equivalent: “${goal.question}” Ask only one concise question to learn the topic. Do not design or build a resource yet, and do not ask technical questions.`;
+  return `${sharedRules}\n\nMODE: GOAL-LED CONVERSATION\nBe a warm Learning Experience Design Partner. The teacher selected goal “${goal.label}”: ${goal.intent}. This goal is context, not a request to generate the media now. No forms, code, or technical questions. Once the topic is known, help develop the learning experience instead of asking the teacher to design it all.\n\n${start}\n\nPattern: ${goal.pattern}\n\nConversation:\n${formatMessages(messages)}`;
+}
+
 export function buildV2ChatPrompt(sharedRules, messages) {
   return `${sharedRules}\n\nMODE: CONVERSATION\nBe the same Learning Experience Design Partner described above. Respond to the teacher's latest message in a warm, concise, natural way. Help with incomplete ideas through concrete possibilities, not technical questions. Do not generate code or ask for a complete specification. The teacher may build whenever ready.\n\nConversation:\n${formatMessages(messages)}`;
 }

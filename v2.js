@@ -49,6 +49,7 @@ function renderMessages(messages = []) {
   $('#chat-log').replaceChildren();
   for (const message of messages) {
     if (message.kind !== 'v2_chat' && message.kind !== 'v2_pending_start' && message.kind !== 'v2_build_completed') continue;
+    if (message.kind === 'v2_pending_start' && message.has_topic === false) continue;
     addMessage(message.role === 'teacher' ? 'teacher' : 'assistant', message.content);
   }
 }
@@ -327,6 +328,20 @@ async function startNewMedia(message) {
   }
 }
 
+async function startGoalConversation(message, goalId) {
+  if (state.busy) return;
+  setBusy(true, 'กำลังเปิดบทสนทนาตามเป้าหมายที่เลือก…');
+  try {
+    const result = await api(`${API}/sessions`, { method: 'POST', body: JSON.stringify({ initial_message: message, goal_id: goalId }) });
+    const sessionId = result.session.id;
+    localStorage.setItem(userStorageKey(SESSION_KEY), sessionId);
+    location.assign(`/mini-lab-v2?session=${encodeURIComponent(sessionId)}`);
+  } catch (error) {
+    setBusy(false);
+    $('#status-text').textContent = `เริ่มบทสนทนาไม่สำเร็จ: ${error.message}`;
+  }
+}
+
 async function resumePendingStart(pendingStart) {
   if (state.busy || !state.sessionId || !pendingStart?.id) return;
   setBusy(true, 'AI กำลังอ่านไอเดียของคุณ…');
@@ -591,6 +606,11 @@ document.querySelectorAll('[data-idea]').forEach(card => card.addEventListener('
   input.value = current ? `${current}\n${card.dataset.idea}` : card.dataset.idea;
   input.focus();
   input.setSelectionRange(input.value.length, input.value.length);
+}));
+
+document.querySelectorAll('[data-goal]').forEach(card => card.addEventListener('click', () => {
+  if (state.sessionId || state.busy) return;
+  void startGoalConversation($('#message-input').value.trim(), card.dataset.goal);
 }));
 
 initialize();
