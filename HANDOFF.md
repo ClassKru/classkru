@@ -554,4 +554,4 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 
 ขอบเขตข้อมูล: โทเคนอิงค่าที่ผู้ให้บริการรายงาน หากไม่มีค่า total จะใช้ input + output เมื่อมีทั้งคู่; งานจำกัด 100 session ล่าสุดต่อครู, 2,000 บัญชี และ 20,000 usage objects ต่อครู โดยหน้าแสดงคำเตือนเมื่อชนขีดจำกัด งานที่ยังไม่มี Runtime สำเร็จไม่แสดง
 
-สถานะ: ทำบน branch feature/developer-v2-media-usage; ยังไม่ push/เปิด PR และยังไม่ deploy. ตรวจ syntax/JSON และ diff ได้; ยังไม่ได้ทดสอบกับบัญชี Developer/Storage จริง.
+สถานะ: branch feature/developer-v2-media-usage ถูก push แล้ว และ PR #80 เปิดรอ merge ที่ https://github.com/ClassKru/classkru/pull/80; ยังไม่ deploy. ตรวจ syntax/JSON และ diff ได้; ยังไม่ได้ทดสอบกับบัญชี Developer/Storage จริง.
