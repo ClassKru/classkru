@@ -554,4 +554,4 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 
 ขอบเขตข้อมูล: โทเคนอิงค่าที่ผู้ให้บริการรายงาน หากไม่มีค่า total จะใช้ input + output เมื่อมีทั้งคู่; งานจำกัด 100 session ล่าสุดต่อครู, 2,000 บัญชี และ 20,000 usage objects ต่อครู โดยหน้าแสดงคำเตือนเมื่อชนขีดจำกัด งานที่ยังไม่มี Runtime สำเร็จไม่แสดง
 
-สถานะ: ใช้งานจริงแล้วบน Production หลัง PR #80 และ PR #81 merge (commit 9c81530). ย้ายการอ่านสื่อมาอยู่ใน api/dev/data ที่ deploy อยู่แล้ว ทำให้ Vercel deploy สำเร็จ. ตรวจหน้า /developer/ ได้ 200 และ API ปฏิเสธคำขอที่ไม่มี Developer session ด้วย 401; ยังไม่ได้ทดสอบการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
+สถานะ: ใช้งานจริงแล้วบน Production หลัง PR #80 และ PR #81 merge (commit 9c81530). ย้ายการอ่านสื่อมาอยู่ใน api/dev/data ที่ deploy อยู่แล้ว ทำให้ Vercel deploy สำเร็จ. กำลังขยายบน branch feature/developer-v2-media-history เพื่ออ่านสื่อ Mini Lab V2 และ usage เก่าครบทั้งหมด โดยไม่จำกัดจำนวนบัญชี จำนวน session หรือรายการ usage; ยังไม่ได้ทดสอบการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.

@@ -4,9 +4,6 @@ const { selectRows } = require('./supabase-admin');
 const storage = require('./media-db');
 
 const PAGE_SIZE = 1000;
-const MAX_TEACHERS = 2000;
-const MAX_USAGE_OBJECTS_PER_TEACHER = 20000;
-const MAX_SESSIONS_PER_TEACHER = 100;
 const isId = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
 
 async function mapLimit(items, concurrency, mapper) {
@@ -22,11 +19,17 @@ async function mapLimit(items, concurrency, mapper) {
 }
 
 async function loadTeachers() {
-  const rows = await selectRows('teacher_profiles', {
-    select: 'teacher_id,email,deleted_at',
-    order: 'updated_at.desc,teacher_id.asc',
-    limit: MAX_TEACHERS
-  });
+  const rows = [];
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const page = await selectRows('teacher_profiles', {
+      select: 'teacher_id,email,deleted_at',
+      order: 'updated_at.desc,teacher_id.asc',
+      limit: PAGE_SIZE,
+      offset
+    });
+    rows.push(...page);
+    if (page.length < PAGE_SIZE) break;
+  }
   return rows.filter(row => isId(row.teacher_id) && !row.deleted_at);
 }
 
@@ -56,42 +59,36 @@ function sumUsage(calls) {
   return totals;
 }
 
-async function listUsageObjects(prefix) {
+async function listAllObjects(prefix, options = {}) {
   const rows = [];
-  let truncated = false;
-  for (let offset = 0; offset < MAX_USAGE_OBJECTS_PER_TEACHER; offset += PAGE_SIZE) {
-    const limit = Math.min(PAGE_SIZE, MAX_USAGE_OBJECTS_PER_TEACHER - offset);
-    const page = await storage.list(prefix, { limit, offset, column: 'created_at', order: 'desc' });
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const page = await storage.list(prefix, { ...options, limit: PAGE_SIZE, offset });
     rows.push(...page);
-    if (page.length < limit) return { rows, truncated };
-    if (offset + limit >= MAX_USAGE_OBJECTS_PER_TEACHER) truncated = true;
+    if (page.length < PAGE_SIZE) return rows;
   }
-  return { rows, truncated };
 }
 
 async function teacherWorks(teacher) {
   const root = `users/${teacher.teacher_id}/mini-lab-v2`;
-  const indexFiles = await storage.list(`${root}/sessions`, { limit: PAGE_SIZE, search: '_index_', column: 'name', order: 'desc' });
-  if (!indexFiles.length) return { rows: [], usageTruncated: false, sessionTruncated: false };
+  const indexFiles = await listAllObjects(`${root}/sessions`, { search: '_index_', column: 'name', order: 'desc' });
+  if (!indexFiles.length) return { rows: [] };
 
   const latestIndices = new Map();
   for (const file of indexFiles) {
     const sessionId = sessionIdFromName(file.name, 'index');
-    if (!sessionId || latestIndices.has(sessionId)) continue;
+    if (!sessionId) continue;
     const timestamp = Number(String(file.name).slice(file.name.indexOf('_index_') + 7).split('_')[0]);
-    latestIndices.set(sessionId, { file, timestamp: Number.isFinite(timestamp) ? timestamp : 0 });
+    const item = { file, timestamp: Number.isFinite(timestamp) ? timestamp : 0 };
+    if (!latestIndices.has(sessionId) || item.timestamp > latestIndices.get(sessionId).timestamp) latestIndices.set(sessionId, item);
   }
-  const recentIndices = [...latestIndices.entries()]
-    .sort((a, b) => b[1].timestamp - a[1].timestamp)
-    .slice(0, MAX_SESSIONS_PER_TEACHER);
-  const sessions = await mapLimit(recentIndices, 8, async ([id, item]) => {
+  const sessions = await mapLimit([...latestIndices.entries()], 8, async ([id, item]) => {
     const meta = await storage.get(`${root}/sessions/${item.file.name}`);
     return meta?.updated_at ? { id, meta, updatedAt: meta.updated_at } : null;
   });
   const sessionRows = sessions.filter(Boolean);
-  if (!sessionRows.length) return { rows: [], usageTruncated: false, sessionTruncated: indexFiles.length >= PAGE_SIZE || latestIndices.size > MAX_SESSIONS_PER_TEACHER };
+  if (!sessionRows.length) return { rows: [] };
 
-  const runFiles = await storage.list(`${root}/runs`, { limit: PAGE_SIZE, column: 'created_at', order: 'desc' });
+  const runFiles = await listAllObjects(`${root}/runs`, { column: 'created_at', order: 'desc' });
   const latestRuns = new Map();
   const candidateSessionIds = new Set(sessionRows.map(session => session.id));
   for (const file of runFiles) {
@@ -102,10 +99,10 @@ async function teacherWorks(teacher) {
   }
 
   const generatedSessions = sessionRows.filter(session => latestRuns.has(session.id));
-  if (!generatedSessions.length) return { rows: [], usageTruncated: false, sessionTruncated: indexFiles.length >= PAGE_SIZE || latestIndices.size > MAX_SESSIONS_PER_TEACHER };
+  if (!generatedSessions.length) return { rows: [] };
 
   const sessionIds = new Set(generatedSessions.map(session => session.id));
-  const { rows: usageFiles, truncated: usageTruncated } = await listUsageObjects(`${root}/usage`);
+  const usageFiles = await listAllObjects(`${root}/usage`, { column: 'created_at', order: 'desc' });
   const relevantUsageFiles = usageFiles.filter(file => sessionIds.has(sessionIdFromName(file.name, 'usage')));
   const usageDocs = await mapLimit(relevantUsageFiles, 8, file => storage.get(`${root}/usage/${file.name}`));
   const usageBySession = new Map();
@@ -125,11 +122,8 @@ async function teacherWorks(teacher) {
       updatedAt: session.updatedAt,
       chat: usageTotals.get(session.id)?.chat || { tokens: 0, unavailable: 0 },
       build: usageTotals.get(session.id)?.build || { tokens: 0, unavailable: 0 },
-      runtimeUrl: `/api/v2/runtime/${latestRuns.get(session.id)}`,
-      usageTruncated
-    })),
-    usageTruncated,
-    sessionTruncated: indexFiles.length >= PAGE_SIZE || latestIndices.size > MAX_SESSIONS_PER_TEACHER
+      runtimeUrl: `/api/v2/runtime/${latestRuns.get(session.id)}`
+    }))
   };
 }
 
@@ -146,15 +140,7 @@ async function loadV2Media() {
   return {
     generatedAt: new Date().toISOString(),
     rows,
-    scannedTeachers: teachers.length,
-    profilesTruncated: teachers.length >= MAX_TEACHERS,
-    limits: {
-      teachers: MAX_TEACHERS,
-      sessionsPerTeacher: MAX_SESSIONS_PER_TEACHER,
-      usageObjectsPerTeacher: MAX_USAGE_OBJECTS_PER_TEACHER
-    },
-    usageTruncated: results.some(result => result.usageTruncated),
-    sessionsTruncated: results.some(result => result.sessionTruncated)
+    scannedTeachers: teachers.length
   };
 }
 
