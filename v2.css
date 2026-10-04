@@ -56,12 +56,14 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .app-shell[data-view="landing"] #build-button,
 .app-shell[data-view="landing"] #new-session-open { display: none; }
 .app-shell[data-view="landing"] .chat-card { width: min(760px, 100%); margin: 16px 0 0; padding: 7px 7px 7px 17px; border: 0; border-radius: 15px; background: #fff; box-shadow: 0 6px 18px #5e72ac22; }
-.app-shell[data-view="landing"] .composer { padding: 0; border-top: 0; }
-.app-shell[data-view="landing"] .composer textarea { min-height: 64px; margin-top: 6px; padding: 6px 2px; border: 0; border-radius: 0; background: transparent; font-size: .95rem; }
+.app-shell[data-view="landing"] .composer { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; padding: 0; border-top: 0; }
+.app-shell[data-view="landing"] .composer-intro { grid-column: 1 / -1; }
+.app-shell[data-view="landing"] .composer textarea { grid-column: 1; min-width: 0; height: 48px; min-height: 48px; max-height: 48px; margin: 4px 0 0; padding: 8px 2px; border: 0; border-radius: 0; background: transparent; font-size: .95rem; resize: none; }
 .app-shell[data-view="landing"] .composer textarea:focus-visible { outline: 0; }
 .app-shell[data-view="landing"] .composer:focus-within { outline: 3px solid #7b8bea38; outline-offset: 4px; border-radius: 12px; }
-.app-shell[data-view="landing"] .composer-footer { margin-top: 4px; padding-top: 8px; border-top: 1px solid #e8eaf5; }
-.app-shell[data-view="landing"] .send-button { min-width: 126px; border-color: #5d56cf; background: #5b50cf; color: #fff; box-shadow: 0 5px 12px #5b50cf2b; }
+.app-shell[data-view="landing"] .composer-footer { grid-column: 2; margin: 0; padding: 0; border: 0; }
+.app-shell[data-view="landing"] .composer-footer > span { display: none; }
+.app-shell[data-view="landing"] .send-button { min-width: 126px; min-height: 46px; border-color: #5d56cf; background: #5b50cf; color: #fff; box-shadow: 0 5px 12px #5b50cf2b; }
 .app-shell[data-view="landing"] .send-button:hover, .app-shell[data-view="landing"] .send-button:focus-visible { border-color: #4539b6; background: #4539b6; }
 .composer-intro { display: flex; align-items: center; gap: 10px; }
 .composer-intro strong, .composer-intro small { display: block; }
@@ -111,6 +113,15 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .idea-guide-card:nth-child(4) > span { background: #e7f7ef; color: #338b70; }
 .idea-guide-card strong { color: #2c3954; font-size: .77rem; line-height: 1.35; }
 .idea-guide-card small { color: var(--muted); font-size: .68rem; line-height: 1.4; }
+.idea-guide-grid--prompts { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.idea-guide-grid--prompts .idea-guide-card { min-width: 0; min-height: 0; aspect-ratio: 1.85 / 1; grid-template-columns: 32px minmax(0, 1fr); column-gap: 8px; padding: 12px 11px; border-color: #e7e9f2; border-radius: 14px; background: linear-gradient(145deg, #fff, #fafaff); }
+.idea-guide-grid--prompts .idea-guide-card > span { width: 30px; height: 30px; border-radius: 9px; font-size: .95rem; }
+.idea-guide-grid--prompts .idea-guide-card strong { min-width: 0; font-size: .73rem; line-height: 1.35; overflow-wrap: anywhere; }
+.idea-guide-grid--prompts .idea-guide-card small { min-width: 0; font-size: .66rem; line-height: 1.35; overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  .idea-guide-grid--prompts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .idea-guide-grid--prompts .idea-guide-card { aspect-ratio: 2.7 / 1; }
+}
 
 .chat-card, .result-panel {
   min-width: 0;
@@ -203,7 +214,7 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
   .idea-guide-card { min-height: 62px; padding: 8px; }
   .chat-card, .result-panel { padding: 13px; }
   .app-shell[data-view="landing"] .chat-card { padding: 7px 7px 7px 13px; }
-  .app-shell[data-view="landing"] .composer textarea { min-height: 68px; font-size: .92rem; }
+  .app-shell[data-view="landing"] .composer textarea { height: 46px; min-height: 46px; max-height: 46px; font-size: .92rem; }
   .composer-intro small { font-size: .7rem; }
   .chat-log { min-height: 150px; max-height: 42vh; }
   .message { max-width: 96%; font-size: .83rem; }
@@ -232,4 +243,46 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 
 @media (prefers-reduced-motion: reduce) {
   .idea-card, .idea-guide-card { transition: none; }
+}
+
+.idea-starters { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.idea-starters-heading { align-items: center; margin-bottom: 11px; }
+.idea-starters-heading p { margin-top: 3px; font-size: .76rem; }
+.goal-heading-title { display: flex; align-items: center; gap: 7px; }
+.goal-heading-title > span { color: #f4a51c; font-size: 1.02rem; }
+.goal-heading-title h2 { margin: 0; font-size: 1rem; }
+.idea-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.idea-card.goal-card { display: grid; min-width: 0; min-height: 112px; grid-template-columns: 44px minmax(0, 1fr); grid-template-rows: auto auto; align-items: center; column-gap: 11px; padding: 15px 14px; border: 1px solid transparent; border-radius: 15px; box-shadow: 0 2px 5px #26345508; }
+.idea-card.goal-card::before { display: none; }
+.idea-card.goal-card::after { top: auto; right: 7px; bottom: 7px; width: 18px; height: 18px; border: 0; background: #ffffffc9; font-size: .76rem; }
+.idea-card.goal-card:hover { transform: translateY(-2px); box-shadow: 0 7px 16px #26345516; }
+.idea-card.goal-card .idea-icon { width: 42px; height: 42px; grid-column: 1; grid-row: 1 / span 2; margin: 0; border-radius: 12px; background: #ffffffa6; font-size: 1.35rem; }
+.idea-card.goal-card strong { min-width: 0; grid-column: 2; grid-row: 1; margin: 0 13px 4px 0; font-size: .8rem; line-height: 1.4; overflow-wrap: anywhere; }
+.idea-card.goal-card small { min-width: 0; grid-column: 2; grid-row: 2; padding-right: 9px; color: #52617a; font-size: .67rem; line-height: 1.45; overflow-wrap: anywhere; }
+.idea-card.goal-card[data-goal="understand_concept"] { --idea-color: #8057d7; --idea-pale: #efe8ff; background: #f1ebff; }
+.idea-card.goal-card[data-goal="experiment_discover"] { --idea-color: #258d79; --idea-pale: #ddf8ef; background: #e1faf2; }
+.idea-card.goal-card[data-goal="learn_through_game"] { --idea-color: #ce5274; --idea-pale: #ffe6ed; background: #ffe9ef; }
+.idea-card.goal-card[data-goal="visualize_invisible"] { --idea-color: #3285d9; --idea-pale: #e1f1ff; background: #e5f3ff; }
+.idea-card.goal-card[data-goal="practice_problem_solving"] { --idea-color: #c28b1d; --idea-pale: #fff3cf; background: #fff4d8; }
+.idea-card.goal-card[data-goal="compare_observe"] { --idea-color: #7561d3; --idea-pale: #efebff; background: #f0edff; }
+.idea-card.goal-card[data-goal="understand_process"] { --idea-color: #3f83d2; --idea-pale: #e4efff; background: #e8f2ff; }
+.idea-card.goal-card[data-goal="predict_test"] { --idea-color: #25927e; --idea-pale: #def8f0; background: #e5faf4; }
+.idea-card.goal-card[hidden] { display: none !important; }
+
+@media (max-width: 900px) {
+  .idea-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .idea-starters { padding: 0; }
+  .idea-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .idea-card.goal-card { min-height: 96px; grid-template-columns: 30px minmax(0, 1fr); column-gap: 7px; padding: 10px 8px; }
+  .idea-card.goal-card .idea-icon { width: 30px; height: 30px; font-size: 1rem; }
+  .idea-card.goal-card strong { margin-right: 8px; font-size: .68rem; }
+  .idea-card.goal-card small { padding-right: 7px; font-size: .59rem; }
+  .idea-guide-grid--prompts .idea-guide-card { min-height: 0; aspect-ratio: 2.35 / 1; grid-template-columns: 28px minmax(0, 1fr); column-gap: 6px; padding: 9px 8px; }
+  .idea-guide-grid--prompts .idea-guide-card > span { width: 27px; height: 27px; font-size: .85rem; }
+  .idea-guide-grid--prompts .idea-guide-card strong { font-size: .67rem; }
+  .idea-guide-grid--prompts .idea-guide-card small { font-size: .59rem; }
+  .idea-starters-heading p { max-width: 260px; font-size: .68rem; }
+  .idea-guide-grid--prompts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

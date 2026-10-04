@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f8fc">
   <title>ClassKru Media</title>
-  <link rel="stylesheet" href="/v2.css?v=8">
+  <link rel="stylesheet" href="/v2.css?v=15">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -39,19 +39,25 @@
       </section>
       </div>
       <section class="idea-starters" aria-labelledby="idea-starters-title">
-        <div class="idea-starters-heading"><div><span class="idea-eyebrow">จุดประกายไอเดีย</span><h2 id="idea-starters-title">อยากเริ่มจากกิจกรรมแบบไหน?</h2><p>เลือกการ์ดเพื่อใส่แนวคิดลงในช่องสนทนา แล้วปรับให้เข้ากับบทเรียนของคุณ</p></div></div>
+        <div class="idea-starters-heading"><div><div class="goal-heading-title"><span aria-hidden="true">⚡</span><h2 id="idea-starters-title">เริ่มจากเป้าหมายการสอน</h2></div><p>เลือกสิ่งที่อยากให้นักเรียนเรียนรู้ แล้ว AI จะช่วยคิดบทเรียนให้เหมาะสม</p></div></div>
         <div class="idea-grid">
-          <button class="idea-card idea-explore" type="button" data-idea="ช่วยออกแบบสื่อให้นักเรียนทดลองเปลี่ยนตัวแปรเรื่อง [หัวข้อ] แล้วสังเกตผลที่เกิดขึ้น"><span class="idea-icon" aria-hidden="true">⌁</span><strong>ลองแล้วสังเกต</strong><small>ทดลอง ปรับเปลี่ยน และค้นพบผลลัพธ์</small></button>
-          <button class="idea-card idea-match" type="button" data-idea="ช่วยสร้างกิจกรรมให้นักเรียนจับคู่ [คำศัพท์หรือแนวคิด] กับตัวอย่างที่สัมพันธ์กัน พร้อมคำอธิบาย"><span class="idea-icon" aria-hidden="true">↔</span><strong>จับคู่และเชื่อมโยง</strong><small>มองเห็นความสัมพันธ์ของเนื้อหา</small></button>
-          <button class="idea-card idea-decide" type="button" data-idea="ช่วยสร้างสถานการณ์จำลองเรื่อง [หัวข้อ] ให้นักเรียนเลือกวิธีแก้ปัญหาและเห็นผลจากการตัดสินใจ"><span class="idea-icon" aria-hidden="true">✦</span><strong>เลือกแล้วเห็นผล</strong><small>คิด ตัดสินใจ และเรียนรู้จากผลที่เกิดขึ้น</small></button>
-          <button class="idea-card idea-order" type="button" data-idea="ช่วยออกแบบกิจกรรมให้นักเรียนเรียงลำดับ [ขั้นตอนหรือเหตุการณ์] พร้อมอธิบายเหตุผล"><span class="idea-icon" aria-hidden="true">☷</span><strong>เรียงลำดับความคิด</strong><small>จัดขั้นตอนและอธิบายเหตุผล</small></button>
+          <button class="idea-card goal-card" type="button" data-goal="understand_concept"><span class="idea-icon" aria-hidden="true">🎯</span><strong>เข้าใจแนวคิดสำคัญ</strong><small>ทำเรื่องยาก ซับซ้อน หรือนามธรรมให้ชัดขึ้น</small></button>
+          <button class="idea-card idea-match goal-card" type="button" data-goal="experiment_discover"><span class="idea-icon" aria-hidden="true">🔬</span><strong>ทดลองและค้นพบ</strong><small>เปลี่ยนบางสิ่ง สังเกตผล และค้นหาความสัมพันธ์</small></button>
+          <button class="idea-card idea-decide goal-card" type="button" data-goal="learn_through_game"><span class="idea-icon" aria-hidden="true">🎮</span><strong>เรียนผ่านเกม</strong><small>ฝึกทักษะผ่านโจทย์ ความท้าทาย และ Feedback</small></button>
+          <button class="idea-card idea-order goal-card" type="button" data-goal="visualize_invisible"><span class="idea-icon" aria-hidden="true">👁️</span><strong>ทำสิ่งที่มองไม่เห็นให้มองเห็น</strong><small>สำรวจสิ่งที่จินตนาการหรือมองตามได้ยาก</small></button>
+          <button class="idea-card goal-card" type="button" data-goal="practice_problem_solving"><span class="idea-icon" aria-hidden="true">🧩</span><strong>ฝึกทักษะและแก้ปัญหา</strong><small>ลงมือทำ ลองผิดลองถูก และพัฒนาทักษะ</small></button>
+          <button class="idea-card idea-match goal-card" type="button" data-goal="compare_observe"><span class="idea-icon" aria-hidden="true">⚖️</span><strong>เปรียบเทียบและสังเกต</strong><small>ค้นหาความเหมือน ความต่าง และรูปแบบ</small></button>
+          <button class="idea-card idea-decide goal-card" type="button" data-goal="understand_process"><span class="idea-icon" aria-hidden="true">🔄</span><strong>เข้าใจกระบวนการ</strong><small>เห็นขั้นตอน การเปลี่ยนแปลง และเหตุผล</small></button>
+          <button class="idea-card idea-order goal-card" type="button" data-goal="predict_test"><span class="idea-icon" aria-hidden="true">💭</span><strong>ทำนายและตรวจสอบ</strong><small>คิดก่อน ทดลอง แล้วอธิบายผลที่เกิดขึ้น</small></button>
         </div>
-        <div class="idea-guide-heading"><span>ชวนคิดเพิ่มเติม</span><small>เลือกประเด็นที่อยากเน้น หรือกดหลายข้อเพื่อรวมเป็นไอเดียเดียว</small></div>
-        <div class="idea-guide-grid">
-          <button class="idea-guide-card" type="button" data-idea="เป้าหมายการเรียนรู้: อยากให้นักเรียนเข้าใจหรือจดจำอะไรจากบทเรียนนี้"><span aria-hidden="true">◎</span><strong>เป้าหมาย</strong><small>อยากให้เด็กเข้าใจอะไร?</small></button>
-          <button class="idea-guide-card" type="button" data-idea="การลงมือทำ: อยากให้นักเรียนได้ลองทำ เลือก หรือสร้างอะไรด้วยตัวเอง"><span aria-hidden="true">↗</span><strong>ลงมือทำ</strong><small>อยากให้เด็กได้ลองอะไร?</small></button>
-          <button class="idea-guide-card" type="button" data-idea="เรื่องใกล้ตัว: อยากเชื่อมบทเรียนนี้กับประสบการณ์หรือชีวิตประจำวันของนักเรียนอย่างไร"><span aria-hidden="true">⌂</span><strong>เชื่อมชีวิตจริง</strong><small>เรื่องนี้ใกล้ตัวเด็กอย่างไร?</small></button>
-          <button class="idea-guide-card" type="button" data-idea="การสังเกตความเข้าใจ: อยากเห็นนักเรียนอธิบาย ตัดสินใจ หรือแสดงสิ่งที่เรียนรู้ออกมาแบบไหน"><span aria-hidden="true">✓</span><strong>สังเกตความเข้าใจ</strong><small>จะเห็นได้อย่างไรว่าเด็กเข้าใจ?</small></button>
+        <div class="idea-guide-heading"><span>⚡ ลองสร้างแบบนี้ไหม?</span><small>เลือกไอเดียตั้งต้น แล้วเติมรายละเอียดในช่องสนทนาได้เลย</small></div>
+        <div class="idea-guide-grid idea-guide-grid--prompts">
+          <button class="idea-guide-card" type="button" data-idea="ถ้าเปลี่ยน... จะเกิดอะไรขึ้น?" aria-label="ใช้ไอเดีย ถ้าเปลี่ยน จะเกิดอะไรขึ้น"><span aria-hidden="true">🔍</span><strong>ถ้าเปลี่ยน...</strong><small>จะเกิดอะไรขึ้น?</small></button>
+          <button class="idea-guide-card" type="button" data-idea="ทำไม... ถึงเป็นแบบนี้?" aria-label="ใช้ไอเดีย ทำไมถึงเป็นแบบนี้"><span aria-hidden="true">❓</span><strong>ทำไม...</strong><small>ถึงเป็นแบบนี้?</small></button>
+          <button class="idea-guide-card" type="button" data-idea="จะเกิดอะไรขึ้น ถ้า...?" aria-label="ใช้ไอเดีย จะเกิดอะไรขึ้น ถ้า"><span aria-hidden="true">💡</span><strong>จะเกิดอะไรขึ้น</strong><small>ถ้า...?</small></button>
+          <button class="idea-guide-card" type="button" data-idea="ลองทำก่อน แล้วค่อยตรวจคำตอบ" aria-label="ใช้ไอเดีย ลองทำก่อน แล้วค่อยตรวจคำตอบ"><span aria-hidden="true">🧪</span><strong>ลองทำก่อน</strong><small>แล้วค่อยตรวจคำตอบ</small></button>
+          <button class="idea-guide-card" type="button" data-idea="จัด เรียง หรือจับคู่สิ่งเหล่านี้ให้ถูกต้อง" aria-label="ใช้ไอเดีย จัด เรียง หรือจับคู่ให้ถูกต้อง"><span aria-hidden="true">🧩</span><strong>จัด / เรียง / จับคู่</strong><small>ให้ถูกต้อง</small></button>
+          <button class="idea-guide-card" type="button" data-idea="ลองเลือกคำตอบที่สมเหตุสมผลที่สุด แล้วอธิบายเหตุผล" aria-label="ใช้ไอเดีย ลองเลือกคำตอบที่สมเหตุสมผลที่สุด"><span aria-hidden="true">✅</span><strong>ลองเลือกคำตอบ</strong><small>ที่สมเหตุสมผลที่สุด</small></button>
         </div>
       </section>
       <section id="result-panel" class="result-panel" hidden aria-live="polite">
@@ -87,6 +93,6 @@
       </main>
     </div>
   </section>
-  <script type="module" src="/v2.js?v=12"></script>
+  <script type="module" src="/v2.js?v=15"></script>
 </body>
 </html>
