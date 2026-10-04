@@ -554,4 +554,4 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 
 ขอบเขตข้อมูล: อ่านทุก published link และตรวจ revoked/archive/share epoch ก่อนแสดง งานเก่าของ Media Studio ไม่ได้เก็บ usage log จากผู้ให้บริการ จึงแสดงขีดแทนจำนวนโทเคน ไม่เดาตัวเลขย้อนหลัง
 
-สถานะ: เวอร์ชันก่อนหน้าใน Production อ่าน mini-lab-v2 ซึ่งไม่ใช่แหล่งที่ผู้ใช้ต้องการ. กำลังแก้บน branch feature/developer-published-media ให้ดึง published Media Studio โดยตรง; ยังไม่ได้ทดสอบการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
+สถานะ: ใช้งานจริงแล้วบน Production หลัง PR #85 merge (commit 321d9b6). ตารางใช้ published Media Studio โดยตรง และไม่อ่าน mini-lab-v2 แล้ว; ยังไม่ได้ทดสอบการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
