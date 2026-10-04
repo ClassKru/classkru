@@ -125,13 +125,13 @@ async function addMessage(root, sessionId, role, content, kind = 'v2_chat', extr
   await storage.put(`${root}/messages/${recordName(sessionId, 'message', message.id)}`, message);
   return message;
 }
-async function callOpenRouter(model, prompt, { maxTokens, temperature, jsonMode = false, timeoutMs = jsonMode ? 220000 : 90000 }) {
+async function callOpenRouter(model, prompt, { maxTokens, temperature, jsonMode = false, systemPrompt = '', timeoutMs = jsonMode ? 220000 : 90000 }) {
   const key = openRouterKey();
   if (!key) { const error = new Error('ai_not_configured'); error.status = 503; error.code = 'ai_not_configured'; throw error; }
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'HTTP-Referer': process.env.OPENROUTER_SITE_URL || 'https://classkru-kohl.vercel.app', 'X-Title': 'ClassKru Mini Lab V2' },
     signal: AbortSignal.timeout(timeoutMs),
-    body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], temperature, max_tokens: maxTokens, ...(jsonMode ? { response_format: { type: 'json_object' } } : {}) })
+    body: JSON.stringify({ model, messages: [...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []), { role: 'user', content: prompt }], temperature, max_tokens: maxTokens, ...(jsonMode ? { response_format: { type: 'json_object' } } : {}) })
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) { const error = new Error(payload.error?.message || 'ai_request_failed'); error.code = response.status === 429 ? 'ai_busy' : 'ai_request_failed'; error.status = 502; throw error; }
@@ -216,13 +216,13 @@ async function handler(req, res) {
         .slice(-16);
       if (!savedStart) await addMessage(root, sessionId, 'teacher', message);
       const model = selectedModel(input, user), promptModule = await prompts();
-      const topic = current.messages.find(item => item.kind === 'v2_pending_start' && item.has_topic !== false)?.content
-        || current.messages.find(item => item.kind === 'v2_chat' && item.role === 'teacher')?.content
+      const latestTeacherMessage = [...history].reverse().find(item => item.role === 'teacher' && String(item.content || '').trim());
+      const topic = latestTeacherMessage?.content
         || (savedStart?.has_topic !== false ? message : '');
       const chatPrompt = current.goal_id
         ? promptModule.buildV2GoalChatPrompt('', current.goal_id, topic, history)
         : promptModule.buildV2ChatPrompt('', history);
-      const answer = await callOpenRouter(model, chatPrompt, { maxTokens: 900, temperature: 0.5 });
+      const answer = await callOpenRouter(model, chatPrompt, { maxTokens: 700, temperature: 0.5, systemPrompt: promptModule.V2_CONVERSATION_SYSTEM_CONTEXT });
       await recordUsage(root, sessionId, 'v2_chat', model, answer);
       await addMessage(root, sessionId, 'assistant', answer.text);
       const meta = await sessionIndex(root, sessionId);
