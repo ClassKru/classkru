@@ -2,6 +2,8 @@
   "rewrites": [
     {"source":"/mini-lab-v2","destination":"/v2.html"},
     {"source":"/api/v2/(.*)","destination":"/api/media-studio?action=v2&path=$1"},
+    {"source":"/api/dev/media-models","destination":"/api/dev/media?resource=models"},
+    {"source":"/api/dev/v2-media","destination":"/api/dev/media?resource=v2"},
     {"source":"/api/exports/:document","destination":"/api/exports?document=:document"}
   ],
   "functions": {
