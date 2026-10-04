@@ -14,7 +14,7 @@ const ui = {
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
   ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table'), billingSalesTable: byId('billing-sales-table'),
   mediaModelsForm: byId('media-models-form'), mediaModelsUpdated: byId('media-models-updated'), mediaModelCatalogKind: byId('media-model-catalog-kind'), mediaModelSearch: byId('media-model-search'), mediaModelRefresh: byId('media-model-refresh'), mediaPlannerModel: byId('media-planner-model'), mediaBuilderModel: byId('media-builder-model'), mediaImageModel: byId('media-image-model'), mediaModelSave: byId('media-model-save'), mediaModelSaveStatus: byId('media-model-save-status'),
-  businessSummary: byId('business-summary'), businessAvailable: byId('business-available'), businessFuture: byId('business-future'), businessUpdated: byId('business-updated'), businessAccountList: byId('business-account-list'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'), usageList: byId('usage-list'), usageCount: byId('usage-count'), usageUpdated: byId('usage-updated'), v2MediaRows: byId('v2-media-rows'), v2MediaCount: byId('v2-media-count'), v2MediaUpdated: byId('v2-media-updated'), v2MediaRefresh: byId('v2-media-refresh'), v2MediaLimits: byId('v2-media-limits')
+  businessSummary: byId('business-summary'), businessAvailable: byId('business-available'), businessFuture: byId('business-future'), businessUpdated: byId('business-updated'), businessAccountList: byId('business-account-list'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'), usageList: byId('usage-list'), usageCount: byId('usage-count'), usageUpdated: byId('usage-updated'), v2MediaRows: byId('v2-media-rows'), v2MediaCount: byId('v2-media-count'), v2MediaUpdated: byId('v2-media-updated'), v2MediaRefresh: byId('v2-media-refresh')
 };
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
@@ -632,11 +632,10 @@ async function loadBusiness() {
   catch (error) { handleDataError(error); }
 }
 
-function tokenCell(usage, usageTruncated) {
+function tokenCell(usage) {
   const cell = element('td', 'v2-token-cell');
   cell.append(element('strong', '', Number(usage?.tokens || 0).toLocaleString('th-TH')));
   if (usage?.unavailable) cell.append(element('small', '', `ไม่รายงาน ${usage.unavailable} ครั้ง`));
-  if (usageTruncated) cell.append(element('small', 'v2-token-warning', 'ยอดอาจไม่ครบ'));
   return cell;
 }
 
@@ -649,7 +648,7 @@ function renderV2Media(data) {
     tr.append(element('td', 'v2-media-user', row.teacher || '—'));
     const title = element('td', 'v2-media-title', row.title || 'สื่อการเรียนรู้');
     title.append(element('small', '', formatDate(row.updatedAt, true)));
-    tr.append(title, tokenCell(row.chat, row.usageTruncated), tokenCell(row.build, row.usageTruncated));
+    tr.append(title, tokenCell(row.chat), tokenCell(row.build));
     const runtimeCell = document.createElement('td');
     const runtime = element('a', 'secondary-button v2-runtime-link', 'เปิด Runtime');
     runtime.href = row.runtimeUrl;
@@ -667,12 +666,6 @@ function renderV2Media(data) {
   }
   ui.v2MediaCount.textContent = `พบ ${rows.length.toLocaleString('th-TH')} สื่อ จาก ${Number(data.scannedTeachers || 0).toLocaleString('th-TH')} บัญชีที่ตรวจ`;
   ui.v2MediaUpdated.textContent = `อัปเดต ${formatDate(data.generatedAt, true)}`;
-  const notes = [];
-  if (data.profilesTruncated) notes.push(`ตรวจบัญชีสูงสุด ${data.limits?.teachers || 0} บัญชีล่าสุด`);
-  if (data.sessionsTruncated) notes.push(`แสดงไม่เกิน ${data.limits?.sessionsPerTeacher || 0} งานล่าสุดต่อครู`);
-  if (data.usageTruncated) notes.push(`รายการโทเคนบางบัญชีเกิน ${Number(data.limits?.usageObjectsPerTeacher || 0).toLocaleString('th-TH')} รายการ จึงอาจรวมได้ไม่ครบ`);
-  ui.v2MediaLimits.textContent = notes.join(' · ');
-  ui.v2MediaLimits.hidden = notes.length === 0;
 }
 
 async function loadV2Media() {
