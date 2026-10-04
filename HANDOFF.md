@@ -546,3 +546,12 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 4. **Runtime Validator**: เป็นด่าน deterministic สำหรับ JSON/schema/security/syntax และเป็นผู้เดียวที่ประกอบหรือเปิด artifact
 
 ห้ามใช้ AI 3 เพื่อตัด prose โดยเดาตำแหน่ง code; การรับ code ต้องเกิดจาก structured JSON และ validation เท่านั้น
+
+
+## 24. Developer Console: สื่อที่ครูสร้าง (2026-10-04)
+
+เพิ่มแท็บ สื่อที่ครูสร้าง สำหรับผู้พัฒนาดู Mini Lab V2 ที่สร้าง Runtime สำเร็จ แสดงอีเมลบัญชีครู ชื่องาน เวลาอัปเดต โทเคนจากการสนทนา และโทเคนสร้างสื่อ (รวม repair) พร้อมลิงก์เปิด Runtime ในแท็บใหม่ API ตรวจ developer session ก่อนอ่านข้อมูลและรวม usage จาก encrypted Storage ตาม session
+
+ขอบเขตข้อมูล: โทเคนอิงค่าที่ผู้ให้บริการรายงาน หากไม่มีค่า total จะใช้ input + output เมื่อมีทั้งคู่; งานจำกัด 100 session ล่าสุดต่อครู, 2,000 บัญชี และ 20,000 usage objects ต่อครู โดยหน้าแสดงคำเตือนเมื่อชนขีดจำกัด งานที่ยังไม่มี Runtime สำเร็จไม่แสดง
+
+สถานะ: ทำบน branch feature/developer-v2-media-usage; ยังไม่ push/เปิด PR และยังไม่ deploy. ตรวจ syntax/JSON และ diff ได้; ยังไม่ได้ทดสอบกับบัญชี Developer/Storage จริง.
