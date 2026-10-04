@@ -634,6 +634,10 @@ async function loadBusiness() {
 
 function tokenCell(usage) {
   const cell = element('td', 'v2-token-cell');
+  if (usage?.available === false) {
+    cell.append(element('strong', '', '—'), element('small', '', 'ไม่มี usage log ย้อนหลัง'));
+    return cell;
+  }
   cell.append(element('strong', '', Number(usage?.tokens || 0).toLocaleString('th-TH')));
   if (usage?.unavailable) cell.append(element('small', '', `ไม่รายงาน ${usage.unavailable} ครั้ง`));
   return cell;
@@ -650,11 +654,13 @@ function renderV2Media(data) {
     title.append(element('small', '', formatDate(row.updatedAt, true)));
     tr.append(title, tokenCell(row.chat), tokenCell(row.build));
     const runtimeCell = document.createElement('td');
-    const runtime = element('a', 'secondary-button v2-runtime-link', 'เปิด Runtime');
-    runtime.href = row.runtimeUrl;
-    runtime.target = '_blank';
-    runtime.rel = 'noopener noreferrer';
-    runtimeCell.append(runtime);
+    if (row.runtimeUrl) {
+      const runtime = element('a', 'secondary-button v2-runtime-link', 'เปิด Runtime');
+      runtime.href = row.runtimeUrl;
+      runtime.target = '_blank';
+      runtime.rel = 'noopener noreferrer';
+      runtimeCell.append(runtime);
+    } else runtimeCell.append(element('span', 'muted-text', 'ยังไม่ตั้งค่า Media Host'));
     tr.append(runtimeCell);
     ui.v2MediaRows.append(tr);
   }
@@ -664,7 +670,7 @@ function renderV2Media(data) {
     tr.firstElementChild.colSpan = 5;
     ui.v2MediaRows.append(tr);
   }
-  ui.v2MediaCount.textContent = `พบ ${rows.length.toLocaleString('th-TH')} สื่อ จาก ${Number(data.scannedTeachers || 0).toLocaleString('th-TH')} บัญชีที่ตรวจ`;
+  ui.v2MediaCount.textContent = `พบ ${rows.length.toLocaleString('th-TH')} สื่อที่เผยแพร่แล้ว จาก ${Number(data.publishedLinksScanned || 0).toLocaleString('th-TH')} ลิงก์ที่ตรวจ`;
   ui.v2MediaUpdated.textContent = `อัปเดต ${formatDate(data.generatedAt, true)}`;
 }
 
@@ -677,8 +683,8 @@ async function loadV2Media() {
   } catch (error) {
     if (error.status === 401) handleDataError(error);
     else ui.globalStatus.textContent = error.status === 503
-      ? 'ยังไม่พร้อมอ่านข้อมูล Mini Lab V2 กรุณาตรวจการตั้งค่า Storage และฐานข้อมูล'
-      : 'โหลดรายการสื่อ Mini Lab V2 ไม่สำเร็จ กรุณาลองใหม่';
+      ? 'ยังไม่พร้อมอ่านข้อมูลสื่อที่เผยแพร่ กรุณาตรวจการตั้งค่า Storage และฐานข้อมูล'
+      : 'โหลดรายการสื่อที่เผยแพร่ไม่สำเร็จ กรุณาลองใหม่';
   } finally {
     ui.v2MediaRefresh.disabled = false;
   }

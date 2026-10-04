@@ -18,47 +18,6 @@ async function mapLimit(items, concurrency, mapper) {
   return result;
 }
 
-async function loadTeachers() {
-  const rows = [];
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const page = await selectRows('teacher_profiles', {
-      select: 'teacher_id,email,deleted_at',
-      order: 'updated_at.desc,teacher_id.asc',
-      limit: PAGE_SIZE,
-      offset
-    });
-    rows.push(...page);
-    if (page.length < PAGE_SIZE) break;
-  }
-  return rows.filter(row => isId(row.teacher_id) && !row.deleted_at);
-}
-
-function sessionIdFromName(name, kind) {
-  const marker = `_${kind}_`;
-  const index = String(name || '').indexOf(marker);
-  if (index <= 0) return '';
-  const id = String(name).slice(0, index);
-  return isId(id) ? id : '';
-}
-
-function sumUsage(calls) {
-  const totals = {
-    chat: { tokens: 0, unavailable: 0 },
-    build: { tokens: 0, unavailable: 0 }
-  };
-  for (const call of calls) {
-    const target = call.phase === 'v2_chat' ? totals.chat
-      : ['v2_build', 'v2_repair'].includes(call.phase) ? totals.build : null;
-    if (!target) continue;
-    const measuredTokens = call.total_tokens ?? (call.input_tokens != null && call.output_tokens != null
-      ? Number(call.input_tokens) + Number(call.output_tokens)
-      : null);
-    if (measuredTokens == null) target.unavailable++;
-    else target.tokens += Math.max(0, Number(measuredTokens) || 0);
-  }
-  return totals;
-}
-
 async function listAllObjects(prefix, options = {}) {
   const rows = [];
   for (let offset = 0; ; offset += PAGE_SIZE) {
@@ -68,80 +27,80 @@ async function listAllObjects(prefix, options = {}) {
   }
 }
 
-async function teacherWorks(teacher) {
-  const root = `users/${teacher.teacher_id}/mini-lab-v2`;
-  const indexFiles = await listAllObjects(`${root}/sessions`, { search: '_index_', column: 'name', order: 'desc' });
-  if (!indexFiles.length) return { rows: [] };
-
-  const latestIndices = new Map();
-  for (const file of indexFiles) {
-    const sessionId = sessionIdFromName(file.name, 'index');
-    if (!sessionId) continue;
-    const timestamp = Number(String(file.name).slice(file.name.indexOf('_index_') + 7).split('_')[0]);
-    const item = { file, timestamp: Number.isFinite(timestamp) ? timestamp : 0 };
-    if (!latestIndices.has(sessionId) || item.timestamp > latestIndices.get(sessionId).timestamp) latestIndices.set(sessionId, item);
+async function teacherEmails() {
+  const rows = [];
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const page = await selectRows('teacher_profiles', {
+      select: 'teacher_id,email',
+      order: 'updated_at.desc,teacher_id.asc',
+      limit: PAGE_SIZE,
+      offset
+    });
+    rows.push(...page);
+    if (page.length < PAGE_SIZE) break;
   }
-  const sessions = await mapLimit([...latestIndices.entries()], 8, async ([id, item]) => {
-    const meta = await storage.get(`${root}/sessions/${item.file.name}`);
-    return meta?.updated_at ? { id, meta, updatedAt: meta.updated_at } : null;
-  });
-  const sessionRows = sessions.filter(Boolean);
-  if (!sessionRows.length) return { rows: [] };
+  return new Map(rows.filter(row => isId(row.teacher_id)).map(row => [row.teacher_id, row.email || row.teacher_id]));
+}
 
-  const runFiles = await listAllObjects(`${root}/runs`, { column: 'created_at', order: 'desc' });
-  const latestRuns = new Map();
-  const candidateSessionIds = new Set(sessionRows.map(session => session.id));
-  for (const file of runFiles) {
-    const sessionId = sessionIdFromName(file.name, 'run');
-    if (!candidateSessionIds.has(sessionId) || latestRuns.has(sessionId)) continue;
-    const runId = String(file.name).slice(String(file.name).indexOf('_run_') + 5).replace(/\.json$/i, '');
-    if (isId(runId)) latestRuns.set(sessionId, runId);
+function mediaOrigin() {
+  try {
+    const url = new URL(String(process.env.MEDIA_ORIGIN || ''));
+    return url.protocol === 'https:' ? url.origin : '';
+  } catch (_) {
+    return '';
   }
+}
 
-  const generatedSessions = sessionRows.filter(session => latestRuns.has(session.id));
-  if (!generatedSessions.length) return { rows: [] };
+async function publishedMedia(link, emails, origin, projectCache) {
+  if (link?.kind !== 'published' || !isId(link.teacher_id) || !isId(link.project_id) || !isId(link.version_id) || !/^[a-f0-9]{64}$/i.test(String(link.token || ''))) return null;
+  if (await storage.get(`revoked/${link.token}.json`)) return null;
 
-  const sessionIds = new Set(generatedSessions.map(session => session.id));
-  const usageFiles = await listAllObjects(`${root}/usage`, { column: 'created_at', order: 'desc' });
-  const relevantUsageFiles = usageFiles.filter(file => sessionIds.has(sessionIdFromName(file.name, 'usage')));
-  const usageDocs = await mapLimit(relevantUsageFiles, 8, file => storage.get(`${root}/usage/${file.name}`));
-  const usageBySession = new Map();
-  for (const call of usageDocs) {
-    if (!call || !sessionIds.has(call.session_id)) continue;
-    const calls = usageBySession.get(call.session_id) || [];
-    calls.push(call);
-    usageBySession.set(call.session_id, calls);
+  const cacheKey = `${link.teacher_id}/${link.project_id}`;
+  let projectState = projectCache.get(cacheKey);
+  if (!projectState) {
+    const root = `users/${link.teacher_id}`;
+    const project = await storage.get(`${root}/projects/${link.project_id}.json`);
+    const [archive] = project ? await storage.documents(`${root}/archives/${link.project_id}`, { limit: 1, column: 'name', order: 'desc' }) : [];
+    projectState = { root, project, archive };
+    projectCache.set(cacheKey, projectState);
   }
+  const project = projectState.project;
+  const shareEpoch = projectState.archive?.share_epoch || project?.share_epoch;
+  if (!project || projectState.archive?.archived || shareEpoch !== link.share_epoch) return null;
 
-  const usageTotals = new Map([...usageBySession.entries()].map(([id, calls]) => [id, sumUsage(calls)]));
+  const result = await storage.get(`${projectState.root}/results/build/${link.project_id}_${link.version_id}.json`);
+  const version = result?.version;
+  if (!version || version.project_id !== link.project_id) return null;
 
   return {
-    rows: generatedSessions.map(session => ({
-      teacher: teacher.email || teacher.teacher_id,
-      title: session.meta.title || 'สื่อการเรียนรู้',
-      updatedAt: session.updatedAt,
-      chat: usageTotals.get(session.id)?.chat || { tokens: 0, unavailable: 0 },
-      build: usageTotals.get(session.id)?.build || { tokens: 0, unavailable: 0 },
-      runtimeUrl: `/api/v2/runtime/${latestRuns.get(session.id)}`
-    }))
+    teacher: emails.get(link.teacher_id) || link.teacher_id,
+    title: version.title || project.title || 'สื่อการเรียนรู้',
+    updatedAt: link.created_at || version.created_at || project.updated_at,
+    // Older published Media Studio records did not persist provider usage.
+    chat: { available: false },
+    build: { available: false },
+    runtimeUrl: origin ? `${origin}/?token=${link.token}` : ''
   };
 }
 
-async function loadV2Media() {
+async function loadPublishedMedia() {
   if (!storage.configured()) {
     const error = new Error('storage_not_configured');
     error.code = 'storage_not_configured';
     error.status = 503;
     throw error;
   }
-  const teachers = await loadTeachers();
-  const results = await mapLimit(teachers, 8, teacherWorks);
-  const rows = results.flatMap(result => result.rows).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-  return {
-    generatedAt: new Date().toISOString(),
-    rows,
-    scannedTeachers: teachers.length
-  };
+  const [links, emails] = await Promise.all([
+    listAllObjects('links', { column: 'created_at', order: 'desc' }),
+    teacherEmails()
+  ]);
+  const linkRecords = await mapLimit(links, 8, file => storage.get(`links/${file.name}`));
+  const origin = mediaOrigin();
+  const projectCache = new Map();
+  const rows = (await mapLimit(linkRecords, 8, link => publishedMedia(link, emails, origin, projectCache)))
+    .filter(Boolean)
+    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+  return { generatedAt: new Date().toISOString(), rows, publishedLinksScanned: linkRecords.length, mediaOriginConfigured: Boolean(origin) };
 }
 
-module.exports = { loadV2Media };
+module.exports = { loadPublishedMedia };
