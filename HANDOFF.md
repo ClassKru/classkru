@@ -564,4 +564,14 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 
 การแบ่งโทเคนทำตามลำดับเวลาในแต่ละ Session: usage หลัง Version ก่อนหน้าและไม่เกินเวลาสร้าง Version ปัจจุบันจะนับให้ Version ปัจจุบัน `v2_chat` อยู่ฝั่งสนทนา ส่วน `v2_build` และ `v2_repair` อยู่ฝั่งสร้างสื่อ จึงไม่แสดงยอด Session เดียวซ้ำในทุก Version
 
-สถานะ: แก้ไขอยู่บน branch `feature/developer-v2-media-source`; ยังไม่ได้ commit, push หรือ deploy ตามคำสั่งให้รอการอนุมัติ Push
+สถานะ: PR #87 (`a877b78`) merge เข้า `main` แล้วด้วย merge commit `a457aca` และ Production deployment `classkru-wyhc95pdp-classkru-dev.vercel.app` เป็น Ready เมื่อ 2026-10-04. ตรวจหน้า Developer แล้วพบหัวข้อ ClassKru Media V2 และตัวนับ Version; API แบบไม่ล็อกอินตอบ 401. GitHub Actions test 34 รายการผ่าน แต่ browser test `tests/media-studio-browser.test.cjs` timeout 30 วินาทีซ้ำสองครั้งที่ line 45. ยังไม่ได้ตรวจการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
+
+## 26. ClassKru Media V2: Conversation AI system context
+
+ปรับบริบทกลางของ Conversation AI ให้ทำหน้าที่เป็น Learning Media Design Expert แทน Lesson Plan Assistant/Prompt Generator และส่งเป็น OpenRouter `system` message สำหรับทุกคำตอบแชท ทั้งแชทปกติ, Learning Goal Card, prompt card “ลองสร้างแบบนี้ไหม?” และการสนทนาต่อเนื่อง
+
+บริบทกำหนดให้เข้าใจเจตนาและประวัติเดิมก่อนตอบ คิดจาก Learning Intent → Learning Experience → Student Action → Media Response → Observation/Discovery → Media Concept โดยไม่แสดง checklist ทุกครั้ง คิดประสบการณ์บนสื่อก่อนการจัดกิจกรรมในห้องเรียน ตัดสินใจรายละเอียด UI/เทคนิคเอง และถามเฉพาะคำถามด้าน Learning Design ที่จำเป็น
+
+Learning Goal Card แนบเป้าหมายและ pattern เป็น context เสริมใน user message; แชทปกติและ prompt card อนุมาน learning pattern จากข้อความได้ตามหลักเดียวกัน ปรับการอ้างหัวข้อให้ใช้ข้อความล่าสุดของครู และลด output budget ของ Conversation AI เป็น 700 tokens เพื่อสนับสนุนคำตอบกระชับ
+
+ขอบเขต: ไม่แก้ Builder, flow สร้างสื่อ หรือ Runtime. สถานะ: แก้บน branch `feature/media-v2-conversation-context`; ยังไม่ได้รัน tests, push หรือ deploy.

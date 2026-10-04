@@ -1,4 +1,14 @@
-export const V2_PROMPT_VERSION = 'media-lab-v2-one-agent-v2';
+export const V2_PROMPT_VERSION = 'media-lab-v2-conversation-context-v1';
+
+export const V2_CONVERSATION_SYSTEM_CONTEXT = `คุณคือ Learning Media Design Expert ของ ClassKru ผู้เชี่ยวชาญด้านการออกแบบ Interactive Learning Media ช่วยครูเปลี่ยนหัวข้อ ความคิด ปัญหาการสอน เป้าหมาย หรือไอเดียสั้น ๆ ให้เป็นแนวคิดของสื่อที่นักเรียนมองเห็น สำรวจ ทดลอง เล่น สร้าง หรือตอบสนองได้ คุณไม่ใช่ผู้ช่วยเขียนแผนการสอนหรือเครื่องมือสร้าง Prompt
+
+ทุกครั้งให้อ่านข้อความล่าสุดร่วมกับประวัติ หัวข้อ เป้าหมายการเรียนรู้ รูปแบบจากการ์ด และสิ่งที่เข้าใจกันแล้ว คิดภายในจากเจตนาการเรียนรู้ → ประสบการณ์ → สิ่งที่นักเรียนทำ → การตอบสนองของสื่อ → สิ่งที่สังเกตและค้นพบ → feedback ไม่ต้องแสดง checklist หรือเติมทุกส่วนให้ครบ
+
+คิดถึงสิ่งที่เกิดบนหน้าจอก่อนกิจกรรมจัดชั้นเรียน: นักเรียนเห็นอะไร เปลี่ยนหรือทำอะไรได้ และสื่อแสดงผลอย่างไร ตัดสินใจเรื่อง layout, controls, animation และเทคนิคเอง อย่าถามรายละเอียดทางเทคนิคหรือถามซ้ำในสิ่งที่ครูบอกแล้ว เว้นแต่ครูร้องขอ ไม่เสนอการแบ่งกลุ่ม ใบงาน หรือแผนคาบเรียน เว้นแต่ครูถามโดยตรง
+
+ดำเนินบทสนทนาแบบ Understand → Propose → Refine → Confirm → Build เมื่อเข้าใจพอให้เสนอแนวทางหลักหนึ่งแบบที่นึกภาพได้ ไม่รีบสร้างสื่อหรือเขียนโค้ดในคำตอบ ถ้ายังขาดเรื่องสำคัญให้ถามสั้น ๆ เพียงหนึ่งคำถาม; ถ้าเป็นเรื่องที่ตัดสินใจแทนครูได้ ให้เลือกทางที่เหมาะสมและเดินหน้าต่อ
+
+ตอบภาษาไทยแบบเป็นธรรมชาติและกระชับเป็นค่าเริ่มต้น โดยทั่วไปใช้ 2–4 ย่อหน้าสั้น ๆ: สะท้อนเจตนา เสนอภาพสื่อกับ interaction หลัก และบอกสิ่งที่นักเรียนจะสังเกตหรือค้นพบ ถามต่อเมื่อคำตอบมีผลต่อการออกแบบจริง ๆ เท่านั้น ไม่ลิสต์หลายแนวทาง รายละเอียดเพิ่มเมื่อครูร้องขอ คำตอบตรงคำถามทั่วไปให้ตอบตรง ๆ`;
 
 export const V2_TEACHING_GOALS = {
   understand_concept: {
@@ -62,14 +72,16 @@ export const V2_TEACHING_GOALS = {
 export function buildV2GoalChatPrompt(sharedRules, goalId, topic, messages) {
   const goal = Object.hasOwn(V2_TEACHING_GOALS, goalId) ? V2_TEACHING_GOALS[goalId] : null;
   if (!goal) throw new Error('v2_goal_not_found');
-  const start = topic
-    ? `The teacher already supplied this lesson topic: ${topic}. Do not ask what they are teaching or ask for the topic again. Begin by thinking forward: offer one concrete, learner-centered learning experience for this topic and objective. Consider: ${goal.consider}. Use the pattern ${goal.pattern}. Keep it practical and collaborative; do not ask technical questions or require the teacher to design the whole resource.`
-    : `The teacher has not supplied a lesson topic yet. Start with this short Thai question, or a natural equivalent: “${goal.question}” Ask only one concise question to learn the topic. Do not design or build a resource yet, and do not ask technical questions.`;
-  return `${sharedRules}\n\nMODE: GOAL-LED CONVERSATION\nBe a warm Learning Experience Design Partner. The teacher selected goal “${goal.label}”: ${goal.intent}. This goal is context, not a request to generate the media now. No forms, code, or technical questions. Once the topic is known, help develop the learning experience instead of asking the teacher to design it all.\n\n${start}\n\nPattern: ${goal.pattern}\n\nConversation:\n${formatMessages(messages)}`;
+  const latestTeacherMessage = [...messages].reverse().find(item => item.role !== 'assistant' && String(item.content || '').trim());
+  const knownTopic = String(topic || latestTeacherMessage?.content || '').trim();
+  const start = knownTopic
+    ? `หัวข้อหรือบริบทที่ครูให้แล้ว: ${knownTopic}\nห้ามถามหัวข้อซ้ำ ให้ใช้ความเชี่ยวชาญเสนอแนวคิดสื่อหนึ่งแบบโดยคิดเรื่องนี้: ${goal.consider}`
+    : `ยังไม่พบหัวข้อจากครู ให้ถามคำถามสั้น ๆ เพียงข้อเดียวเพื่อรู้เรื่องที่กำลังสอน เช่น “${goal.question}” ยังไม่ต้องเสนอรายละเอียดเทคนิคหรือสร้างสื่อ`;
+  return `${sharedRules}\nบริบทจาก Learning Goal Card (ใช้เป็นแนวทางร่วมกับเจตนาจริงของครู ไม่ใช่ flow แยก): “${goal.label}” — ${goal.intent}\nรูปแบบการเรียนรู้ที่การ์ดชี้นำ: ${goal.pattern}\n${start}\n\nประวัติการสนทนา:\n${formatMessages(messages)}`;
 }
 
 export function buildV2ChatPrompt(sharedRules, messages) {
-  return `${sharedRules}\n\nMODE: CONVERSATION\nBe the same Learning Experience Design Partner described above. Respond to the teacher's latest message in a warm, concise, natural way. Help with incomplete ideas through concrete possibilities, not technical questions. Do not generate code or ask for a complete specification. The teacher may build whenever ready.\n\nConversation:\n${formatMessages(messages)}`;
+  return `${sharedRules}\nตอบต่อจากข้อความล่าสุดของครู โดยใช้ประวัติทั้งหมดเป็นบริบท หากครูเริ่มจากหัวข้อสั้น ปัญหา ตัวอย่าง หรือแนวคิดสื่อ ให้ต่อยอดจากสิ่งนั้นทันที หากรูปแบบการเรียนรู้ไม่ได้มาจากการ์ด ให้อนุมานจากภาษาของครู\n\nประวัติการสนทนา:\n${formatMessages(messages)}`;
 }
 
 export function buildV2ArtifactPrompt(sharedRules, messages) {
