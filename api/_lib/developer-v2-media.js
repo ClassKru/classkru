@@ -27,7 +27,7 @@ async function listAllObjects(prefix, options = {}) {
   }
 }
 
-async function teacherEmails() {
+async function loadTeachers() {
   const rows = [];
   for (let offset = 0; ; offset += PAGE_SIZE) {
     const page = await selectRows('teacher_profiles', {
@@ -39,68 +39,98 @@ async function teacherEmails() {
     rows.push(...page);
     if (page.length < PAGE_SIZE) break;
   }
-  return new Map(rows.filter(row => isId(row.teacher_id)).map(row => [row.teacher_id, row.email || row.teacher_id]));
+  return rows.filter(row => isId(row.teacher_id));
 }
 
-function mediaOrigin() {
-  try {
-    const url = new URL(String(process.env.MEDIA_ORIGIN || ''));
-    return url.protocol === 'https:' ? url.origin : '';
-  } catch (_) {
-    return '';
+function sumUsage(calls) {
+  const totals = {
+    chat: { tokens: 0, unavailable: 0 },
+    build: { tokens: 0, unavailable: 0 }
+  };
+  for (const call of calls) {
+    const target = call.phase === 'v2_chat' ? totals.chat
+      : ['v2_build', 'v2_repair'].includes(call.phase) ? totals.build : null;
+    if (!target) continue;
+    const measuredTokens = call.total_tokens ?? (call.input_tokens != null && call.output_tokens != null
+      ? Number(call.input_tokens) + Number(call.output_tokens)
+      : null);
+    if (measuredTokens == null) target.unavailable++;
+    else target.tokens += Math.max(0, Number(measuredTokens) || 0);
   }
+  return totals;
 }
 
-async function publishedMedia(link, emails, origin, projectCache) {
-  if (link?.kind !== 'published' || !isId(link.teacher_id) || !isId(link.project_id) || !isId(link.version_id) || !/^[a-f0-9]{64}$/i.test(String(link.token || ''))) return null;
-  if (await storage.get(`revoked/${link.token}.json`)) return null;
-
-  const cacheKey = `${link.teacher_id}/${link.project_id}`;
-  let projectState = projectCache.get(cacheKey);
-  if (!projectState) {
-    const root = `users/${link.teacher_id}`;
-    const project = await storage.get(`${root}/projects/${link.project_id}.json`);
-    const [archive] = project ? await storage.documents(`${root}/archives/${link.project_id}`, { limit: 1, column: 'name', order: 'desc' }) : [];
-    projectState = { root, project, archive };
-    projectCache.set(cacheKey, projectState);
+function usageByRun(runs, calls) {
+  const output = new Map();
+  const sessions = new Set(runs.map(run => run.session_id));
+  for (const sessionId of sessions) {
+    const sessionRuns = runs
+      .filter(run => run.session_id === sessionId)
+      .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+    const sessionCalls = calls
+      .filter(call => call.session_id === sessionId)
+      .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+    let callIndex = 0;
+    for (const run of sessionRuns) {
+      const included = [];
+      const runTime = Date.parse(run.created_at);
+      while (callIndex < sessionCalls.length && Date.parse(sessionCalls[callIndex].created_at) <= runTime) {
+        included.push(sessionCalls[callIndex++]);
+      }
+      output.set(run.id, sumUsage(included));
+    }
   }
-  const project = projectState.project;
-  const shareEpoch = projectState.archive?.share_epoch || project?.share_epoch;
-  if (!project || projectState.archive?.archived || shareEpoch !== link.share_epoch) return null;
+  return output;
+}
 
-  const result = await storage.get(`${projectState.root}/results/build/${link.project_id}_${link.version_id}.json`);
-  const version = result?.version;
-  if (!version || version.project_id !== link.project_id) return null;
+async function teacherVersions(teacher) {
+  const root = `users/${teacher.teacher_id}/mini-lab-v2`;
+  const [runFiles, usageFiles] = await Promise.all([
+    listAllObjects(`${root}/runs`, { column: 'created_at', order: 'asc' }),
+    listAllObjects(`${root}/usage`, { column: 'created_at', order: 'asc' })
+  ]);
+  if (!runFiles.length) return { rows: [], sessions: [] };
+
+  const [runDocs, usageDocs] = await Promise.all([
+    mapLimit(runFiles, 8, file => storage.get(`${root}/runs/${file.name}`)),
+    mapLimit(usageFiles, 8, file => storage.get(`${root}/usage/${file.name}`))
+  ]);
+  const runs = runDocs.filter(run => run && isId(run.id) && isId(run.session_id) && run.status === 'passed' && run.created_at);
+  const calls = usageDocs.filter(call => call && isId(call.session_id) && call.created_at);
+  const totals = usageByRun(runs, calls);
 
   return {
-    teacher: emails.get(link.teacher_id) || link.teacher_id,
-    title: version.title || project.title || 'สื่อการเรียนรู้',
-    updatedAt: link.created_at || version.created_at || project.updated_at,
-    // Older published Media Studio records did not persist provider usage.
-    chat: { available: false },
-    build: { available: false },
-    runtimeUrl: origin ? `${origin}/?token=${link.token}` : ''
+    sessions: [...new Set(runs.map(run => run.session_id))],
+    rows: runs.map(run => ({
+      teacher: teacher.email || teacher.teacher_id,
+      title: run.title || 'สื่อการเรียนรู้',
+      versionId: run.id,
+      sessionId: run.session_id,
+      updatedAt: run.created_at,
+      chat: totals.get(run.id)?.chat || { tokens: 0, unavailable: 0 },
+      build: totals.get(run.id)?.build || { tokens: 0, unavailable: 0 },
+      runtimeUrl: `/api/v2/runtime/${run.id}`
+    }))
   };
 }
 
-async function loadPublishedMedia() {
+async function loadV2Media() {
   if (!storage.configured()) {
     const error = new Error('storage_not_configured');
     error.code = 'storage_not_configured';
     error.status = 503;
     throw error;
   }
-  const [links, emails] = await Promise.all([
-    listAllObjects('links', { column: 'created_at', order: 'desc' }),
-    teacherEmails()
-  ]);
-  const linkRecords = await mapLimit(links, 8, file => storage.get(`links/${file.name}`));
-  const origin = mediaOrigin();
-  const projectCache = new Map();
-  const rows = (await mapLimit(linkRecords, 8, link => publishedMedia(link, emails, origin, projectCache)))
-    .filter(Boolean)
-    .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-  return { generatedAt: new Date().toISOString(), rows, publishedLinksScanned: linkRecords.length, mediaOriginConfigured: Boolean(origin) };
+  const teachers = await loadTeachers();
+  const results = await mapLimit(teachers, 8, teacherVersions);
+  const rows = results.flatMap(result => result.rows).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+  return {
+    generatedAt: new Date().toISOString(),
+    rows,
+    scannedTeachers: teachers.length,
+    generatedSessions: new Set(results.flatMap(result => result.sessions)).size,
+    generatedVersions: rows.length
+  };
 }
 
-module.exports = { loadPublishedMedia };
+module.exports = { loadV2Media };
