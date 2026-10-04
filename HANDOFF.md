@@ -548,10 +548,10 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 ห้ามใช้ AI 3 เพื่อตัด prose โดยเดาตำแหน่ง code; การรับ code ต้องเกิดจาก structured JSON และ validation เท่านั้น
 
 
-## 24. Developer Console: สื่อที่ครูสร้าง (2026-10-04)
+## 24. Developer Console: สื่อที่เผยแพร่ (2026-10-04)
 
-เพิ่มแท็บ สื่อที่ครูสร้าง สำหรับผู้พัฒนาดู Mini Lab V2 ที่สร้าง Runtime สำเร็จ แสดงอีเมลบัญชีครู ชื่องาน เวลาอัปเดต โทเคนจากการสนทนา และโทเคนสร้างสื่อ (รวม repair) พร้อมลิงก์เปิด Runtime ในแท็บใหม่ API ตรวจ developer session ก่อนอ่านข้อมูลและรวม usage จาก encrypted Storage ตาม session
+เพิ่มแท็บ สื่อที่เผยแพร่ สำหรับผู้พัฒนาดูงาน Media Studio ที่กดเผยแพร่และยังเปิดได้ผ่าน Media Host แสดงอีเมลครู ชื่องาน เวลาที่เผยแพร่ และปุ่มเปิด Runtime ในแท็บใหม่ API ตรวจ developer session ก่อนอ่านข้อมูลจาก encrypted Storage
 
-ขอบเขตข้อมูล: โทเคนอิงค่าที่ผู้ให้บริการรายงาน หากไม่มีค่า total จะใช้ input + output เมื่อมีทั้งคู่; อ่านทุกบัญชี Session และ usage object ที่เก็บใน V2 งานที่ยังไม่มี Runtime สำเร็จไม่แสดง เพราะแต่ละแถวต้องเปิด Runtime ได้
+ขอบเขตข้อมูล: อ่านทุก published link และตรวจ revoked/archive/share epoch ก่อนแสดง งานเก่าของ Media Studio ไม่ได้เก็บ usage log จากผู้ให้บริการ จึงแสดงขีดแทนจำนวนโทเคน ไม่เดาตัวเลขย้อนหลัง
 
-สถานะ: ใช้งานจริงแล้วบน Production หลัง PR #80, PR #81 และ PR #83 merge (commit 2a3a070). ย้ายการอ่านสื่อมาอยู่ใน api/dev/data ที่ deploy อยู่แล้ว ทำให้ Vercel deploy สำเร็จ และขยายให้ดึงประวัติ V2 ทั้งหมดแล้ว. ยังไม่ได้ทดสอบการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
+สถานะ: เวอร์ชันก่อนหน้าใน Production อ่าน mini-lab-v2 ซึ่งไม่ใช่แหล่งที่ผู้ใช้ต้องการ. กำลังแก้บน branch feature/developer-published-media ให้ดึง published Media Studio โดยตรง; ยังไม่ได้ทดสอบการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
