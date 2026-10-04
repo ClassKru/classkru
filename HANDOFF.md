@@ -1,6 +1,8 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 22 กันยายน 2569
+> อัปเดตล่าสุด: 4 ตุลาคม 2569
+>
+> **4 ต.ค. 2569 — Mini Lab V2 ขึ้น Production:** PR [#78](https://github.com/ClassKru/classkru/pull/78) ถูก merge เข้า `main` เป็น commit `0f7e474`; เพิ่มการ์ดเป้าหมายการสอน 8 แบบที่ส่ง `goal_id` เป็นบริบทให้ flow สนทนาเดิม, การ์ด “ลองสร้างแบบนี้ไหม?” 6 แบบ และ composer หน้าแรกแบบช่องข้อความกับปุ่มในแถวเดียว. Vercel Production ของ `classkru` และ `classkru-media` ขึ้น Ready; ตรวจ `https://classkru-kohl.vercel.app/mini-lab-v2` ตอบ HTTP 200. ตรวจ syntax ด้วย `node --check` สำหรับ JS/handler/prompt และ `git diff --check`; ยังไม่ได้ทดสอบ E2E โดยล็อกอินบัญชีครู.
 >
 > **29 ก.ย. 2569 — เปิดใช้งาน Production:** ส่งชุด Media Studio ที่ผ่าน `npm.cmd run test:media` (23/23) และ Browser QA เข้า `main` แบบ fast-forward ที่ commit `039929e` แล้ว. ตรวจ Vercel Production พบ OpenRouter, Storage, Supabase และ media origin ครบ; ตั้ง `MEDIA_STUDIO_ENABLED=true` แล้ว. Deployment `classkru-44zugybjo-classkru-dev.vercel.app` ขึ้น Ready และผูกกับ `https://classkru-kohl.vercel.app`; หน้าเว็บตอบ HTTP 200 พร้อม `js/media-studio.js?v=500`. Endpoint `/api/media-studio` ปฏิเสธคำขอไม่มี session ด้วย `401 authentication_required` ตามขอบเขตสิทธิ์. การสร้าง/เผยแพร่สื่อด้วยบัญชีครูจริงยังต้องทำ E2E ใน browser ที่ล็อกอินเท่านั้น.
 >
@@ -109,6 +111,7 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 
 - Repository: `https://github.com/ClassKru/classkru.git`
 - Production: `https://classkru-kohl.vercel.app/`
+- `main` / Production ปัจจุบัน: commit `0f7e474` (Mini Lab V2; deployment ของ `classkru` และ `classkru-media` Ready)
 - Branch ทำงาน: `main`
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
