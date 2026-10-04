@@ -1,9 +1,7 @@
 'use strict';
 
-const { sendJson } = require('../_lib/http');
-const { verifySession } = require('../_lib/dev-auth');
-const { selectRows } = require('../_lib/supabase-admin');
-const storage = require('../_lib/media-db');
+const { selectRows } = require('./supabase-admin');
+const storage = require('./media-db');
 
 const PAGE_SIZE = 1000;
 const MAX_TEACHERS = 2000;
@@ -135,31 +133,29 @@ async function teacherWorks(teacher) {
   };
 }
 
-async function handler(req, res) {
-  if (req.method !== 'GET') return sendJson(res, 405, { error: 'method_not_allowed' });
-  if (!verifySession(req).ok) return sendJson(res, 401, { error: 'authentication_required' });
-  try {
-    if (!storage.configured()) return sendJson(res, 503, { error: 'storage_not_configured' });
-    const teachers = await loadTeachers();
-    const results = await mapLimit(teachers, 8, teacherWorks);
-    const rows = results.flatMap(result => result.rows).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
-    return sendJson(res, 200, {
-      generatedAt: new Date().toISOString(),
-      rows,
-      scannedTeachers: teachers.length,
-      profilesTruncated: teachers.length >= MAX_TEACHERS,
-      limits: {
-        teachers: MAX_TEACHERS,
-        sessionsPerTeacher: MAX_SESSIONS_PER_TEACHER,
-        usageObjectsPerTeacher: MAX_USAGE_OBJECTS_PER_TEACHER
-      },
-      usageTruncated: results.some(result => result.usageTruncated),
-      sessionsTruncated: results.some(result => result.sessionTruncated)
-    });
-  } catch (error) {
-    const status = error.status || (error.code === 'SUPABASE_NOT_CONFIGURED' ? 503 : 502);
-    return sendJson(res, status, { error: error.code || 'media_data_unavailable' });
+async function loadV2Media() {
+  if (!storage.configured()) {
+    const error = new Error('storage_not_configured');
+    error.code = 'storage_not_configured';
+    error.status = 503;
+    throw error;
   }
+  const teachers = await loadTeachers();
+  const results = await mapLimit(teachers, 8, teacherWorks);
+  const rows = results.flatMap(result => result.rows).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+  return {
+    generatedAt: new Date().toISOString(),
+    rows,
+    scannedTeachers: teachers.length,
+    profilesTruncated: teachers.length >= MAX_TEACHERS,
+    limits: {
+      teachers: MAX_TEACHERS,
+      sessionsPerTeacher: MAX_SESSIONS_PER_TEACHER,
+      usageObjectsPerTeacher: MAX_USAGE_OBJECTS_PER_TEACHER
+    },
+    usageTruncated: results.some(result => result.usageTruncated),
+    sessionsTruncated: results.some(result => result.sessionTruncated)
+  };
 }
 
-module.exports = handler;
+module.exports = { loadV2Media };
