@@ -554,4 +554,4 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 
 ขอบเขตข้อมูล: โทเคนอิงค่าที่ผู้ให้บริการรายงาน หากไม่มีค่า total จะใช้ input + output เมื่อมีทั้งคู่; งานจำกัด 100 session ล่าสุดต่อครู, 2,000 บัญชี และ 20,000 usage objects ต่อครู โดยหน้าแสดงคำเตือนเมื่อชนขีดจำกัด งานที่ยังไม่มี Runtime สำเร็จไม่แสดง
 
-สถานะ: PR #80 merge เข้า main แล้ว (commit 6ff6924) แต่ Vercel Production ล้มเหลวหลัง build เสร็จ จึงยังให้ deployment เดิมทำงานอยู่. การแก้ครั้งแรกที่ตัด maxDuration ยังล้มเหลว จึงย้ายการอ่านสื่อไปอยู่ใน api/dev/data ที่ deploy อยู่แล้ว เพื่อตัด serverless function ใหม่ออก; อยู่บน branch fix/developer-v2-media-deploy และรอ deploy ตรวจซ้ำ. ตรวจ syntax/JSON และ diff ได้; ยังไม่ได้ทดสอบกับบัญชี Developer/Storage จริง.
+สถานะ: ใช้งานจริงแล้วบน Production หลัง PR #80 และ PR #81 merge (commit 9c81530). ย้ายการอ่านสื่อมาอยู่ใน api/dev/data ที่ deploy อยู่แล้ว ทำให้ Vercel deploy สำเร็จ. ตรวจหน้า /developer/ ได้ 200 และ API ปฏิเสธคำขอที่ไม่มี Developer session ด้วย 401; ยังไม่ได้ทดสอบการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
