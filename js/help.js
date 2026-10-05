@@ -121,7 +121,7 @@ function ensureIssueReportModal() {
   modal.id = 'issue-report-modal';
   modal.className = 'issue-report-modal';
   modal.hidden = true;
-  modal.innerHTML = `<section class="issue-report-card" role="dialog" aria-modal="true" aria-labelledby="issue-report-title"><header><div><span id="issue-report-eyebrow" class="help-eyebrow">REPORT TO CLASSKRU</span><h2 id="issue-report-title">แจ้งปัญหา</h2><p id="issue-report-intro" class="issue-report-intro"></p></div><button class="issue-report-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button></header><form id="issue-report-form"><input type="hidden" name="category" value="issue"><div class="issue-report-category-locked" aria-label="ประเภทความคิดเห็นที่เลือก"><i class="hgi-stroke hgi-alert-02" aria-hidden="true"></i><span><small>ประเภทความคิดเห็น</small><b>แจ้งปัญหา</b></span><i class="hgi-stroke hgi-square-lock-02" aria-hidden="true"></i></div><label>รายละเอียด<textarea name="message" minlength="5" maxlength="4000" rows="8" required placeholder="พิมพ์รายละเอียดปัญหาที่พบ…"></textarea></label><div class="issue-report-actions"><button class="btn" type="button" data-close-report>ยกเลิก</button><button class="btn btn-primary" type="submit" disabled>ส่ง</button></div><p id="issue-report-status" class="issue-report-status" role="status" aria-live="polite"></p></form></section>`;
+  modal.innerHTML = `<section class="issue-report-card" role="dialog" aria-modal="true" aria-labelledby="issue-report-title"><header><div><span id="issue-report-eyebrow" class="help-eyebrow">REPORT TO CLASSKRU</span><h2 id="issue-report-title">แจ้งปัญหา</h2><p id="issue-report-intro" class="issue-report-intro"></p></div><button class="issue-report-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button></header><form id="issue-report-form"><input type="hidden" name="category" value="issue"><label>รายละเอียด<textarea name="message" minlength="5" maxlength="4000" rows="8" required placeholder="พิมพ์รายละเอียดปัญหาที่พบ…"></textarea></label><div class="issue-report-actions"><button class="btn" type="button" data-close-report>ยกเลิก</button><button class="btn btn-primary" type="submit" disabled>ส่ง</button></div><p id="issue-report-status" class="issue-report-status" role="status" aria-live="polite"></p></form></section>`;
   document.body.append(modal);
   modal.querySelector('.issue-report-close').addEventListener('click', closeIssueReportForm);
   modal.querySelector('[data-close-report]').addEventListener('click', closeIssueReportForm);
@@ -140,16 +140,12 @@ async function openIssueReportForm(category = 'issue') {
   form.reset();
   const selectedCategory = category === 'feature' ? 'feature' : 'issue';
   const categoryInput = form.querySelector('[name="category"]');
-  const categoryLabel = form.querySelector('.issue-report-category-locked b');
-  const categoryIcon = form.querySelector('.issue-report-category-locked>i:first-child');
   const eyebrow = modal.querySelector('#issue-report-eyebrow');
   const title = modal.querySelector('#issue-report-title');
   const intro = modal.querySelector('#issue-report-intro');
   categoryInput.value = selectedCategory;
-  categoryLabel.textContent = selectedCategory === 'feature' ? 'ความคิดเห็นสำหรับการพัฒนาหรือการแก้ไข' : 'แจ้งปัญหา';
-  categoryIcon.className = `hgi-stroke ${selectedCategory === 'feature' ? 'hgi-bulb' : 'hgi-alert-02'}`;
   eyebrow.textContent = selectedCategory === 'feature' ? 'CLASSKRU FEEDBACK' : 'REPORT TO CLASSKRU';
-  title.textContent = categoryLabel.textContent;
+  title.textContent = selectedCategory === 'feature' ? 'ความคิดเห็นสำหรับการพัฒนาหรือการแก้ไข' : 'แจ้งปัญหา';
   intro.textContent = selectedCategory === 'feature'
     ? 'ร่วมเสนอความคิดเห็น เพื่อช่วยพัฒนา ClassKru ให้ดียิ่งขึ้นสำหรับทุกคน'
     : 'ช่วยบอกปัญหาที่พบ เพื่อให้ทีมงานตรวจสอบและแก้ไขได้ตรงจุด';
