@@ -50,8 +50,9 @@ async function main(){
     assert.equal(await page.$eval('#ms-input',element=>element.getAttribute('placeholder')),'วันนี้อยากให้นักเรียนเรียนรู้อะไร?');
     assert.equal(await page.$eval('#ms-ai-help',element=>!element.hidden),true);
     await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'true');await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'false');
-    await page.click('[data-starter="topic"]');assert.equal(await page.$eval('#ms-input',element=>element.placeholder),'กำลังจะสอนเรื่องอะไรครับ?');
+    await page.click('[data-prompt]');assert.equal(await page.$eval('#ms-input',element=>element.value),'อยากให้นักเรียนทดลองปรับตัวแปร และอธิบายผลที่เกิดขึ้น');
     fs.mkdirSync(path.join(__dirname,'../test-results'),{recursive:true});await page.screenshot({path:path.join(__dirname,'../test-results/media-studio-initial-desktop.png'),fullPage:true});
+    await page.$eval('#ms-input',element=>{element.value='';});
     await page.type('#ms-input','อยากให้นักเรียนเข้าใจพลังงานศักย์และพลังงานจลน์');await page.click('#ms-send');
     await page.waitForFunction(()=>document.querySelectorAll('.ms-message').length===2&&document.getElementById('ms-plan').textContent.includes('ความสูงลด'));
     assert.equal(await page.$eval('#ms-input',element=>element.value),'');
