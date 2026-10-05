@@ -34,7 +34,7 @@ async function mockApi(req,res){
 }
 async function main(){
   if(!process.env.MEDIA_BROWSER_EXECUTABLE&&process.platform==='win32')process.env.MEDIA_BROWSER_EXECUTABLE='C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-  const harness=`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/css/01-base-layout.css"><link rel="stylesheet" href="/css/media-studio.css"></head><body><button onclick="openInteractiveMediaStudio()">เปิด Studio</button><script>const supabaseClient={auth:{getSession:async()=>({data:{session:{access_token:'test-session',user:{id:'teacher'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}};</script><script src="/js/media-studio.js"></script></body></html>`;
+  const harness=`<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/css/01-base-layout.css"><link rel="stylesheet" href="/css/media-studio.css"></head><body><button onclick="openInteractiveMediaStudio()">เปิด Studio</button><script>const supabaseClient={auth:{getSession:async()=>({data:{session:{access_token:'test-session',user:{id:'teacher',email:'classkru.dev@gmail.com'}}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})}};</script><script src="/js/auth.js"></script><script src="/js/media-studio.js"></script></body></html>`;
   const app=createServer({harness,handler:mockApi});
   await new Promise(resolve=>app.listen(0,'127.0.0.1',resolve));
   const appOrigin=`http://127.0.0.1:${app.address().port}`;
@@ -50,8 +50,9 @@ async function main(){
     assert.equal(await page.$eval('#ms-input',element=>element.getAttribute('placeholder')),'วันนี้อยากให้นักเรียนเรียนรู้อะไร?');
     assert.equal(await page.$eval('#ms-ai-help',element=>!element.hidden),true);
     await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'true');await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'false');
-    await page.click('[data-starter="topic"]');assert.equal(await page.$eval('#ms-input',element=>element.placeholder),'กำลังจะสอนเรื่องอะไรครับ?');
+    await page.click('[data-prompt]');assert.equal(await page.$eval('#ms-input',element=>element.value),'อยากให้นักเรียนทดลองปรับตัวแปร และอธิบายผลที่เกิดขึ้น');
     fs.mkdirSync(path.join(__dirname,'../test-results'),{recursive:true});await page.screenshot({path:path.join(__dirname,'../test-results/media-studio-initial-desktop.png'),fullPage:true});
+    await page.$eval('#ms-input',element=>{element.value='';});
     await page.type('#ms-input','อยากให้นักเรียนเข้าใจพลังงานศักย์และพลังงานจลน์');await page.click('#ms-send');
     await page.waitForFunction(()=>document.querySelectorAll('.ms-message').length===2&&document.getElementById('ms-plan').textContent.includes('ความสูงลด'));
     assert.equal(await page.$eval('#ms-input',element=>element.value),'');

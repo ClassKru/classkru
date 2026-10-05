@@ -121,7 +121,7 @@ function ensureIssueReportModal() {
   modal.id = 'issue-report-modal';
   modal.className = 'issue-report-modal';
   modal.hidden = true;
-  modal.innerHTML = `<section class="issue-report-card" role="dialog" aria-modal="true" aria-labelledby="issue-report-title"><header><div><span class="help-eyebrow">REPORT TO CLASSKRU</span><h2 id="issue-report-title">แจ้งปัญหา</h2></div><button class="issue-report-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button></header><form id="issue-report-form"><input type="hidden" name="category" value="issue"><div class="issue-report-category-locked" aria-label="ประเภทความคิดเห็นที่เลือก"><i class="hgi-stroke hgi-alert-02" aria-hidden="true"></i><span><small>ประเภทความคิดเห็น</small><b>แจ้งปัญหา</b></span><i class="hgi-stroke hgi-square-lock-02" aria-hidden="true"></i></div><label>รายละเอียด<textarea name="message" minlength="5" maxlength="4000" rows="8" required placeholder="พิมพ์รายละเอียดปัญหาที่พบ…"></textarea></label><div class="issue-report-actions"><button class="btn" type="button" data-close-report>ยกเลิก</button><button class="btn btn-primary" type="submit" disabled>ส่ง</button></div><p id="issue-report-status" class="issue-report-status" role="status" aria-live="polite"></p></form></section>`;
+  modal.innerHTML = `<section class="issue-report-card" role="dialog" aria-modal="true" aria-labelledby="issue-report-title"><header><div><span id="issue-report-eyebrow" class="help-eyebrow">REPORT TO CLASSKRU</span><h2 id="issue-report-title">แจ้งปัญหา</h2></div><button class="issue-report-close" type="button" aria-label="ปิดแบบฟอร์ม">×</button></header><form id="issue-report-form"><input type="hidden" name="category" value="issue"><div class="issue-report-category-locked" aria-label="ประเภทความคิดเห็นที่เลือก"><i class="hgi-stroke hgi-alert-02" aria-hidden="true"></i><span><small>ประเภทความคิดเห็น</small><b>แจ้งปัญหา</b></span><i class="hgi-stroke hgi-square-lock-02" aria-hidden="true"></i></div><label>รายละเอียด<textarea name="message" minlength="5" maxlength="4000" rows="8" required placeholder="พิมพ์รายละเอียดปัญหาที่พบ…"></textarea></label><div class="issue-report-actions"><button class="btn" type="button" data-close-report>ยกเลิก</button><button class="btn btn-primary" type="submit" disabled>ส่ง</button></div><p id="issue-report-status" class="issue-report-status" role="status" aria-live="polite"></p></form></section>`;
   document.body.append(modal);
   modal.querySelector('.issue-report-close').addEventListener('click', closeIssueReportForm);
   modal.querySelector('[data-close-report]').addEventListener('click', closeIssueReportForm);
@@ -142,10 +142,12 @@ async function openIssueReportForm(category = 'issue') {
   const categoryInput = form.querySelector('[name="category"]');
   const categoryLabel = form.querySelector('.issue-report-category-locked b');
   const categoryIcon = form.querySelector('.issue-report-category-locked>i:first-child');
+  const eyebrow = modal.querySelector('#issue-report-eyebrow');
   const title = modal.querySelector('#issue-report-title');
   categoryInput.value = selectedCategory;
   categoryLabel.textContent = selectedCategory === 'feature' ? 'เสนอฟีเจอร์ใหม่' : 'แจ้งปัญหา';
   categoryIcon.className = `hgi-stroke ${selectedCategory === 'feature' ? 'hgi-bulb' : 'hgi-alert-02'}`;
+  eyebrow.textContent = selectedCategory === 'feature' ? 'SUGGEST A FEATURE' : 'REPORT TO CLASSKRU';
   title.textContent = categoryLabel.textContent;
   message.placeholder = selectedCategory === 'feature'
     ? 'พิมพ์รายละเอียดฟีเจอร์ที่อยากให้เพิ่ม…'
@@ -187,9 +189,9 @@ async function submitIssueReport(event) {
     return;
   }
   submit.disabled = true;
-  status.textContent = 'กำลังส่งรายงาน…';
   const message = String(values.get('message') || '').trim();
   const category = values.get('category') === 'feature' ? 'feature' : 'issue';
+  status.textContent = category === 'feature' ? 'กำลังส่งข้อเสนอแนะ…' : 'กำลังส่งรายงาน…';
   const payload = {
     reporter_id: authData.user.id,
     category,
@@ -210,11 +212,13 @@ async function submitIssueReport(event) {
   }
   if (error) {
     console.warn('Issue report submission failed:', error.message);
-    status.textContent = 'ส่งรายงานไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่';
+    status.textContent = category === 'feature' ? 'ส่งข้อเสนอแนะไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่' : 'ส่งรายงานไม่สำเร็จ กรุณาตรวจข้อมูลแล้วลองใหม่';
     submit.disabled = false;
     return;
   }
-  status.textContent = 'ส่งรายงานเรียบร้อยแล้ว ขอบคุณที่ช่วยให้ ClassKru ดีขึ้น';
+  status.textContent = category === 'feature'
+    ? 'ส่งข้อเสนอแนะเรียบร้อยแล้ว ขอบคุณที่ช่วยให้ ClassKru ดีขึ้น'
+    : 'ส่งรายงานเรียบร้อยแล้ว ขอบคุณที่ช่วยให้ ClassKru ดีขึ้น';
   status.classList.add('success');
   form.reset();
   setTimeout(closeIssueReportForm, 1400);
