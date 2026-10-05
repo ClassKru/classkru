@@ -100,12 +100,10 @@ a { color:inherit; text-decoration:none; }
 .line-contact small{margin-top:2px;color:var(--home-muted);font-size:.72rem;font-weight:700}
 .home-social-links{display:flex;align-items:center;justify-content:flex-end;gap:10px;grid-column:2;flex-wrap:wrap}
 .home-social-links .line-contact{justify-self:auto}
-.social-contact{width:56px;height:56px;justify-content:center;padding:8px;border-radius:16px}
-.social-contact>i{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;font-size:1rem}
-.social-contact img{width:26px;height:26px;display:block;object-fit:contain}
-.social-brand-line{background:#e7f5ed}
-.social-brand-facebook{background:#eaf2ff}
-.social-brand-tiktok{background:#f0f1f3}
+.home-social-links .social-contact{width:44px;height:44px;justify-content:center;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.home-social-links .social-contact:hover{transform:translateY(-2px);border-color:transparent;box-shadow:none}
+.social-contact>i{width:40px;height:40px;display:grid;place-items:center;border-radius:0;background:transparent;font-size:1rem}
+.social-contact img{width:38px;height:38px;display:block;object-fit:contain}
 .social-facebook:hover{border-color:#1877f2}
 .social-tiktok:hover{border-color:#fe2c55}
 .home-privacy-link{grid-column:2;color:var(--home-muted);font-size:.78rem;font-weight:700;text-decoration:none;white-space:nowrap;justify-self:end;transition:color .18s ease}
@@ -420,7 +418,8 @@ a { color:inherit; text-decoration:none; }
   .product-sidebar { padding-left:10px; padding-right:10px; }
   .product-main { padding:18px; }
   .home-footer{grid-template-columns:1fr;align-items:flex-start}
-  .home-social-links{grid-column:1;width:100%;justify-content:stretch;flex-direction:column;align-items:stretch}
+  .home-social-links{grid-column:1;width:100%;justify-content:flex-start;flex-direction:row;align-items:center}
+  .home-social-links .social-contact{width:44px;height:44px}
   .line-contact{width:100%;min-width:0}
   .home-privacy-link{grid-column:1;justify-self:start;align-self:flex-start}
 }
