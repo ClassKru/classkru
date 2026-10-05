@@ -100,9 +100,16 @@ a { color:inherit; text-decoration:none; }
 .line-contact small{margin-top:2px;color:var(--home-muted);font-size:.72rem;font-weight:700}
 .home-social-links{display:flex;align-items:center;justify-content:flex-end;gap:10px;grid-column:2;flex-wrap:wrap}
 .home-social-links .line-contact{justify-self:auto}
-.social-brand{width:36px;height:36px;display:grid;place-items:center;border-radius:12px;color:#fff;font-style:normal;font-weight:900;font-family:Arial,sans-serif}
-.social-brand-facebook{background:#1877f2;font-size:1.45rem;line-height:1;padding-top:5px}
-.social-brand-tiktok{background:linear-gradient(135deg,#111827 35%,#25f4ee 36%,#25f4ee 58%,#fe2c55 59%);font-size:1.3rem;line-height:1}
+.social-contact{width:56px;height:56px;justify-content:center;padding:8px;border-radius:16px}
+.social-contact>i{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;font-size:1rem}
+.social-contact svg{width:24px;height:24px;display:block}
+.social-contact svg path{fill:currentColor}
+.social-brand-line{color:var(--home-primary);background:#e7f5ed}
+.social-brand-line svg{width:25px;height:25px}
+.social-brand-line svg path{fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.social-brand-line svg circle{fill:currentColor}
+.social-brand-facebook{color:#fff;background:#1877f2}
+.social-brand-tiktok{color:#fff;background:#111827}
 .social-facebook:hover{border-color:#1877f2}
 .social-tiktok:hover{border-color:#fe2c55}
 .home-privacy-link{grid-column:2;color:var(--home-muted);font-size:.78rem;font-weight:700;text-decoration:none;white-space:nowrap;justify-self:end;transition:color .18s ease}
