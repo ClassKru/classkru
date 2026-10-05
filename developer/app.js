@@ -1,6 +1,6 @@
 'use strict';
 
-const state = { view: 'overview', overview: null, business: null, businessAccountSort: 'registered', reports: [], billing: null, ideas: { biggy: [], petchpetch: [] } };
+const state = { view: 'overview', overview: null, business: null, businessAccountSort: 'registered', reports: [], billing: null, v2Media: null, ideas: { biggy: [], petchpetch: [] }, mediaModels: null, mediaCatalog: { text: [], image: [] } };
 const byId = id => document.getElementById(id);
 const ui = {
   loginView: byId('login-view'), consoleView: byId('console-view'), loginForm: byId('login-form'),
@@ -13,9 +13,8 @@ const ui = {
   loadTable: byId('load-table-button'), databaseTable: byId('database-table'), modal: byId('detail-modal'),
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
   ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table'), billingSalesTable: byId('billing-sales-table'),
-  businessSummary: byId('business-summary'), businessAvailable: byId('business-available'), businessFuture: byId('business-future'), businessUpdated: byId('business-updated'),
-  businessAccountList: byId('business-account-list'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'),
-  usageList: byId('usage-list'), usageCount: byId('usage-count'), usageUpdated: byId('usage-updated')
+  mediaModelsForm: byId('media-models-form'), mediaModelsUpdated: byId('media-models-updated'), mediaModelCatalogKind: byId('media-model-catalog-kind'), mediaModelSearch: byId('media-model-search'), mediaModelRefresh: byId('media-model-refresh'), mediaPlannerModel: byId('media-planner-model'), mediaBuilderModel: byId('media-builder-model'), mediaImageModel: byId('media-image-model'), mediaModelSave: byId('media-model-save'), mediaModelSaveStatus: byId('media-model-save-status'),
+  businessSummary: byId('business-summary'), businessAvailable: byId('business-available'), businessFuture: byId('business-future'), businessUpdated: byId('business-updated'), businessAccountList: byId('business-account-list'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'), usageList: byId('usage-list'), usageCount: byId('usage-count'), usageUpdated: byId('usage-updated'), v2MediaRows: byId('v2-media-rows'), v2MediaCount: byId('v2-media-count'), v2MediaUpdated: byId('v2-media-updated'), v2MediaRefresh: byId('v2-media-refresh')
 };
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
@@ -412,6 +411,92 @@ async function loadBilling() {
   catch (error) { handleDataError(error); }
 }
 
+function setMediaModelStatus(message, type = '') {
+  ui.mediaModelSaveStatus.textContent = message;
+  ui.mediaModelSaveStatus.className = type;
+}
+
+function modelLabel(model) {
+  const prices = model.prompt_price || model.completion_price ? ` · $${model.prompt_price || '0'}/$${model.completion_price || '0'} ต่อ token` : '';
+  return `${model.name} — ${model.id}${prices}`;
+}
+
+function populateModelSelect(select, models, selectedId) {
+  select.replaceChildren();
+  const matched = models.some(model => model.id === selectedId);
+  if (selectedId && !matched) select.append(new Option(`${selectedId} (ค่าปัจจุบัน — ไม่พบใน catalog)`, selectedId));
+  models.forEach(model => select.append(new Option(modelLabel(model), model.id)));
+  select.value = selectedId || models[0]?.id || '';
+}
+
+function renderMediaModels() {
+  const settings = state.mediaModels;
+  if (!settings) return;
+  const query = ui.mediaModelSearch.value.trim().toLocaleLowerCase('th-TH');
+  const matches = kind => state.mediaCatalog[kind].filter(model => !query || `${model.id} ${model.name} ${model.description}`.toLocaleLowerCase('th-TH').includes(query));
+  populateModelSelect(ui.mediaPlannerModel, matches('text'), settings.planner_model);
+  populateModelSelect(ui.mediaBuilderModel, matches('text'), settings.builder_model);
+  populateModelSelect(ui.mediaImageModel, matches('image'), settings.image_model);
+  ui.mediaModelsUpdated.textContent = settings.storage_ready
+    ? `บันทึกล่าสุด ${formatDate(settings.updated_at, true)}`
+    : 'ยังไม่พบตารางการตั้งค่า — ต้องรัน migration ก่อนบันทึก';
+}
+
+async function loadMediaCatalog(kind, force = false) {
+  if (!force && state.mediaCatalog[kind].length) return;
+  const data = await request(`/api/dev/media-models?resource=catalog&kind=${encodeURIComponent(kind)}`);
+  state.mediaCatalog[kind] = data.models || [];
+}
+
+async function loadMediaModels() {
+  ui.globalStatus.textContent = 'กำลังโหลดการตั้งค่า AI Media Studio…';
+  try {
+    const data = await request('/api/dev/media-models?resource=settings');
+    state.mediaModels = data.settings;
+    await Promise.all([loadMediaCatalog('text'), loadMediaCatalog('image')]);
+    renderMediaModels();
+    setMediaModelStatus(data.catalog_configured ? '' : 'ยังไม่พบ OpenRouter key สำหรับโหลด catalog', data.catalog_configured ? '' : 'error');
+    ui.globalStatus.textContent = '';
+  } catch (error) {
+    handleDataError(error);
+    setMediaModelStatus('โหลดโมเดลไม่สำเร็จ กรุณาตรวจ OpenRouter key และ migration', 'error');
+  }
+}
+
+async function refreshMediaCatalog() {
+  const kind = ui.mediaModelCatalogKind.value;
+  ui.mediaModelRefresh.disabled = true;
+  setMediaModelStatus(`กำลังโหลดโมเดล${kind === 'image' ? 'สร้างภาพ' : 'ข้อความ'}…`);
+  try {
+    await loadMediaCatalog(kind, true);
+    renderMediaModels();
+    setMediaModelStatus(`โหลดรายการ ${state.mediaCatalog[kind].length} โมเดลแล้ว`, 'success');
+  } catch (error) {
+    handleDataError(error);
+    setMediaModelStatus('โหลดรายการโมเดลไม่สำเร็จ', 'error');
+  } finally {
+    ui.mediaModelRefresh.disabled = false;
+  }
+}
+
+async function saveMediaModels(event) {
+  event.preventDefault();
+  const payload = { action: 'save', planner_model: ui.mediaPlannerModel.value, builder_model: ui.mediaBuilderModel.value, image_model: ui.mediaImageModel.value };
+  if (!payload.planner_model || !payload.builder_model || !payload.image_model) return setMediaModelStatus('กรุณาเลือกโมเดลให้ครบ', 'error');
+  ui.mediaModelSave.disabled = true;
+  setMediaModelStatus('กำลังบันทึก…');
+  try {
+    const data = await request('/api/dev/media-models', { method: 'POST', body: JSON.stringify(payload) });
+    state.mediaModels = data.settings;
+    renderMediaModels();
+    setMediaModelStatus('บันทึกแล้ว · งานใหม่จะใช้โมเดลที่เลือกทันที', 'success');
+  } catch (error) {
+    if (error.status === 401) return handleDataError(error);
+    setMediaModelStatus(error.payload?.error === 'model_not_supported_for_task' ? 'โมเดลนี้ไม่รองรับประเภทงานที่เลือก' : 'บันทึกไม่สำเร็จ กรุณาตรวจ migration และรายการโมเดล', 'error');
+  } finally {
+    ui.mediaModelSave.disabled = false;
+  }
+}
 function renderBusiness(data) {
   state.business = data;
   const accounts = data.accounts || {};
@@ -547,6 +632,65 @@ async function loadBusiness() {
   catch (error) { handleDataError(error); }
 }
 
+function tokenCell(usage) {
+  const cell = element('td', 'v2-token-cell');
+  if (usage?.available === false) {
+    cell.append(element('strong', '', '—'), element('small', '', 'ไม่มี usage log ย้อนหลัง'));
+    return cell;
+  }
+  cell.append(element('strong', '', Number(usage?.tokens || 0).toLocaleString('th-TH')));
+  if (usage?.unavailable) cell.append(element('small', '', `ไม่รายงาน ${usage.unavailable} ครั้ง`));
+  return cell;
+}
+
+function renderV2Media(data) {
+  state.v2Media = data;
+  ui.v2MediaRows.replaceChildren();
+  const rows = data.rows || [];
+  for (const row of rows) {
+    const tr = document.createElement('tr');
+    tr.append(element('td', 'v2-media-user', row.teacher || '—'));
+    const title = element('td', 'v2-media-title', row.title || 'สื่อการเรียนรู้');
+    const version = row.versionId ? ` · Ver ${String(row.versionId).slice(0, 8)}` : '';
+    title.append(element('small', '', `${formatDate(row.updatedAt, true)}${version}`));
+    tr.append(title, tokenCell(row.chat), tokenCell(row.build));
+    const runtimeCell = document.createElement('td');
+    if (row.runtimeUrl) {
+      const runtime = element('a', 'secondary-button v2-runtime-link', 'เปิด Runtime');
+      runtime.href = row.runtimeUrl;
+      runtime.target = '_blank';
+      runtime.rel = 'noopener noreferrer';
+      runtimeCell.append(runtime);
+    } else runtimeCell.append(element('span', 'muted-text', 'ยังไม่ตั้งค่า Media Host'));
+    tr.append(runtimeCell);
+    ui.v2MediaRows.append(tr);
+  }
+  if (!rows.length) {
+    const tr = document.createElement('tr');
+    tr.append(element('td', 'empty-state', 'ยังไม่พบสื่อที่สร้าง Runtime สำเร็จ'));
+    tr.firstElementChild.colSpan = 5;
+    ui.v2MediaRows.append(tr);
+  }
+  ui.v2MediaCount.textContent = `พบ ${Number(data.generatedVersions || rows.length).toLocaleString('th-TH')} Version จาก ${Number(data.generatedSessions || 0).toLocaleString('th-TH')} Session · ตรวจ ${Number(data.scannedTeachers || 0).toLocaleString('th-TH')} บัญชี`;
+  ui.v2MediaUpdated.textContent = `อัปเดต ${formatDate(data.generatedAt, true)}`;
+}
+
+async function loadV2Media() {
+  ui.globalStatus.textContent = 'กำลังโหลดรายการสื่อและโทเคน…';
+  ui.v2MediaRefresh.disabled = true;
+  try {
+    renderV2Media(await request('/api/dev/data?resource=v2-media'));
+    ui.globalStatus.textContent = '';
+  } catch (error) {
+    if (error.status === 401) handleDataError(error);
+    else ui.globalStatus.textContent = error.status === 503
+      ? 'ยังไม่พร้อมอ่านข้อมูล ClassKru Media V2 กรุณาตรวจการตั้งค่า Storage และฐานข้อมูล'
+      : 'โหลดรายการสื่อ ClassKru Media V2 ไม่สำเร็จ กรุณาลองใหม่';
+  } finally {
+    ui.v2MediaRefresh.disabled = false;
+  }
+}
+
 function handleDataError(error) {
   if (error.status === 401) {
     showLogin('Session หมดอายุ กรุณาเข้าสู่ระบบอีกครั้ง');
@@ -572,6 +716,8 @@ function switchView(view) {
   if (view === 'ideas-petchpetch') loadIdeas('petchpetch');
   if (view === 'database') loadDatabase();
   if (view === 'billing') loadBilling();
+  if (view === 'media-models') loadMediaModels();
+  if (view === 'v2-media') loadV2Media();
 }
 
 ui.loginForm.addEventListener('submit', async event => {
@@ -607,6 +753,7 @@ ui.logout.addEventListener('click', async () => {
   showLogin('ออกจากระบบแล้ว');
 });
 ui.refresh.addEventListener('click', () => switchView(state.view));
+ui.v2MediaRefresh.addEventListener('click', loadV2Media);
 ui.reportFilters.addEventListener('submit', event => { event.preventDefault(); loadReports(); });
 ui.usageSearch.addEventListener('input', renderUsage);
 ui.usageFilter.addEventListener('change', renderUsage);
@@ -620,6 +767,9 @@ document.querySelectorAll('[data-account-sort]').forEach(button => button.addEve
   renderBusinessAccounts();
 }));
 ui.loadTable.addEventListener('click', loadDatabase);
+ui.mediaModelsForm.addEventListener('submit', saveMediaModels);
+ui.mediaModelRefresh.addEventListener('click', refreshMediaCatalog);
+ui.mediaModelSearch.addEventListener('input', () => { if (state.mediaModels) renderMediaModels(); });
 ui.closeModal.addEventListener('click', () => { ui.modal.hidden = true; });
 ui.modal.addEventListener('click', event => { if (event.target === ui.modal) ui.modal.hidden = true; });
 document.addEventListener('keydown', event => { if (event.key === 'Escape' && !ui.modal.hidden) ui.modal.hidden = true; });

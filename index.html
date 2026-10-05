@@ -19,23 +19,22 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=510">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=510">
-  <link rel="stylesheet" href="css/03-reports.css?v=510">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=510">
-  <link rel="stylesheet" href="css/05-home.css?v=510">
-  <link rel="stylesheet" href="css/06-attendance.css?v=510">
-  <link rel="stylesheet" href="css/07-scores.css?v=510">
-  <link rel="stylesheet" href="css/pp5.css?v=510">
-    <link rel="stylesheet" href="css/08-responsive-toast.css?v=510">
-    <link rel="stylesheet" href="css/09-games.css?v=510">
-  <link rel="stylesheet" href="css/10-help.css?v=510">
-  <link rel="stylesheet" href="css/11-public-help.css?v=510">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=510">
-  <link rel="stylesheet" href="css/media-studio.css?v=510">
-  <link rel="stylesheet" href="css/13-content-library.css?v=510">
-  <style id="hide-interactive-media-ui">#content-library-root .cl-create-card[data-create-action="interactive"]{display:none!important}</style>
-  <link rel="stylesheet" href="css/15-subscription.css?v=510">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=502">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=502">
+  <link rel="stylesheet" href="css/03-reports.css?v=502">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=502">
+  <link rel="stylesheet" href="css/05-home.css?v=502">
+  <link rel="stylesheet" href="css/06-attendance.css?v=502">
+  <link rel="stylesheet" href="css/07-scores.css?v=502">
+  <link rel="stylesheet" href="css/pp5.css?v=502">
+    <link rel="stylesheet" href="css/08-responsive-toast.css?v=502">
+    <link rel="stylesheet" href="css/09-games.css?v=505">
+  <link rel="stylesheet" href="css/10-help.css?v=502">
+  <link rel="stylesheet" href="css/11-public-help.css?v=502">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=502">
+  <link rel="stylesheet" href="css/media-studio.css?v=502">
+  <link rel="stylesheet" href="css/13-content-library.css?v=504">
+  <link rel="stylesheet" href="css/15-subscription.css?v=502">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -290,7 +289,7 @@
             </aside>
           </div>
 
-          <div style="display:none;margin:16px 0" aria-hidden="true"><button class="btn btn-primary" type="button" onclick="openInteractiveMediaStudio()"><i class="hgi-stroke hgi-magic-wand-01"></i> สื่อสำหรับคาบนี้ · สร้างกับ AI / คลังของฉัน</button></div>
+          <div style="display:none;margin:16px 0" aria-hidden="true"><button class="btn btn-primary" type="button" onclick="navigateToWebScreen('library')"><i class="hgi-stroke hgi-book-02"></i> สื่อสำหรับคาบนี้ · เปิดคลังสื่อของฉัน</button></div>
           <section id="home-setup-card" class="card home-setup-card" style="display:none;">
             <div>
               <span class="home-setup-kicker"><i class="hgi-stroke hgi-rocket-01"></i> เริ่มต้นใช้งาน</span>
@@ -600,59 +599,59 @@
         <!-- SETTINGS -->
         <div id="web-screen-games" class="fade-in" style="display:none;">
           <section class="games-hero card">
-            <div>
-              <span class="games-eyebrow"><i class="hgi-stroke hgi-rocket-01"></i> พื้นที่กิจกรรมสำหรับชั้นเรียน</span>
+            <span class="games-hero-icon" aria-hidden="true"><i class="hgi-stroke hgi-rocket-01"></i></span>
+            <div class="games-hero-copy">
+              <span class="games-eyebrow">พื้นที่กิจกรรมสำหรับชั้นเรียน</span>
               <h2>เกมการศึกษา</h2>
-              <p>เลือกหมวดเกม แล้วเริ่มกิจกรรมที่เหมาะกับนักเรียนได้ทันที</p>
-            </div>
-            <div class="games-hero-orbit" aria-hidden="true">✦</div>
-          </section>
-
-          <section class="games-section" aria-labelledby="games-vocabulary-title">
-            <div class="games-section-heading"><div><span class="games-category-label">หมวดเกม</span><h3 id="games-vocabulary-title">คำศัพท์ภาษาอังกฤษ</h3></div><span class="games-count">1 เกมพร้อมเล่น</span></div>
-            <div class="games-grid">
-              <article class="game-card game-card-featured">
-                <div class="game-card-icon">🚀</div>
-                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Word Rocket</h4><p>ภารกิจทายคำศัพท์ภาษาอังกฤษ ปล่อยจรวดเมื่อพิชิตคำสำเร็จ</p><div class="game-meta"><span>5 หมวดคำศัพท์</span><span>3 ระดับความยาก</span></div></div>
-                <a class="btn games-play-button" href="word-rocket/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
-              </article>
+              <p>เลือกวิชาและระดับชั้น แล้วเริ่มเกมที่เหมาะกับนักเรียนได้ทันที</p>
             </div>
           </section>
 
-          <section class="games-section" aria-labelledby="games-math-title">
-            <div class="games-section-heading"><div><span class="games-category-label">หมวดเกม</span><h3 id="games-math-title">คณิตศาสตร์และตรรกะ</h3></div><span class="games-count">2 เกมพร้อมเล่น</span></div>
-            <div class="games-grid">
-              <article class="game-card game-card-featured">
-                <div class="game-card-icon">🧙</div>
-                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Math Wizard</h4><p>ศึกจอมเวทย์คณิตศาสตร์ ใช้คำตอบที่ถูกต้องร่ายเวทพิชิตมอนสเตอร์</p><div class="game-meta"><span>3 ระดับความยาก</span><span>เวทและคอมโบ</span></div></div>
-                <a class="btn games-play-button" href="math-wizard/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
-              </article>
-              <article class="game-card game-card-featured">
-                <div class="game-card-icon">🍕</div>
-                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Fraction Pizza Master</h4><p>แบ่งและเลือกพิซซ่าตามออเดอร์ เพื่อเข้าใจเศษส่วนผ่านภาพและการลงมือทำ</p><div class="game-meta"><span>เล่นแบบออฟไลน์</span><span>ไม่เก็บข้อมูล</span></div></div>
-                <a class="btn games-play-button" href="fraction-pizza-master/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
+          <section class="games-filter games-filter-bar card" aria-label="ตัวกรองเกมการศึกษา">
+            <div class="games-filter-heading"><h3>ค้นหาเกม</h3><span class="games-filter-count" id="games-filter-count">6 เกม</span></div>
+            <div class="games-filter-row" role="group" aria-label="เลือกวิชา">
+              <span class="games-filter-label">วิชา</span>
+              <button class="games-filter-chip is-active" type="button" data-game-filter="subject" data-game-value="all">ทั้งหมด</button>
+              <button class="games-filter-chip" type="button" data-game-filter="subject" data-game-value="english">ภาษาอังกฤษ</button>
+              <button class="games-filter-chip" type="button" data-game-filter="subject" data-game-value="math">คณิตศาสตร์</button>
+              <button class="games-filter-chip" type="button" data-game-filter="subject" data-game-value="science">วิทยาศาสตร์</button>
+            </div>
+            <div class="games-filter-row games-filter-row-grade" role="group" aria-label="เลือกระดับชั้น">
+              <span class="games-filter-label">ระดับชั้น</span>
+              <button class="games-filter-chip is-active" type="button" data-game-filter="grade" data-game-value="all">ทุกระดับ</button>
+              <button class="games-filter-chip" type="button" data-game-filter="grade" data-game-value="primary">ประถม</button>
+              <button class="games-filter-chip" type="button" data-game-filter="grade" data-game-value="middle">ม.ต้น</button>
+              <button class="games-filter-chip" type="button" data-game-filter="grade" data-game-value="high">ม.ปลาย</button>
+            </div>
+          </section>
+
+          <div class="games-empty-state card" id="games-empty-state" hidden>
+            <span>🔎</span><strong>ยังไม่พบเกมในตัวกรองนี้</strong><p>ลองเลือกวิชาหรือระดับชั้นอื่น</p>
+          </div>
+
+          <section class="games-section" data-game-section data-game-subject="english" aria-labelledby="games-english-title">
+            <div class="games-section-heading"><div><span class="games-category-label">ภาษาอังกฤษ</span><h3 id="games-english-title">คำศัพท์และการสื่อสาร</h3></div><span class="games-count">1 เกม</span></div>
+            <div class="games-grid games-grid-cards">
+              <article class="game-card game-card-featured" data-game-card data-game-subject="english" data-game-grade="primary middle">
+                <div class="game-card-icon game-icon-english">🚀</div><div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Word Rocket</h4><p>ภารกิจทายคำศัพท์ภาษาอังกฤษ ปล่อยจรวดเมื่อพิชิตคำสำเร็จ</p><div class="game-meta"><span>ประถม · ม.ต้น</span><span>5 หมวดคำศัพท์</span></div></div><a class="btn games-play-button" href="word-rocket/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
               </article>
             </div>
           </section>
 
-          <section class="games-section" aria-labelledby="games-science-title">
-            <div class="games-section-heading"><div><span class="games-category-label">หมวดเกม</span><h3 id="games-science-title">วิทยาศาสตร์</h3></div><span class="games-count">3 เกมพร้อมเล่น</span></div>
-            <div class="games-grid">
-              <article class="game-card game-card-featured">
-                <div class="game-card-icon">🌿</div>
-                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Green City</h4><p>สร้างเมืองสีเขียวแห่งอนาคต ตอบคำถามสิ่งแวดล้อมแล้วเปลี่ยนเมืองให้สดใส</p><div class="game-meta"><span>สร้างเมือง</span><span>สิ่งแวดล้อม</span></div></div>
-                <a class="btn games-play-button" href="green-city/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
-              </article>
-              <article class="game-card game-card-featured">
-                <div class="game-card-icon">🏗️</div>
-                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Elevator Rescue</h4><p>รับบทวิศวกรกู้ภัย ออกแบบระบบรอกและลิฟต์ด้วยหลักแรง งาน และพลังงาน</p><div class="game-meta"><span>จำลองฟิสิกส์</span><span>ระบบรอก</span></div></div>
-                <a class="btn games-play-button" href="elevator-rescue/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
-              </article>
-              <article class="game-card game-card-featured">
-                <div class="game-card-icon">🧬</div>
-                <div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Molecule Builder</h4><p>ทดลองลากอะตอมและสร้างพันธะ เพื่อประกอบโมเลกุลตามหลักเวเลนซ์และสูตรเคมี</p><div class="game-meta"><span>ห้องทดลองเคมี</span><span>ลากแล้ววาง</span></div></div>
-                <a class="btn games-play-button" href="molecule-builder/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a>
-              </article>
+          <section class="games-section" data-game-section data-game-subject="math" aria-labelledby="games-math-title">
+            <div class="games-section-heading"><div><span class="games-category-label">คณิตศาสตร์</span><h3 id="games-math-title">จำนวน เศษส่วน และตรรกะ</h3></div><span class="games-count">2 เกม</span></div>
+            <div class="games-grid games-grid-cards">
+              <article class="game-card game-card-featured" data-game-card data-game-subject="math" data-game-grade="primary middle"><div class="game-card-icon game-icon-math">🧙</div><div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Math Wizard</h4><p>ศึกจอมเวทย์คณิตศาสตร์ ใช้คำตอบที่ถูกต้องร่ายเวทพิชิตมอนสเตอร์</p><div class="game-meta"><span>ประถม · ม.ต้น</span><span>เวทและคอมโบ</span></div></div><a class="btn games-play-button" href="math-wizard/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a></article>
+              <article class="game-card game-card-featured" data-game-card data-game-subject="math" data-game-grade="primary"><div class="game-card-icon game-icon-math">🍕</div><div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Fraction Pizza Master</h4><p>แบ่งและเลือกพิซซ่าตามออเดอร์ เพื่อเข้าใจความหมายของเศษส่วน</p><div class="game-meta"><span>ประถม</span><span>เล่นแบบออฟไลน์</span></div></div><a class="btn games-play-button" href="fraction-pizza-master/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a></article>
+            </div>
+          </section>
+
+          <section class="games-section" data-game-section data-game-subject="science" aria-labelledby="games-science-title">
+            <div class="games-section-heading"><div><span class="games-category-label">วิทยาศาสตร์</span><h3 id="games-science-title">สิ่งแวดล้อม ฟิสิกส์ และเคมี</h3></div><span class="games-count">3 เกม</span></div>
+            <div class="games-grid games-grid-cards">
+              <article class="game-card game-card-featured" data-game-card data-game-subject="science" data-game-grade="primary middle"><div class="game-card-icon game-icon-science">🌿</div><div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Green City</h4><p>สร้างเมืองสีเขียว ตอบคำถามสิ่งแวดล้อมแล้วเปลี่ยนเมืองให้สดใส</p><div class="game-meta"><span>ประถม · ม.ต้น</span><span>สิ่งแวดล้อม</span></div></div><a class="btn games-play-button" href="green-city/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a></article>
+              <article class="game-card game-card-featured" data-game-card data-game-subject="science" data-game-grade="middle high"><div class="game-card-icon game-icon-science">🏗️</div><div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Elevator Rescue</h4><p>ออกแบบระบบรอกและลิฟต์ด้วยหลักแรง งาน และพลังงาน</p><div class="game-meta"><span>ม.ต้น · ม.ปลาย</span><span>จำลองฟิสิกส์</span></div></div><a class="btn games-play-button" href="elevator-rescue/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a></article>
+              <article class="game-card game-card-featured" data-game-card data-game-subject="science" data-game-grade="middle high"><div class="game-card-icon game-icon-science">🧬</div><div class="game-card-content"><span class="game-ready-badge">พร้อมเล่น</span><h4>Molecule Builder</h4><p>ลากอะตอมและสร้างพันธะ เพื่อประกอบโมเลกุลตามสูตรเคมี</p><div class="game-meta"><span>ม.ต้น · ม.ปลาย</span><span>ห้องทดลองเคมี</span></div></div><a class="btn games-play-button" href="molecule-builder/index.html"><i class="hgi-stroke hgi-play"></i> เริ่มเกม</a></article>
             </div>
           </section>
         </div>
@@ -1494,35 +1493,36 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=510"></script>
-  <script defer src="js/relational-sync.js?v=510"></script>
-  <script defer src="js/auth.js?v=510"></script>
-  <script defer src="js/shell.js?v=510"></script>
-  <script defer src="js/dashboard.js?v=510"></script>
-  <script defer src="js/classrooms.js?v=510"></script>
-  <script defer src="js/students.js?v=510"></script>
-  <script defer src="js/timetable.js?v=510"></script>
-  <script defer src="js/reports.js?v=510"></script>
-  <script defer src="js/attendance.js?v=510"></script>
-  <script defer src="js/curriculum-thai-2551.js?v=510"></script>
-  <script defer src="js/curriculum-math-2560.js?v=510"></script>
-  <script defer src="js/curriculum-science-2560.js?v=510"></script>
-  <script defer src="js/curriculum-social-2560.js?v=510"></script>
-  <script defer src="js/curriculum-health-2551.js?v=510"></script>
-  <script defer src="js/curriculum-art-2551.js?v=510"></script>
-  <script defer src="js/curriculum-career-2551.js?v=510"></script>
-  <script defer src="js/curriculum-foreign-2551.js?v=510"></script>
-  <script defer src="js/curriculum-catalog.js?v=510"></script>
-  <script defer src="js/worksheet-layout.js?v=510"></script>
-  <script defer src="js/content-library.js?v=510"></script>
-  <script defer src="js/subscription.js?v=510"></script>
-  <script defer src="js/scores.js?v=510"></script>
-  <script defer src="js/pp5.js?v=510"></script>
-  <script defer src="js/qr-scores.js?v=510"></script>
-  <script defer src="js/tools.js?v=510"></script>
-  <script defer src="js/media-studio.js?v=510"></script>
-  <script defer src="js/shared-utils.js?v=510"></script>
-  <script defer src="js/extras.js?v=510"></script>
-  <script defer src="js/help.js?v=510"></script>
+  <script defer src="js/core.js?v=502"></script>
+  <script defer src="js/relational-sync.js?v=502"></script>
+  <script defer src="js/auth.js?v=503"></script>
+  <script defer src="js/shell.js?v=502"></script>
+  <script defer src="js/dashboard.js?v=502"></script>
+  <script defer src="js/classrooms.js?v=502"></script>
+  <script defer src="js/students.js?v=502"></script>
+  <script defer src="js/timetable.js?v=502"></script>
+  <script defer src="js/reports.js?v=502"></script>
+  <script defer src="js/attendance.js?v=502"></script>
+  <script defer src="js/curriculum-thai-2551.js?v=502"></script>
+  <script defer src="js/curriculum-math-2560.js?v=502"></script>
+  <script defer src="js/curriculum-science-2560.js?v=502"></script>
+  <script defer src="js/curriculum-social-2560.js?v=502"></script>
+  <script defer src="js/curriculum-health-2551.js?v=502"></script>
+  <script defer src="js/curriculum-art-2551.js?v=502"></script>
+  <script defer src="js/curriculum-career-2551.js?v=502"></script>
+  <script defer src="js/curriculum-foreign-2551.js?v=502"></script>
+  <script defer src="js/curriculum-catalog.js?v=502"></script>
+  <script defer src="js/worksheet-layout.js?v=502"></script>
+  <script defer src="js/content-library.js?v=505"></script>
+  <script defer src="js/subscription.js?v=502"></script>
+  <script defer src="js/scores.js?v=502"></script>
+  <script defer src="js/pp5.js?v=502"></script>
+  <script defer src="js/qr-scores.js?v=502"></script>
+  <script defer src="js/tools.js?v=502"></script>
+  <script defer src="js/games.js?v=505"></script>
+  <script defer src="js/media-studio.js?v=503"></script>
+  <script defer src="js/shared-utils.js?v=502"></script>
+  <script defer src="js/extras.js?v=502"></script>
+  <script defer src="js/help.js?v=502"></script>
 </body>
 </html>

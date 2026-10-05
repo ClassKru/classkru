@@ -4,6 +4,7 @@ const { sendJson } = require('../_lib/http');
 const { verifySession } = require('../_lib/dev-auth');
 const { selectRows } = require('../_lib/supabase-admin');
 const { loadBusinessAnalytics } = require('../_lib/business-analytics');
+const { loadV2Media } = require('../_lib/developer-v2-media');
 
 const ISSUE_REPORT_FIELDS = 'id,reporter_id,category,message,page_url,browser_info,status,created_at,updated_at';
 const LEGACY_ISSUE_REPORT_FIELDS = 'id,reporter_id,message,page_url,browser_info,status,created_at,updated_at';
@@ -54,6 +55,7 @@ async function handler(req, res) {
   try {
     const resource = normalize(req.query.resource || 'overview', 30);
     if (resource === 'business') return sendJson(res, 200, await loadBusinessAnalytics());
+    if (resource === 'v2-media') return sendJson(res, 200, await loadV2Media());
     const reportRows = await loadReportRows();
 
     if (resource === 'overview') {

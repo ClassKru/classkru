@@ -30,6 +30,10 @@ test('private bucket auto-creation, authenticated encryption, no plaintext or ov
   await assert.rejects(db.get('test/two.json'),{code:'storage_integrity_failed'},'envelope cannot be moved to forge another record');
   const sealed=f.objects.get('test/one.json');sealed.data='broken';
   await assert.rejects(db.get('test/one.json'),{code:'storage_integrity_failed'});
+  await db.remove('test/one.json');
+  assert.equal(await db.get('test/one.json'),null);
+  const deletion=f.calls.find(call=>call.method==='DELETE');
+  assert.deepEqual(deletion,{path:'object/classkru-media-files',method:'DELETE',body:{prefixes:['test/one.json']}});
   await assert.rejects(db.get('../secret'),{code:'invalid_storage_path'});
   f.bucket.public=true;await assert.rejects(db.ensureBucket(),{code:'storage_bucket_unsafe'});
 });
@@ -76,7 +80,10 @@ test('Storage-only chat/build/reopen/version/share/revoke/archive flow keeps ten
   const preview=await service.issueLink(a,p.id,build.id,'preview'),previewToken=new URL(preview.url).searchParams.get('token');
   const real=Date.now();t.mock.method(Date,'now',()=>real+16*60000);
   await assert.rejects(service.publicArtifact(previewToken),{code:'not_found'});
-  assert.ok(f.calls.every(c=>!c.path.includes('/rest/')));
+  // Teacher work stays in encrypted Storage. The only SQL request is the
+  // developer-controlled global model selector introduced after this flow.
+  const relationalCalls=f.calls.filter(c=>c.path.includes('/rest/'));
+  assert.ok(relationalCalls.every(c=>c.path==='/rest/v1/media_ai_model_settings'));
 });
 test('same request from simultaneous tabs creates at most one job; run claims once',async t=>{
   fixture(t);const calls=providers(t),owner=uuid(),p=await service.create(owner,'test',{}),request=uuid();
@@ -108,11 +115,11 @@ test('lost response after result commit reconciles success and preserves immutab
   await service.run(a,p.id,j.id);assert.equal(calls(),1);
   assert.ok([...f.objects.keys()].some(n=>n.includes('/artifacts/')));
 });
-test('daily request budget, pending budget and version/project limits reject before AI calls',async t=>{
+test('Media Studio has no daily request budget while pending, version and project limits reject before AI calls',async t=>{
   fixture(t);const calls=providers(t),a=uuid(),p=await service.create(a,'test',{});
   const day=new Date(Date.now()+7*3600000).toISOString().slice(0,10);
   for(let i=0;i<40;i++)await db.put(`users/${a}/quota/${day}/${p.id}_${uuid()}.json`,{});
-  await assert.rejects(service.enqueue(a,p.id,'plan','โควตาหมด',uuid()),{code:'daily_limit'});
+  assert.equal((await service.enqueue(a,p.id,'plan','โควตาที่บันทึกไว้ไม่ต้องจำกัด',uuid())).status,'queued');
   const b=uuid(),ps=[];for(let i=0;i<4;i++)ps.push(await service.create(b,`project ${i}`,{}));
   for(let i=0;i<3;i++)await service.enqueue(b,ps[i].id,'plan','รอทำงาน',uuid());
   await assert.rejects(service.enqueue(b,ps[3].id,'plan','งานที่สี่',uuid()),{code:'queue_limit'});
@@ -138,7 +145,11 @@ test('archive during generation prevents publication; artifact integrity and rev
 });
 test('authenticated HTTP ignores forged owner fields and requires explicit teacher review',async t=>{
   const f=fixture(t);providers(t);const a=uuid(),b=uuid();f.sessions.set('Bearer teacher-a',a);
+  // Exercise the protected workflow itself; production defaults to paused.
+  const handlerPath=require.resolve('../api/media-studio'),previous=process.env.MEDIA_STUDIO_ENABLED;
+  process.env.MEDIA_STUDIO_ENABLED='true';delete require.cache[handlerPath];
   const handler=require('../api/media-studio');
+  t.after(()=>{if(previous===undefined)delete process.env.MEDIA_STUDIO_ENABLED;else process.env.MEDIA_STUDIO_ENABLED=previous;delete require.cache[handlerPath];});
   const call=async body=>{
     const res={setHeader(){},status(n){this.statusCode=n;return this;},json(v){this.body=v;}};
     await handler({method:'POST',headers:{host:'app.test',origin:'https://app.test',authorization:'Bearer teacher-a'},body},res);return res;

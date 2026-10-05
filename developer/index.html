@@ -9,6 +9,8 @@
   <title>ClassKru Developer Console</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="roadmap.css">
+  <link rel="stylesheet" href="media-models.css">
+  <link rel="stylesheet" href="v2-media.css">
 </head>
 <body>
   <div class="ambient ambient-one" aria-hidden="true"></div>
@@ -38,7 +40,7 @@
     <section id="console-view" class="console-view" hidden aria-labelledby="console-title">
       <header class="console-header">
         <div class="console-brand"><div class="brand-mark small" aria-hidden="true">CK</div><div><p class="eyebrow">DEVELOPER CONSOLE</p><h1 id="console-title">ศูนย์ข้อมูล ClassKru</h1></div></div>
-        <div class="header-actions"><span class="read-only-badge">Feedback อ่านอย่างเดียว</span><a class="secondary-button" href="../?media_test=1" target="_blank" rel="noopener">เปิด AI สร้างสื่อใหม่</a><button id="refresh-button" type="button">รีเฟรช</button><button id="logout-button" type="button">ออกจากระบบ</button></div>
+        <div class="header-actions"><span class="read-only-badge">Feedback อ่านอย่างเดียว</span><a class="secondary-button" href="../?media_test=1#library" target="_blank" rel="noopener">เปิด AI สำหรับทดสอบ</a><button id="refresh-button" type="button">รีเฟรช</button><button id="logout-button" type="button">ออกจากระบบ</button></div>
       </header>
 
       <nav class="console-nav" aria-label="เมนู Developer Console">
@@ -50,7 +52,9 @@
         <button class="nav-button" type="button" data-view="roadmap">Roadmap</button>
         <button class="nav-button" type="button" data-view="database">ข้อมูลในฐานข้อมูล</button>
         <button class="nav-button" type="button" data-view="billing">สมาชิกและการชำระเงิน</button>
+        <button class="nav-button" type="button" data-view="media-models">ตั้งค่า AI Media Studio</button>
         <button class="nav-button" type="button" data-view="usage">การใช้งาน</button>
+        <button class="nav-button" type="button" data-view="v2-media">สื่อ V2 ที่สร้าง</button>
         <button class="nav-button nav-button-disabled" type="button" disabled title="จะเปิดเมื่อเริ่มเก็บ AI usage log">AI Usage</button>
       </nav>
 
@@ -84,6 +88,18 @@
         </div>
         <p id="usage-count" class="database-note"></p>
         <div id="usage-list" class="usage-card-list" aria-live="polite"></div>
+      </section>
+
+      <section id="view-v2-media" class="workspace-view" aria-labelledby="v2-media-title">
+        <div class="section-heading"><div><p class="eyebrow">CLASSKRU MEDIA V2 · TEACHER MEDIA</p><h2 id="v2-media-title">สื่อ V2 ที่ครูสร้าง</h2></div><p id="v2-media-updated">ยังไม่ได้โหลดข้อมูล</p></div>
+        <p class="business-note">แสดงทุก Version ของ ClassKru Media V2 ที่สร้าง Runtime สำเร็จ และแยกโทเคนการสนทนากับการสร้างสื่อของแต่ละ Version รวมการซ่อมผลลัพธ์อัตโนมัติ</p>
+        <div class="v2-media-toolbar"><p id="v2-media-count" class="database-note">กดโหลดข้อมูลเพื่อเริ่ม</p><button id="v2-media-refresh" class="secondary-button" type="button">โหลดข้อมูล</button></div>
+        <div class="table-shell v2-media-table-shell">
+          <table class="v2-media-table">
+            <thead><tr><th scope="col">ชื่อผู้ใช้งาน</th><th scope="col">ชื่องาน</th><th scope="col">โทเคนสนทนา</th><th scope="col">โทเคนสร้างสื่อ</th><th scope="col">Runtime</th></tr></thead>
+            <tbody id="v2-media-rows"><tr><td colspan="5" class="empty-state">ยังไม่ได้โหลดข้อมูล</td></tr></tbody>
+          </table>
+        </div>
       </section>
 
       <section id="view-reports" class="workspace-view" aria-labelledby="reports-title">
@@ -127,6 +143,24 @@
         <div id="billing-sales-table" class="table-shell database-table"></div>
         <h3>สมาชิกทั้งหมด</h3>
         <div id="billing-table" class="table-shell database-table"></div>
+      </section>
+
+      <section id="view-media-models" class="workspace-view" aria-labelledby="media-models-title">
+        <div class="section-heading"><div><p class="eyebrow">MEDIA STUDIO · AI ROUTING</p><h2 id="media-models-title">ตั้งค่าโมเดล AI</h2></div><p id="media-models-updated">กำลังโหลดการตั้งค่า…</p></div>
+        <p class="database-note">เลือกโมเดลแยกตามหน้าที่ การเปลี่ยนแปลงบันทึกใน Supabase และมีผลกับงานที่เริ่มหลังจากนี้ทันที ไม่แสดงหรือแก้ไข API key ในหน้านี้ เกมและสื่อเคลื่อนไหวใช้ Builder สร้าง HTML/CSS/JS ส่วนสื่อภาพใช้ Image Generation API</p>
+        <form id="media-models-form" class="media-models-form">
+          <div class="media-model-controls">
+            <label for="media-model-catalog-kind">แสดงรายการโมเดล<select id="media-model-catalog-kind"><option value="text">โมเดลข้อความ (Planner / Builder)</option><option value="image">โมเดลสร้างภาพ</option></select></label>
+            <label for="media-model-search">ค้นหาโมเดล<input id="media-model-search" type="search" maxlength="100" placeholder="ชื่อหรือรหัสโมเดล"></label>
+            <button id="media-model-refresh" class="secondary-button" type="button">โหลดรายการโมเดล</button>
+          </div>
+          <div class="media-model-grid">
+            <label for="media-planner-model">Planner · วางแผนและสรุป Brief<select id="media-planner-model" required></select><small>ใช้โมเดลข้อความที่รองรับ structured JSON</small></label>
+            <label for="media-builder-model">Builder · สร้างสื่อเคลื่อนไหวและเกม<select id="media-builder-model" required></select><small>ใช้โมเดลข้อความที่รองรับ structured JSON</small></label>
+            <label for="media-image-model">Image Builder · สื่อภาพ<select id="media-image-model" required></select><small>ใช้โมเดลที่รองรับการสร้างภาพผ่าน OpenRouter</small></label>
+          </div>
+          <div class="media-model-actions"><span id="media-model-save-status" role="status" aria-live="polite"></span><button id="media-model-save" class="primary-button" type="submit">บันทึกการตั้งค่า</button></div>
+        </form>
       </section>
 
       <section id="view-database" class="workspace-view" aria-labelledby="database-title">

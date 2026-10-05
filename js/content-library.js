@@ -91,12 +91,26 @@
 
   function bindCreationCardActions(root) {
     root.querySelectorAll('[data-create-action]').forEach(card => {
+      if (card.dataset.createAction === 'interactive') {
+        const status = card.querySelector('.cl-media-studio-status');
+        const link = document.createElement('a');
+        link.className = card.className;
+        link.href = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:4178/v2' : new URL('/mini-lab-v2', window.location.origin).href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.setAttribute('aria-describedby', 'cl-media-studio-status');
+        link.innerHTML = card.innerHTML;
+        if (status) status.textContent = 'เปิด Mini Lab V2';
+        const description = link.querySelector('p');
+        if (description) description.textContent = 'เล่าไอเดียหรือหัวข้อบทเรียน ให้ AI ช่วยสร้างสื่อโต้ตอบ แล้วบันทึกไว้กลับมาแก้ไขได้';
+        card.replaceWith(link);
+        return;
+      }
       card.addEventListener('click', () => {
         const action = card.dataset.createAction;
         if (action === 'worksheet') window.openWorksheetCreator();
         if (action === 'quiz') window.openQuizCreator();
         if (action === 'lesson-plan') window.openLessonPlanCreator();
-        if (action === 'interactive') window.openInteractiveMediaStudio(state.selectedClassId);
       });
     });
   }
@@ -137,9 +151,9 @@
     const visibleItems = allItems.filter(item => (tab === 'all' || item.type === tab) && libraryItemMatches(item, query));
     const tabCounts = { all:allItems.length, quiz:allItems.filter(item => item.type === 'quiz').length, worksheet:allItems.filter(item => item.type === 'worksheet').length, lesson_plan:allItems.filter(item => item.type === 'lesson_plan').length };
     const resultLabel = query ? `พบ ${visibleItems.length} รายการจากการค้นหา` : `${tabCounts[tab]} รายการ`;
-    return `<section class="cl-hero card"><div class="cl-hero-copy"><span class="cl-kicker"><i class="hgi-stroke hgi-book-open-01"></i> พื้นที่สร้างสื่อของคุณครู</span><h2>คลังสื่อการสอน</h2><p>สร้างข้อสอบจากเนื้อหาและตัวชี้วัด แล้วเชื่อมไปใช้กับห้องเรียนจริงได้ทันที</p></div><span class="cl-hero-mark"><i class="hgi-stroke hgi-sparkles"></i></span></section>
+    return `<section class="cl-hero card"><div class="cl-hero-copy"><span class="cl-kicker"><i class="hgi-stroke hgi-book-open-01"></i> พื้นที่สร้างสื่อของคุณครู</span><h2>คลังสื่อการสอน</h2><p>สร้างข้อสอบ ใบงาน และสื่อโต้ตอบจากไอเดียของคุณครู แล้วกลับมาปรับต่อได้ทุกเมื่อ</p></div><span class="cl-hero-mark"><i class="hgi-stroke hgi-sparkles"></i></span></section>
       <section><div class="cl-section-head"><div><h3>เริ่มสร้างสื่อ</h3><p>เลือกเครื่องมือที่ต้องการใช้</p></div></div><div class="cl-create-grid">
-        <button class="cl-create-card quiz" type="button" data-create-action="interactive"><span class="cl-create-icon"><i class="hgi-stroke hgi-magic-wand-01"></i></span><span class="cl-function-label">สื่อโต้ตอบ</span><h4>เกมและแบบจำลองกับ AI</h4><p>คุยไอเดีย สร้างสื่อ ทดลองเล่น และเปิดงานเดิมจากคลังสื่อโต้ตอบ</p></button>
+        <button class="cl-create-card interactive cl-media-studio-entry" type="button" data-create-action="interactive" aria-describedby="cl-media-studio-status"><span id="cl-media-studio-status" class="cl-coming cl-media-studio-status">เปิด Mini Lab V2</span><span class="cl-create-icon"><i class="hgi-stroke hgi-magic-wand-01"></i></span><span class="cl-function-label">AI ช่วยสร้างสื่อ</span><h4>การสร้างสื่อโดย AI</h4><p>เปิด Mini Lab V2 เพื่อสร้าง แก้ไข และกลับมาทำสื่อต่อได้</p></button>
         <button class="cl-create-card quiz" type="button" data-create-action="quiz"><span class="cl-create-icon"><i class="hgi-stroke hgi-task-02"></i></span><span class="cl-function-label">แบบประเมิน</span><h4>สร้างข้อสอบ</h4><p>ให้ AI ช่วยร่างข้อสอบ โดยกำหนดห้องเรียน เนื้อหา และตัวชี้วัดได้</p></button>
         <button class="cl-create-card worksheet" type="button" data-create-action="worksheet"><span class="cl-create-icon"><i class="hgi-stroke hgi-note-02"></i></span><span class="cl-function-label">กิจกรรม</span><h4>สร้างใบงาน</h4><p>จัดทำใบงานพร้อมคำชี้แจง ขั้นตอน และพื้นที่สำหรับนักเรียนทำงาน</p></button>
         <button class="cl-create-card lesson-plan" type="button" data-create-action="lesson-plan"><span class="cl-create-icon"><i class="hgi-stroke hgi-presentation-01"></i></span><span class="cl-function-label">การวางแผน</span><h4>สร้างแผนการสอน</h4><p>กำหนดกรอบการสอน แล้วให้ AI ช่วยเติมกิจกรรมและการประเมิน</p></button>

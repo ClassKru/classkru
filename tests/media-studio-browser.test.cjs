@@ -27,7 +27,7 @@ async function mockApi(req,res){
     if(failNext){current.jobs[0].status='failed';current.jobs[0].error_code='ai_request_failed';data={started:true,status:'failed'};return res.status(200).json(data);}
     current.jobs[0].status='succeeded';
     current.turns.push({role:'assistant',message:'ให้เด็กปรับความสูงและสังเกตความเร็ว'});
-    current.project.plan={title:'ห้องทดลองพลังงาน',objective:'อธิบายการเปลี่ยนรูปพลังงาน',observation:'ความสูงลด ความเร็วเพิ่ม',variables:['ความสูง'],mission:'ทำนายก่อนทดลอง',next_questions:['เพิ่มแรงเสียดทานไหม?']};
+    current.project.plan={topic:'ห้องทดลองพลังงาน',audience:'นักเรียน',learning_message:'ความสูงลด ความเร็วเพิ่ม',concept:'อธิบายการเปลี่ยนรูปพลังงาน',media_type:'game',interaction_direction:'ทำนายก่อนทดลอง',open_questions:['เพิ่มแรงเสียดทานไหม?'],next_questions:['เพิ่มแรงเสียดทานไหม?']};
     data={started:true,status:'succeeded'};
   } else throw new Error('Unexpected action '+action);
   res.status(200).json(data);
@@ -47,7 +47,7 @@ async function main(){
     assert.equal(await page.$$eval('[data-media-type]',elements=>elements.length),3);
     assert.equal(await page.$$eval('[data-starter]',elements=>elements.length),4);
     assert.equal(await page.$$eval('.ms-message',elements=>elements.length),0);
-    assert.equal(await page.$eval('#ms-input',element=>element.getAttribute('placeholder')),'เล่าสิ่งที่อยากทำได้เลย ไม่ต้องเขียนเป็นคำสั่ง');
+    assert.equal(await page.$eval('#ms-input',element=>element.getAttribute('placeholder')),'วันนี้อยากให้นักเรียนเรียนรู้อะไร?');
     assert.equal(await page.$eval('#ms-ai-help',element=>!element.hidden),true);
     await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'true');await page.click('[data-media-type="game"]');assert.equal(await page.$eval('[data-media-type="game"]',element=>element.getAttribute('aria-pressed')),'false');
     await page.click('[data-starter="topic"]');assert.equal(await page.$eval('#ms-input',element=>element.placeholder),'กำลังจะสอนเรื่องอะไรครับ?');

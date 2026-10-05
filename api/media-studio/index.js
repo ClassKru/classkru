@@ -5,13 +5,26 @@ const db = require('../_lib/media-db');
 const service = require('../_lib/media-service');
 const legacyAi = require('../_lib/media-ai');
 const plannerAi = require('../_lib/media-planner-ai');
-const configured = () => legacyAi.configured() || plannerAi.configured();
+const imageAi = require('../_lib/media-image-ai');
+const mediaLabV2 = require('../_lib/media-lab-v2-handler');
+const configured = () => legacyAi.configured() || plannerAi.configured() || imageAi.configured();
+// Default to paused. Re-enable deliberately with MEDIA_STUDIO_ENABLED=true only
+// after the live AI, Storage, and access-control checks have been completed.
+const MEDIA_STUDIO_ENABLED = process.env.MEDIA_STUDIO_ENABLED === 'true';
+const MEDIA_STUDIO_DEVELOPER_EMAILS = new Set([
+  'petch.0231@gmail.com',
+  'supakit.radiation@gmail.com',
+  'classkru.dev@gmail.com'
+]);
 module.exports = async function handler(req,res) {
+  if (req.query?.action === 'v2') return mediaLabV2(req,res);
   if (!['GET','POST'].includes(req.method)) return sendJson(res,405,{error:'method_not_allowed'});
   if (!requestOriginIsValid(req)) return sendJson(res,403,{error:'invalid_origin'});
   try {
     const teacher = await authenticatedUser(req);
     if (!teacher.id) throw db.fail('authentication_required',401);
+    if (!MEDIA_STUDIO_DEVELOPER_EMAILS.has(String(teacher.email || '').trim().toLowerCase())) throw db.fail('developer_access_required',403);
+    if (!MEDIA_STUDIO_ENABLED) return sendJson(res,503,{error:'media_studio_paused'});
     let body = req.body || {};
     if (typeof body === 'string') { if (Buffer.byteLength(body)>32000) throw db.fail('body_too_large',413); try {body=JSON.parse(body);} catch (_) {throw db.fail('invalid_json');} }
     if (!body || typeof body!=='object' || Buffer.byteLength(JSON.stringify(body))>32000) throw db.fail('body_too_large',413);
@@ -29,12 +42,13 @@ module.exports = async function handler(req,res) {
       result={project:await service.create(teacher.id,body.title,{})};
     } else if (req.method==='POST' && action==='enqueue') {
       if (!configured()) throw db.fail('ai_not_configured',503);
-      if (!['plan','build'].includes(body.kind)) throw db.fail('invalid_kind');
+      if (!['plan','build','image'].includes(body.kind)) throw db.fail('invalid_kind');
       if (body.kind==='build') service.mediaOrigin();
       const message=service.text(body.message,6000);
       if (message.length<3) throw db.fail('invalid_message');
-      result={job:await service.enqueue(teacher.id,body.project_id,body.kind,message,body.request_key,body.media_type)};
+      result={job:await service.enqueue(teacher.id,body.project_id,body.kind,message,body.request_key,body.media_type,body.prompt_override||body.image_prompt)};
     } else if (req.method==='POST' && action==='run') result=await service.run(teacher.id,body.project_id,body.job_id);
+    else if (req.method==='GET' && action==='image') result=await service.imageData(teacher.id,req.query.id,req.query.version_id);
     else if (req.method==='POST' && ['preview','publish'].includes(action)) {
       if (action==='publish' && body.reviewed!==true) throw db.fail('review_required');
       result=await service.issueLink(teacher.id,body.project_id,body.version_id,action==='publish'?'published':'preview');

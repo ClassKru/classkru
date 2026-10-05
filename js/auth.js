@@ -1,3 +1,13 @@
+const CLASSKRU_MEDIA_DEVELOPER_EMAILS = new Set([
+  'petch.0231@gmail.com',
+  'supakit.radiation@gmail.com',
+  'classkru.dev@gmail.com'
+]);
+
+function isClassKruMediaDeveloper(email = localStorage.getItem('classmanager_email')) {
+  return CLASSKRU_MEDIA_DEVELOPER_EMAILS.has(String(email || '').trim().toLowerCase());
+}
+
 function showLoginOverlay() {
   const lo = document.getElementById('login-overlay');
   lo.classList.add('show');
@@ -17,20 +27,12 @@ function onLoginSuccess(email) {
   // เข้าหน้าตาม deep-link ถ้ามี (เช่นเปิดจาก LINE OA มาที่ #reports) ไม่งั้นหน้าหลัก
   navigateToWebScreen(pendingDeepLink || 'dashboard', pendingDeepLinkParam);
 
-  // Developer Console opens a fresh AI Media Studio.  The app scripts load after
-  // authentication, so retry briefly instead of losing the request on the Home screen.
-  if (new URLSearchParams(window.location.search).get('media_test') === '1') {
-    let attempts = 0;
-    const openMediaStudio = () => {
-      if (typeof window.openInteractiveMediaStudio === 'function') {
-        window.openInteractiveMediaStudio();
-        return;
-      }
-      if (++attempts < 50) setTimeout(openMediaStudio, 100);
-    };
-    openMediaStudio();
+  // Developer-only test entry: requires a normal Supabase login from an allowlisted email.
+  if (new URLSearchParams(window.location.search).get('media_test') === '1' && isClassKruMediaDeveloper(email)) {
+    window.setTimeout(() => {
+      if (typeof openInteractiveMediaStudio === 'function') openInteractiveMediaStudio();
+    }, 0);
   }
-  window.dispatchEvent(new Event('classkru:authenticated'));
 
   // มาจากลิงก์ตั้งรหัสใหม่ในอีเมล → เด้ง modal ตั้งรหัสทันทีหลังแอปโผล่
   if (pendingPasswordRecovery) { pendingPasswordRecovery = false; startPasswordRecovery(); }

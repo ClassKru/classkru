@@ -2,6 +2,18 @@
 
 > อัปเดตล่าสุด: 22 กันยายน 2569
 >
+> **29 ก.ย. 2569 — เปิดใช้งาน Production:** ส่งชุด Media Studio ที่ผ่าน `npm.cmd run test:media` (23/23) และ Browser QA เข้า `main` แบบ fast-forward ที่ commit `039929e` แล้ว. ตรวจ Vercel Production พบ OpenRouter, Storage, Supabase และ media origin ครบ; ตั้ง `MEDIA_STUDIO_ENABLED=true` แล้ว. Deployment `classkru-44zugybjo-classkru-dev.vercel.app` ขึ้น Ready และผูกกับ `https://classkru-kohl.vercel.app`; หน้าเว็บตอบ HTTP 200 พร้อม `js/media-studio.js?v=500`. Endpoint `/api/media-studio` ปฏิเสธคำขอไม่มี session ด้วย `401 authentication_required` ตามขอบเขตสิทธิ์. การสร้าง/เผยแพร่สื่อด้วยบัญชีครูจริงยังต้องทำ E2E ใน browser ที่ล็อกอินเท่านั้น.
+>
+> **29 ก.ย. 2569 — ทางเข้าครูใน ClassKru:** เพิ่มการ์ด “AI ช่วยสร้างสื่อ → ออกแบบสื่อกับ AI” ใน คลังสื่อการสอน (`js/content-library.js`) ให้กดเปิด Media Studio ได้จากหน้าใช้งานปกติของครู; ไม่คืนปุ่ม “สื่อสำหรับคาบนี้” หรือการ์ดบทสนทนาเก่าที่ผู้ใช้ขอให้นำออก. commit `2c5b7c8` ผ่าน `npm.cmd run test:media` 23/23 และ Browser QA แล้ว; Preview `https://classkru-kjvp6azq4-classkru-dev.vercel.app` Ready โดย alias branch เดิม.
+>
+> **29 ก.ย. 2569 — Supabase migration และ Preview runtime:** ผู้ใช้รัน `202609290001_media_ai_model_settings.sql` สำเร็จบน Supabase ClassKru แล้ว. ตรวจ Vercel CLI ว่าเป็นทีม `classkru-dev` เท่านั้น และตั้ง `MEDIA_STUDIO_ENABLED=true` แบบ Preview branch `feature/media-studio-live`; redeploy preview `https://classkru-gvpbokq0b-classkru-dev.vercel.app` สำเร็จ (Ready). Preview ยังอยู่หลัง Vercel Deployment Protection จึง Terminal ภายนอกเห็นหน้า Login และยังทดสอบครูจริง/Developer Console ไม่ได้; ไม่ปิด Protection, ไม่ดึง bypass secret และยังไม่ตั้ง flag Production. ขั้นถัดไปคือผู้ใช้เปิด Preview ที่ล็อกอิน Vercel แล้วทดสอบเข้าจาก ClassKru → สร้างสื่อกับ AI, เลือกโมเดลใน `/developer/`, สร้าง/preview/publish/revoke สื่อจริง; ผ่านแล้วจึง merge ตาม PR workflow และค่อยตั้ง Production flag.
+>
+> **29 ก.ย. 2569 — เลือกโมเดลจาก Developer Console:** เพิ่มแท็บ “ตั้งค่า AI Media Studio” ที่ `/developer/` หลังล็อกอินด้วย Developer session ผู้พัฒนาเลือกโมเดลแยก Planner, Builder (สื่อเคลื่อนไหว/เกม) และ Image Builder ได้จาก OpenRouter catalog; server ตรวจประเภทโมเดลซ้ำก่อนบันทึก และงานใหม่อ่านค่าเดียวกันจาก Supabase table `media_ai_model_settings` โดย API key ยังอยู่เฉพาะ Vercel. ต้องรัน migration `supabase/migrations/202609290001_media_ai_model_settings.sql` ใน Supabase ClassKru ก่อนกดบันทึก; RLS ปิด browser ทั้งหมดและอนุญาตเฉพาะ service role. session Developer เดิมถูก invalidate เพื่อยกระดับ scope เป็น `classkru:developer:manage` ให้ล็อกอินใหม่. MiniLab และ DOAI ไม่ถูกแก้ไข.
+>
+> **29 ก.ย. 2569 — แก้ทางเข้า Media Studio ให้สอดคล้องกับ feature flag จริง:** เอา guard `window.MEDIA_STUDIO_ENABLED` ฝั่ง browser ออก เพราะ ClassKru ไม่มีจุดใดกำหนดค่านี้ ทำให้หน้าเว็บปฏิเสธการเปิด Studio เสมอแม้ API ถูกเปิดแล้ว; คง `MEDIA_STUDIO_ENABLED` ที่ API เป็นด่านควบคุมฝั่ง server ตามเดิม และเพิ่ม Browser QA ที่ไม่ inject global ดังกล่าว. **ยังไม่เปิด Production** จนตรวจ AI/Storage/access control จริงตาม checklist ข้อ 4 และตั้ง env ใน Vercel ClassKru; ห้าม deploy Production ด้วย CLI.
+>
+> **25 ก.ย. 2569 — ปิด Media Studio ชั่วคราว:** ซ่อนทางเข้า “คุยออกแบบสื่อกับ AI” จากเครื่องมือ/คลัง และเปลี่ยนปุ่มหน้าหลักให้เปิดคลังสื่อปกติแทน; API `/api/media-studio` ปิดเป็นค่าเริ่มต้นด้วย `MEDIA_STUDIO_ENABLED=false` (ตอบ `media_studio_paused`) จึงไม่สามารถข้าม UI เพื่อเรียก AI, สร้างงาน, preview หรือ publish ได้. งานและข้อมูลเดิมไม่ถูกลบ และลิงก์สื่อที่เผยแพร่แล้วบน media host ยังทำงานตามเดิม. เมื่อต้องการเปิดใหม่ ให้ตั้ง `MEDIA_STUDIO_ENABLED=true` ใน Vercel ของแอปหลัก แล้ว deploy หลังตรวจ AI/Storage/RLS จริงอีกครั้ง.
+>
 > **งานที่กำลังส่งขึ้นเว็บหลัก: AI Interactive Media Studio — Storage-only JSON** บน `feature/media-studio-live`, workspace `C:\Users\USER\ClassKru\_worktrees\media-studio-live` เท่านั้น ห้าม push ต้นแบบ/งานอื่นที่ค้างในโฟลเดอร์หลักทับ branch นี้
 >
 > **22 ก.ย. 2569 — Initial / Empty State:** ปรับหน้าเริ่มต้นของ “สร้างสื่อการสอนกับ AI” ให้เป็น AI Thinking Partner: hero, ตัวเลือกสื่อเพียง `สื่อภาพ / สื่อเคลื่อนไหว / เกม`, idea starters 4 แบบ, composer ที่อธิบายว่าพิมพ์ไอเดียคร่าว ๆ ได้ และแผง “AI จะช่วยคุณ” โดยไม่แสดงบทสนทนาเก่าใน initial state. เลือก/ยกเลิกประเภทสื่อได้แต่ไม่บังคับก่อนส่ง; `media_type` (`image|motion|game`) ส่งเข้า Planner เป็น context แบบ backward-compatible และ server validate ค่า. ส่งข้อความแรกแล้วเปลี่ยนเป็น chat/“สิ่งที่เรารู้ตอนนี้” พร้อม animation เบา ๆ; เปิด history จากปุ่มเมื่อครูต้องการเท่านั้น. ไม่มี upload ใน flow เดิม จึงแสดงปุ่มแนบไฟล์ disabled ว่าเร็ว ๆ นี้ ไม่หลอกว่าส่งไฟล์ได้. เพิ่ม browser regression สำหรับ initial/selection/starter/send-without-type/transition/error/resume และตรวจ 1440×900, 390×844; `npm.cmd run test:media`, `npm.cmd run test:media:browser`, syntax และ navigation regression ผ่าน. Asset version `488`.
@@ -422,3 +434,144 @@ Validation completed: `node --check api/_lib/media-ai.js`, `npm.cmd run test:med
 Added `api/_lib/media-planner-ai.js` for Media Studio plan jobs. It uses `OPENROUTER_MEDIA_PLANNER_API_KEY` and `OPENROUTER_MEDIA_PLANNER_MODEL` when configured, with the legacy router key/model retained only as a backward-compatible fallback. The planner returns a strict `media_brief`, suggested directions, open questions, and `ready_to_build`; the existing build adapter remains unchanged. `media-service.js` normalizes the new brief and keeps legacy display aliases during UI migration. No database table or browser credential changes are required.
 
 Validation completed: `npm.cmd run test:media` (22/22), `node tests/navigation-shell.test.cjs`, syntax checks, and `git diff --check`. Pending: add the new key/model to Vercel Production and Preview, deploy, then test a new conversation.
+
+## 14. Image generation first flow (2026-09-22)
+
+Added the first image-generation path using OpenRouter's dedicated `/api/v1/images` endpoint. Media Studio image jobs reuse the configured planner key temporarily, use `OPENROUTER_MEDIA_IMAGE_MODEL` (default `google/gemini-3.1-flash-image`), persist the base64 image privately under the teacher's Media Storage, expose an authenticated image retrieval action, and show a Preview after the image job succeeds. The existing planner and HTML build paths remain separate.
+
+Validation completed: `npm.cmd run test:media` (23/23), navigation regression, syntax checks, and `git diff --check`. Pending: deploy and test with a real image model/key; image generation may incur provider charges.
+
+## 16. Motion/game web build flow (2026-09-22)
+
+เปลี่ยนปุ่มสร้างสื่อใน Media Studio ให้รองรับ `motion` และ `game` ก่อน โดยใช้ build adapter เดิมที่สร้าง artifact เป็น HTML/CSS/JavaScript และไม่เรียก Image API. ปุ่มยืนยันจะแสดงสรุปแนวทางที่แก้ไขได้ แล้วส่ง `kind: build`, `media_type` และ `prompt_override` ไปยัง Planner build flow; backend ใช้ prompt ที่แก้ไขแล้วเป็นคำสั่งสร้าง artifact และยังผ่าน artifact policy/browser review เดิม.
+
+Asset version ถูก bump เป็น `493`. Validation: media tests 23/23, navigation regression, syntax checks และ `git diff --check` ผ่าน. ต้อง deploy Production แล้วทดสอบโปรเจกต์ที่ Planner เลือก `motion` หรือ `game`; ขั้นถัดไปคือเชื่อมปุ่ม preview/link ไปยัง Media Host หลัง artifact สร้างสำเร็จ.
+
+## 15. Editable image brief confirmation (2026-09-22)
+
+ปรับ Media Studio ให้ใช้ Planner brief เป็นข้อมูลหลักในแผงขวา แสดงหัวข้อ กลุ่มผู้เรียน สารที่อยากสื่อ แนวคิด โครงสร้างเนื้อหา ทิศทางภาพ โทน แนวทางแนะนำ และคำถามต่อยอด พร้อมปุ่ม `สร้างภาพ` เมื่อมีหัวข้อและประเภทสื่อเป็น `image` โดยไม่บังคับ `ready_to_build` ก่อนหน้า
+
+เมื่อกด `สร้างภาพ` ระบบเปิดหน้าต่างยืนยันตรงกลาง workspace ให้ครูแก้ไข เพิ่ม หรือลบข้อความสรุปได้ แล้วส่งข้อความที่แก้ไขผ่าน `image_prompt` ไปยัง image adapter ก่อนยืนยันสร้างภาพ ปุ่ม `กลับไปคุยต่อ` ปิดหน้าต่างโดยไม่สร้างงาน และ image preview จะไม่ซ้ำเมื่อมีการโหลด/poll ซ้ำ
+
+Backend เก็บ `image_prompt` ไว้ใน job และใช้เป็น prompt จริงของ OpenRouter image request; request-key เดิมจะถูกตรวจสอบ prompt ด้วยเพื่อป้องกันการนำงานคนละ prompt กลับมาใช้ซ้ำ Asset version ถูก bump เป็น `492`.
+
+Validation completed: `npm.cmd run test:media` (23/23), `node tests/navigation-shell.test.cjs`, syntax checks for changed JS files, and `git diff --check`. Pending: deploy commit to Vercel Production and test the modal/edit/confirm flow with a real image model/key.
+## 17. Unified Web Media image flow (2026-09-22)
+
+ปรับประเภท `image` ให้ใช้ build flow เดียวกับ `motion` และ `game` แล้ว โดยสร้างเป็นโปสเตอร์ อินโฟกราฟิก ใบงาน หรือแผนภาพด้วย HTML/CSS/inline SVG/JS แทนการเรียก Image API และยังคง `media_type: image` ใน Planner เพื่อแยกความหมายของสื่อ ทั้งสามประเภทใช้ `kind: build`, editable confirmation prompt และ artifact storage/review เดียวกัน Asset version เป็น `494`.
+## 18. Media Studio daily quota removed (2026-09-22)
+
+ปลด daily request quota ของ Media Studio ออกแล้ว จึงไม่มี `daily_limit` สำหรับการสนทนาและสร้างสื่ออีกต่อไป แต่คง pending queue, project และ version limits เพื่อกันงานซ้อนและรักษาความเสถียรของระบบ. Regression test ยืนยันว่า quota records เก่าไม่บล็อกการ enqueue งานใหม่.
+## 19. Static image artifact support (2026-09-22)
+
+Build prompt now defines `image` as static Web Media (poster/infographic/worksheet/diagram) built with HTML/CSS/inline SVG, while motion and game remain compact web artifacts. Static image artifacts may return an empty `js` string; the artifact validator accepts this safely and continues to validate all HTML/CSS and any non-empty JavaScript. Tests cover the empty-JS static artifact case and assert the build contract includes media-type guidance.
+## 20. Media artifact preview and publish UI (2026-09-22)
+
+Media Studio now shows a “สื่อที่สร้างแล้ว” card in the planner panel after a reviewed build version succeeds. Teachers can use `ทดลองเล่น` to issue and open a 15-minute Preview link on Media Host, then `เผยแพร่` after confirmation to create a published link; the card then shows `เปิดลิงก์สื่อ`. This reuses existing preview/publish APIs and encrypted artifact storage. Asset version is `495`.
+## 21. ขอบเขต Web Media ที่ตกลงร่วมกัน (2026-09-22)
+
+Media Studio มีเป้าหมายให้ครูเริ่มจากไอเดียง่าย ๆ แล้วค่อยร่วมกันทำให้ชัดเจนเป็น Brief ก่อนสร้างสื่อ ไม่บังคับให้ครูเขียน prompt สมบูรณ์ตั้งแต่แรก
+
+### ความหมายของประเภทสื่อ
+
+- `image` คือสื่อภาพนิ่งแบบ Web Media เช่น โปสเตอร์ อินโฟกราฟิก ใบงาน หรือแผนภาพ สร้างจาก HTML/CSS/inline SVG เป็นค่าเริ่มต้น ไม่ต้องพึ่งไฟล์ PNG/JPG หรือ image model
+- `motion` คือสื่อเคลื่อนไหวขนาดกะทัดรัดในหน้าเดียว มีเนื้อหา 3–5 ช่วง ใช้ HTML/CSS/SVG/JavaScript และมีปุ่มเล่นหรือเริ่มใหม่
+- `game` เป็นคำที่สื่อสารกับครูได้ง่าย แต่ในเชิงผลิตภัณฑ์หมายถึงสื่อโต้ตอบขนาดเล็ก ไม่ใช่เกมเต็มรูปแบบ: มีกลไกหลักเพียงหนึ่งอย่าง รายการ/โจทย์ 3–5 ข้อ feedback และปุ่มเริ่มใหม่
+
+### ลำดับการทำงาน
+
+1. ครูส่งไอเดียหรือหัวข้อขั้นต่ำ
+2. Planner สนทนาและสะสมเป็น Brief
+3. ครูเลือกประเภทสื่อ และตรวจ/แก้ไขสรุปก่อนยืนยันสร้าง
+4. ระบบส่ง Brief ที่ยืนยันแล้วพร้อมสัญญาขอบเขตการสร้าง (build contract) ให้ AI สร้าง artifact
+5. artifact ผ่าน validation, ตรวจใน preview, แล้วครูจึงเลือกเผยแพร่หรือเปิดลิงก์สื่อ
+
+### Brief และขอบเขตที่ต้องส่งให้ AI สร้างสื่อ
+
+Brief ควรครอบคลุมอย่างน้อย: เจตนาการสื่อสารหรือสิ่งที่ผู้เรียนควรเข้าใจ, ประเภทสื่อ, เนื้อหาหลัก, ขอบเขต/จำนวนช่วงหรือจำนวนโจทย์, แนวภาพหรือแนวการโต้ตอบ, และข้อจำกัด เช่น ภาษา ข้อความในภาพ หรือสิ่งที่ไม่ต้องการ
+
+หากครูยังไม่ระบุรายละเอียด ระบบใช้ค่าเริ่มต้นขนาดเล็กและเหมาะกับสื่อการสอน แต่ต้องแสดงให้ครูเห็นและแก้ไขได้ในหน้าต่างยืนยัน ไม่ให้ AI ตีความขอบเขตขนาดใหญ่เองโดยเงียบ ๆ
+
+### ข้อมูลและความปลอดภัย
+
+- เก็บแผน/ผลลัพธ์ในพื้นที่ส่วนตัวของครู (`users/{teacher_id}/...`) และไม่ส่งข้อมูลนักเรียนรายบุคคลไปยัง AI
+- artifact ต้องเป็น HTML/CSS/JS ที่ผ่าน validation; ห้ามพึ่ง network ภายนอกหรือรันโค้ดอันตราย
+- Preview เป็นลิงก์ชั่วคราวสำหรับตรวจงาน ส่วนเผยแพร่เป็นลิงก์ที่ใช้ต่อได้จนกว่าจะถูกยกเลิก/เก็บโครงการ
+
+## 22. แนวคิดกฎกลางและ Brief ที่ต้องพัฒนาต่อ (2026-09-22)
+
+การเรียก AI เพื่อสร้างสื่อจะต้องมีข้อมูลแยกเป็นสามชั้น:
+
+1. **กฎกลาง / System Prompt** — ขอบเขตที่ใช้ร่วมกันของ ClassKru: ประเภทสื่อที่อนุญาต, ข้อจำกัดทางเทคนิคและความปลอดภัย, ขนาดงาน, และรูปแบบผลลัพธ์
+2. **Confirmed Brief** — ข้อกำหนดเฉพาะสื่อชิ้นนั้นที่ Planner สรุปและครูยืนยัน: `intent`, `media_type`, `content`, `scope`, `interaction`, `visual_direction`, `constraints`
+3. **คำขอแก้ไขล่าสุดของครู** — ต้องนำไปปรับ Brief และให้ครูตรวจ/ยืนยันก่อนสร้างใหม่ ไม่ส่งเป็นคำสั่งลอย ๆ ที่อาจขัดกับ Brief เดิม
+
+เหตุผลของกฎกลางคือเป็นรั้วควบคุม scope เพื่อให้ AI สร้างสื่อที่เล็ก ปลอดภัย ใช้งานได้ใน ClassKru และไม่ขยายเป็นเว็บไซต์หรือระบบใหม่ ขณะที่ Confirmed Brief เป็น source of truth ของสื่อแต่ละชิ้น
+
+### สิ่งที่ต้องเติมเมื่อกลับมาพัฒนากฎกลาง
+
+- บังคับ output schema เป็น JSON เท่านั้น (`title`, `summary`, `html`, `css`, `js`) ห้าม Markdown/code fence
+- กำหนด responsive และ accessibility: ไม่มี horizontal overflow, contrast อ่านได้, semantic controls, feedback ไม่สื่อด้วยสีอย่างเดียว
+- เพิ่มข้อกำหนดเฉพาะประเภท:
+  - `image`: หน้าหนึ่ง ไม่มี interaction ลักษณะเกม และ JavaScript ว่างได้
+  - `motion`: 3–5 ช่วง, animation เพื่ออธิบายเนื้อหา, ปุ่มเล่นและเริ่มใหม่ทำงานจริง
+  - `game`: กลไกเดียว, 3–5 รายการ, keyboard usable, feedback มีประโยชน์, สถานะจบและเริ่มใหม่, ไม่เก็บคะแนนข้ามการรีเฟรช
+- รักษาข้อห้ามเดิม: network/CDN/external asset, personal student data, dependency เพิ่ม, และการขยาย scope นอก Brief
+- ใช้กฎกลางเดียวกันเป็น baseline ของ Mini Project เพื่อเปรียบเทียบผลของโมเดลอย่างยุติธรรม ก่อนนำไปใช้ใน Production
+
+## 23. ความคืบหน้า Mini Project และแนวทาง AI pipeline (2026-09-23)
+
+สร้าง Mini Project แยกเฉพาะเครื่องที่ `C:\Users\USER\ClassKru-media-lab` เพื่อทดสอบ OpenRouter โดยเก็บ SQLite (`data/media-lab.sqlite`), raw response และ artifact ไว้ local เท่านั้น ไม่เชื่อม Supabase/Production
+
+### Flow ที่ทำแล้วใน Mini Project
+
+- มี Planner Chat: ครูพิมพ์ไอเดีย → Planner สรุป Draft Brief → ครูตรวจ/แก้ใน Confirmed Brief modal แนว ClassKru → Builder สร้างสื่อ
+- `image` เรียก OpenRouter Image Generation API (`/api/v1/images`) และเก็บผลเป็น PNG/JPG/WebP/SVG จริงใน `artifacts/`
+- `motion` และ `game` ใช้ Builder สร้าง Web Media HTML/CSS/JS แบบ single-file artifact
+- กฎกลางส่งร่วมกับ Planner และ Builder; runtime เก็บ raw response ก่อน parse และรับเฉพาะ JSON object ที่มี field `title`, `summary`, `html`, `css`, `js`
+- Builder จำกัด `max_tokens: 8000`; Planner จำกัด `max_tokens: 1800`; ใช้ `response_format: json_object`
+- Mini Project ดึงรายการโมเดลจาก OpenRouter และมีคำแนะนำคะแนนเบื้องต้นเพื่อเลือกทดสอบ
+
+### ข้อค้นพบจากการทดสอบ
+
+- Image Generation API ติดต่อสำเร็จ แต่บัญชี OpenRouter ของ key ทดสอบยังไม่มีเครดิต จึงสร้าง raster/vector image จริงไม่ได้ (`Insufficient credits`)
+- โมเดลฟรีบางรุ่นไม่ส่ง artifact JSON ตาม contract: ส่ง prose/reasoning, safety text หรือ response ว่าง จึงต้อง reject อย่างปลอดภัย ไม่ตัดข้อความแบบเดา
+- `openrouter/free` เหมาะทดสอบความพร้อม แต่ไม่ควรเป็น baseline หลัก เพราะ router เปลี่ยนโมเดลและ structured output ไม่คงที่
+
+### แนวทาง pipeline ที่ตกลงไว้
+
+1. AI 1 **Planner**: สนทนาและสร้าง/ปรับ Confirmed Brief
+2. AI 2 **Builder**: สร้างภาพจริงหรือ artifact code ตาม Brief ที่ครูยืนยัน
+3. AI 3 **Critic** (เมื่อจำเป็น): ตรวจความตรง Brief, scope, UX และ accessibility; ส่ง issue/retry instruction แต่ไม่แก้หรือตัด code เอง
+4. **Runtime Validator**: เป็นด่าน deterministic สำหรับ JSON/schema/security/syntax และเป็นผู้เดียวที่ประกอบหรือเปิด artifact
+
+ห้ามใช้ AI 3 เพื่อตัด prose โดยเดาตำแหน่ง code; การรับ code ต้องเกิดจาก structured JSON และ validation เท่านั้น
+
+
+## 24. Developer Console: สื่อที่เผยแพร่ (2026-10-04)
+
+เพิ่มแท็บ สื่อที่เผยแพร่ สำหรับผู้พัฒนาดูงาน Media Studio ที่กดเผยแพร่และยังเปิดได้ผ่าน Media Host แสดงอีเมลครู ชื่องาน เวลาที่เผยแพร่ และปุ่มเปิด Runtime ในแท็บใหม่ API ตรวจ developer session ก่อนอ่านข้อมูลจาก encrypted Storage
+
+ขอบเขตข้อมูล: อ่านทุก published link และตรวจ revoked/archive/share epoch ก่อนแสดง งานเก่าของ Media Studio ไม่ได้เก็บ usage log จากผู้ให้บริการ จึงแสดงขีดแทนจำนวนโทเคน ไม่เดาตัวเลขย้อนหลัง
+
+สถานะ: ใช้งานจริงแล้วบน Production หลัง PR #85 merge (commit 321d9b6). ตารางใช้ published Media Studio โดยตรง และไม่อ่าน mini-lab-v2 แล้ว; ยังไม่ได้ทดสอบการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
+
+## 25. Developer Console: เปลี่ยนแหล่งข้อมูลเป็น ClassKru Media V2 (2026-10-04)
+
+ตามคำสั่งล่าสุด แท็บสื่อใน `/developer/` เปลี่ยนกลับมาอ่านข้อมูล Production ของ ClassKru Media V2 จาก `users/{teacher_id}/mini-lab-v2` โดยตรง และไม่อ่าน published link ของ Media Studio V1 แล้ว
+
+ตารางแสดงทุก Run/Version ที่สร้าง Runtime สำเร็จ ไม่จำกัดเฉพาะ Version ล่าสุดของ Session พร้อมอีเมลครู ชื่องาน วันเวลา รหัส Version แบบย่อ โทเคนสนทนา และโทเคนสร้างสื่อ ปุ่ม Runtime เปิด `/api/v2/runtime/{run_id}` ของ Version นั้น
+
+การแบ่งโทเคนทำตามลำดับเวลาในแต่ละ Session: usage หลัง Version ก่อนหน้าและไม่เกินเวลาสร้าง Version ปัจจุบันจะนับให้ Version ปัจจุบัน `v2_chat` อยู่ฝั่งสนทนา ส่วน `v2_build` และ `v2_repair` อยู่ฝั่งสร้างสื่อ จึงไม่แสดงยอด Session เดียวซ้ำในทุก Version
+
+สถานะ: PR #87 (`a877b78`) merge เข้า `main` แล้วด้วย merge commit `a457aca` และ Production deployment `classkru-wyhc95pdp-classkru-dev.vercel.app` เป็น Ready เมื่อ 2026-10-04. ตรวจหน้า Developer แล้วพบหัวข้อ ClassKru Media V2 และตัวนับ Version; API แบบไม่ล็อกอินตอบ 401. GitHub Actions test 34 รายการผ่าน แต่ browser test `tests/media-studio-browser.test.cjs` timeout 30 วินาทีซ้ำสองครั้งที่ line 45. ยังไม่ได้ตรวจการโหลดข้อมูลด้วยบัญชี Developer/Storage จริง.
+
+## 26. ClassKru Media V2: Conversation AI system context
+
+ปรับบริบทกลางของ Conversation AI ให้ทำหน้าที่เป็น Learning Media Design Expert แทน Lesson Plan Assistant/Prompt Generator และส่งเป็น OpenRouter `system` message สำหรับทุกคำตอบแชท ทั้งแชทปกติ, Learning Goal Card, prompt card “ลองสร้างแบบนี้ไหม?” และการสนทนาต่อเนื่อง
+
+บริบทกำหนดให้เข้าใจเจตนาและประวัติเดิมก่อนตอบ คิดจาก Learning Intent → Learning Experience → Student Action → Media Response → Observation/Discovery → Media Concept โดยไม่แสดง checklist ทุกครั้ง คิดประสบการณ์บนสื่อก่อนการจัดกิจกรรมในห้องเรียน ตัดสินใจรายละเอียด UI/เทคนิคเอง และถามเฉพาะคำถามด้าน Learning Design ที่จำเป็น
+
+Learning Goal Card แนบเป้าหมายและ pattern เป็น context เสริมใน user message; แชทปกติและ prompt card อนุมาน learning pattern จากข้อความได้ตามหลักเดียวกัน ปรับการอ้างหัวข้อให้ใช้ข้อความล่าสุดของครู และลด output budget ของ Conversation AI เป็น 700 tokens เพื่อสนับสนุนคำตอบกระชับ
+
+ขอบเขต: ไม่แก้ Builder, flow สร้างสื่อ หรือ Runtime. สถานะ: แก้บน branch `feature/media-v2-conversation-context`; ยังไม่ได้รัน tests, push หรือ deploy.

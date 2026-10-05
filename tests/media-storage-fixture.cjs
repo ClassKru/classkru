@@ -18,7 +18,7 @@ module.exports=function storageFixture(t) {
     calls.push({path,method,body});
     if(path==='/auth/v1/user') {
       const owner=fixture.sessions.get(options.headers.Authorization);
-      return owner?reply(200,{id:owner,email:'teacher@example.test'}):reply(401,{});
+      return owner?reply(200,{id:owner,email:'classkru.dev@gmail.com'}):reply(401,{});
     }
     assert.equal(options.headers.apikey,'sb_secret_test_only');assert.equal(options.headers.Authorization,undefined);
     if(path==='bucket'&&method==='POST') {
@@ -32,11 +32,15 @@ module.exports=function storageFixture(t) {
       rows.sort((a,b)=>String(a[body.sortBy.column]).localeCompare(String(b[body.sortBy.column]))*(body.sortBy.order==='desc'?-1:1));
       return reply(200,rows.slice(body.offset||0,(body.offset||0)+body.limit));
     }
+    if(path==='object/classkru-media-files'&&method==='DELETE') {
+      for(const name of body.prefixes) { objects.delete(name);meta.delete(name); }
+      return reply(200,body.prefixes.map(name=>({name})));
+    }
     const prefix=method==='GET'?'object/authenticated/classkru-media-files/':'object/classkru-media-files/';
     assert.ok(path.startsWith(prefix),path);
     const name=path.slice(prefix.length);
     if(method==='GET') return objects.has(name)?reply(200,objects.get(name)):reply(400,{code:'NoSuchKey',message:'Object not found'});
-    assert.equal(method,'POST','storage implementation must never overwrite or delete');
+    assert.equal(method,'POST','storage implementation must never overwrite objects');
     assert.equal(options.headers['x-upsert'],'false');
     if(objects.has(name))return reply(400,{code:'ResourceAlreadyExists',message:'The resource already exists'});
     objects.set(name,structuredClone(body));meta.set(name,{id:crypto.randomUUID(),name:name.split('/').at(-1),path:name,created_at:new Date(++clock).toISOString()});
