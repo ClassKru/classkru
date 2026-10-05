@@ -4,7 +4,7 @@ const HELP_DETAILS = {
     steps: [['01', 'สร้างห้องเรียน', 'เพิ่มรายวิชา ห้องเรียน และข้อมูลพื้นฐานที่ต้องใช้'], ['02', 'เพิ่มรายชื่อนักเรียน', 'เพิ่มทีละคน หรือนำเข้ารายชื่อจากไฟล์ Excel/CSV'], ['03', 'เริ่มเช็กชื่อ', 'เลือกคาบเรียน แล้วแตะหรือปัดเพื่อบันทึกการเข้าเรียน']]
   },
   report: { icon: 'hgi-alert-02', title: 'แจ้งปัญหา', intro: 'ช่วยบอกเราให้ละเอียดที่สุด เพื่อให้ทีมงานตรวจสอบได้เร็วขึ้น', tips: ['หน้าหรือฟีเจอร์ที่พบปัญหา', 'ขั้นตอนที่ทำก่อนเกิดปัญหา', 'ภาพหน้าจอ หรือข้อความแจ้งเตือนที่พบ'] },
-  feature: { icon: 'hgi-bulb', title: 'เสนอฟีเจอร์', intro: 'ทุกไอเดียจากการใช้งานจริงช่วยให้ ClassKru ดีขึ้นสำหรับคุณครูมากขึ้น', tips: ['ฟีเจอร์ที่อยากให้มี', 'ปัญหาหรือเวลาที่ฟีเจอร์นี้จะช่วยลดได้', 'ตัวอย่างวิธีใช้งานที่คุณนึกภาพไว้'] },
+  feature: { icon: 'hgi-bulb', title: 'ความคิดเห็นสำหรับการพัฒนาหรือการแก้ไข', intro: 'บอกความคิดเห็น ไอเดีย หรือปัญหาจากการใช้งานจริง เพื่อช่วยให้ทีมงานพัฒนา ClassKru ได้ตรงจุด', tips: ['สิ่งที่อยากให้พัฒนาเพิ่มเติม', 'ปัญหาหรือขั้นตอนที่อยากให้แก้ไข', 'ตัวอย่างการใช้งานที่คุณอยากเห็น'] },
   contact: { icon: 'hgi-message-02', title: 'ติดต่อทีมงานผ่าน LINE', intro: 'ใช้สำหรับสอบถาม แจ้งปัญหา หรือให้ทีมงานช่วยแนะนำการใช้งานเบื้องต้น', tips: ['พิมพ์คำถามหรือรายละเอียดที่ต้องการให้ช่วย', 'แนบภาพหน้าจอได้เมื่อจำเป็น', 'เริ่มใช้งาน ClassKru ได้จากระบบโดยตรง ไม่จำเป็นต้องติดต่อ LINE ก่อน'] }
 };
 
@@ -105,7 +105,7 @@ function openHelpDetail(key) {
   const action = key === 'report'
     ? `<button class="btn btn-primary" type="button" onclick="openIssueReportForm('issue')"><i class="hgi-stroke hgi-alert-02"></i> เปิดแบบฟอร์มแจ้งปัญหา</button><button class="btn" type="button" onclick="openClassKruLine('${item.title}')"><i class="hgi-stroke hgi-message-02"></i> ติดต่อผ่าน LINE</button>`
     : key === 'feature'
-      ? `<button class="btn btn-primary" type="button" onclick="openIssueReportForm('feature')"><i class="hgi-stroke hgi-bulb"></i> ส่งข้อเสนอแนะ</button>`
+      ? `<button class="btn btn-primary" type="button" onclick="openIssueReportForm('feature')"><i class="hgi-stroke hgi-bulb"></i> ส่งความคิดเห็น</button>`
       : `<button class="btn btn-primary" type="button" onclick="openClassKruLine('${item.title}')"><i class="hgi-stroke hgi-message-02"></i> ติดต่อผ่าน LINE</button>`;
   detail.innerHTML = `<button class="help-back" onclick="renderHelpHub()"><i class="hgi-stroke hgi-arrow-left-01"></i> กลับศูนย์ช่วยเหลือ</button><div class="help-detail-heading"><span class="help-category-icon tint-green"><i class="hgi-stroke ${item.icon}"></i></span><div><span class="help-eyebrow">Help Center</span><h3>${item.title}</h3><p>${item.intro}</p></div></div>${item.steps ? `<div class="help-step-list">${item.steps.map(s => `<div class="help-step"><b>${s[0]}</b><div><strong>${s[1]}</strong><p>${s[2]}</p></div></div>`).join('')}</div>` : `<div class="help-tip-box"><strong>รายละเอียดที่ช่วยให้เราดูแลได้ไวขึ้น</strong><ul>${item.tips.map(t => `<li>${t}</li>`).join('')}</ul></div>`}<div class="help-detail-actions">${action}</div>`;
   detail.style.display = 'block';
@@ -145,12 +145,12 @@ async function openIssueReportForm(category = 'issue') {
   const eyebrow = modal.querySelector('#issue-report-eyebrow');
   const title = modal.querySelector('#issue-report-title');
   categoryInput.value = selectedCategory;
-  categoryLabel.textContent = selectedCategory === 'feature' ? 'เสนอฟีเจอร์ใหม่' : 'แจ้งปัญหา';
+  categoryLabel.textContent = selectedCategory === 'feature' ? 'ความคิดเห็นสำหรับการพัฒนาหรือการแก้ไข' : 'แจ้งปัญหา';
   categoryIcon.className = `hgi-stroke ${selectedCategory === 'feature' ? 'hgi-bulb' : 'hgi-alert-02'}`;
-  eyebrow.textContent = selectedCategory === 'feature' ? 'SUGGEST A FEATURE' : 'REPORT TO CLASSKRU';
+  eyebrow.textContent = selectedCategory === 'feature' ? 'CLASSKRU FEEDBACK' : 'REPORT TO CLASSKRU';
   title.textContent = categoryLabel.textContent;
   message.placeholder = selectedCategory === 'feature'
-    ? 'พิมพ์รายละเอียดฟีเจอร์ที่อยากให้เพิ่ม…'
+    ? 'พิมพ์ความคิดเห็น สิ่งที่อยากให้พัฒนา หรือปัญหาที่อยากให้แก้ไข…'
     : 'พิมพ์รายละเอียดปัญหาที่พบ…';
   submit.disabled = true;
   status.textContent = 'กำลังเตรียมแบบฟอร์ม…';

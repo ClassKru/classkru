@@ -18,7 +18,7 @@ const ui = {
 };
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
-const CATEGORY_LABELS = Object.freeze({ issue: 'แจ้งปัญหา', feature: 'เสนอฟีเจอร์ใหม่' });
+const CATEGORY_LABELS = Object.freeze({ issue: 'แจ้งปัญหา', feature: 'ความคิดเห็นสำหรับการพัฒนาหรือการแก้ไข' });
 const DEVELOPER_LABELS = Object.freeze({ biggy: 'Biggy', petchpetch: 'PetchPetch' });
 
 async function request(path, options = {}) {
@@ -117,7 +117,7 @@ function renderOverview(data) {
   ui.summary.replaceChildren();
   const cards = [
     ['ทั้งหมด', data.total || 0, 'total'],
-    ['แจ้งปัญหา', data.categories?.issue || 0, 'issue'], ['เสนอฟีเจอร์ใหม่', data.categories?.feature || 0, 'feature'],
+    ['แจ้งปัญหา', data.categories?.issue || 0, 'issue'], ['ความคิดเห็นสำหรับการพัฒนาหรือการแก้ไข', data.categories?.feature || 0, 'feature'],
     ['ใหม่', data.statuses?.new || 0, 'new'],
     ['กำลังตรวจสอบ', data.statuses?.reviewing || 0, 'reviewing'], ['แก้ไขแล้ว', data.statuses?.resolved || 0, 'resolved'],
     ['ปิดรายการ', data.statuses?.closed || 0, 'closed']
