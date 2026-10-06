@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="css/media-studio.css?v=502">
   <link rel="stylesheet" href="css/13-content-library.css?v=504">
   <link rel="stylesheet" href="css/15-subscription.css?v=502">
+  <link rel="stylesheet" href="css/login.css?v=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -103,7 +104,7 @@
   </div>
 
   <!-- LOGIN SCREEN -->
-  <div id="login-overlay" class="modal-overlay show" style="z-index:10000;backdrop-filter:none;background:linear-gradient(160deg,#f0fdf4 0%,#ffffff 50%,#f0fdf4 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:24px;overflow-y:auto;">
+  <div id="login-overlay" class="modal-overlay show" style="z-index:10000;backdrop-filter:none;background:linear-gradient(160deg,#f0fdf4 0%,#ffffff 50%,#f0fdf4 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:16px 24px calc(24px + env(safe-area-inset-bottom, 0px));overflow-y:auto;">
     <div id="login-content" style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;margin:auto 0;">
 
       <!-- Logo -->
@@ -113,7 +114,7 @@
 
       <!-- Heading -->
       <h2 id="auth-heading" style="font-size:1.55rem;font-weight:800;color:var(--text-main);text-align:center;letter-spacing:-0.3px;margin:0 0 8px;">เข้าสู่ระบบ ClassKru</h2>
-      <p style="font-size:0.88rem;color:var(--text-muted);text-align:center;margin:0 0 16px;line-height:1.7;">เช็กชื่อเร็ว สอนเต็มที่<br>จัดการห้องเรียน ได้ในคลิกเดียว</p>
+      <p style="font-size:0.88rem;color:var(--text-muted);text-align:center;margin:0 0 16px;line-height:1.7;">เช็กชื่อไว จัดการห้องเรียนง่าย</p>
 
       <!-- Card form -->
       <div style="background:white;border-radius:20px;padding:24px;box-shadow:0 2px 20px rgba(0,0,0,0.08);width:100%;display:flex;flex-direction:column;gap:14px;">
