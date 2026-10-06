@@ -1,0 +1,66 @@
+/* Login screen: compact enough for short laptop and mobile viewports. */
+#login-content {
+  margin: 0 auto !important;
+  padding: 0 0 8px;
+}
+
+#login-content > a:first-child img {
+  width: 92px !important;
+  margin-bottom: -2px !important;
+}
+
+#login-content > h2 {
+  font-size: 1.45rem !important;
+  margin-bottom: 5px !important;
+}
+
+#login-content > h2 + p {
+  margin-bottom: 12px !important;
+  line-height: 1.55 !important;
+}
+
+#login-content > div {
+  padding: 20px !important;
+  gap: 11px !important;
+}
+
+#login-content > a:last-child {
+  margin-top: 10px !important;
+  padding: 3px 8px;
+  line-height: 1.4;
+}
+
+/* Keep the full form reachable when the viewport is short. */
+@media (max-height: 760px) {
+  #login-overlay {
+    padding-top: 8px !important;
+  }
+
+  #login-content > a:first-child img {
+    width: 78px !important;
+  }
+
+  #login-content > h2 {
+    font-size: 1.32rem !important;
+  }
+
+  #login-content > h2 + p {
+    font-size: .82rem !important;
+    margin-bottom: 8px !important;
+  }
+
+  #login-content > div {
+    padding: 16px !important;
+    gap: 9px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #login-overlay {
+    padding-inline: 14px !important;
+  }
+
+  #login-content > div {
+    border-radius: 18px !important;
+  }
+}
