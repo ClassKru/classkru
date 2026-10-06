@@ -1,7 +1,7 @@
 // ==================== URL ROUTING (#hash) — รองรับ LINE OA ลิงก์เข้าหน้าตรงๆ ====================
 // หน้าที่ลิงก์เข้าได้จาก URL เช่น classkru-kohl.vercel.app/#reports
 // 'checkin' คือหน้าเช็คชื่อ (เดิมเป็น overlay ที่ไม่มี URL ของตัวเอง) — ต้องมี param บอกห้อง
-const ROUTABLE_SCREENS = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','library','games','subscription','settings','checkin'];
+const ROUTABLE_SCREENS = ['dashboard','help','classrooms','students','timetable','attendance','scores','reports','curriculum','library','tools','games','subscription','checkout','settings','checkin'];
 
 // รูปแบบ hash: "#reports" หรือแบบมีพารามิเตอร์ "#checkin:c_1712345678"
 // คืน { screen, param } — screen เป็น null ถ้า hash ไม่ถูกต้อง

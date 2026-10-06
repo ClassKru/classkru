@@ -6,6 +6,21 @@
   <title>ClassKru — ผู้ช่วยในชั้นเรียน</title>
   <meta name="description" content="เช็กชื่อเร็ว จัดการนักเรียน ตารางสอน และรายงาน ครบในที่เดียว เพื่อคุณครู ใช้งานฟรี">
   <link rel="canonical" href="https://www.classkru.com/home.html">
+  <script>
+    // The production root serves this landing page. Forward app deep-links to
+    // the SPA entry point while keeping normal landing-page anchors intact.
+    (() => {
+      const appScreens = new Set([
+        'dashboard', 'help', 'classrooms', 'students', 'timetable', 'attendance',
+        'scores', 'reports', 'curriculum', 'library', 'tools', 'games',
+        'subscription', 'checkout', 'settings', 'checkin'
+      ]);
+      const route = decodeURIComponent(location.hash.slice(1)).split(':', 1)[0];
+      if (appScreens.has(route)) {
+        location.replace(`index.html${location.search}${location.hash}`);
+      }
+    })();
+  </script>
   <!-- แชร์ลิงก์ใน LINE/Facebook แล้วขึ้นการ์ดพร้อมรูปและคำอธิบาย -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ClassKru">
