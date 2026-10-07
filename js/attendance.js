@@ -992,6 +992,9 @@ function renderDesktopSwipeTable() {
   let html = '';
   c.students.forEach((s, index) => {
     const currentStatus = swipeResults[s.id] || '';
+    const numberColors = typeof mscAvatar === 'function'
+      ? mscAvatar(s, index)
+      : { bg: 'var(--primary-light)', fg: 'var(--primary)' };
 
     let sPresent = 0, sAbsent = 0, sLate = 0, sLeave = 0;
     Object.values(c.attendance || {}).forEach(dayRecord => {
@@ -1004,7 +1007,7 @@ function renderDesktopSwipeTable() {
 
     html += `
       <div class="d-student-row">
-        <div class="d-col-no">${s.no || (index + 1)}</div>
+        <div class="d-col-no"><span class="d-no-badge" style="--av-bg:${numberColors.bg};--av-fg:${numberColors.fg};">${escapeAttendanceHtml(s.no || (index + 1))}</span></div>
         <div class="d-col-code"><input class="d-code-input" type="text" value="${String(s.studentCode||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}" placeholder="—" onchange="setStudentCodeInline('${c.id}','${s.id}',this.value)"></div>
         <div class="d-col-name">${s.name}</div>
         <div class="d-col-status">

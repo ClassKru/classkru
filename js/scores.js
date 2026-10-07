@@ -172,26 +172,36 @@ function viewClassScores(classId) {
 function scoreWorkTabsHtml(c) {
   const tabs = [
     { key: 'overview', label: 'คะแนน', icon: 'hgi-table' },
+    { key: 'report-students', label: 'รายนักเรียน', icon: 'hgi-user-group' },
+    { key: 'report-items', label: 'คะแนนชิ้นงาน', icon: 'hgi-table' },
+    { key: 'report-submission', label: 'การส่งงาน', icon: 'hgi-task-01' },
     { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01', locked: true },
-    { key: 'report', label: 'รายงานผล', icon: 'hgi-table', locked: true },
     { key: 'pp5', label: 'ปพ.5', icon: 'hgi-book-open-01', locked: true }
   ];
-  return `<div class="score-worktabs">${tabs.map(t => `
-    <button class="score-worktab${scoreWorkspaceMode === t.key ? ' active' : ''}${t.locked ? ' is-locked' : ''}" ${t.locked ? 'type="button" disabled aria-disabled="true" title="เตรียมเปิดใช้งานเร็ว ๆ นี้"' : `onclick="setScoreWorkspaceMode('${t.key}','${c.id}')"`}>
+  return `<div class="score-worktabs" role="tablist" aria-label="ส่วนงานคะแนน">${tabs.map(t => `
+    <button class="score-worktab${isScoreWorkspaceTabActive(t.key) ? ' active' : ''}${t.locked ? ' is-locked' : ''}" type="button" role="tab" data-score-worktab="${t.key}" aria-selected="${isScoreWorkspaceTabActive(t.key)}" ${t.locked ? 'aria-disabled="true" tabindex="0" title="อยู่ระหว่างพัฒนา" data-tooltip="อยู่ระหว่างพัฒนา"' : `onclick="setScoreWorkspaceMode('${t.key}','${c.id}')"`}>
       <i class="hgi-stroke ${t.icon}"></i><span>${t.label}</span>
       ${t.locked ? '<i class="hgi-stroke hgi-lock-01 score-worktab-lock" aria-hidden="true"></i>' : ''}
     </button>`).join('')}</div>`;
 }
 
+function isScoreWorkspaceTabActive(key) {
+  if (key.startsWith('report-')) return scoreWorkspaceMode === 'report' && scoreReportTab === key.slice('report-'.length);
+  return scoreWorkspaceMode === key;
+}
+
 function setScoreWorkspaceMode(mode, classId) {
-  if (['curriculum', 'report', 'pp5'].includes(mode)) {
+  const reportTabs = { 'report-items': 'items', 'report-students': 'students', 'report-submission': 'submission' };
+  if (reportTabs[mode]) {
+    scoreWorkspaceMode = 'report';
+    scoreReportTab = reportTabs[mode];
+  } else if (['curriculum', 'pp5'].includes(mode)) {
     scoreWorkspaceMode = 'overview';
     showToast('เตรียมเปิดใช้งานเร็ว ๆ นี้ ใช้หน้าคะแนนหลักได้ตามปกติ', 'info');
     const c = appState.classes.find(x => x.id === classId);
     if (c) renderScoreWorkspace(c);
     return;
-  }
-  scoreWorkspaceMode = mode;
+  } else scoreWorkspaceMode = mode;
   if (mode !== 'curriculum') {
     scoreIndicatorSearchOpen = false;
     scoreIndicatorEditingId = null;
@@ -201,7 +211,7 @@ function setScoreWorkspaceMode(mode, classId) {
 }
 
 function renderScoreWorkspace(c) {
-  if (['curriculum', 'report', 'pp5'].includes(scoreWorkspaceMode)) scoreWorkspaceMode = 'overview';
+  if (['curriculum', 'pp5'].includes(scoreWorkspaceMode)) scoreWorkspaceMode = 'overview';
   const holder = document.getElementById('score-worktab-holder');
   if (holder) holder.innerHTML = scoreWorkTabsHtml(c);
   const wrap = document.getElementById('web-scores-matrix-wrap');
@@ -217,7 +227,7 @@ function renderScoreWorkspace(c) {
 // Average only recorded marks for students currently in this class; zero is a recorded mark.
 function scoreReportRows(c) {
   const sc = ensureScores(c);
-  return sc.items.map(item => {
+  return scoreOrderedItems(c).map(item => {
     const max = Number(item.max);
     const values = (c.students || []).map(student => (sc.marks[item.id] || {})[student.id])
       .filter(value => value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value)))
@@ -228,28 +238,13 @@ function scoreReportRows(c) {
   });
 }
 
-let scoreReportSelectedItem = '';
-function selectScoreReportItem(value) {
-  const scrollLeft = document.querySelector('.score-report-scroll')?.scrollLeft || 0;
-  const fromChart = document.activeElement?.classList.contains('score-report-track');
-  scoreReportSelectedItem = value;
-  const c = appState.classes.find(item => item.id === scoreCurrentClassId);
-  if (c) {
-    renderScoreReport(c);
-    const scroll = document.querySelector('.score-report-scroll');
-    if (scroll) scroll.scrollLeft = scrollLeft;
-    const target = fromChart ? document.querySelector('.score-report-track[aria-pressed="true"]') : document.getElementById('score-report-item');
-    target?.focus({ preventScroll: true });
-  }
-}
-
 function scoreReportDistribution(c, item) {
   const groups = [
-    { label: 'ต่ำกว่า 50%', count: 0, color: '#e46b68' },
-    { label: '50–ต่ำกว่า 60%', count: 0, color: '#e7a33e' },
-    { label: '60–ต่ำกว่า 70%', count: 0, color: '#8d79d6' },
-    { label: '70–ต่ำกว่า 80%', count: 0, color: '#4298cf' },
-    { label: '80–100%', count: 0, color: '#16a085' }
+    { label: 'ต่ำกว่า 50%', count: 0, color: 'color-mix(in srgb, var(--color-absent) 68%, var(--bg-card))' },
+    { label: '50–ต่ำกว่า 60%', count: 0, color: 'color-mix(in srgb, var(--color-late) 68%, var(--bg-card))' },
+    { label: '60–ต่ำกว่า 70%', count: 0, color: 'color-mix(in srgb, var(--tab-term-accent) 68%, var(--bg-card))' },
+    { label: '70–ต่ำกว่า 80%', count: 0, color: 'color-mix(in srgb, var(--color-leave) 68%, var(--bg-card))' },
+    { label: '80–100%', count: 0, color: 'color-mix(in srgb, var(--color-present) 68%, var(--bg-card))' }
   ];
   if (!item || !Number.isFinite(Number(item.max)) || Number(item.max) <= 0) return groups;
   const marks = ensureScores(c).marks[item.id] || {};
@@ -262,77 +257,106 @@ function scoreReportDistribution(c, item) {
   return groups;
 }
 
-let scoreReportTab = 'overview';
-function selectScoreReportTab(tab) {
-  scoreReportTab = ['overview', 'items', 'students', 'submission'].includes(tab) ? tab : 'overview';
-  const report = document.querySelector('.score-report');
-  if (!report) return;
-  report.querySelectorAll('.score-report-tab').forEach(button => {
-    const active = button.dataset.tab === scoreReportTab;
-    button.setAttribute('aria-selected', String(active));
-  });
-  const sections = {
-    overview: ['.score-report-bar-section', '.score-report-pie-section'],
-    items: ['.score-report-bar-section'],
-    students: ['.score-report-student-section'],
-    submission: ['.score-report-submission-section']
-  };
-  const visible = sections[scoreReportTab] || sections.overview;
-  report.querySelectorAll('.score-report-bar-section,.score-report-pie-section,.score-report-student-section').forEach(section => {
-    section.hidden = !visible.includes(`.${section.classList[0]}`);
+function scoreReportDistributionContent(c, item) {
+  const groups = scoreReportDistribution(c, item);
+  const recorded = groups.reduce((sum, group) => sum + group.count, 0);
+  const total = (c.students || []).length;
+  let angle = 0;
+  const slices = groups.map(group => {
+    const start = angle;
+    angle += recorded ? group.count / recorded * 360 : 0;
+    return `${group.color} ${start}deg ${angle}deg`;
+  }).join(',');
+  const row = scoreReportRows(c).find(result => result.item.id === item.id);
+  const number = value => value.toLocaleString('th-TH', { maximumFractionDigits: 1 });
+  return `<div class="score-report-distribution-content">
+    <div class="score-report-distribution-summary"><div><strong>${escapeScore(item.name)}</strong><span>คะแนนเฉลี่ย ${row?.average === null || row?.average === undefined ? 'ยังไม่มีคะแนน' : `${number(row.average)} / ${number(Number(item.max))} คะแนน`}</span></div><b>${row?.percent == null ? '—' : `${number(row.percent)}%`}</b></div>
+    <p class="score-report-note">ช่วงคะแนนคิดเป็นเปอร์เซ็นต์ของคะแนนเต็ม · มีคะแนน ${recorded}/${total} คน · ยังไม่มีคะแนน ${total - recorded} คน (ไม่นับในวงกลม)</p>
+    ${recorded ? `<div class="score-report-pie-layout"><div class="score-report-pie" role="img" aria-label="สัดส่วนช่วงคะแนน: ${groups.map(group => `${group.label} ${group.count} คน`).join(', ')}" style="background:conic-gradient(${slices})"><div class="score-report-pie-center"><strong>${recorded}<small> คน</small></strong><span>มีคะแนนแล้ว</span></div></div><ul class="score-report-legend">${groups.map(group => `<li><span class="score-report-dot" style="background:${group.color}"></span><span>${group.label}</span><strong>${group.count} คน <small>${recorded ? number(group.count / recorded * 100) : 0}%</small></strong></li>`).join('')}</ul></div>` : '<p class="score-report-empty">ยังไม่มีผลคะแนนสำหรับแสดงกราฟวงกลม</p>'}
+  </div>`;
+}
+
+function bindScoreReportDistributionDialog(c, wrap) {
+  const dialog = wrap.querySelector('.score-report-distribution-dialog');
+  if (!dialog) return;
+  const close = () => { if (dialog.open) dialog.close(); else dialog.removeAttribute('open'); };
+  dialog.querySelector('.score-report-student-dialog-close')?.addEventListener('click', close);
+  dialog.addEventListener('click', event => { if (event.target === dialog) close(); });
+  let lastTrigger = null;
+  dialog.addEventListener('close', () => lastTrigger?.focus({ preventScroll: true }));
+  wrap.querySelectorAll('.score-report-bar-section .score-report-track').forEach(button => {
+    button.addEventListener('click', () => {
+      const item = scoreOrderedItems(c).find(entry => String(entry.id) === button.dataset.item);
+      const content = dialog.querySelector('.score-report-distribution-detail');
+      if (!item || !content) return;
+      const title = dialog.querySelector('#score-report-distribution-title');
+      if (title) title.textContent = 'การกระจายคะแนน';
+      content.innerHTML = scoreReportDistributionContent(c, item);
+      lastTrigger = button;
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+      dialog.querySelector('.score-report-student-dialog-close')?.focus({ preventScroll: true });
+    });
   });
 }
 
+let scoreReportTab = 'items';
+function selectScoreReportTab(tab) {
+  scoreReportTab = ['items', 'students', 'submission'].includes(tab) ? tab : 'items';
+  const report = document.querySelector('.score-report');
+  if (!report) return;
+  report.dataset.activeTab = scoreReportTab;
+  document.querySelectorAll('.score-worktab[data-score-worktab^="report-"]').forEach(button => {
+    const active = button.dataset.scoreWorktab === `report-${scoreReportTab}`;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
+  const emptyItems = report.querySelector('.score-report-empty-items');
+  if (emptyItems) emptyItems.hidden = scoreReportTab !== 'items';
+  const sections = {
+    items: ['.score-report-bar-section'],
+    students: ['.score-report-student-section'],
+    submission: ['.score-report-submission-section'],
+  };
+  const visible = sections[scoreReportTab];
+  report.querySelectorAll('.score-report-bar-section,.score-report-student-section,.score-report-submission-section').forEach(section => {
+    section.hidden = !visible.some(selector => section.matches(selector));
+  });
+  report.classList.remove('is-animated');
+  if (typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      if (report.isConnected) report.classList.add('is-animated');
+    }));
+  } else {
+    report.classList.add('is-animated');
+  }
+}
+
 function scoreReportStudentChart(c) {
-  const sc = ensureScores(c), items = sc.items || [];
+  const sc = ensureScores(c), items = scoreOrderedItems(c).filter(item => Number.isFinite(Number(item.max)) && Number(item.max) > 0);
   if (!items.length || !(c.students || []).length) return '';
-  const totalMax = items.reduce((sum, item) => sum + Math.max(0, Number(item.max) || 0), 0);
-  if (!totalMax) return '';
   const records = c.students.map((student, index) => {
     const values = items.map(item => {
       const raw = (sc.marks[item.id] || {})[student.id], has = raw !== null && raw !== undefined && String(raw).trim() !== '' && Number.isFinite(Number(raw));
       const max = Math.max(0, Number(item.max) || 0), value = has ? clampMark(raw, max) : 0;
       return { item, max, value, has };
     });
-    return { student, index, values, earned: values.reduce((sum, value) => sum + value.value, 0), submitted: values.filter(value => value.has).length };
-  }).sort((a, b) => b.earned - a.earned || a.index - b.index);
-  const complete = records.filter(record => record.submitted > 0);
-  const high = complete.length ? Math.max(...complete.map(record => record.earned)) : null;
-  const low = complete.length ? Math.min(...complete.map(record => record.earned)) : null;
-  const chartRows = records.map(record => {
-    const rank = high !== null && record.earned === high ? 'สูงสุด' : low !== null && record.earned === low ? 'ต่ำสุด' : '';
-    const percent = totalMax ? record.earned / totalMax * 100 : 0;
-    const incomplete = record.submitted < items.length;
-    return `<article class="score-report-student-row${rank ? ` is-${rank === 'สูงสุด' ? 'highest' : 'lowest'}` : ''}"><div class="score-report-student-label"><span>${record.student.no || record.index + 1}. ${escapeScore(record.student.name)}</span><strong>${record.earned} / ${totalMax}</strong></div><div class="score-report-student-track${incomplete ? ' is-incomplete' : ''}" role="img" aria-label="${escapeScoreAttr(record.student.name)} ได้ ${record.earned} จาก ${totalMax} คะแนน ส่ง ${record.submitted} จาก ${items.length} งาน"><i class="score-report-student-bar" style="height:${percent}%"></i></div><div class="score-report-student-meta"><span>ส่งแล้ว ${record.submitted}/${items.length} งาน${incomplete ? ' · ยังไม่ครบ' : ''}${rank ? ` · ${rank}` : ''}</span></div></article>`;
+    const submitted = values.filter(value => value.has).length;
+    const rollNo = Number(student.no);
+    return { student, index, rollNo: Number.isFinite(rollNo) && rollNo > 0 ? rollNo : index + 1, values, submitted };
+  }).sort((a, b) => a.rollNo - b.rollNo || a.index - b.index);
+  const headers = items.map((item, index) => `<th scope="col" class="score-report-student-item-head" title="${escapeScoreAttr(item.name)}"><span>ชิ้นที่ ${index + 1}</span><strong>${escapeScore(item.name)}</strong></th>`).join('');
+  const chartRows = records.map((record, rowIndex) => {
+    const cells = record.values.map(({ item, has }) => `<td><span class="score-report-student-dot ${has ? 'is-recorded' : 'is-empty'}" role="img" aria-label="${escapeScoreAttr(item.name)}: ${has ? 'มีคะแนนแล้ว' : 'ยังไม่มีคะแนน'}" title="${escapeScoreAttr(item.name)}: ${has ? 'มีคะแนนแล้ว' : 'ยังไม่มีคะแนน'}"><span aria-hidden="true">${has ? '✓' : '×'}</span></span></td>`).join('');
+    const name = escapeScore(record.student.name), nameAttr = escapeScoreAttr(record.student.name), studentId = escapeScoreAttr(record.student.id);
+    const number = record.student.no || record.index + 1, avatar = mscAvatar(record.student, record.index);
+    return `<tr class="score-report-student-row" style="transition-delay:${Math.min(rowIndex, 11) * 24}ms"><td class="score-report-student-no"><span class="ck-student-number" style="--av-bg:${avatar.bg};--av-fg:${avatar.fg};" title="เลขที่ ${escapeScoreAttr(number)}">${escapeScore(number)}</span></td><th scope="row" class="score-report-student-name"><button type="button" class="score-report-student-open" data-student="${studentId}" aria-haspopup="dialog" aria-controls="score-report-student-dialog" title="ดูรายงานคะแนนของ ${nameAttr}">${name}</button></th>${cells}<td class="score-report-student-count">${record.submitted}/${items.length}</td></tr>`;
   }).join('');
-  return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>คะแนนสะสมรายนักเรียน</h4><span>แท่งหนึ่งแทนนักเรียนหนึ่งคน · ลายเส้นหมายถึงยังมีงานที่ไม่ส่ง</span></div><div class="score-report-student-chart">${chartRows}</div></section>`;
-}
-
-function scoreReportClassSummary(c) {
-  const sc = ensureScores(c), items = sc.items || [], students = c.students || [];
-  const totalMax = items.reduce((sum, item) => sum + Math.max(0, Number(item.max) || 0), 0);
-  let earned = 0, possible = 0, studentsWithScores = 0, passed = 0, incomplete = 0;
-  students.forEach(student => {
-    let studentEarned = 0, studentPossible = 0, submitted = 0;
-    items.forEach(item => {
-      const raw = (sc.marks[item.id] || {})[student.id];
-      const has = raw !== null && raw !== undefined && String(raw).trim() !== '' && Number.isFinite(Number(raw));
-      if (!has) return;
-      const max = Math.max(0, Number(item.max) || 0);
-      studentEarned += clampMark(raw, max); studentPossible += max; submitted++;
-    });
-    earned += studentEarned; possible += studentPossible;
-    if (submitted) {
-      studentsWithScores++;
-      if (studentPossible && studentEarned / studentPossible * 100 >= 50) passed++;
-    }
-    if (items.length && submitted < items.length) incomplete++;
-  });
-  return { totalMax, average: possible ? earned / possible * 100 : null, studentsWithScores, passed, incomplete };
+  return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>สถานะคะแนนรายนักเรียน</h4><span>เรียงตามเลขที่ · เขียวมีคะแนน · แดงยังไม่มีคะแนน</span></div><div class="score-report-student-legend"><span><i class="is-recorded">✓</i>มีคะแนน</span><span><i class="is-empty">×</i>ยังไม่มีคะแนน</span></div><div class="score-report-student-matrix-scroll" role="region" aria-label="ตารางสถานะคะแนนรายนักเรียน เลื่อนแนวนอนเพื่อดูทุกชิ้นงาน" tabindex="0"><table class="score-report-student-matrix"><thead><tr><th scope="col" class="score-report-student-no">เลขที่</th><th scope="col" class="score-report-student-name">นักเรียน</th>${headers}<th scope="col" class="score-report-student-count">มีคะแนน</th></tr></thead><tbody>${chartRows}</tbody></table></div></section>`;
 }
 
 function scoreReportSubmissionChart(c) {
-  const sc = ensureScores(c), items = sc.items || [], students = c.students || [];
+  const sc = ensureScores(c), items = scoreOrderedItems(c), students = c.students || [];
   if (!items.length || !students.length) return '';
   const rows = items.map(item => {
     const submitted = students.filter(student => {
@@ -340,46 +364,95 @@ function scoreReportSubmissionChart(c) {
       return value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value));
     }).length;
     const missing = students.length - submitted, submittedPct = submitted / students.length * 100;
-    return `<li class="score-report-submission-row"><div class="score-report-submission-label"><strong>${escapeScore(item.name)}</strong><span>${submitted}/${students.length} คนส่งแล้ว</span></div><div class="score-report-submission-track" role="img" aria-label="${escapeScoreAttr(item.name)} ส่งแล้ว ${submitted} คน ยังไม่ส่ง ${missing} คน"><span class="is-submitted" style="width:${submittedPct}%"></span><span class="is-missing" style="width:${100 - submittedPct}%"></span></div><div class="score-report-submission-detail"><span>ส่งแล้ว ${submitted} คน</span><span>ยังไม่ส่ง ${missing} คน</span></div></li>`;
+    return `<li class="score-report-submission-row"><button type="button" class="score-report-track score-report-submission-trigger" data-item="${escapeScoreAttr(item.id)}" aria-haspopup="dialog" aria-controls="score-report-missing-dialog" aria-label="${escapeScoreAttr(item.name)} ส่งแล้ว ${submitted} คน ยังไม่ส่ง ${missing} คน ดูรายชื่อผู้ที่ยังไม่ส่ง"><span class="score-report-label"><strong title="${escapeScoreAttr(item.name)}">${escapeScore(item.name)}</strong><small>ส่งแล้ว ${submitted}/${students.length} คน</small></span><span class="score-report-item-meter" aria-hidden="true"><span class="score-report-bar${submitted ? '' : ' is-empty'}" style="--score-report-target:${submittedPct}%"></span></span><span class="score-report-item-average"><strong>${submitted}/${students.length}</strong><small>ส่งแล้ว · ยังไม่ส่ง ${missing} คน</small></span></button></li>`;
   }).join('');
-  return `<section class="score-report-submission-section"><div class="score-report-section-head"><h4>สถานะการส่งงาน</h4><span>เปรียบเทียบจำนวนผู้ส่งและผู้ที่ยังไม่ส่งในแต่ละชิ้นงาน</span></div><div class="score-report-submission-legend"><span><i class="is-submitted"></i>ส่งแล้ว</span><span><i class="is-missing"></i>ยังไม่ส่ง</span></div><ol class="score-report-submission-list">${rows}</ol></section>`;
+  return `<section class="score-report-submission-section"><div class="score-report-section-head"><h4>สถานะการส่งงาน</h4><span>แท่งสีเขียวแสดงสัดส่วนผู้ส่ง · กดชิ้นงานเพื่อดูรายชื่อผู้ที่ยังไม่ส่ง</span></div><ol class="score-report-submission-list">${rows}</ol><dialog id="score-report-missing-dialog" class="score-report-student-dialog score-report-missing-dialog" aria-labelledby="score-report-missing-title"><header><h4 id="score-report-missing-title">นักเรียนที่ยังไม่ส่ง</h4><button class="score-report-student-dialog-close" type="button" aria-label="ปิดรายชื่อ">×</button></header><div class="score-report-missing-detail"></div></dialog></section>`;
+}
+
+function scoreReportMissingDetail(c, item) {
+  const sc = ensureScores(c), students = c.students || [];
+  const missing = students.map((student, index) => ({ student, index }))
+    .filter(({ student }) => {
+      const value = (sc.marks[item.id] || {})[student.id];
+      return value === null || value === undefined || String(value).trim() === '' || !Number.isFinite(Number(value));
+    })
+    .sort((a, b) => (Number(a.student.no) || a.index + 1) - (Number(b.student.no) || b.index + 1) || a.index - b.index);
+  const total = students.length, submitted = total - missing.length;
+  const number = value => escapeScore(value);
+  const list = missing.length
+    ? `<ol class="score-report-missing-list">${missing.map(({ student, index }) => `<li><span>${number(student.no || index + 1)}</span><strong>${escapeScore(student.name)}</strong></li>`).join('')}</ol>`
+    : '<p class="score-report-missing-empty">ส่งครบทุกคนแล้ว</p>';
+  return `<div class="score-report-missing-summary"><strong>${escapeScore(item.name)}</strong><span>ส่งแล้ว ${submitted}/${total} คน · ยังไม่ส่ง ${missing.length} คน</span></div>${list}`;
+}
+
+function bindScoreReportMissingDialog(c, wrap) {
+  const section = wrap.querySelector('.score-report-submission-section');
+  const dialog = section?.querySelector('.score-report-missing-dialog');
+  if (!section || !dialog) return;
+  const close = () => { if (dialog.open) dialog.close(); else dialog.removeAttribute('open'); };
+  dialog.querySelector('.score-report-student-dialog-close')?.addEventListener('click', close);
+  dialog.addEventListener('click', event => { if (event.target === dialog) close(); });
+  let lastTrigger = null;
+  dialog.addEventListener('close', () => lastTrigger?.focus({ preventScroll: true }));
+  section.querySelectorAll('.score-report-submission-trigger').forEach(button => {
+    button.addEventListener('click', () => {
+      const item = scoreOrderedItems(c).find(entry => String(entry.id) === button.dataset.item);
+      const detail = dialog.querySelector('.score-report-missing-detail');
+      if (!item || !detail) return;
+      detail.innerHTML = scoreReportMissingDetail(c, item);
+      lastTrigger = button;
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+      dialog.querySelector('.score-report-student-dialog-close')?.focus({ preventScroll: true });
+    });
+  });
 }
 
 function scoreReportStudentDetail(c, studentId) {
   const student = (c.students || []).find(item => item.id === studentId);
-  if (!student) return '<div class="score-report-student-detail-empty">เลือกแท่งนักเรียนเพื่อดูรายละเอียดคะแนน</div>';
-  const sc = ensureScores(c), result = computeStudentScore(c, student.id);
-  const items = sc.items.map(item => {
+  if (!student) return '<div class="score-report-student-detail-empty">เลือกนักเรียนเพื่อดูรายละเอียดคะแนน</div>';
+  const sc = ensureScores(c);
+  const orderedItems = scoreOrderedItems(c);
+  let earned = 0, recordedMax = 0;
+  const items = orderedItems.map(item => {
     const value = (sc.marks[item.id] || {})[student.id], has = value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value));
+    if (has) { earned += clampMark(value, item.max); recordedMax += Math.max(0, Number(item.max) || 0); }
     return `<li><span>${escapeScore(item.name)}</span><strong>${has ? `${clampMark(value, item.max)} / ${item.max}` : 'ยังไม่ส่ง'}</strong></li>`;
   }).join('');
-  const submitted = sc.items.filter(item => { const value = (sc.marks[item.id] || {})[student.id]; return value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value)); }).length;
-  return `<div class="score-report-student-detail-head"><div><strong>${escapeScore(student.name)}</strong><span>ส่งแล้ว ${submitted}/${sc.items.length} งาน</span></div><b>${result.total} / 100</b></div><ul>${items || '<li>ยังไม่มีรายการคะแนน</li>'}</ul>`;
+  const submitted = orderedItems.filter(item => { const value = (sc.marks[item.id] || {})[student.id]; return value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value)); }).length;
+  return `<div class="score-report-student-detail-head"><div><strong>${escapeScore(student.name)}</strong><span>มีคะแนน ${submitted}/${orderedItems.length} งาน · งานที่ยังไม่มีคะแนนไม่นับเป็นศูนย์</span></div><b>${recordedMax ? `${earned} / ${recordedMax}` : '—'} คะแนน</b></div><ul>${items || '<li>ยังไม่มีรายการคะแนน</li>'}</ul>`;
 }
 
 function bindScoreReportStudentRows(c, wrap) {
   const section = wrap.querySelector('.score-report-student-section');
   if (!section) return;
-  section.insertAdjacentHTML('beforeend', `<div id="score-report-student-detail" class="score-report-student-detail">${scoreReportStudentDetail(c, c.students[0]?.id)}</div>`);
-  section.querySelectorAll('.score-report-student-row').forEach(row => {
-    const no = Number((row.querySelector('.score-report-student-label span')?.textContent || '').match(/^\s*(\d+)/)?.[1]);
-    const student = c.students.find(item => Number(item.no || c.students.indexOf(item) + 1) === no);
+  section.insertAdjacentHTML('beforeend', '<dialog id="score-report-student-dialog" class="score-report-student-dialog" aria-labelledby="score-report-student-dialog-title"><header><h4 id="score-report-student-dialog-title">รายละเอียดคะแนนรายนักเรียน</h4><button class="score-report-student-dialog-close" type="button" aria-label="ปิดรายละเอียด">×</button></header><div id="score-report-student-detail" class="score-report-student-detail"></div></dialog>');
+  const dialog = section.querySelector('.score-report-student-dialog');
+  let lastTrigger = null;
+  const closeDialog = () => { if (dialog?.open) dialog.close(); };
+  dialog?.querySelector('.score-report-student-dialog-close')?.addEventListener('click', closeDialog);
+  dialog?.addEventListener('click', event => { if (event.target === dialog) closeDialog(); });
+  dialog?.addEventListener('close', () => {
+    lastTrigger?.classList.remove('is-selected');
+    lastTrigger?.focus({ preventScroll: true });
+  });
+  section.querySelectorAll('.score-report-student-open').forEach(button => {
+    const student = c.students.find(item => String(item.id) === button.dataset.student);
     if (!student) return;
-    row.dataset.student = student.id;
-    row.tabIndex = 0;
-    row.setAttribute('role', 'button');
     const open = () => {
       const detail = section.querySelector('#score-report-student-detail');
       if (detail) detail.innerHTML = scoreReportStudentDetail(c, student.id);
-      section.querySelectorAll('.score-report-student-row').forEach(item => item.classList.toggle('is-selected', item === row));
+      lastTrigger = button;
+      if (typeof dialog?.showModal === 'function') dialog.showModal();
+      else dialog?.setAttribute('open', '');
+      dialog?.querySelector('.score-report-student-dialog-close')?.focus({ preventScroll: true });
     };
-    row.addEventListener('click', open);
-    row.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
+    button.addEventListener('click', open);
   });
 }
 
 function scoreReportStudentMatrix(c) {
-  const sc = ensureScores(c), items = sc.items || [], students = c.students || [];
+  const sc = ensureScores(c), items = scoreOrderedItems(c), students = c.students || [];
   if (!items.length || !students.length) return '';
   const headers = items.map(item => `<th scope="col"><span>${escapeScore(item.name)}</span><small>เต็ม ${item.max}</small></th>`).join('');
   const rows = students.map((student, index) => {
@@ -402,50 +475,37 @@ function renderScoreReport(c) {
   if (!wrap) return;
   const rows = scoreReportRows(c);
   const total = (c.students || []).length;
-  const summary = scoreReportClassSummary(c);
   const number = value => value.toLocaleString('th-TH', { maximumFractionDigits: 1 });
-  const selected = rows.find(row => row.item.id === scoreReportSelectedItem) || rows[0];
-  const groups = scoreReportDistribution(c, selected?.item);
-  const recorded = groups.reduce((sum, group) => sum + group.count, 0);
-  let angle = 0;
-  const slices = groups.map(group => {
-    const start = angle;
-    angle += recorded ? group.count / recorded * 360 : 0;
-    return `${group.color} ${start}deg ${angle}deg`;
-  }).join(',');
   wrap.innerHTML = `<section class="score-report">
-    <header class="score-report-heading"><div><span class="score-report-eyebrow">รายงานผลการเรียนรู้</span><h3>ภาพรวมคะแนนชิ้นงาน</h3><p>เปรียบเทียบผลคะแนน และดูการกระจายคะแนนในแต่ละงาน</p></div><span class="score-report-badge">คะแนนเฉลี่ย / 100%</span></header>
-    <div class="score-report-summary"><span>ค่าเฉลี่ยห้อง <b>${summary.average === null ? '—' : `${number(summary.average)}%`}<small> จากข้อมูลที่บันทึก</small></b></span><span>ผ่านเกณฑ์ 50% <b>${summary.passed}<small> / ${summary.studentsWithScores} คนที่มีคะแนน</small></b></span><span>ต้องติดตามงาน <b>${summary.incomplete}<small> คนยังส่งไม่ครบ</small></b></span><span>ชิ้นงานที่มีคะแนน <b>${rows.filter(row => row.percent !== null).length}<small> / ${rows.length} ชิ้นงาน</small></b></span></div>
-    <p class="score-report-note">ภาพรวมคำนวณจากคะแนนที่บันทึกแล้วเท่านั้น: คะแนน 0 นับรวม แต่ช่องว่างไม่ถูกนับเป็นศูนย์ · ใช้ตารางรายละเอียดเพื่อตรวจสอบข้อมูล ปพ.5 รายคนก่อนตัดสินผล</p>
-    ${!rows.length ? '<p class="score-report-empty">ยังไม่มีชิ้นงาน กรุณาเพิ่มรายการในแท็บคะแนนก่อน</p>' : !total ? '<p class="score-report-empty">ห้องนี้ยังไม่มีนักเรียน</p>' : `
-    <section class="score-report-bar-section"><div class="score-report-section-head"><h4>คะแนนเฉลี่ยรายชิ้นงาน</h4><span>เลือกแท่งเพื่อดูสัดส่วนคะแนนด้านล่าง</span></div>
-    <div class="score-report-vertical"><div class="score-report-axis" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div><div class="score-report-scroll" tabindex="0" role="region" aria-label="กราฟคะแนนเฉลี่ย เลื่อนแนวนอนเพื่อดูทุกชิ้นงาน">
-    <ol class="score-report-chart">${rows.map(row => `<li class="score-report-row">
-      <div class="score-report-label"><strong>${escapeScore(row.item.name)}</strong></div>
-      <button type="button" class="score-report-track" data-item="${escapeScoreAttr(row.item.id)}" onclick="selectScoreReportItem(this.dataset.item)" aria-pressed="${row === selected}" aria-label="${escapeScoreAttr(row.item.name)}: ${row.percent === null ? 'ยังไม่มีผลคะแนน' : `คะแนนเฉลี่ย ${number(row.percent)} เปอร์เซ็นต์`} เลือกดูสัดส่วนคะแนน"><span class="score-report-bar${row.percent === null ? ' is-empty' : ''}" style="height:${row.percent ?? 0}%"><span class="score-report-value">${row.percent === null ? '—' : `${number(row.percent)}%`}</span></span></button>
-      <div class="score-report-detail"><span>${row.average === null ? 'ยังคำนวณไม่ได้' : `เฉลี่ย ${number(row.average)} / ${number(Number(row.item.max))} คะแนน`}</span><span>มีคะแนน ${row.count}/${total} คน${row.count < total ? ' · ยังไม่ครบ' : ''}</span></div>
-    </li>`).join('')}</ol></div></div></section>
-    <section class="score-report-pie-section"><div class="score-report-section-head"><h4>สัดส่วนนักเรียนตามช่วงคะแนน</h4><span>หนึ่งวงกลม · หนึ่งชิ้นงาน</span></div>
-      <label for="score-report-item">เลือกชิ้นงาน</label>
-      <select id="score-report-item" class="form-control" onchange="selectScoreReportItem(this.value)">${rows.map(row => `<option value="${escapeScoreAttr(row.item.id)}"${row === selected ? ' selected' : ''}>${escapeScore(row.item.name)}</option>`).join('')}</select>
-      <p class="score-report-note">ช่วงคะแนนคิดเป็นเปอร์เซ็นต์ของคะแนนเต็ม · มีคะแนน ${recorded}/${total} คน · ยังไม่มีคะแนน ${total - recorded} คน (ไม่นับในวงกลม)</p>
-      ${recorded ? `<div class="score-report-pie-layout"><div class="score-report-pie" role="img" aria-label="สัดส่วนช่วงคะแนน: ${groups.map(group => `${group.label} ${group.count} คน`).join(', ')}" style="background:conic-gradient(${slices})"><div class="score-report-pie-center"><strong>${recorded}<small> คน</small></strong><span>มีคะแนนแล้ว</span></div></div><ul class="score-report-legend">${groups.map(group => `<li><span class="score-report-dot" style="background:${group.color}"></span><span>${group.label}</span><strong>${group.count} คน <small>${number(group.count / recorded * 100)}%</small></strong></li>`).join('')}</ul></div>` : '<p class="score-report-empty">ยังไม่มีผลคะแนนสำหรับแสดงกราฟวงกลม</p>'}
-    </section>`}
+    ${!rows.length ? '<p class="score-report-empty score-report-empty-items" hidden>ยังไม่มีชิ้นงาน กรุณาเพิ่มรายการในแท็บคะแนนก่อน</p>' : !total ? '<p class="score-report-empty score-report-empty-items" hidden>ห้องนี้ยังไม่มีนักเรียน</p>' : ''}
+    ${rows.length && total ? `
+    <section class="score-report-bar-section"><div class="score-report-section-head"><h4>คะแนนเฉลี่ยรายชิ้นงาน</h4><span>ค่าเฉลี่ยคิดจากนักเรียนที่มีคะแนน · เลือกงานเพื่อดูกราฟวงกลม</span></div>
+    <ol class="score-report-chart" aria-label="คะแนนเฉลี่ยของแต่ละชิ้นงาน">${rows.map(row => `<li class="score-report-row">
+      <button type="button" class="score-report-track" data-item="${escapeScoreAttr(row.item.id)}" aria-haspopup="dialog" aria-controls="score-report-distribution-dialog" aria-label="ดูกราฟการกระจายคะแนน ${escapeScoreAttr(row.item.name)}">
+        <span class="score-report-label"><strong title="${escapeScoreAttr(row.item.name)}">${escapeScore(row.item.name)}</strong><small>มีคะแนน ${row.count}/${total} คน</small></span>
+        <span class="score-report-item-meter" aria-hidden="true"><span class="score-report-bar${row.percent === null ? ' is-empty' : ''}" style="--score-report-target:${row.percent ?? 0}%"></span></span>
+        <span class="score-report-item-average"><strong>${row.percent === null ? '—' : `${number(row.percent)}%`}</strong><small>${row.average === null ? 'ยังไม่มีคะแนน' : `เฉลี่ย ${number(row.average)} / ${number(Number(row.item.max))}`}</small></span>
+      </button>
+    </li>`).join('')}</ol>
+    <dialog id="score-report-distribution-dialog" class="score-report-student-dialog score-report-distribution-dialog" aria-labelledby="score-report-distribution-title"><header><h4 id="score-report-distribution-title">การกระจายคะแนน</h4><button class="score-report-student-dialog-close" type="button" aria-label="ปิดกราฟ">×</button></header><div class="score-report-distribution-detail"></div></dialog>
+    </section>` : ''}
   </section>`;
   const report = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report') : null;
   if (report) {
+    report.dataset.itemCount = String(rows.length);
+    report.dataset.studentCount = String(total);
     const barSection = report.querySelector('.score-report-bar-section');
     if (barSection) {
       barSection.insertAdjacentHTML('beforebegin', scoreReportStudentChart(c));
       barSection.insertAdjacentHTML('beforebegin', scoreReportSubmissionChart(c));
     }
-    const heading = report.querySelector('.score-report-heading');
-    if (heading) heading.insertAdjacentHTML('afterend', `<nav class="score-report-tabs" role="tablist" aria-label="ประเภทกราฟ"><button type="button" class="score-report-tab" role="tab" data-tab="overview" aria-selected="false" onclick="selectScoreReportTab('overview')">ภาพรวม</button><button type="button" class="score-report-tab" role="tab" data-tab="items" aria-selected="false" onclick="selectScoreReportTab('items')">รายชิ้นงาน</button><button type="button" class="score-report-tab" role="tab" data-tab="students" aria-selected="false" onclick="selectScoreReportTab('students')">รายนักเรียน</button><button type="button" class="score-report-tab" role="tab" data-tab="submission" aria-selected="false" onclick="selectScoreReportTab('submission')">การส่งงาน</button></nav>`);
     selectScoreReportTab(scoreReportTab);
+    bindScoreReportDistributionDialog(c, wrap);
+    bindScoreReportMissingDialog(c, wrap);
   }
   const studentSection = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-student-section') : null;
   if (studentSection) {
-    studentSection.classList.add('mode-2d');
+    bindScoreReportStudentRows(c, wrap);
   }
 }
 
@@ -1047,8 +1107,9 @@ function renderScoreMatrix(c) {
   c.students.forEach((s, index) => {
     const studentNo = s.no || (index + 1);
     const studentName = escapeScore(s.name);
+    const avatar = mscAvatar(s, index);
     body += `<tr data-score-row="${index}">`
-      + `<td class="sc-c-no">${studentNo}</td>`
+      + `<td class="sc-c-no"><span class="ck-student-number" style="--av-bg:${avatar.bg};--av-fg:${avatar.fg};" title="เลขที่ ${escapeScoreAttr(studentNo)}">${escapeScore(studentNo)}</span></td>`
       + `<td class="sc-c-code">${escapeScore(s.studentCode || '—')}</td>`
       + `<td class="sc-c-name" title="${escapeScoreAttr(s.name)}">${studentName}</td>`;
     // data-r/data-c = พิกัดแถว-คอลัมน์ ใช้หาช่องถัดไปตอนกด Enter/ลูกศร (ดู bindScoreCellKeys)

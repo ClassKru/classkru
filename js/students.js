@@ -131,7 +131,7 @@ function renderWebStudents() {
     // สี avatar ชุดเดียวกับหน้าคะแนน (ไล่ตามลำดับคนในห้อง → คนเดียวกันได้สีตรงกันทั้ง 2 หน้า) — โชว์เป็นวงกลมบนมือถือ
     const realIdx = targetClass.students.indexOf(s);
     const av = (typeof mscAvatar === 'function') ? mscAvatar(s, realIdx < 0 ? 0 : realIdx) : { bg: '', fg: '' };
-    const avatarText = nickEsc || String(s.no || visibleIndex + 1);
+    const avatarText = nickEsc || escapeStudentCardHtml(String(displayName.first || 'นักเรียน').slice(0, 1));
     const avatarClass = avatarText.length > 5 ? ' is-tiny' : (avatarText.length > 3 ? ' is-small' : '');
     const avatar = s.photoBase64
       ? `<img src="${s.photoBase64}" alt="">`
@@ -141,7 +141,7 @@ function renderWebStudents() {
     card.setAttribute('onkeydown', `if((event.key==='Enter'||event.key===' ')&&!event.target.closest('input,button')){event.preventDefault();openStudentSummaryModal('${s.id}','${targetClass.id}')}`);
     card.innerHTML = `
       <div class="student-card-top">
-        <span class="student-card-no" style="--av-bg:${av.bg};--av-fg:${av.fg};">เลขที่ ${s.no || '-'}</span>
+        <span class="student-card-no" style="--av-bg:${av.bg};--av-fg:${av.fg};" title="เลขที่ ${escapeStudentCardHtml(s.no || '-')}" aria-label="เลขที่ ${escapeStudentCardHtml(s.no || '-')}">${escapeStudentCardHtml(s.no || '-')}</span>
         <div class="student-card-actions">
           <button class="student-card-icon-btn" title="แก้ไขข้อมูล" onclick="event.stopPropagation();currentClassId='${targetClass.id}';openStudentDetailModal('${s.id}','${targetClass.id}')"><i class="hgi-stroke hgi-edit-02"></i></button>
           <button class="student-card-icon-btn danger" title="ลบนักเรียน" onclick="event.stopPropagation();currentClassId='${targetClass.id}';deleteStudent('${s.id}')"><i class="hgi-stroke hgi-delete-02"></i></button>

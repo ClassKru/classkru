@@ -24,6 +24,31 @@
   <style>
     .activity-status-card{display:grid;gap:14px;padding:16px 18px;background:#f8fcfa}.activity-status-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.activity-status-head h2{margin:0;font-size:1.05rem}.activity-status-phase{padding:6px 12px;border-radius:999px;background:#e8f7f0;color:#16866c;font-size:.82rem;font-weight:800}.activity-status-grid{display:grid;grid-template-columns:1.35fr repeat(4,1fr);gap:8px}.activity-status-item{padding:10px 12px;border:1px solid #cde6df;border-radius:14px;background:#fff;color:#6b8580;font-size:.78rem;font-weight:800}.activity-status-item strong{display:block;margin-top:2px;color:#123b31;font-size:1.05rem}.activity-status-sync{color:#809a93;font-size:.76rem;font-weight:700}@media(max-width:760px){.activity-status-grid{grid-template-columns:repeat(2,1fr)}.activity-status-grid .activity-status-item:first-child{grid-column:1/-1}}
   </style>
+  <style>
+    :root {
+      --pastel-mint: #e8f4ec;
+      --pastel-mint-border: #c8e7d4;
+      --pastel-mint-ink: #22865e;
+      --pastel-amber: #fdf4df;
+      --pastel-amber-border: #f4e2b7;
+      --pastel-amber-ink: #a9750a;
+      --pastel-blue: #eaf1fb;
+      --pastel-blue-border: #d3e1f7;
+      --pastel-blue-ink: #3b7fd4;
+    }
+    .stats .stat:nth-child(1) { border-color: var(--pastel-mint-border); background: var(--pastel-mint); }
+    .stats .stat:nth-child(1) b { color: var(--pastel-mint-ink); }
+    .stats .stat:nth-child(2) { border-color: var(--pastel-amber-border); background: var(--pastel-amber); }
+    .stats .stat:nth-child(2) b { color: var(--pastel-amber-ink); }
+    .stats .stat:nth-child(3) { border-color: var(--pastel-blue-border); background: var(--pastel-blue); }
+    .stats .stat:nth-child(3) b { color: var(--pastel-blue-ink); }
+    .qr-box,.presentation-qr { border-color: var(--pastel-mint-border); }
+    .activity-status-card { background: color-mix(in srgb,var(--pastel-mint) 38%,var(--card)); }
+    .activity-status-phase { background: var(--pastel-mint); color: var(--pastel-mint-ink); }
+    .activity-status-grid .activity-status-item:nth-child(2) { border-color: var(--pastel-mint-border); }
+    .activity-status-grid .activity-status-item:nth-child(3) { border-color: var(--pastel-amber-border); }
+    .activity-status-grid .activity-status-item:nth-child(4) { border-color: var(--pastel-blue-border); }
+  </style>
 </head>
 <body>
   <main id="teacher-view" class="page hidden">
