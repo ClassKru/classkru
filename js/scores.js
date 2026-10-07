@@ -1953,11 +1953,6 @@ function styleScoreWorksheet(ws, built, studentCount) {
       bottom: thinBottom
     }
   });
-  for (let col = 0; col < columnCount; col++) {
-    const cell = getCell(2, col);
-    if (typeof cell.v === 'number') cell.s.numFmt = '0.##';
-  }
-
   for (let row = 3; row < lastRow; row++) {
     const stripe = (row - 3) % 2 === 1;
     for (let col = 0; col < columnCount; col++) {
@@ -1974,7 +1969,6 @@ function styleScoreWorksheet(ws, built, studentCount) {
           bottom: thinBottom
         }
       };
-      if (typeof cell.v === 'number') cell.s.numFmt = '0.##';
     }
   }
 

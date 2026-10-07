@@ -64,10 +64,15 @@ test('score export builds a styled, readable workbook without filter dropdowns o
   const stylesXml = new TextDecoder().decode(zip['xl/styles.xml']);
   const sheetXml = new TextDecoder().decode(zip['xl/worksheets/sheet1.xml']);
   const pageHtml = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+  const cellXfs = stylesXml.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/)?.[1].match(/<xf\b[^>]*\/>/g) || [];
   const cellStyle = address => {
     const match = sheetXml.match(new RegExp(`<c r="${address}"([^>]*)>`));
     assert.ok(match, `generated workbook contains cell ${address}`);
     return match[1].match(/\bs="(\d+)"/)?.[1];
+  };
+  const numberFormatId = address => {
+    const styleId = Number(cellStyle(address));
+    return cellXfs[styleId]?.match(/\bnumFmtId="(\d+)"/)?.[1] || '0';
   };
 
   assert.match(stylesXml, /<name val="TH SarabunPSK"\/>/);
@@ -75,7 +80,12 @@ test('score export builds a styled, readable workbook without filter dropdowns o
   assert.match(stylesXml, /rgb="FF0F6E56"/);
   assert.match(stylesXml, /rgb="FFF4FAF6"/);
   assert.match(stylesXml, /rgb="FFE8F3ED"/);
-  assert.match(stylesXml, /formatCode="0\.##"/);
+  assert.match(stylesXml, /<numFmts count="0"\/>/, 'no custom number format is applied');
+  assert.equal(numberFormatId('D3'), '0', 'full-score cells use General');
+  assert.equal(numberFormatId('D4'), '0', 'score cells use General');
+  assert.equal(numberFormatId('D5'), '0', 'decimal scores also use General');
+  assert.match(sheetXml, /<c r="D4"[^>]*><v>10<\/v><\/c>/, 'integer score is stored as a number');
+  assert.match(sheetXml, /<c r="D5"[^>]*><v>8\.5<\/v><\/c>/, 'fractional score remains numeric');
   assert.notEqual(cellStyle('A1'), undefined, 'merged title has an applied style');
   assert.notEqual(cellStyle('D2'), undefined, 'header has an applied style');
   assert.notEqual(cellStyle('D4'), undefined, 'score cells have an applied style');
