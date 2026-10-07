@@ -57,7 +57,7 @@ npx serve
 
 ## การ Deploy
 
-Deploy อัตโนมัติผ่าน Vercel เมื่อโค้ดถูก merge เข้า `main` (อยู่ระหว่างตั้งค่า)
+Pull request จะมี GitHub Actions CI และ Vercel Preview; เมื่อ merge เข้า `main` จะเกิด production deployment ผ่าน Vercel อัตโนมัติ
 
 ## ทีม
 
