@@ -1872,7 +1872,8 @@ function buildScoreSheet(c, withData) {
 
   // แถว 0: ป้ายกลุ่ม (merge เหนือรายการของ bucket เดียวกัน) — ช่องระบุตัวตน/สรุปเว้นว่าง
   const groupRow = new Array(width).fill('');
-  const merges = [];
+  const merges = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }];
+  groupRow[0] = `สมุดคะแนน · ${c.subject || 'รายวิชา'} ${c.className || ''}`.trim();
   let ci = nID;
   ['before', 'after', 'mid', 'final'].forEach(bk => {
     const cnt = items.filter(i => i.bucket === bk).length;
@@ -1889,17 +1890,102 @@ function buildScoreSheet(c, withData) {
   const aoa = [groupRow, headRow, maxRow];
   c.students.forEach((s, idx) => {
     const row = [s.no || (idx + 1), s.studentCode || '', s.name];
+    const hasScore = Boolean(sc.gradeOverride[s.id]) || items.some(it => clampMark((sc.marks[it.id] || {})[s.id], it.max) !== '');
     items.forEach(it => {
       const v = withData ? clampMark((sc.marks[it.id] || {})[s.id], it.max) : '';
       row.push(v === '' ? '' : Number(v));
     });
-    row.push(withData ? computeStudentScore(c, s.id).total : '');
-    row.push(withData ? effectiveGrade(c, s.id) : '');
+    row.push(withData && hasScore ? computeStudentScore(c, s.id).total : '');
+    row.push(withData && hasScore ? effectiveGrade(c, s.id) : '');
     aoa.push(row);
   });
 
-  const cols = [{ wch: 6 }, { wch: 12 }, { wch: 24 }, ...items.map(() => ({ wch: 9 })), { wch: 8 }, { wch: 12 }];
+  const cols = [{ wch: 7 }, { wch: 14 }, { wch: 30 }, ...items.map(() => ({ wch: 14 })), { wch: 12 }, { wch: 18 }];
   return { aoa, merges, cols };
+}
+
+function styleScoreWorksheet(ws, built, studentCount) {
+  const columnCount = built.aoa[0].length;
+  const lastRow = built.aoa.length;
+  const lastCol = columnCount - 1;
+  const colors = {
+    deep: 'FF0F6E56', primary: 'FF1D9E75', pale: 'FFEAF6F0', input: 'FFF4FAF6',
+    inputStripe: 'FFE8F3ED', stripe: 'FFF7F9F8', white: 'FFFFFFFF', text: 'FF18352D',
+    border: 'FFDCE7E1', summary: 'FFE7F3EC', summaryStripe: 'FFDDEDE4'
+  };
+  const thinBottom = { style: 'thin', color: { rgb: colors.border } };
+  const getCell = (row, col) => {
+    const address = XLSX.utils.encode_cell({ r: row, c: col });
+    if (!ws[address]) ws[address] = { t: 'z', v: '' };
+    return ws[address];
+  };
+  const styleRow = (row, style) => {
+    for (let col = 0; col < columnCount; col++) getCell(row, col).s = style;
+  };
+
+  styleRow(0, {
+    fill: { fgColor: { rgb: colors.deep } },
+    font: { name: 'TH SarabunPSK', sz: 14, bold: true, color: { rgb: colors.white } },
+    alignment: { vertical: 'center', horizontal: 'center', wrapText: true },
+    border: { bottom: { style: 'medium', color: { rgb: colors.primary } } }
+  });
+  getCell(0, 0).s = {
+    ...getCell(0, 0).s,
+    alignment: { vertical: 'center', horizontal: 'left', wrapText: true, indent: 1 }
+  };
+  styleRow(1, {
+    fill: { fgColor: { rgb: colors.primary } },
+    font: { name: 'TH SarabunPSK', sz: 14, bold: true, color: { rgb: colors.white } },
+    alignment: { vertical: 'center', horizontal: 'center', wrapText: true },
+    border: {
+      left: { style: 'thin', color: { rgb: colors.white } },
+      right: { style: 'thin', color: { rgb: colors.white } },
+      bottom: { style: 'medium', color: { rgb: colors.deep } }
+    }
+  });
+  styleRow(2, {
+    fill: { fgColor: { rgb: colors.pale } },
+    font: { name: 'TH SarabunPSK', sz: 14, bold: true, color: { rgb: colors.deep } },
+    alignment: { vertical: 'center', horizontal: 'center', wrapText: true },
+    border: {
+      left: { style: 'thin', color: { rgb: colors.border } },
+      right: { style: 'thin', color: { rgb: colors.border } },
+      bottom: thinBottom
+    }
+  });
+  for (let col = 0; col < columnCount; col++) {
+    const cell = getCell(2, col);
+    if (typeof cell.v === 'number') cell.s.numFmt = '0.##';
+  }
+
+  for (let row = 3; row < lastRow; row++) {
+    const stripe = (row - 3) % 2 === 1;
+    for (let col = 0; col < columnCount; col++) {
+      const cell = getCell(row, col);
+      const summary = col >= columnCount - 2;
+      const scoreInput = col >= 3 && col < lastCol - 1;
+      cell.s = {
+        fill: { fgColor: { rgb: summary ? (stripe ? colors.summaryStripe : colors.summary) : (scoreInput ? (stripe ? colors.inputStripe : colors.input) : (stripe ? colors.stripe : colors.white)) } },
+        font: { name: 'TH SarabunPSK', sz: 14, color: { rgb: colors.text }, ...(summary ? { bold: true } : {}) },
+        alignment: { vertical: 'center', horizontal: col === 2 ? 'left' : 'center', wrapText: col === 2 },
+        border: {
+          left: { style: 'thin', color: { rgb: colors.border } },
+          right: { style: 'thin', color: { rgb: colors.border } },
+          bottom: thinBottom
+        }
+      };
+      if (typeof cell.v === 'number') cell.s.numFmt = '0.##';
+    }
+  }
+
+  ws['!rows'] = [
+    { hpt: 36 },
+    { hpt: 44 },
+    { hpt: 32 },
+    ...Array.from({ length: studentCount }, () => ({ hpt: 28 }))
+  ];
+  ws['!margins'] = { left: 0.25, right: 0.25, top: 0.45, bottom: 0.45, header: 0.2, footer: 0.2 };
+  delete ws['!autofilter'];
 }
 
 // คะแนนราย "ส่วน" (ถ่วงน้ำหนักตาม ratio แล้ว) — ใช้กับฟอร์มราชการ: keys=['before','after'] = หน่วยการเรียน
@@ -1907,6 +1993,7 @@ function _writeSheet(c, built, suffix, okMsg) {
   const ws = XLSX.utils.aoa_to_sheet(built.aoa);
   if (built.merges && built.merges.length) ws['!merges'] = built.merges;
   ws['!cols'] = built.cols;
+  styleScoreWorksheet(ws, built, c.students.length);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'คะแนน');
   XLSX.writeFile(wb, `${scoreFileBase(c)}_${suffix}.xlsx`);
