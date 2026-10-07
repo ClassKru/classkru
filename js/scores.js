@@ -172,9 +172,9 @@ function viewClassScores(classId) {
 function scoreWorkTabsHtml(c) {
   const tabs = [
     { key: 'overview', label: 'คะแนน', icon: 'hgi-table' },
-    { key: 'report-students', label: 'รายนักเรียน', icon: 'hgi-user-group' },
+    { key: 'report-students', label: 'คะแนนรายคน', icon: 'hgi-user-group' },
     { key: 'report-items', label: 'คะแนนชิ้นงาน', icon: 'hgi-table' },
-    { key: 'report-submission', label: 'การส่งงาน', icon: 'hgi-task-01' },
+    { key: 'report-summary', label: 'สรุปผล', icon: 'hgi-award-01' },
     { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01', locked: true },
     { key: 'pp5', label: 'ปพ.5', icon: 'hgi-book-open-01', locked: true }
   ];
@@ -191,7 +191,7 @@ function isScoreWorkspaceTabActive(key) {
 }
 
 function setScoreWorkspaceMode(mode, classId) {
-  const reportTabs = { 'report-items': 'items', 'report-students': 'students', 'report-submission': 'submission' };
+  const reportTabs = { 'report-items': 'items', 'report-students': 'students', 'report-summary': 'summary' };
   if (reportTabs[mode]) {
     scoreWorkspaceMode = 'report';
     scoreReportTab = reportTabs[mode];
@@ -238,13 +238,23 @@ function scoreReportRows(c) {
   });
 }
 
+function scoreReportPercentTone(percent) {
+  if (percent === null || percent === undefined || !Number.isFinite(Number(percent))) return '';
+  const value = Number(percent);
+  if (value < 50) return 'tone-0';
+  if (value < 60) return 'tone-1';
+  if (value < 70) return 'tone-2';
+  if (value < 80) return 'tone-3';
+  return 'tone-4';
+}
+
 function scoreReportDistribution(c, item) {
   const groups = [
-    { label: 'ต่ำกว่า 50%', count: 0, color: 'color-mix(in srgb, var(--color-absent) 68%, var(--bg-card))' },
-    { label: '50–ต่ำกว่า 60%', count: 0, color: 'color-mix(in srgb, var(--color-late) 68%, var(--bg-card))' },
-    { label: '60–ต่ำกว่า 70%', count: 0, color: 'color-mix(in srgb, var(--tab-term-accent) 68%, var(--bg-card))' },
-    { label: '70–ต่ำกว่า 80%', count: 0, color: 'color-mix(in srgb, var(--color-leave) 68%, var(--bg-card))' },
-    { label: '80–100%', count: 0, color: 'color-mix(in srgb, var(--color-present) 68%, var(--bg-card))' }
+    { label: 'ต่ำกว่า 50%', count: 0, color: 'color-mix(in srgb, var(--color-absent) 60%, var(--bg-card))' },
+    { label: '50–59%', count: 0, color: 'color-mix(in srgb, var(--color-late) 60%, var(--bg-card))' },
+    { label: '60–69%', count: 0, color: 'color-mix(in srgb, var(--tab-term-accent) 60%, var(--bg-card))' },
+    { label: '70–79%', count: 0, color: 'color-mix(in srgb, var(--color-leave) 60%, var(--bg-card))' },
+    { label: '80–100%', count: 0, color: 'color-mix(in srgb, var(--color-present) 60%, var(--bg-card))' }
   ];
   if (!item || !Number.isFinite(Number(item.max)) || Number(item.max) <= 0) return groups;
   const marks = ensureScores(c).marks[item.id] || {};
@@ -255,6 +265,21 @@ function scoreReportDistribution(c, item) {
     groups[percent < 50 ? 0 : percent < 60 ? 1 : percent < 70 ? 2 : percent < 80 ? 3 : 4].count++;
   });
   return groups;
+}
+
+function scoreReportDistributionStudents(c, item, bandIndex) {
+  const max = Number(item?.max);
+  if (!Number.isFinite(max) || max <= 0) return [];
+  const marks = ensureScores(c).marks[item.id] || {};
+  return (c.students || []).map((student, index) => {
+    const raw = marks[student.id];
+    const recorded = raw !== null && raw !== undefined && String(raw).trim() !== '' && Number.isFinite(Number(raw));
+    if (!recorded) return null;
+    const mark = clampMark(raw, max);
+    const percent = mark / max * 100;
+    const band = percent < 50 ? 0 : percent < 60 ? 1 : percent < 70 ? 2 : percent < 80 ? 3 : 4;
+    return band === bandIndex ? { student, index, mark } : null;
+  }).filter(Boolean).sort((a, b) => (Number(a.student.no) || a.index + 1) - (Number(b.student.no) || b.index + 1) || a.index - b.index);
 }
 
 function scoreReportDistributionContent(c, item) {
@@ -269,11 +294,34 @@ function scoreReportDistributionContent(c, item) {
   }).join(',');
   const row = scoreReportRows(c).find(result => result.item.id === item.id);
   const number = value => value.toLocaleString('th-TH', { maximumFractionDigits: 1 });
+  const bandCards = groups.map((group, index) => {
+    const percent = recorded ? number(group.count / recorded * 100) : 0;
+    const label = escapeScore(group.label);
+    const content = `<span class="score-report-band-card-label"><i aria-hidden="true"></i><strong>${label}</strong></span><span class="score-report-band-card-count"><b>นักเรียน ${group.count} คน</b><small>${percent}%</small></span>`;
+    return `<li>${group.count
+      ? `<button type="button" class="score-report-band-card tone-${index}" data-band="${index}" aria-controls="score-report-band-student-detail" aria-pressed="false" aria-label="ดูรายชื่อนักเรียน ${group.count} คน ช่วงคะแนน ${label}">${content}</button>`
+      : `<div class="score-report-band-card is-empty tone-${index}" aria-label="ช่วงคะแนน ${label} ไม่มีนักเรียน">${content}</div>`}</li>`;
+  }).join('');
   return `<div class="score-report-distribution-content">
     <div class="score-report-distribution-summary"><div><strong>${escapeScore(item.name)}</strong><span>คะแนนเฉลี่ย ${row?.average === null || row?.average === undefined ? 'ยังไม่มีคะแนน' : `${number(row.average)} / ${number(Number(item.max))} คะแนน`}</span></div><b>${row?.percent == null ? '—' : `${number(row.percent)}%`}</b></div>
     <p class="score-report-note">ช่วงคะแนนคิดเป็นเปอร์เซ็นต์ของคะแนนเต็ม · มีคะแนน ${recorded}/${total} คน · ยังไม่มีคะแนน ${total - recorded} คน (ไม่นับในวงกลม)</p>
-    ${recorded ? `<div class="score-report-pie-layout"><div class="score-report-pie" role="img" aria-label="สัดส่วนช่วงคะแนน: ${groups.map(group => `${group.label} ${group.count} คน`).join(', ')}" style="background:conic-gradient(${slices})"><div class="score-report-pie-center"><strong>${recorded}<small> คน</small></strong><span>มีคะแนนแล้ว</span></div></div><ul class="score-report-legend">${groups.map(group => `<li><span class="score-report-dot" style="background:${group.color}"></span><span>${group.label}</span><strong>${group.count} คน <small>${recorded ? number(group.count / recorded * 100) : 0}%</small></strong></li>`).join('')}</ul></div>` : '<p class="score-report-empty">ยังไม่มีผลคะแนนสำหรับแสดงกราฟวงกลม</p>'}
+    ${recorded ? `<div class="score-report-pie-layout"><div class="score-report-pie" role="img" aria-label="สัดส่วนช่วงคะแนน: ${groups.map(group => `${group.label} ${group.count} คน`).join(', ')}" style="background:conic-gradient(${slices})"><div class="score-report-pie-center"><strong>${recorded}<small> คน</small></strong><span>มีคะแนนแล้ว</span></div></div><div class="score-report-band-groups"><p class="score-report-band-card-hint">กดการ์ดช่วงคะแนนเพื่อดูรายชื่อ</p><ul class="score-report-band-card-list">${bandCards}</ul></div></div><section class="score-report-band-student-detail" id="score-report-band-student-detail" aria-live="polite" aria-atomic="false"><p class="score-report-band-student-hint">รายชื่อจะแสดงตรงนี้หลังเลือกช่วงคะแนน</p></section>` : '<p class="score-report-empty">ยังไม่มีผลคะแนนสำหรับแสดงกราฟวงกลม</p>'}
   </div>`;
+}
+
+function scoreReportDistributionBandDetail(c, item, bandIndex) {
+  const groups = scoreReportDistribution(c, item);
+  const group = groups[bandIndex];
+  if (!group) return '<p class="score-report-empty">ไม่พบช่วงคะแนนที่เลือก</p>';
+  const students = scoreReportDistributionStudents(c, item, bandIndex);
+  const max = Number(item.max);
+  const rows = students.map(({ student, index, mark }) => {
+    const avatar = mscAvatar(student, index);
+    const number = student.no || index + 1;
+    const score = Number(mark).toLocaleString('th-TH', { maximumFractionDigits: 2 });
+    return `<li><span class="ck-student-number" style="--av-bg:${avatar.bg};--av-fg:${avatar.fg};" title="เลขที่ ${escapeScoreAttr(number)}">${escapeScore(number)}</span><strong>${escapeScore(student.name)}</strong><small>${score} / ${Number(max).toLocaleString('th-TH', { maximumFractionDigits: 2 })} คะแนน</small></li>`;
+  }).join('');
+  return `<div class="score-report-band-student-head"><div><span>ช่วงคะแนน</span><strong>${escapeScore(group.label)}</strong></div><b>นักเรียน ${students.length} คน</b></div>${students.length ? `<ol class="score-report-band-student-list">${rows}</ol>` : '<p class="score-report-empty">ไม่มีนักเรียนในช่วงคะแนนนี้</p>'}`;
 }
 
 function bindScoreReportDistributionDialog(c, wrap) {
@@ -292,6 +340,14 @@ function bindScoreReportDistributionDialog(c, wrap) {
       const title = dialog.querySelector('#score-report-distribution-title');
       if (title) title.textContent = 'การกระจายคะแนน';
       content.innerHTML = scoreReportDistributionContent(c, item);
+      content.querySelectorAll('.score-report-band-card:not(.is-empty)').forEach(card => {
+        card.addEventListener('click', () => {
+          const bandDetail = content.querySelector('.score-report-band-student-detail');
+          if (!bandDetail) return;
+          content.querySelectorAll('.score-report-band-card[aria-pressed]').forEach(entry => entry.setAttribute('aria-pressed', String(entry === card)));
+          bandDetail.innerHTML = scoreReportDistributionBandDetail(c, item, Number(card.dataset.band));
+        });
+      });
       lastTrigger = button;
       if (typeof dialog.showModal === 'function') dialog.showModal();
       else dialog.setAttribute('open', '');
@@ -302,7 +358,7 @@ function bindScoreReportDistributionDialog(c, wrap) {
 
 let scoreReportTab = 'items';
 function selectScoreReportTab(tab) {
-  scoreReportTab = ['items', 'students', 'submission'].includes(tab) ? tab : 'items';
+  scoreReportTab = ['items', 'students', 'summary'].includes(tab) ? tab : 'items';
   const report = document.querySelector('.score-report');
   if (!report) return;
   report.dataset.activeTab = scoreReportTab;
@@ -316,10 +372,10 @@ function selectScoreReportTab(tab) {
   const sections = {
     items: ['.score-report-bar-section'],
     students: ['.score-report-student-section'],
-    submission: ['.score-report-submission-section'],
+    summary: ['.score-report-summary-section'],
   };
   const visible = sections[scoreReportTab];
-  report.querySelectorAll('.score-report-bar-section,.score-report-student-section,.score-report-submission-section').forEach(section => {
+  report.querySelectorAll('.score-report-bar-section,.score-report-student-section,.score-report-summary-section').forEach(section => {
     section.hidden = !visible.some(selector => section.matches(selector));
   });
   report.classList.remove('is-animated');
@@ -342,31 +398,118 @@ function scoreReportStudentChart(c) {
       return { item, max, value, has };
     });
     const submitted = values.filter(value => value.has).length;
+    const complete = values.length > 0 && values.every(value => value.has);
+    const totalScore = complete ? computeStudentScore(c, student.id).total : null;
+    const grade = complete ? effectiveGrade(c, student.id) : null;
     const rollNo = Number(student.no);
-    return { student, index, rollNo: Number.isFinite(rollNo) && rollNo > 0 ? rollNo : index + 1, values, submitted };
+    return { student, index, rollNo: Number.isFinite(rollNo) && rollNo > 0 ? rollNo : index + 1, values, submitted, totalScore, grade };
   }).sort((a, b) => a.rollNo - b.rollNo || a.index - b.index);
-  const headers = items.map((item, index) => `<th scope="col" class="score-report-student-item-head" title="${escapeScoreAttr(item.name)}"><span>ชิ้นที่ ${index + 1}</span><strong>${escapeScore(item.name)}</strong></th>`).join('');
+  const headers = items.map((item, index) => `<th scope="col" class="score-report-student-item-head"><span>ชิ้นที่ ${index + 1}</span><button type="button" class="score-report-student-item-open" data-item="${escapeScoreAttr(item.id)}" aria-haspopup="dialog" aria-controls="score-report-missing-dialog" aria-label="ดูผู้ที่ยังไม่มีคะแนนใน ${escapeScoreAttr(item.name)}" title="กดเพื่อดูสถานะคะแนนของ ${escapeScoreAttr(item.name)}">${escapeScore(item.name)}</button></th>`).join('');
   const chartRows = records.map((record, rowIndex) => {
     const cells = record.values.map(({ item, has }) => `<td><span class="score-report-student-dot ${has ? 'is-recorded' : 'is-empty'}" role="img" aria-label="${escapeScoreAttr(item.name)}: ${has ? 'มีคะแนนแล้ว' : 'ยังไม่มีคะแนน'}" title="${escapeScoreAttr(item.name)}: ${has ? 'มีคะแนนแล้ว' : 'ยังไม่มีคะแนน'}"><span aria-hidden="true">${has ? '✓' : '×'}</span></span></td>`).join('');
     const name = escapeScore(record.student.name), nameAttr = escapeScoreAttr(record.student.name), studentId = escapeScoreAttr(record.student.id);
     const number = record.student.no || record.index + 1, avatar = mscAvatar(record.student, record.index);
-    return `<tr class="score-report-student-row" style="transition-delay:${Math.min(rowIndex, 11) * 24}ms"><td class="score-report-student-no"><span class="ck-student-number" style="--av-bg:${avatar.bg};--av-fg:${avatar.fg};" title="เลขที่ ${escapeScoreAttr(number)}">${escapeScore(number)}</span></td><th scope="row" class="score-report-student-name"><button type="button" class="score-report-student-open" data-student="${studentId}" aria-haspopup="dialog" aria-controls="score-report-student-dialog" title="ดูรายงานคะแนนของ ${nameAttr}">${name}</button></th>${cells}<td class="score-report-student-count">${record.submitted}/${items.length}</td></tr>`;
+    const totalScore = record.totalScore === null ? '—' : Number(record.totalScore).toLocaleString('th-TH', { maximumFractionDigits: 2 });
+    const totalTitle = record.totalScore === null ? `คะแนนยังไม่ครบ ${record.submitted}/${items.length} ชิ้นงาน` : `${totalScore} จาก 100 คะแนน`;
+    const grade = record.grade === null ? '<span class="score-report-student-grade-pending">รอครบ</span>' : `<span class="score-report-student-grade-badge">${escapeScore(record.grade)}</span>`;
+    return `<tr class="score-report-student-row" style="transition-delay:${Math.min(rowIndex, 11) * 24}ms"><td class="score-report-student-no"><span class="ck-student-number" style="--av-bg:${avatar.bg};--av-fg:${avatar.fg};" title="เลขที่ ${escapeScoreAttr(number)}">${escapeScore(number)}</span></td><th scope="row" class="score-report-student-name"><button type="button" class="score-report-student-open" data-student="${studentId}" aria-haspopup="dialog" aria-controls="score-report-student-dialog" title="ดูรายงานคะแนนของ ${nameAttr}">${name}</button></th>${cells}<td class="score-report-student-total" title="${escapeScoreAttr(totalTitle)}">${totalScore}</td><td class="score-report-student-grade">${grade}</td></tr>`;
   }).join('');
-  return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>สถานะคะแนนรายนักเรียน</h4><span>เรียงตามเลขที่ · เขียวมีคะแนน · แดงยังไม่มีคะแนน</span></div><div class="score-report-student-legend"><span><i class="is-recorded">✓</i>มีคะแนน</span><span><i class="is-empty">×</i>ยังไม่มีคะแนน</span></div><div class="score-report-student-matrix-scroll" role="region" aria-label="ตารางสถานะคะแนนรายนักเรียน เลื่อนแนวนอนเพื่อดูทุกชิ้นงาน" tabindex="0"><table class="score-report-student-matrix"><thead><tr><th scope="col" class="score-report-student-no">เลขที่</th><th scope="col" class="score-report-student-name">นักเรียน</th>${headers}<th scope="col" class="score-report-student-count">มีคะแนน</th></tr></thead><tbody>${chartRows}</tbody></table></div></section>`;
+  return `<section class="score-report-student-section"><div class="score-report-section-head"><h4>สถานะคะแนนรายนักเรียน</h4><span>เรียงตามเลขที่ · เขียวมีคะแนน · แดงยังไม่มีคะแนน</span></div><div class="score-report-student-legend"><span><i class="is-recorded">✓</i>มีคะแนน</span><span><i class="is-empty">×</i>ยังไม่มีคะแนน</span></div><div class="score-report-student-matrix-scroll" role="region" aria-label="ตารางสถานะคะแนนรายนักเรียน เลื่อนแนวนอนเพื่อดูทุกชิ้นงาน" tabindex="0"><table class="score-report-student-matrix"><thead><tr><th scope="col" class="score-report-student-no">เลขที่</th><th scope="col" class="score-report-student-name">นักเรียน</th>${headers}<th scope="col" class="score-report-student-total">รวม (100)</th><th scope="col" class="score-report-student-grade">เกรด</th></tr></thead><tbody>${chartRows}</tbody></table></div><dialog id="score-report-missing-dialog" class="score-report-student-dialog score-report-missing-dialog" aria-labelledby="score-report-missing-title"><header><h4 id="score-report-missing-title">สถานะคะแนนชิ้นงาน</h4><button class="score-report-student-dialog-close" type="button" aria-label="ปิดรายชื่อ">×</button></header><div class="score-report-missing-detail"></div></dialog></section>`;
 }
 
-function scoreReportSubmissionChart(c) {
-  const sc = ensureScores(c), items = scoreOrderedItems(c), students = c.students || [];
-  if (!items.length || !students.length) return '';
-  const rows = items.map(item => {
-    const submitted = students.filter(student => {
+// สรุปผลรายห้อง: แจกแจงเกรดจากนักเรียนที่มีคะแนนครบทุกชิ้นงาน
+// คะแนนที่ยังไม่ครบจะรายงานแยก ไม่ตีความเป็นเกรด 0
+function scoreReportClassSummary(c) {
+  const students = c.students || [];
+  const items = scoreOrderedItems(c).filter(item => Number.isFinite(Number(item.max)) && Number(item.max) > 0);
+  const sc = ensureScores(c);
+  const results = students.map(student => {
+    const complete = items.length > 0 && items.every(item => {
       const value = (sc.marks[item.id] || {})[student.id];
       return value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value));
-    }).length;
-    const missing = students.length - submitted, submittedPct = submitted / students.length * 100;
-    return `<li class="score-report-submission-row"><button type="button" class="score-report-track score-report-submission-trigger" data-item="${escapeScoreAttr(item.id)}" aria-haspopup="dialog" aria-controls="score-report-missing-dialog" aria-label="${escapeScoreAttr(item.name)} ส่งแล้ว ${submitted} คน ยังไม่ส่ง ${missing} คน ดูรายชื่อผู้ที่ยังไม่ส่ง"><span class="score-report-label"><strong title="${escapeScoreAttr(item.name)}">${escapeScore(item.name)}</strong><small>ส่งแล้ว ${submitted}/${students.length} คน</small></span><span class="score-report-item-meter" aria-hidden="true"><span class="score-report-bar${submitted ? '' : ' is-empty'}" style="--score-report-target:${submittedPct}%"></span></span><span class="score-report-item-average"><strong>${submitted}/${students.length}</strong><small>ส่งแล้ว · ยังไม่ส่ง ${missing} คน</small></span></button></li>`;
+    });
+    return { student, complete, score: complete ? computeStudentScore(c, student.id).total : null };
+  });
+  const completeResults = results.filter(result => result.complete);
+  const incompleteCount = results.length - completeResults.length;
+  const average = completeResults.length
+    ? completeResults.reduce((sum, result) => sum + result.score, 0) / completeResults.length
+    : null;
+  const gradeCounts = new Map(SCORE_GRADES.map(grade => [grade, 0]));
+  completeResults.forEach(result => {
+    const grade = String(effectiveGrade(c, result.student.id));
+    gradeCounts.set(grade, (gradeCounts.get(grade) || 0) + 1);
+  });
+  let gradeOffset = 0;
+  const gradeEntries = [...gradeCounts.entries()];
+  const gradeSlices = gradeEntries.filter(([, count]) => count > 0).map(([grade, count]) => {
+    const index = gradeEntries.findIndex(([entry]) => entry === grade);
+    const percent = completeResults.length ? count / completeResults.length * 100 : 0;
+    const slice = `<circle class="score-report-grade-slice tone-${index}" cx="80" cy="80" r="58" pathLength="100" stroke-dasharray="${percent} ${100 - percent}" stroke-dashoffset="${-gradeOffset}" role="button" tabindex="0" data-grade="${escapeScoreAttr(grade)}" aria-haspopup="dialog" aria-controls="score-report-grade-dialog" aria-label="ดูรายชื่อนักเรียน ${count} คนที่ได้เกรด ${escapeScoreAttr(grade)} (${Math.round(percent)}%)"><title>เกรด ${escapeScore(grade)}: ${count} คน (${Math.round(percent)}%)</title></circle>`;
+    gradeOffset += percent;
+    return slice;
   }).join('');
-  return `<section class="score-report-submission-section"><div class="score-report-section-head"><h4>สถานะการส่งงาน</h4><span>แท่งสีเขียวแสดงสัดส่วนผู้ส่ง · กดชิ้นงานเพื่อดูรายชื่อผู้ที่ยังไม่ส่ง</span></div><ol class="score-report-submission-list">${rows}</ol><dialog id="score-report-missing-dialog" class="score-report-student-dialog score-report-missing-dialog" aria-labelledby="score-report-missing-title"><header><h4 id="score-report-missing-title">นักเรียนที่ยังไม่ส่ง</h4><button class="score-report-student-dialog-close" type="button" aria-label="ปิดรายชื่อ">×</button></header><div class="score-report-missing-detail"></div></dialog></section>`;
+  const gradeRows = gradeEntries.map(([grade, count], index) => {
+    const percent = completeResults.length ? count / completeResults.length * 100 : 0;
+    const details = `<span class="score-report-grade-legend-grade"><i class="score-report-grade-dot tone-${index}" aria-hidden="true"></i><strong>เกรด ${escapeScore(grade)}</strong></span><span class="score-report-grade-legend-count"><b>นักเรียน ${count} คน</b><small>${completeResults.length ? `${Math.round(percent)}%` : '—'}</small></span>`;
+    return `<li class="score-report-grade-row">${count
+      ? `<button type="button" class="score-report-grade-legend-button tone-${index}" data-grade="${escapeScoreAttr(grade)}" aria-haspopup="dialog" aria-controls="score-report-grade-dialog" aria-label="ดูรายชื่อนักเรียน ${count} คนที่ได้เกรด ${escapeScoreAttr(grade)}">${details}</button>`
+      : `<div class="score-report-grade-legend-static tone-${index}" aria-label="เกรด ${escapeScoreAttr(grade)} ไม่มีนักเรียน">${details}</div>`}</li>`;
+  }).join('');
+  const donut = `<div class="score-report-grade-donut-wrap"><svg class="score-report-grade-donut" viewBox="0 0 160 160" role="group" aria-label="กราฟวงกลมแสดงจำนวนนักเรียนตามเกรด"> <circle class="score-report-grade-track" cx="80" cy="80" r="58" pathLength="100" aria-hidden="true"></circle>${gradeSlices}</svg><div class="score-report-grade-donut-center" aria-live="polite"><strong>${completeResults.length} / ${students.length}<small> คน</small></strong><span>คะแนนครบ</span></div></div>`;
+  const number = value => Number(value).toLocaleString('th-TH', { maximumFractionDigits: 1 });
+  const message = !students.length
+    ? 'ห้องนี้ยังไม่มีนักเรียน'
+    : !items.length
+      ? 'เพิ่มรายการคะแนนก่อน จึงจะสรุปเกรดได้'
+      : !completeResults.length
+        ? 'ยังไม่มีนักเรียนที่มีคะแนนครบทุกชิ้นงาน'
+        : '';
+  return `<section class="score-report-summary-section" aria-label="สรุปผลคะแนนทั้งห้อง"><div class="score-report-section-head"><h4>สรุปผลคะแนนทั้งห้อง</h4><span>นับเกรดจากผู้ที่มีคะแนนครบทุกชิ้นงาน · ผู้ที่ข้อมูลไม่ครบแยกจากเกรด 0</span></div><div class="score-report-summary-stats"><article class="score-report-summary-stat tone-neutral"><span>นักเรียนทั้งหมด</span><strong>${students.length}</strong><small>คน</small></article><article class="score-report-summary-stat tone-green"><span>คะแนนครบ</span><strong>${completeResults.length}</strong><small>จาก ${students.length} คน</small></article><article class="score-report-summary-stat tone-amber"><span>คะแนนยังไม่ครบ</span><strong>${incompleteCount}</strong><small>คน</small></article><article class="score-report-summary-stat tone-blue"><span>คะแนนเฉลี่ย</span><strong>${average === null ? '—' : number(average)}</strong><small>${average === null ? 'รอคะแนนครบ' : 'จากผู้ที่คะแนนครบ'}</small></article></div><div class="score-report-grade-panel"><div class="score-report-grade-panel-head"><div><h5>จำนวนนักเรียนตามเกรด</h5><p>กดส่วนกราฟหรือแถวเกรดเพื่อดูรายชื่อ · เกรด 0 นับเฉพาะผู้ที่มีคะแนนครบและได้ 0 คะแนน</p></div><strong>${completeResults.length} คน</strong></div>${message ? `<p class="score-report-summary-empty">${message}</p>` : ''}<div class="score-report-grade-chart-layout">${donut}<ol class="score-report-grade-list">${gradeRows}</ol></div></div><dialog id="score-report-grade-dialog" class="score-report-student-dialog score-report-grade-dialog" aria-labelledby="score-report-grade-dialog-title"><header><h4 id="score-report-grade-dialog-title">นักเรียนตามเกรด</h4><button class="score-report-student-dialog-close" type="button" aria-label="ปิดรายชื่อ">×</button></header><div class="score-report-grade-detail"></div></dialog></section>`;
+}
+
+function scoreReportGradeDetail(c, grade) {
+  const sc = ensureScores(c), items = scoreOrderedItems(c).filter(item => Number.isFinite(Number(item.max)) && Number(item.max) > 0);
+  const students = (c.students || []).map((student, index) => ({ student, index }))
+    .filter(({ student }) => items.length > 0 && items.every(item => {
+      const value = (sc.marks[item.id] || {})[student.id];
+      return value !== null && value !== undefined && String(value).trim() !== '' && Number.isFinite(Number(value));
+    }) && String(effectiveGrade(c, student.id)) === String(grade))
+    .sort((a, b) => (Number(a.student.no) || a.index + 1) - (Number(b.student.no) || b.index + 1) || a.index - b.index);
+  const rows = students.map(({ student, index }) => {
+    const avatar = mscAvatar(student, index);
+    return `<li><span style="--av-bg:${avatar.bg};--av-fg:${avatar.fg};">${escapeScore(student.no || index + 1)}</span><strong>${escapeScore(student.name)}</strong></li>`;
+  }).join('');
+  const tone = Math.max(0, SCORE_GRADES.findIndex(entry => String(entry) === String(grade)));
+  return `<div class="score-report-grade-detail-summary"><div class="score-report-grade-detail-card score-report-grade-detail-grade tone-${tone}"><span>เกรด</span><strong>${escapeScore(grade)}</strong></div><div class="score-report-grade-detail-card score-report-grade-detail-count"><span>จำนวนนักเรียน</span><strong>${students.length} คน</strong></div></div><div class="score-report-missing-names-title">รายชื่อนักเรียนที่ได้เกรด ${escapeScore(grade)}</div>${students.length ? `<ol class="score-report-missing-list">${rows}</ol>` : '<p class="score-report-missing-empty">ไม่มีนักเรียนได้เกรดนี้</p>'}`;
+}
+
+function bindScoreReportGradeDialog(c, wrap) {
+  const section = wrap.querySelector('.score-report-summary-section');
+  const dialog = section?.querySelector('.score-report-grade-dialog');
+  if (!section || !dialog) return;
+  const close = () => { if (dialog.open) dialog.close(); else dialog.removeAttribute('open'); };
+  dialog.querySelector('.score-report-student-dialog-close')?.addEventListener('click', close);
+  dialog.addEventListener('click', event => { if (event.target === dialog) close(); });
+  let lastTrigger = null;
+  dialog.addEventListener('close', () => lastTrigger?.focus({ preventScroll: true }));
+  section.querySelectorAll('.score-report-grade-slice, .score-report-grade-legend-button').forEach(trigger => {
+    const openGrade = () => {
+      const grade = trigger.dataset.grade;
+      const detail = dialog.querySelector('.score-report-grade-detail');
+      if (!grade || !detail) return;
+      dialog.querySelector('#score-report-grade-dialog-title').textContent = `นักเรียนที่ได้เกรด ${grade}`;
+      detail.innerHTML = scoreReportGradeDetail(c, grade);
+      lastTrigger = trigger;
+      if (typeof dialog.showModal === 'function') dialog.showModal();
+      else dialog.setAttribute('open', '');
+      dialog.querySelector('.score-report-student-dialog-close')?.focus({ preventScroll: true });
+    };
+    trigger.addEventListener('click', openGrade);
+    if (trigger.matches('.score-report-grade-slice')) trigger.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openGrade(); }
+    });
+  });
 }
 
 function scoreReportMissingDetail(c, item) {
@@ -380,13 +523,13 @@ function scoreReportMissingDetail(c, item) {
   const total = students.length, submitted = total - missing.length;
   const number = value => escapeScore(value);
   const list = missing.length
-    ? `<ol class="score-report-missing-list">${missing.map(({ student, index }) => `<li><span>${number(student.no || index + 1)}</span><strong>${escapeScore(student.name)}</strong></li>`).join('')}</ol>`
-    : '<p class="score-report-missing-empty">ส่งครบทุกคนแล้ว</p>';
-  return `<div class="score-report-missing-summary"><strong>${escapeScore(item.name)}</strong><span>ส่งแล้ว ${submitted}/${total} คน · ยังไม่ส่ง ${missing.length} คน</span></div>${list}`;
+    ? `<div class="score-report-missing-names-title">รายชื่อที่ยังไม่มีคะแนน</div><ol class="score-report-missing-list">${missing.map(({ student, index }) => { const avatar = mscAvatar(student, index); return `<li><span style="--av-bg:${avatar.bg};--av-fg:${avatar.fg};">${number(student.no || index + 1)}</span><strong>${escapeScore(student.name)}</strong></li>`; }).join('')}</ol>`
+    : '<p class="score-report-missing-empty">มีคะแนนครบทุกคนแล้ว</p>';
+  return `<section class="score-report-missing-summary"><div class="score-report-missing-card-title"><span>สถานะคะแนน</span><strong>${escapeScore(item.name)}</strong></div><div class="score-report-missing-stats"><article class="score-report-missing-stat is-recorded"><span>มีคะแนนแล้ว</span><strong>${submitted}<small> / ${total} คน</small></strong></article><article class="score-report-missing-stat is-empty"><span>ยังไม่มีคะแนน</span><strong>${missing.length}<small> คน</small></strong></article></div><small class="score-report-missing-note">สถานะนี้อ้างอิงจากการบันทึกคะแนน</small></section>${list}`;
 }
 
 function bindScoreReportMissingDialog(c, wrap) {
-  const section = wrap.querySelector('.score-report-submission-section');
+  const section = wrap.querySelector('.score-report-student-section');
   const dialog = section?.querySelector('.score-report-missing-dialog');
   if (!section || !dialog) return;
   const close = () => { if (dialog.open) dialog.close(); else dialog.removeAttribute('open'); };
@@ -394,7 +537,7 @@ function bindScoreReportMissingDialog(c, wrap) {
   dialog.addEventListener('click', event => { if (event.target === dialog) close(); });
   let lastTrigger = null;
   dialog.addEventListener('close', () => lastTrigger?.focus({ preventScroll: true }));
-  section.querySelectorAll('.score-report-submission-trigger').forEach(button => {
+  section.querySelectorAll('.score-report-student-item-open').forEach(button => {
     button.addEventListener('click', () => {
       const item = scoreOrderedItems(c).find(entry => String(entry.id) === button.dataset.item);
       const detail = dialog.querySelector('.score-report-missing-detail');
@@ -427,7 +570,7 @@ function bindScoreReportStudentRows(c, wrap) {
   const section = wrap.querySelector('.score-report-student-section');
   if (!section) return;
   section.insertAdjacentHTML('beforeend', '<dialog id="score-report-student-dialog" class="score-report-student-dialog" aria-labelledby="score-report-student-dialog-title"><header><h4 id="score-report-student-dialog-title">รายละเอียดคะแนนรายนักเรียน</h4><button class="score-report-student-dialog-close" type="button" aria-label="ปิดรายละเอียด">×</button></header><div id="score-report-student-detail" class="score-report-student-detail"></div></dialog>');
-  const dialog = section.querySelector('.score-report-student-dialog');
+  const dialog = section.querySelector('.score-report-student-dialog:not(.score-report-missing-dialog)');
   let lastTrigger = null;
   const closeDialog = () => { if (dialog?.open) dialog.close(); };
   dialog?.querySelector('.score-report-student-dialog-close')?.addEventListener('click', closeDialog);
@@ -477,14 +620,15 @@ function renderScoreReport(c) {
   const total = (c.students || []).length;
   const number = value => value.toLocaleString('th-TH', { maximumFractionDigits: 1 });
   wrap.innerHTML = `<section class="score-report">
+    ${scoreReportClassSummary(c)}
     ${!rows.length ? '<p class="score-report-empty score-report-empty-items" hidden>ยังไม่มีชิ้นงาน กรุณาเพิ่มรายการในแท็บคะแนนก่อน</p>' : !total ? '<p class="score-report-empty score-report-empty-items" hidden>ห้องนี้ยังไม่มีนักเรียน</p>' : ''}
     ${rows.length && total ? `
     <section class="score-report-bar-section"><div class="score-report-section-head"><h4>คะแนนเฉลี่ยรายชิ้นงาน</h4><span>ค่าเฉลี่ยคิดจากนักเรียนที่มีคะแนน · เลือกงานเพื่อดูกราฟวงกลม</span></div>
     <ol class="score-report-chart" aria-label="คะแนนเฉลี่ยของแต่ละชิ้นงาน">${rows.map(row => `<li class="score-report-row">
       <button type="button" class="score-report-track" data-item="${escapeScoreAttr(row.item.id)}" aria-haspopup="dialog" aria-controls="score-report-distribution-dialog" aria-label="ดูกราฟการกระจายคะแนน ${escapeScoreAttr(row.item.name)}">
         <span class="score-report-label"><strong title="${escapeScoreAttr(row.item.name)}">${escapeScore(row.item.name)}</strong><small>มีคะแนน ${row.count}/${total} คน</small></span>
-        <span class="score-report-item-meter" aria-hidden="true"><span class="score-report-bar${row.percent === null ? ' is-empty' : ''}" style="--score-report-target:${row.percent ?? 0}%"></span></span>
-        <span class="score-report-item-average"><strong>${row.percent === null ? '—' : `${number(row.percent)}%`}</strong><small>${row.average === null ? 'ยังไม่มีคะแนน' : `เฉลี่ย ${number(row.average)} / ${number(Number(row.item.max))}`}</small></span>
+        <span class="score-report-item-meter" aria-hidden="true"><span class="score-report-bar ${scoreReportPercentTone(row.percent)}${row.percent === null ? ' is-empty' : ''}" style="--score-report-target:${row.percent ?? 0}%"></span></span>
+        <span class="score-report-item-average"><strong class="${scoreReportPercentTone(row.percent)}">${row.percent === null ? '—' : `${number(row.percent)}%`}</strong><small>${row.average === null ? 'ยังไม่มีคะแนน' : `เฉลี่ย ${number(row.average)} / ${number(Number(row.item.max))}`}</small></span>
       </button>
     </li>`).join('')}</ol>
     <dialog id="score-report-distribution-dialog" class="score-report-student-dialog score-report-distribution-dialog" aria-labelledby="score-report-distribution-title"><header><h4 id="score-report-distribution-title">การกระจายคะแนน</h4><button class="score-report-student-dialog-close" type="button" aria-label="ปิดกราฟ">×</button></header><div class="score-report-distribution-detail"></div></dialog>
@@ -497,11 +641,11 @@ function renderScoreReport(c) {
     const barSection = report.querySelector('.score-report-bar-section');
     if (barSection) {
       barSection.insertAdjacentHTML('beforebegin', scoreReportStudentChart(c));
-      barSection.insertAdjacentHTML('beforebegin', scoreReportSubmissionChart(c));
     }
     selectScoreReportTab(scoreReportTab);
     bindScoreReportDistributionDialog(c, wrap);
     bindScoreReportMissingDialog(c, wrap);
+    bindScoreReportGradeDialog(c, wrap);
   }
   const studentSection = typeof wrap.querySelector === 'function' ? wrap.querySelector('.score-report-student-section') : null;
   if (studentSection) {
