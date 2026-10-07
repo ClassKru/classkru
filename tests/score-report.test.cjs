@@ -4,36 +4,62 @@ const vm = require('node:vm');
 const wrap = { innerHTML: '' };
 const context = vm.createContext({ console, window: {}, document: { getElementById: () => wrap } });
 vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../js/scores.js'), 'utf8'), context);
-const c = { students: [{ id: 'a' }, { id: 'b' }, { id: 'c' }], scores: {
-  items: [{ id: 'x', name: '<งาน>', max: 10 }, { id: 'y', name: 'งาน 2', max: 20 }, { id: 'z', name: 'ว่าง', max: 10 }],
+const workspaceTabs = context.scoreWorkTabsHtml({ id: 'test-class' });
+assert.deepEqual(Array.from(workspaceTabs.matchAll(/data-score-worktab="([^"]+)"/g), match => match[1]), [
+  'overview', 'report-students', 'report-items', 'report-submission', 'curriculum', 'pp5'
+]);
+assert.match(workspaceTabs, /คะแนนชิ้นงาน/);
+assert.match(workspaceTabs, /รายนักเรียน/);
+assert.match(workspaceTabs, /การส่งงาน/);
+assert.match(workspaceTabs, /ตัวชี้วัดรายวิชา/);
+assert.match(workspaceTabs, /ปพ\.5/);
+assert.equal((workspaceTabs.match(/data-tooltip="อยู่ระหว่างพัฒนา"/g) || []).length, 2);
+const c = { students: [{ id: 'b', no: 2, name: 'นักเรียนสอง' }, { id: 'a', no: 1, name: 'นักเรียนหนึ่ง' }, { id: 'c', no: 3, name: 'นักเรียนสาม' }], scores: {
+  items: [{ id: 'x', name: '<งาน>', max: 10, bucket: 'after' }, { id: 'y', name: 'งาน 2', max: 20, bucket: 'before' }, { id: 'z', name: 'ว่าง', max: 10, bucket: 'mid' }],
   marks: { x: { a: 0, b: 10, c: '', removed: 10 }, y: { a: 10, b: null, c: ' ' } }
 } };
 let rows = context.scoreReportRows(c);
-assert.equal(rows[0].count, 2);
-assert.equal(rows[0].average, 5);
+assert.deepEqual(Array.from(rows, row => row.item.id), ['y', 'x', 'z']);
+assert.equal(rows[0].count, 1);
+assert.equal(rows[0].average, 10);
 assert.equal(rows[0].percent, 50);
 assert.equal(rows[1].percent, 50);
-assert.equal(rows[1].count, 1);
+assert.equal(rows[1].count, 2);
 assert.equal(rows[2].percent, null);
 context.renderScoreReport(c);
 assert.match(wrap.innerHTML, /&lt;งาน&gt;/);
 assert.match(wrap.innerHTML, /มีคะแนน 2\/3 คน/);
-assert.match(wrap.innerHTML, /height:50%/);
+assert.match(wrap.innerHTML, /score-report-item-average/);
+assert.doesNotMatch(wrap.innerHTML, /score-report-horizontal-axis/);
+assert.match(wrap.innerHTML, /aria-haspopup="dialog"/);
+assert.match(wrap.innerHTML, /--score-report-target:50%/);
+assert.ok(wrap.innerHTML.indexOf('title="งาน 2"') < wrap.innerHTML.indexOf('title="&lt;งาน&gt;"'));
 assert.equal(context.scoreReportDistribution(c, c.scores.items[0])[0].count, 1);
 assert.equal(context.scoreReportDistribution(c, c.scores.items[0])[4].count, 1);
 assert.equal(context.scoreReportDistribution(c, c.scores.items[1])[1].count, 1);
-assert.match(context.scoreReportStudentChart(c), /score-report-student-chart/);
-assert.match(context.scoreReportStudentChart(c), /ยังไม่ครบ/);
-const summary = context.scoreReportClassSummary(c);
-assert.equal(summary.totalMax, 40);
-assert.equal(summary.average, 50);
-assert.equal(summary.studentsWithScores, 2);
-assert.equal(summary.passed, 1);
-assert.equal(summary.incomplete, 3);
+assert.match(context.scoreReportDistributionContent(c, c.scores.items[0]), /score-report-pie/);
+assert.match(context.scoreReportDistributionContent(c, c.scores.items[0]), /คะแนนเฉลี่ย 5 \/ 10 คะแนน/);
+assert.match(context.scoreReportStudentChart(c), /score-report-student-matrix/);
+assert.match(context.scoreReportStudentChart(c), /มีคะแนนแล้ว/);
+assert.match(context.scoreReportStudentChart(c), /ยังไม่มีคะแนน/);
+assert.match(context.scoreReportStudentChart(c), /ชิ้นที่ 1/);
+assert.ok(context.scoreReportStudentChart(c).indexOf('title="งาน 2"') < context.scoreReportStudentChart(c).indexOf('title="&lt;งาน&gt;"'));
+assert.ok(context.scoreReportSubmissionChart(c).indexOf('title="งาน 2"') < context.scoreReportSubmissionChart(c).indexOf('title="&lt;งาน&gt;"'));
+const submissionChart = context.scoreReportSubmissionChart(c);
+assert.match(submissionChart, /score-report-submission-trigger/);
+assert.match(submissionChart, /score-report-missing-dialog/);
+assert.match(submissionChart, /score-report-item-meter/);
+assert.doesNotMatch(submissionChart, /class="is-missing"/);
+assert.match(context.scoreReportMissingDetail(c, c.scores.items[0]), /นักเรียนสาม/);
+assert.doesNotMatch(context.scoreReportMissingDetail(c, c.scores.items[0]), /นักเรียนหนึ่ง|นักเรียนสอง/);
+assert.match(context.scoreReportMissingDetail(c, c.scores.items[1]), /นักเรียนสอง/);
+assert.match(context.scoreReportMissingDetail(c, c.scores.items[1]), /นักเรียนสาม/);
+assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /ยังไม่ส่ง 3 คน/);
+assert.ok(context.scoreReportStudentChart(c).indexOf('data-student="a"') < context.scoreReportStudentChart(c).indexOf('data-student="b"'));
 c.scores.marks.x.b = 0;
-assert.equal(context.scoreReportRows(c)[0].percent, 0);
+assert.equal(context.scoreReportRows(c)[1].percent, 0);
 c.scores.items[0].max = 0;
-assert.equal(context.scoreReportRows(c)[0].percent, null);
+assert.equal(context.scoreReportRows(c)[1].percent, null);
 c.students = [];
 context.renderScoreReport(c);
 assert.match(wrap.innerHTML, /ห้องนี้ยังไม่มีนักเรียน/);

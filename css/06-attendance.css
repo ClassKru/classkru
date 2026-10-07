@@ -902,35 +902,36 @@
   font-weight: 700;
   color: var(--text-muted);
   font-size: 0.85rem;
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .desktop-student-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
 .d-student-row {
   display: flex;
   align-items: center;
-  background: var(--bg-card);
+  background: transparent;
   padding: 10px 20px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  border: 0;
+  border-bottom: 1px solid var(--border-color);
   transition: var(--transition-normal);
 }
 
 .d-student-row:hover {
-  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-  border-color: #d1d1d6;
+  background: var(--primary-light);
 }
+.desktop-student-grid .d-student-row:last-child { border-bottom: 0; }
 
-.d-col-no { width: 50px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.95rem; }
+.d-col-no { width: 50px; flex: 0 0 50px; text-align: center; font-weight: 700; color: var(--text-muted); font-size: 0.95rem; }
 /* วงกลมเลขที่สี avatar (ชุดเดียวกับมือถือ) — เฉพาะแถวข้อมูล ไม่โดนหัวตาราง (หัวไม่มี .d-no-badge) */
 .d-student-row .d-col-no { display: flex; align-items: center; justify-content: center; }
+.ck-student-number,
 .d-no-badge {
-  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; font-variant-numeric: tabular-nums;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--av-bg, var(--bg-light)); color: var(--av-fg, var(--text-muted));
   font-weight: 700; font-size: 0.9rem;
@@ -999,13 +1000,16 @@
 .student-card-no {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 0 10px;
-  border-radius: 999px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   background: var(--av-bg, var(--primary-light));
   color: var(--av-fg, var(--primary));
-  font-size: 0.76rem;
-  font-weight: 700;
+  font-size: 0.82rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
 .student-card-actions {
@@ -1190,12 +1194,9 @@
 
   .student-card-no {
     order: 2;
-    min-height: auto;
-    padding: 0;
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 0.72rem;
-    font-weight: 500;
+    width: 30px;
+    height: 30px;
+    font-size: 0.76rem;
   }
 
   .student-card-avatar {
@@ -1302,10 +1303,12 @@
 .d-status-btn.late { border-color: var(--color-late); background: var(--color-late-bg); color: var(--color-late-text); box-shadow: 0 2px 6px rgba(210,160,40,0.22), inset 0 1px 0 rgba(255,255,255,0.5); }
 
 .swipe-mini-btn.qr {
-  border-color: var(--primary);
-  background: var(--primary-light);
-  color: var(--primary);
+  border-color: var(--text-main);
+  background: var(--bg-card);
+  color: var(--text-main);
 }
+.swipe-mini-btn.qr i { color: var(--text-main); }
+.swipe-mini-btn.qr:hover { border-color: var(--text-main); background: var(--bg-light); color: var(--text-main); }
 
 .qr-attendance-sheet {
   width: 680px;
