@@ -171,8 +171,8 @@ function viewClassScores(classId) {
 
 function scoreWorkTabsHtml(c) {
   const tabs = [
-    { key: 'overview', label: 'คะแนน', icon: 'hgi-table' },
-    { key: 'report-students', label: 'คะแนนรายคน', icon: 'hgi-user-group' },
+    { key: 'overview', label: 'ลงคะแนน', icon: 'hgi-table' },
+    { key: 'report-students', label: 'สรุปคะแนน', icon: 'hgi-user-group' },
     { key: 'report-items', label: 'คะแนนชิ้นงาน', icon: 'hgi-table' },
     { key: 'report-summary', label: 'สรุปผล', icon: 'hgi-award-01' },
     { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01', locked: true },
@@ -1788,87 +1788,6 @@ function mscGradeClass(g) {
   return 'zero';
 }
 
-const MSC_SLIDE_PX_PER_STEP = 16;
-let mscSlideBound = false;
-let mscSlideGesture = null;
-
-function finishMobileScoreSlide(state, shouldSave) {
-  if (!state) return;
-  state.control.classList.remove('is-slide-active');
-  if (state.active) {
-    state.handle.dataset.slideSuppressUntil = String(Date.now() + 500);
-    if (shouldSave && state.changed) {
-      requestMobileScoreSave(state.input);
-    } else if (state.changed) {
-      restoreMobileScoreInput(state.input);
-    }
-    try { state.handle.releasePointerCapture(state.pointerId); } catch (_) {}
-  }
-  delete state.control.dataset.slideValue;
-  if (mscSlideGesture === state) mscSlideGesture = null;
-}
-
-function bindMobileScoreSlide() {
-  if (mscSlideBound) return;
-  mscSlideBound = true;
-  document.addEventListener('pointerdown', event => {
-    const handle = event.target.closest && event.target.closest('.msc-slide-handle');
-    if (!handle || event.button !== 0) return;
-    const control = handle.closest('.msc-score-control');
-    const input = control && control.querySelector('.msc-in');
-    if (!input) return;
-    event.preventDefault();
-    if (mscSlideGesture) finishMobileScoreSlide(mscSlideGesture, false);
-    const bounds = scoreInputBounds(input);
-    const startValue = input.value === '' ? bounds.min : Number(input.value);
-    const state = {
-      control, handle, input, bounds, pointerId: event.pointerId, startY: event.clientY,
-      startValue, active: true, changed: false, lastValue: startValue
-    };
-    mscSlideGesture = state;
-    state.control.classList.add('is-slide-active');
-    state.control.dataset.slideValue = input.value === '' ? '–' : input.value;
-    input.blur();
-    try { state.handle.setPointerCapture(state.pointerId); } catch (_) {}
-    if (navigator.vibrate) navigator.vibrate(8);
-  });
-  document.addEventListener('pointermove', event => {
-    const state = mscSlideGesture;
-    if (!state || event.pointerId !== state.pointerId) return;
-    const distance = event.clientY - state.startY;
-    event.preventDefault();
-    // ใช้ทิศทางเดียวกับลูกกลิ้งเมาส์: ลากขึ้น = เพิ่มคะแนน, ลากลง = ลดคะแนน
-    const steps = -Math.trunc(distance / MSC_SLIDE_PX_PER_STEP);
-    const next = normalizedScoreInputValue(state.input, state.startValue + (steps * state.bounds.step));
-    if (next === state.lastValue) return;
-    state.lastValue = next;
-    state.changed = true;
-    state.input.value = String(next);
-    state.control.dataset.slideValue = String(next);
-    if (navigator.vibrate) navigator.vibrate(5);
-  }, { passive: false });
-  document.addEventListener('pointerup', event => {
-    const state = mscSlideGesture;
-    if (!state || event.pointerId !== state.pointerId) return;
-    if (state.active) event.preventDefault();
-    finishMobileScoreSlide(state, true);
-  });
-  document.addEventListener('pointercancel', event => {
-    const state = mscSlideGesture;
-    if (state && event.pointerId === state.pointerId) finishMobileScoreSlide(state, false);
-  });
-  document.addEventListener('contextmenu', event => {
-    if (event.target.closest && event.target.closest('.msc-slide-handle')) event.preventDefault();
-  });
-  document.addEventListener('click', event => {
-    const handle = event.target.closest && event.target.closest('.msc-slide-handle');
-    if (handle && Number(handle.dataset.slideSuppressUntil || 0) > Date.now()) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  }, true);
-}
-
 function restoreMobileScoreInput(input) {
   if (!input) return;
   input.value = input.dataset.committedValue || '';
@@ -1890,11 +1809,6 @@ function requestMobileScoreSave(input) {
       setScoreMark(input.dataset.classId, input.dataset.itemId, input.dataset.studentId, input);
       input.dataset.committedValue = input.value;
       refreshMobileScoreSummary(input.dataset.classId, input.dataset.studentId);
-      const control = input.closest('.msc-score-control');
-      if (control) {
-        control.classList.add('is-slide-saved');
-        setTimeout(() => control.classList.remove('is-slide-saved'), 420);
-      }
       showToast('บันทึกคะแนนแล้ว', 'success', 1500);
     },
     {
@@ -2002,9 +1916,6 @@ function renderMobileStudentPanel(c, sid) {
               onchange="requestMobileScoreSave(this)">
             <span class="msc-slash">/ ${it.max}</span>
           </span>
-          <button type="button" class="msc-slide-handle" aria-label="ลากขึ้นเพื่อเพิ่มคะแนน ลากลงเพื่อลดคะแนน">
-            <span class="msc-slide-grip" aria-hidden="true"><i></i><i></i><i></i></span>
-          </button>
         </span>
       </div>`;
     }).join('');
@@ -2022,11 +1933,9 @@ function renderMobileStudentPanel(c, sid) {
       <div class="msc-shead-txt"><div class="msc-sname">${escapeScore(s.name)}</div></div>
     </div>
     <div class="msc-summary" id="msc-summary">${mobileScoreSummaryHtml(c, sid)}</div>
-    <div class="msc-gesture-hint"><i class="hgi-stroke hgi-tap-02"></i><span><b>ปรับคะแนนแบบเร็ว</b> ลากแถบด้านขวาขึ้นเพื่อเพิ่ม · ลากลงเพื่อลด · จากนั้นกดยืนยันการบันทึก</span></div>
     ${buckets}
     ${mobileStudentNavHtml(c, idx)}
   </div>`;
-  bindMobileScoreSlide();
 }
 
 // แถบข้ามคนท้ายหน้ากรอกรายคน — ของเดิมต้องย้อนกลับไปหน้ารายชื่อแล้วแตะคนถัดไป
