@@ -171,8 +171,8 @@ function viewClassScores(classId) {
 
 function scoreWorkTabsHtml(c) {
   const tabs = [
-    { key: 'overview', label: 'คะแนน', icon: 'hgi-table' },
-    { key: 'report-students', label: 'คะแนนรายคน', icon: 'hgi-user-group' },
+    { key: 'overview', label: 'กรอกคะแนน', icon: 'hgi-table' },
+    { key: 'report-students', label: 'สรุปคะแนน', icon: 'hgi-user-group' },
     { key: 'report-items', label: 'คะแนนชิ้นงาน', icon: 'hgi-table' },
     { key: 'report-summary', label: 'สรุปผล', icon: 'hgi-award-01' },
     { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01', locked: true },
