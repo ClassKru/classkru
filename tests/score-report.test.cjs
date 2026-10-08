@@ -54,6 +54,9 @@ assert.match(context.scoreReportDistributionBandDetail(c, c.scores.items[0], 0),
 assert.match(context.scoreReportDistributionBandDetail(c, c.scores.items[0], 0), /0 \/ 10 คะแนน/);
 assert.match(context.scoreReportDistributionContent(c, c.scores.items[0]), /คะแนนเฉลี่ย 5 \/ 10 คะแนน/);
 assert.match(context.scoreReportStudentChart(c), /score-report-student-matrix/);
+assert.match(context.scoreReportStudentChart(c), /score-report-student-cards/);
+assert.match(context.scoreReportStudentChart(c), /class="score-report-student-card score-report-student-open" data-student="a"/);
+assert.match(context.scoreReportStudentChart(c), /ดูรายละเอียดคะแนน นักเรียนหนึ่ง เลขที่ 1/);
 assert.match(context.scoreReportStudentChart(c), /มีคะแนนแล้ว/);
 assert.match(context.scoreReportStudentChart(c), /ยังไม่มีคะแนน/);
 assert.match(context.scoreReportStudentChart(c), /ชิ้นที่ 1/);
@@ -74,6 +77,10 @@ assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /ยัง�
 assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /สถานะนี้อ้างอิงจากการบันทึกคะแนน/);
 assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /score-report-missing-stats/);
 assert.ok(context.scoreReportStudentChart(c).indexOf('data-student="a"') < context.scoreReportStudentChart(c).indexOf('data-student="b"'));
+const scoreCss = fs.readFileSync(require('node:path').join(__dirname, '../css/07-scores.css'), 'utf8');
+assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-cards \{ display: grid;/);
+assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-matrix-scroll \{ display: none;/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{[^}]*flex-wrap: nowrap !important/);
 const completeStudentChart = context.scoreReportStudentChart({
   students: [{ id: 'full', no: 1, name: 'คะแนนครบ' }],
   scores: {
