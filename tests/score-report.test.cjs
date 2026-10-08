@@ -9,7 +9,9 @@ assert.deepEqual(Array.from(workspaceTabs.matchAll(/data-score-worktab="([^"]+)"
   'overview', 'report-students', 'report-items', 'report-summary', 'curriculum', 'pp5'
 ]);
 assert.match(workspaceTabs, /คะแนนชิ้นงาน/);
-assert.match(workspaceTabs, /คะแนนรายคน/);
+assert.match(workspaceTabs, /ลงคะแนน/);
+assert.match(workspaceTabs, /สรุปคะแนน/);
+assert.doesNotMatch(workspaceTabs, /คะแนนรายคน/);
 assert.doesNotMatch(workspaceTabs, /การส่งงาน/);
 assert.match(workspaceTabs, /สรุปผล/);
 assert.match(workspaceTabs, /ตัวชี้วัดรายวิชา/);
@@ -78,9 +80,12 @@ assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /สถา�
 assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /score-report-missing-stats/);
 assert.ok(context.scoreReportStudentChart(c).indexOf('data-student="a"') < context.scoreReportStudentChart(c).indexOf('data-student="b"'));
 const scoreCss = fs.readFileSync(require('node:path').join(__dirname, '../css/07-scores.css'), 'utf8');
+const scoresSource = fs.readFileSync(require('node:path').join(__dirname, '../js/scores.js'), 'utf8');
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-cards \{ display: grid;/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-matrix-scroll \{ display: none;/);
 assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{[^}]*flex-wrap: nowrap !important/);
+assert.doesNotMatch(scoresSource, /msc-slide-handle|msc-gesture-hint|bindMobileScoreSlide/);
+assert.match(scoresSource, /<input type="number" class="msc-in"[^>]*inputmode="decimal"/);
 const completeStudentChart = context.scoreReportStudentChart({
   students: [{ id: 'full', no: 1, name: 'คะแนนครบ' }],
   scores: {
