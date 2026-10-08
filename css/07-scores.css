@@ -409,6 +409,7 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
 .score-report-student-section { border: 1px solid var(--primary-light-border); border-radius: 16px; padding: 24px; margin: 0; background: linear-gradient(180deg,var(--bg-card) 0%,color-mix(in srgb,var(--primary-light) 16%,var(--bg-card)) 100%); box-shadow: var(--shadow-sm); animation: score-report-enter .38s ease both; }
 .score-report-section-head h4 { padding-left: 10px; border-left: 3px solid var(--primary); }
 .score-report-student-section .score-report-section-head { margin-bottom: 10px; }
+.score-report-student-cards { display: none; }
 .score-report-student-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 10px; color: var(--text-muted); font-size: .75rem; }
 .score-report-student-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .score-report-student-legend i { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: .7rem; font-style: normal; font-weight: 800; line-height: 1; }
@@ -1361,9 +1362,38 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
 }
 
 @media (max-width: 720px) {
-  .score-worktabs { width: 100%; }
-  .score-worktabs { justify-content: flex-start; overflow-x: auto; scrollbar-width: thin; }
-  .score-worktab { min-width: max-content; flex: 1 0 auto; font-size: 0.76rem; padding-inline: 9px; }
+  #web-scores-detail-view > .rep-detail-header-card { margin-bottom: 8px !important; padding: 8px 10px !important; }
+  #web-scores-detail-view > .rep-detail-header-card > div { flex-wrap: nowrap !important; gap: 6px !important; }
+  #web-scores-detail-view > .rep-detail-header-card > div > div:first-child { gap: 7px !important; flex: 1 1 auto; }
+  #web-scores-detail-title { overflow: hidden; font-size: .98rem !important; text-overflow: ellipsis; white-space: nowrap; }
+  #web-scores-detail-view > .rep-detail-header-card .btn-back { flex: 0 0 auto; padding: 6px 7px; font-size: .78rem; }
+  #web-scores-detail-view > .rep-detail-header-card > div > div:last-child { flex: 0 0 auto; gap: 4px !important; }
+  #web-scores-detail-view > .rep-detail-header-card .ck-hdr-action { width: 36px; min-width: 36px; height: 36px; padding: 0; justify-content: center; }
+  #web-scores-detail-view > .rep-detail-header-card .ck-hdr-action i { margin: 0; }
+  #scores-classtab-holder .ck-classtab-bar { margin-bottom: 8px; }
+  #score-worktab-holder .score-worktabs { width: 100%; flex-wrap: nowrap !important; justify-content: flex-start; overflow-x: auto; scrollbar-width: thin; margin-bottom: 8px; }
+  #score-worktab-holder .score-worktab { min-width: max-content; flex: 0 0 auto !important; min-height: 36px; font-size: .72rem; padding: 7px 9px; }
+  #web-scores-detail-view > .card:has(#web-scores-matrix-wrap) { padding: 8px !important; }
+  .score-report-student-section { padding: 14px 12px; }
+  .score-report-student-section .score-report-section-head { gap: 4px; margin-bottom: 8px; }
+  .score-report-student-section .score-report-section-head > span { font-size: .68rem; }
+  .score-report-student-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 0; padding: 0; list-style: none; }
+  .score-report-student-cards li { min-width: 0; }
+  .score-report-student-card { --card-accent: var(--primary); display: flex; width: 100%; min-width: 0; min-height: 132px; flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px; border: 1px solid var(--border-color); border-radius: 13px; color: var(--text-main); background: var(--bg-card); font: inherit; text-align: left; cursor: pointer; transition: border-color .16s ease, background .16s ease, transform .16s ease, box-shadow .16s ease; }
+  .score-report-student-card:hover,.score-report-student-card:active { border-color: color-mix(in srgb,var(--card-accent) 38%,var(--border-color)); background: color-mix(in srgb,var(--card-accent) 5%,var(--bg-card)); }
+  .score-report-student-card:active { transform: scale(.985); }
+  .score-report-student-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .score-report-student-card-top { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: .67rem; }
+  .score-report-student-card-top .ck-student-number { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; font-size: .72rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .score-report-student-card-name { display: -webkit-box; width: 100%; min-width: 0; overflow: hidden; color: var(--text-main); font-size: .78rem; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .score-report-student-card-progress { color: var(--text-muted); font-size: .66rem; }
+  .score-report-student-card-result { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 4px; margin-top: auto; }
+  .score-report-student-card-result > b { color: var(--card-accent); font-size: .88rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .score-report-student-card-result > b small { color: var(--text-muted); font-size: .62rem; font-weight: 500; }
+  .score-report-student-card-result .score-report-student-grade-badge,.score-report-student-card-pending { display: grid; min-width: 27px; height: 25px; place-items: center; padding: 0 6px; border-radius: 999px; color: var(--card-accent); background: color-mix(in srgb,var(--card-accent) 12%,var(--bg-card)); font-size: .7rem; font-weight: 800; }
+  .score-report-student-card-pending { color: var(--text-muted); background: var(--bg-light); font-weight: 600; }
+  .score-report-student-matrix-scroll { display: none; }
+  .score-report-student-legend { font-size: .68rem; }
   .score-quick-head,
   .score-items-head {
     flex-direction: column;
@@ -1413,6 +1443,12 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
     align-items: flex-start;
     flex-direction: column;
   }
+}
+
+@media (max-width: 359px) {
+  #web-scores-detail-view > .rep-detail-header-card .qr-score-header-btn { display: none; }
+  .score-report-student-cards { grid-template-columns: 1fr; }
+  .score-report-student-card { min-height: 112px; }
 }
 
 /* ช่องคะแนนย่อยใน modal สรุปนักเรียน (เก็บ/กลางภาค/ปลายภาค) */
