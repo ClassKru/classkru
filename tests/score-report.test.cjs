@@ -80,6 +80,8 @@ assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /สถา�
 assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /score-report-missing-stats/);
 assert.ok(context.scoreReportStudentChart(c).indexOf('data-student="a"') < context.scoreReportStudentChart(c).indexOf('data-student="b"'));
 const scoreCss = fs.readFileSync(require('node:path').join(__dirname, '../css/07-scores.css'), 'utf8');
+const scoreHtml = fs.readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
+assert.match(scoreHtml, /js\/scores\.js\?v=513/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-cards \{ display: grid;/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-matrix-scroll \{ display: none;/);
 assert.match(scoreCss, /\.score-worktabs \{[^}]*gap: 4px;[^}]*padding: 4px;/);
