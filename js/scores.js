@@ -1788,6 +1788,36 @@ const MSC_AV = [
   ['#eaf3de', '#3b6d11'], ['#e1f5ee', '#0f6e56'], ['#e6f1fb', '#185fa5'],
   ['#fbeaf0', '#993556'], ['#faeeda', '#854f0b'], ['#eeedfe', '#534ab7']
 ];
+const MSC_DEFAULT_AVATAR_IMAGES = [
+  '/assets/student-avatar-cartoon-v2-1.png',
+  '/assets/student-avatar-cartoon-v2-2.png',
+  '/assets/student-avatar-cartoon-v2-3.png',
+  '/assets/student-avatar-cartoon-v2-4.png',
+  '/assets/student-avatar-cartoon-v2-5.png',
+  '/assets/student-avatar-cartoon-v2-6.png',
+  '/assets/student-avatar-cartoon-v2-7.png',
+  '/assets/student-avatar-cartoon-v2-8.png',
+  '/assets/student-avatar-cartoon-v2-9.png',
+  '/assets/student-avatar-cartoon-v2-0.png',
+  '/assets/student-avatar-cartoon-v3-1.png',
+  '/assets/student-avatar-cartoon-v3-2.png',
+  '/assets/student-avatar-cartoon-v3-3.png',
+  '/assets/student-avatar-cartoon-v3-4.png',
+  '/assets/student-avatar-cartoon-v3-5.png',
+  '/assets/student-avatar-cartoon-v3-6.png',
+  '/assets/student-avatar-cartoon-v3-7.png',
+  '/assets/student-avatar-cartoon-v3-8.png',
+  '/assets/student-avatar-cartoon-v3-9.png',
+  '/assets/student-avatar-cartoon-v3-0.png'
+];
+function mscAvatarImageSource(student, index = 0) {
+  if (student?.photoBase64) return student.photoBase64;
+  const seatNumber = Number(String(student?.no ?? '').trim());
+  const rosterIndex = Number(index);
+  const fallbackIndex = Number.isInteger(rosterIndex) && rosterIndex >= 0 ? rosterIndex : 0;
+  const avatarIndex = Number.isInteger(seatNumber) && seatNumber > 0 ? seatNumber - 1 : fallbackIndex;
+  return MSC_DEFAULT_AVATAR_IMAGES[avatarIndex % MSC_DEFAULT_AVATAR_IMAGES.length];
+}
 function mscAvatar(s, i) {
   // การ์ดรายชื่อ (วงกลมใหญ่) = ชื่อเล่นถ้ามี ไม่มีก็เลขที่
   const nick = (s.nickname || '').trim();
@@ -1945,9 +1975,9 @@ function renderMobileScoreGrid(c) {
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (!wrap) return;
   const cards = c.students.map((s, i) => {
-    const av = mscAvatar(s, i);
+    const avatarClass = s.photoBase64 ? ' is-uploaded-avatar' : ' is-default-avatar';
     return `<button class="msc-card" onclick="openMobileStudentScores('${c.id}','${s.id}')">
-      <span class="msc-av${av.cls}" style="background:${av.bg};color:${av.fg};">${av.txt}</span>
+      <img class="msc-av msc-avatar-image${avatarClass}" src="${escapeScoreAttr(mscAvatarImageSource(s, i))}" alt="" loading="lazy">
       <span class="msc-no">เลขที่ ${s.no || (i + 1)}</span>
       <span class="msc-name">${escapeScore(s.name)}</span>
     </button>`;
@@ -2002,7 +2032,7 @@ function renderMobileStudentPanel(c, sid) {
   if (!s) { backToMobileScoreGrid(c.id); return; }
   const sc = ensureScores(c);
   const idx = c.students.findIndex(x => x.id === sid);
-  const av = mscAvatar(s, idx);
+  const avatarClass = s.photoBase64 ? ' is-uploaded-avatar' : ' is-default-avatar';
 
   const buckets = SCORE_WK.map(b => {
     const items = sc.items.filter(i => i.bucket === b.key);
@@ -2035,7 +2065,7 @@ function renderMobileStudentPanel(c, sid) {
   wrap.innerHTML = `<div class="msc-panel">
     <button class="msc-back" onclick="backToMobileScoreGrid('${c.id}')"><i class="hgi-stroke hgi-arrow-left-01"></i> รายชื่อ</button>
     <div class="msc-shead">
-      <span class="msc-av msc-av-sm" style="background:${av.bg};color:${av.fg};">${s.no || (idx + 1)}</span>
+      <img class="msc-av msc-av-sm msc-avatar-image${avatarClass}" src="${escapeScoreAttr(mscAvatarImageSource(s, idx))}" alt="" loading="lazy">
       <div class="msc-shead-txt"><div class="msc-sname">${escapeScore(s.name)}</div></div>
     </div>
     <div class="msc-summary" id="msc-summary">${mobileScoreSummaryHtml(c, sid)}</div>
