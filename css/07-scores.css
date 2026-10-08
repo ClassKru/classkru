@@ -317,7 +317,8 @@
   border-radius: calc(var(--radius-btn) + 4px);
   background: var(--bg-light);
 }
-.score-worktabs.ck-classtab-bar { overflow: visible; }
+.score-worktabs-shell { display: contents; }
+.score-worktab-scroll-cue { display: none; }
 
 .score-report { max-width: 1100px; margin: auto; padding: 12px 20px 20px; }
 .score-report header p, .score-report-note, .score-report-detail { color: var(--text-muted); font-size: 0.85rem; }
@@ -646,10 +647,10 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
   transition: var(--transition-normal);
 }
 
-.score-worktab:hover {
-  color: var(--primary);
-  background: var(--primary-light);
+@media (hover: hover) and (pointer: fine) {
+  .score-worktab:hover { color: var(--primary); background: var(--primary-light); }
 }
+.score-worktab:active { color: var(--primary); background: var(--primary-light); }
 
 .score-worktab.active {
   font-weight: 700;
@@ -1376,27 +1377,60 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
   #web-scores-detail-view > .rep-detail-header-card .ck-hdr-action { width: 36px; min-width: 36px; height: 36px; padding: 0; justify-content: center; }
   #web-scores-detail-view > .rep-detail-header-card .ck-hdr-action i { margin: 0; }
   #scores-classtab-holder .ck-classtab-bar { margin-bottom: 8px; }
+  #score-worktab-holder .score-worktabs-shell {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: calc(var(--radius-btn) + 3px);
+    background: var(--bg-light);
+  }
   #score-worktab-holder .score-worktabs {
     display: flex;
     justify-content: flex-start;
     flex-wrap: nowrap;
-    width: 100%;
+    flex: 1 1 0;
+    width: 0;
+    min-width: 0;
     max-width: 100%;
-    margin-bottom: 8px;
+    margin-bottom: 0;
     gap: 3px;
-    padding: 4px;
-    border-radius: calc(var(--radius-btn) + 3px);
+    padding: 4px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     overflow-x: auto;
     overflow-y: hidden;
     overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--primary-light-border) var(--bg-light);
   }
   #score-worktab-holder .score-worktabs::-webkit-scrollbar { height: 5px; }
   #score-worktab-holder .score-worktabs::-webkit-scrollbar-track { border-radius: 999px; background: var(--bg-light); }
   #score-worktab-holder .score-worktabs::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--primary-light-border); }
+  #score-worktab-holder .score-worktab-scroll-cue {
+    flex: 0 0 40px;
+    display: grid;
+    width: 40px;
+    min-width: 40px;
+    min-height: 44px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    color: var(--primary);
+    background: transparent;
+    cursor: pointer;
+    touch-action: pan-x;
+  }
+  #score-worktab-holder .score-worktab-scroll-cue:disabled { color: var(--text-muted); opacity: .38; cursor: default; }
+  #score-worktab-holder .score-worktab-scroll-cue i { font-size: .9rem; }
   #score-worktab-holder .score-worktab {
     box-sizing: border-box;
     flex: 0 0 132px;
@@ -1407,7 +1441,6 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
     font-size: .76rem;
     padding: 4px 6px;
     white-space: nowrap;
-    scroll-snap-align: start;
   }
   #score-worktab-holder .score-worktab > i:not(.score-worktab-lock) { display: none; }
   #web-scores-detail-view > .card:has(#web-scores-matrix-wrap) { padding: 8px !important; }

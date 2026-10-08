@@ -5,8 +5,10 @@ const wrap = { innerHTML: '' };
 const context = vm.createContext({ console, window: {}, document: { getElementById: () => wrap } });
 vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../js/scores.js'), 'utf8'), context);
 const workspaceTabs = context.scoreWorkTabsHtml({ id: 'test-class' });
-assert.match(workspaceTabs, /class="score-worktabs ck-classtab-bar"/);
-assert.match(workspaceTabs, /class="score-worktab ck-classtab active"/);
+assert.match(workspaceTabs, /class="score-worktabs-shell"[\s\S]*class="score-worktabs" role="tablist"/);
+assert.match(workspaceTabs, /class="score-worktab active"/);
+assert.doesNotMatch(workspaceTabs, /ck-classtab/);
+assert.match(workspaceTabs, /score-worktab-scroll-next[\s\S]*aria-label="เลื่อนไปแท็บถัดไป"/);
 assert.deepEqual(Array.from(workspaceTabs.matchAll(/data-score-worktab="([^"]+)"/g), match => match[1]), [
   'overview', 'report-students', 'report-items', 'report-summary', 'curriculum', 'pp5'
 ]);
@@ -84,16 +86,17 @@ assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /score-repo
 assert.ok(context.scoreReportStudentChart(c).indexOf('data-student="a"') < context.scoreReportStudentChart(c).indexOf('data-student="b"'));
 const scoreCss = fs.readFileSync(require('node:path').join(__dirname, '../css/07-scores.css'), 'utf8');
 const scoreHtml = fs.readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
-assert.match(scoreHtml, /js\/scores\.js\?v=515/);
+assert.match(scoreHtml, /js\/scores\.js\?v=516/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-cards \{ display: grid;/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-matrix-scroll \{ display: none;/);
 assert.match(scoreCss, /\.score-worktabs \{[^}]*gap: 4px;[^}]*padding: 4px;/);
 assert.match(scoreCss, /\.score-worktab \{[^}]*min-height: 42px;[^}]*border-radius: var\(--radius-btn\)/);
 assert.match(scoreCss, /\.score-worktab \{[^}]*font-size: 0\.9rem;[^}]*font-weight: 600;[^}]*padding: 7px 17px/);
-assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{[\s\S]*?display: flex;[\s\S]*?flex-wrap: nowrap;[\s\S]*?overflow-x: auto;[\s\S]*?scroll-snap-type: x proximity;/);
-assert.match(scoreCss, /\.score-worktabs\.ck-classtab-bar \{ overflow: visible; \}/);
-assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[\s\S]*?flex: 0 0 132px;[\s\S]*?width: 132px;[\s\S]*?min-height: 38px;[\s\S]*?scroll-snap-align: start;/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{[\s\S]*?display: flex;[\s\S]*?flex-wrap: nowrap;[\s\S]*?overflow-x: auto;[\s\S]*?scroll-snap-type: none;/);
+assert.match(scoreCss, /\.score-worktabs-shell \{ display: contents; \}/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[\s\S]*?flex: 0 0 132px;[\s\S]*?width: 132px;[\s\S]*?min-height: 38px;[\s\S]*?padding: 4px 6px;/);
 assert.match(scoreCss, /#score-worktab-holder \.score-worktabs::-webkit-scrollbar-thumb \{ border-radius: 999px; background: var\(--primary-light-border\); \}/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktab-scroll-cue:disabled \{ color: var\(--text-muted\); opacity: \.38; cursor: default; \}/);
 assert.match(scoreCss, /#score-worktab-holder \.score-worktab > i:not\(\.score-worktab-lock\) \{ display: none; \}/);
 assert.match(scoreCss, /#web-scores-detail-title \{[^}]*font-size: \.88rem !important; font-weight: 700 !important/);
 assert.match(fs.readFileSync(require('node:path').join(__dirname, '../js/scores.js'), 'utf8'), /function revealActiveScoreWorkspaceTab\(holder\)[\s\S]*?bar\.scrollLeft = right - bar\.clientWidth/);
