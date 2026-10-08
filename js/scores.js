@@ -213,7 +213,10 @@ function setScoreWorkspaceMode(mode, classId) {
 function renderScoreWorkspace(c) {
   if (['curriculum', 'pp5'].includes(scoreWorkspaceMode)) scoreWorkspaceMode = 'overview';
   const holder = document.getElementById('score-worktab-holder');
-  if (holder) holder.innerHTML = scoreWorkTabsHtml(c);
+  if (holder) {
+    holder.innerHTML = scoreWorkTabsHtml(c);
+    revealActiveScoreWorkspaceTab(holder);
+  }
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (wrap) wrap.classList.remove('msc-wrap', 'sc-matrix-wrap');
   if (scoreWorkspaceMode === 'items') return renderScoreItemsDashboard(c);
@@ -222,6 +225,18 @@ function renderScoreWorkspace(c) {
   if (scoreWorkspaceMode === 'report') return renderScoreReport(c);
   if (scoreWorkspaceMode === 'pp5') return renderPp5(c);
   return renderCurriculumCatalog(c);
+}
+
+function revealActiveScoreWorkspaceTab(holder) {
+  const bar = holder.querySelector('.score-worktabs');
+  const active = bar?.querySelector('.score-worktab.active');
+  if (!bar || !active || !window.matchMedia?.('(max-width: 720px)').matches) return;
+  const left = active.offsetLeft - bar.clientLeft;
+  const right = left + active.offsetWidth;
+  const visibleLeft = bar.scrollLeft;
+  const visibleRight = visibleLeft + bar.clientWidth;
+  if (left < visibleLeft) bar.scrollLeft = left;
+  else if (right > visibleRight) bar.scrollLeft = right - bar.clientWidth;
 }
 
 // Average only recorded marks for students currently in this class; zero is a recorded mark.

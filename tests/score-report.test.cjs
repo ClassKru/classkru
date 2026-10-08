@@ -81,16 +81,19 @@ assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /score-repo
 assert.ok(context.scoreReportStudentChart(c).indexOf('data-student="a"') < context.scoreReportStudentChart(c).indexOf('data-student="b"'));
 const scoreCss = fs.readFileSync(require('node:path').join(__dirname, '../css/07-scores.css'), 'utf8');
 const scoreHtml = fs.readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
-assert.match(scoreHtml, /js\/scores\.js\?v=513/);
+assert.match(scoreHtml, /js\/scores\.js\?v=514/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-cards \{ display: grid;/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-matrix-scroll \{ display: none;/);
 assert.match(scoreCss, /\.score-worktabs \{[^}]*gap: 4px;[^}]*padding: 4px;/);
 assert.match(scoreCss, /\.score-worktab \{[^}]*min-height: 42px;[^}]*border-radius: var\(--radius-btn\)/);
 assert.match(scoreCss, /\.score-worktab \{[^}]*font-size: 0\.9rem;[^}]*font-weight: 600;[^}]*padding: 7px 17px/);
-assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{ display: grid;[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{[\s\S]*?display: flex;[\s\S]*?flex-wrap: nowrap;[\s\S]*?overflow-x: auto;[\s\S]*?scroll-snap-type: x proximity;/);
 assert.match(scoreCss, /\.score-worktabs\.ck-classtab-bar \{ overflow: visible; \}/);
-assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[^}]*width: 100%; min-width: 0;[^}]*min-height: 38px;[^}]*font-size: \.78rem/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[\s\S]*?flex: 0 0 132px;[\s\S]*?width: 132px;[\s\S]*?min-height: 38px;[\s\S]*?scroll-snap-align: start;/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktabs::-webkit-scrollbar-thumb \{ border-radius: 999px; background: var\(--primary-light-border\); \}/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktab > i:not\(\.score-worktab-lock\) \{ display: none; \}/);
 assert.match(scoreCss, /#web-scores-detail-title \{[^}]*font-size: \.88rem !important; font-weight: 700 !important/);
+assert.match(fs.readFileSync(require('node:path').join(__dirname, '../js/scores.js'), 'utf8'), /function revealActiveScoreWorkspaceTab\(holder\)[\s\S]*?bar\.scrollLeft = right - bar\.clientWidth/);
 const completeStudentChart = context.scoreReportStudentChart({
   students: [{ id: 'full', no: 1, name: 'คะแนนครบ' }],
   scores: {
