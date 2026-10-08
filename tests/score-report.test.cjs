@@ -10,8 +10,11 @@ assert.match(workspaceTabs, /class="score-worktab ck-classtab active"/);
 assert.deepEqual(Array.from(workspaceTabs.matchAll(/data-score-worktab="([^"]+)"/g), match => match[1]), [
   'overview', 'report-students', 'report-items', 'report-summary', 'curriculum', 'pp5'
 ]);
+assert.match(workspaceTabs, /<span>กรอกคะแนน<\/span>/);
+assert.match(workspaceTabs, /<span>สรุปคะแนน<\/span>/);
 assert.match(workspaceTabs, /คะแนนชิ้นงาน/);
-assert.match(workspaceTabs, /คะแนนรายคน/);
+assert.doesNotMatch(workspaceTabs, /<span>คะแนนรายคน<\/span>/);
+assert.doesNotMatch(workspaceTabs, /<span>คะแนน<\/span>/);
 assert.doesNotMatch(workspaceTabs, /การส่งงาน/);
 assert.match(workspaceTabs, /สรุปผล/);
 assert.match(workspaceTabs, /ตัวชี้วัดรายวิชา/);
@@ -81,7 +84,7 @@ assert.match(context.scoreReportMissingDetail(c, c.scores.items[2]), /score-repo
 assert.ok(context.scoreReportStudentChart(c).indexOf('data-student="a"') < context.scoreReportStudentChart(c).indexOf('data-student="b"'));
 const scoreCss = fs.readFileSync(require('node:path').join(__dirname, '../css/07-scores.css'), 'utf8');
 const scoreHtml = fs.readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
-assert.match(scoreHtml, /js\/scores\.js\?v=514/);
+assert.match(scoreHtml, /js\/scores\.js\?v=515/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-cards \{ display: grid;/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-matrix-scroll \{ display: none;/);
 assert.match(scoreCss, /\.score-worktabs \{[^}]*gap: 4px;[^}]*padding: 4px;/);
