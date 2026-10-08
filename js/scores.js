@@ -178,11 +178,14 @@ function scoreWorkTabsHtml(c) {
     { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01', locked: true },
     { key: 'pp5', label: 'ปพ.5', icon: 'hgi-book-open-01', locked: true }
   ];
-  return `<div class="score-worktabs ck-classtab-bar" role="tablist" aria-label="ส่วนงานคะแนน">${tabs.map(t => `
-    <button class="score-worktab ck-classtab${isScoreWorkspaceTabActive(t.key) ? ' active' : ''}${t.locked ? ' is-locked' : ''}" type="button" role="tab" data-score-worktab="${t.key}" aria-selected="${isScoreWorkspaceTabActive(t.key)}" ${t.locked ? 'aria-disabled="true" tabindex="0" title="อยู่ระหว่างพัฒนา" data-tooltip="อยู่ระหว่างพัฒนา"' : `onclick="setScoreWorkspaceMode('${t.key}','${c.id}')"`}>
+  return `<div class="score-worktabs-shell"><div class="score-worktabs" role="tablist" aria-label="ส่วนงานคะแนน">${tabs.map(t => `
+    <button class="score-worktab${isScoreWorkspaceTabActive(t.key) ? ' active' : ''}${t.locked ? ' is-locked' : ''}" type="button" role="tab" data-score-worktab="${t.key}" aria-selected="${isScoreWorkspaceTabActive(t.key)}" ${t.locked ? 'aria-disabled="true" tabindex="0" title="อยู่ระหว่างพัฒนา" data-tooltip="อยู่ระหว่างพัฒนา"' : `onclick="setScoreWorkspaceMode('${t.key}','${c.id}')"`}>
       <i class="hgi-stroke ${t.icon}"></i><span>${t.label}</span>
       ${t.locked ? '<i class="hgi-stroke hgi-lock-01 score-worktab-lock" aria-hidden="true"></i>' : ''}
-    </button>`).join('')}</div>`;
+    </button>`).join('')}</div>
+    <button class="score-worktab-scroll-cue score-worktab-scroll-prev" type="button" aria-label="เลื่อนไปแท็บก่อนหน้า" onclick="scrollScoreWorkspaceTabs(-1)"><i class="hgi-stroke hgi-arrow-left-01" aria-hidden="true"></i></button>
+    <button class="score-worktab-scroll-cue score-worktab-scroll-next" type="button" aria-label="เลื่อนไปแท็บถัดไป" onclick="scrollScoreWorkspaceTabs(1)"><i class="hgi-stroke hgi-arrow-right-01" aria-hidden="true"></i></button>
+  </div>`;
 }
 
 function isScoreWorkspaceTabActive(key) {
@@ -216,6 +219,7 @@ function renderScoreWorkspace(c) {
   if (holder) {
     holder.innerHTML = scoreWorkTabsHtml(c);
     revealActiveScoreWorkspaceTab(holder);
+    initScoreWorkspaceTabScroller(holder);
   }
   const wrap = document.getElementById('web-scores-matrix-wrap');
   if (wrap) wrap.classList.remove('msc-wrap', 'sc-matrix-wrap');
@@ -231,12 +235,40 @@ function revealActiveScoreWorkspaceTab(holder) {
   const bar = holder.querySelector('.score-worktabs');
   const active = bar?.querySelector('.score-worktab.active');
   if (!bar || !active || !window.matchMedia?.('(max-width: 720px)').matches) return;
-  const left = active.offsetLeft - bar.clientLeft;
-  const right = left + active.offsetWidth;
+  const barRect = bar.getBoundingClientRect();
+  const activeRect = active.getBoundingClientRect();
+  const left = activeRect.left - barRect.left - bar.clientLeft + bar.scrollLeft;
+  const right = left + activeRect.width;
   const visibleLeft = bar.scrollLeft;
   const visibleRight = visibleLeft + bar.clientWidth;
   if (left < visibleLeft) bar.scrollLeft = left;
   else if (right > visibleRight) bar.scrollLeft = right - bar.clientWidth;
+}
+
+function initScoreWorkspaceTabScroller(holder) {
+  const shell = holder.querySelector('.score-worktabs-shell');
+  const bar = shell?.querySelector('.score-worktabs');
+  const prev = shell?.querySelector('.score-worktab-scroll-prev');
+  const next = shell?.querySelector('.score-worktab-scroll-next');
+  if (!shell || !bar || !prev || !next) return;
+  const update = () => {
+    const maxScroll = Math.max(0, bar.scrollWidth - bar.clientWidth);
+    const canScroll = maxScroll > 2;
+    shell.classList.toggle('is-scrollable', canScroll);
+    prev.disabled = !canScroll || bar.scrollLeft <= 2;
+    next.disabled = !canScroll || bar.scrollLeft >= maxScroll - 2;
+  };
+  bar.addEventListener('scroll', update, { passive: true });
+  update();
+  requestAnimationFrame(update);
+}
+
+function scrollScoreWorkspaceTabs(direction) {
+  const bar = document.querySelector('#score-worktab-holder .score-worktabs');
+  const firstTab = bar?.querySelector('.score-worktab');
+  if (!bar || !firstTab) return;
+  const gap = parseFloat(getComputedStyle(bar).columnGap) || 0;
+  bar.scrollBy({ left: direction * (firstTab.offsetWidth + gap), behavior: 'smooth' });
 }
 
 // Average only recorded marks for students currently in this class; zero is a recorded mark.
