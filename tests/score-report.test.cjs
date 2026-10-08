@@ -81,6 +81,9 @@ const scoreCss = fs.readFileSync(require('node:path').join(__dirname, '../css/07
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-cards \{ display: grid;/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-matrix-scroll \{ display: none;/);
 assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{[^}]*flex-wrap: nowrap !important/);
+assert.match(scoreCss, /\.score-worktabs \{[^}]*gap: 4px;[^}]*padding: 4px;/);
+assert.match(scoreCss, /\.score-worktab \{[^}]*min-height: 42px;[^}]*border-radius: var\(--radius-btn\)/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[^}]*min-height: 34px;[^}]*font-size: \.76rem/);
 const completeStudentChart = context.scoreReportStudentChart({
   students: [{ id: 'full', no: 1, name: 'คะแนนครบ' }],
   scores: {
