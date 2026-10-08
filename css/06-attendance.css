@@ -1089,6 +1089,11 @@
   object-fit: cover;
 }
 
+.student-card-avatar img.is-default-avatar {
+  padding: 2px;
+  object-fit: contain;
+}
+
 .student-card-name {
   min-width: 0;
   flex: 1;
