@@ -178,8 +178,8 @@ function scoreWorkTabsHtml(c) {
     { key: 'curriculum', label: 'ตัวชี้วัดรายวิชา', icon: 'hgi-book-open-01', locked: true },
     { key: 'pp5', label: 'ปพ.5', icon: 'hgi-book-open-01', locked: true }
   ];
-  return `<div class="score-worktabs" role="tablist" aria-label="ส่วนงานคะแนน">${tabs.map(t => `
-    <button class="score-worktab${isScoreWorkspaceTabActive(t.key) ? ' active' : ''}${t.locked ? ' is-locked' : ''}" type="button" role="tab" data-score-worktab="${t.key}" aria-selected="${isScoreWorkspaceTabActive(t.key)}" ${t.locked ? 'aria-disabled="true" tabindex="0" title="อยู่ระหว่างพัฒนา" data-tooltip="อยู่ระหว่างพัฒนา"' : `onclick="setScoreWorkspaceMode('${t.key}','${c.id}')"`}>
+  return `<div class="score-worktabs ck-classtab-bar" role="tablist" aria-label="ส่วนงานคะแนน">${tabs.map(t => `
+    <button class="score-worktab ck-classtab${isScoreWorkspaceTabActive(t.key) ? ' active' : ''}${t.locked ? ' is-locked' : ''}" type="button" role="tab" data-score-worktab="${t.key}" aria-selected="${isScoreWorkspaceTabActive(t.key)}" ${t.locked ? 'aria-disabled="true" tabindex="0" title="อยู่ระหว่างพัฒนา" data-tooltip="อยู่ระหว่างพัฒนา"' : `onclick="setScoreWorkspaceMode('${t.key}','${c.id}')"`}>
       <i class="hgi-stroke ${t.icon}"></i><span>${t.label}</span>
       ${t.locked ? '<i class="hgi-stroke hgi-lock-01 score-worktab-lock" aria-hidden="true"></i>' : ''}
     </button>`).join('')}</div>`;

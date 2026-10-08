@@ -317,6 +317,7 @@
   border-radius: calc(var(--radius-btn) + 4px);
   background: var(--bg-light);
 }
+.score-worktabs.ck-classtab-bar { overflow: visible; }
 
 .score-report { max-width: 1100px; margin: auto; padding: 12px 20px 20px; }
 .score-report header p, .score-report-note, .score-report-detail { color: var(--text-muted); font-size: 0.85rem; }
@@ -1369,7 +1370,7 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
   #web-scores-detail-view > .rep-detail-header-card { margin-bottom: 8px !important; padding: 8px 10px !important; }
   #web-scores-detail-view > .rep-detail-header-card > div { flex-wrap: nowrap !important; gap: 6px !important; }
   #web-scores-detail-view > .rep-detail-header-card > div > div:first-child { gap: 7px !important; flex: 1 1 auto; }
-  #web-scores-detail-title { overflow: hidden; font-size: .98rem !important; text-overflow: ellipsis; white-space: nowrap; }
+  #web-scores-detail-title { overflow: hidden; font-size: .88rem !important; font-weight: 700 !important; text-overflow: ellipsis; white-space: nowrap; }
   #web-scores-detail-view > .rep-detail-header-card .btn-back { flex: 0 0 auto; padding: 6px 7px; font-size: .78rem; }
   #web-scores-detail-view > .rep-detail-header-card > div > div:last-child { flex: 0 0 auto; gap: 4px !important; }
   #web-scores-detail-view > .rep-detail-header-card .ck-hdr-action { width: 36px; min-width: 36px; height: 36px; padding: 0; justify-content: center; }
