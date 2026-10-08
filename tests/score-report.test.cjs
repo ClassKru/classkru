@@ -5,6 +5,8 @@ const wrap = { innerHTML: '' };
 const context = vm.createContext({ console, window: {}, document: { getElementById: () => wrap } });
 vm.runInContext(fs.readFileSync(require('node:path').join(__dirname, '../js/scores.js'), 'utf8'), context);
 const workspaceTabs = context.scoreWorkTabsHtml({ id: 'test-class' });
+assert.match(workspaceTabs, /class="score-worktabs ck-classtab-bar"/);
+assert.match(workspaceTabs, /class="score-worktab ck-classtab active"/);
 assert.deepEqual(Array.from(workspaceTabs.matchAll(/data-score-worktab="([^"]+)"/g), match => match[1]), [
   'overview', 'report-students', 'report-items', 'report-summary', 'curriculum', 'pp5'
 ]);
@@ -84,7 +86,9 @@ assert.match(scoreCss, /\.score-worktabs \{[^}]*gap: 4px;[^}]*padding: 4px;/);
 assert.match(scoreCss, /\.score-worktab \{[^}]*min-height: 42px;[^}]*border-radius: var\(--radius-btn\)/);
 assert.match(scoreCss, /\.score-worktab \{[^}]*font-size: 0\.9rem;[^}]*font-weight: 600;[^}]*padding: 7px 17px/);
 assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{ display: grid;[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+assert.match(scoreCss, /\.score-worktabs\.ck-classtab-bar \{ overflow: visible; \}/);
 assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[^}]*width: 100%; min-width: 0;[^}]*min-height: 38px;[^}]*font-size: \.78rem/);
+assert.match(scoreCss, /#web-scores-detail-title \{[^}]*font-size: \.88rem !important; font-weight: 700 !important/);
 const completeStudentChart = context.scoreReportStudentChart({
   students: [{ id: 'full', no: 1, name: 'คะแนนครบ' }],
   scores: {
