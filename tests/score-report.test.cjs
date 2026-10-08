@@ -83,7 +83,8 @@ assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-studen
 assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{[^}]*flex-wrap: nowrap !important/);
 assert.match(scoreCss, /\.score-worktabs \{[^}]*gap: 4px;[^}]*padding: 4px;/);
 assert.match(scoreCss, /\.score-worktab \{[^}]*min-height: 42px;[^}]*border-radius: var\(--radius-btn\)/);
-assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[^}]*min-height: 34px;[^}]*font-size: \.76rem/);
+assert.match(scoreCss, /\.score-worktab \{[^}]*font-size: 0\.9rem;[^}]*font-weight: 600;[^}]*padding: 7px 17px/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[^}]*min-height: 32px;[^}]*font-size: \.78rem;[^}]*padding: 4px 7px/);
 const completeStudentChart = context.scoreReportStudentChart({
   students: [{ id: 'full', no: 1, name: 'คะแนนครบ' }],
   scores: {
