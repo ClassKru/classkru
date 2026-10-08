@@ -80,11 +80,11 @@ assert.ok(context.scoreReportStudentChart(c).indexOf('data-student="a"') < conte
 const scoreCss = fs.readFileSync(require('node:path').join(__dirname, '../css/07-scores.css'), 'utf8');
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-cards \{ display: grid;/);
 assert.match(scoreCss, /@media \(max-width: 720px\)[\s\S]*?\.score-report-student-matrix-scroll \{ display: none;/);
-assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{[^}]*flex-wrap: nowrap !important/);
 assert.match(scoreCss, /\.score-worktabs \{[^}]*gap: 4px;[^}]*padding: 4px;/);
 assert.match(scoreCss, /\.score-worktab \{[^}]*min-height: 42px;[^}]*border-radius: var\(--radius-btn\)/);
 assert.match(scoreCss, /\.score-worktab \{[^}]*font-size: 0\.9rem;[^}]*font-weight: 600;[^}]*padding: 7px 17px/);
-assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[^}]*width: 124px; min-width: 124px; flex: 0 0 124px !important;[^}]*min-height: 32px;[^}]*font-size: \.78rem;[^}]*padding: 4px 7px/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktabs \{ display: grid;[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+assert.match(scoreCss, /#score-worktab-holder \.score-worktab \{[^}]*width: 100%; min-width: 0;[^}]*min-height: 38px;[^}]*font-size: \.78rem/);
 const completeStudentChart = context.scoreReportStudentChart({
   students: [{ id: 'full', no: 1, name: 'คะแนนครบ' }],
   scores: {

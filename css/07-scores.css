@@ -1375,9 +1375,8 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
   #web-scores-detail-view > .rep-detail-header-card .ck-hdr-action { width: 36px; min-width: 36px; height: 36px; padding: 0; justify-content: center; }
   #web-scores-detail-view > .rep-detail-header-card .ck-hdr-action i { margin: 0; }
   #scores-classtab-holder .ck-classtab-bar { margin-bottom: 8px; }
-  #score-worktab-holder .score-worktabs { width: 100%; max-width: 100%; flex-wrap: nowrap !important; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; margin-bottom: 8px; gap: 2px; padding: 3px; border-radius: calc(var(--radius-btn) + 3px); }
-  #score-worktab-holder .score-worktabs::-webkit-scrollbar { display: none; }
-  #score-worktab-holder .score-worktab { box-sizing: border-box; width: 124px; min-width: 124px; flex: 0 0 124px !important; min-height: 32px; gap: 4px; font-size: .78rem; padding: 4px 7px; }
+  #score-worktab-holder .score-worktabs { display: grid; width: 100%; max-width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 8px; gap: 2px; padding: 3px; border-radius: calc(var(--radius-btn) + 3px); }
+  #score-worktab-holder .score-worktab { box-sizing: border-box; width: 100%; min-width: 0; min-height: 38px; gap: 4px; font-size: .78rem; padding: 4px 5px; white-space: nowrap; }
   #web-scores-detail-view > .card:has(#web-scores-matrix-wrap) { padding: 8px !important; }
   .score-report-student-section { padding: 14px 12px; }
   .score-report-student-section .score-report-section-head { gap: 4px; margin-bottom: 8px; }
