@@ -108,11 +108,14 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 ## 2. สถานะ Repository และ Production ปัจจุบัน
 
 - Repository: `https://github.com/ClassKru/classkru.git`
-- Production: `https://classkru-kohl.vercel.app/`
-- Branch ทำงาน: `main`
+- Production: `https://classkru.com/` (deploy อัตโนมัติจาก `main`)
+- Demo: `https://demo.classkru.com/` (Vercel project `classkru-demo`; deployment ล่าสุด `dpl_DpPhmmqGrRa8BEM1DfUSDxQ9JZbG` พร้อมใช้งานเมื่อ 8 ต.ค. 2569)
+- Branch ทำงาน: `main`; ล่าสุด `origin/main` คือ `22c0f9f` (`Remove score tab scroll arrows`)
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบันบน `feature/media-studio-live`: `488`
+- Asset คะแนนที่ตรวจบนทั้ง Production และ Demo: `css/07-scores.css?v=520`, `js/scores.js?v=517`
+- Demo deploy ใช้ source tree เดียวกับ `main` ที่ขึ้น Production แล้ว; ไม่ได้รวมการแก้ไขที่ยังไม่ merge/ยัง uncommitted ใน feature branch อื่น และไม่ได้เปลี่ยนค่าตั้งค่า Production
+- งาน UI ล่าสุดที่ sync ไป Demo: ปรับแถบหัวห้องเรียนบนมือถือ, จัด pattern/ขนาดแถบเมนูคะแนนให้สม่ำเสมอ, เปลี่ยนชื่อแท็บเป็น “กรอกคะแนน”/“สรุปคะแนน”, และให้แถบแท็บย่อยปัดซ้าย-ขวาได้โดยไม่มีปุ่มลูกศร
 - งานล่าสุด: **ปพ.5** สรุปคุณลักษณะอันพึงประสงค์จากคะแนนรายข้อ 8 คุณลักษณะตามเกณฑ์ `ดีเยี่ยม / ดี / ผ่าน / ไม่ผ่าน`, ใช้ช่องสรุปเป็นผลคำนวณในเอกสารและ Excel, และยังให้ครูกรอกผลอ่าน คิดวิเคราะห์ และเขียนแยกตามแบบเดิม
 - งานล่าสุด: คลังตัวชี้วัด ม.1-ม.3 เปิดใช้ครบ 8 กลุ่มสาระ รวม 688 ตัวชี้วัด (ภาษาไทย 103, คณิตศาสตร์ 33, วิทยาศาสตร์ 174, สังคมศึกษา 140, สุขศึกษา 72, ศิลปะ 86, การงานอาชีพ 18 และภาษาต่างประเทศ 62) พร้อมตัวตรวจจำนวน รหัสซ้ำ ความสัมพันธ์มาตรฐาน/หัวข้อ และการค้นหาผ่าน catalog
 - งานล่าสุด: แผนภาพ **ตัวชี้วัดรายวิชา** แสดงคะแนนเต็มสำหรับ ปพ.5 และแต่ละกิ่งงานแสดงคะแนนเต็มดิบ น้ำหนักแบบทศนิยมที่รวมได้ 100% พร้อมคะแนนที่คิดเป็นจากคะแนนเต็มตัวชี้วัด เพื่อลดความสับสนระหว่างสองสเกลคะแนน
