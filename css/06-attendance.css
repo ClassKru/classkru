@@ -63,6 +63,19 @@
   gap: 5px;
 }
 
+/* หัวชื่อห้องของหน้าภายในห้องต้องใช้ baseline เดียวกันทุกหน้า
+   (เช็คชื่อ / คะแนน / รายชื่อนักเรียน / การเข้าเรียน) */
+@media (min-width: 769px) {
+  #web-students-detail-title,
+  #web-scores-detail-title,
+  #web-rep-detail-class-title,
+  #swipe-class-title {
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+  }
+}
+
 @media (max-width: 768px) {
   .swipe-header-bar { padding: 12px 16px; }
   /* บีบการ์ดหัวหน้าเช็คชื่อ + จัดทุกอย่างแถวเดียว (เฉพาะมือถือ) */
@@ -100,7 +113,15 @@
     justify-content: center;
     font-size: 0.88rem !important;
     font-weight: 700 !important;
+    line-height: 1.2 !important;
     overflow: hidden;
+  }
+  #web-scores-detail-title,
+  #web-rep-detail-class-title,
+  #swipe-class-title {
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
   }
   /* ปุ่มขวาของทุกหน้าเกาะขอบขวาเหมือนกัน (ความกว้างต่างกันได้ แต่แนวขวาต้องตรงกัน) */
   .swipe-class-card .header-actions,
