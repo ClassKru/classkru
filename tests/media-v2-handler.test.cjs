@@ -75,7 +75,7 @@ test('Media V2 preserves the Brief, preflights complexity, and bounds provider/r
     if (assistant) {
       const messageId = crypto.randomUUID();
       objects.set(root + '/messages/' + id + '_message_' + crypto.randomUUID() + '.json', {
-        id: messageId, session_id: id, role: 'assistant', kind: 'v2_chat', content: 'เสนอแนวทางสื่อหนึ่งแบบ', created_at: new Date(created + 1).toISOString()
+        id: messageId, session_id: id, role: 'assistant', kind: 'v2_chat', content: 'เสนอแนวทางสื่อหนึ่งแบบ\n[ทางเลือก]ใช้แถบเลื่อนทดลองแรงเสียดทานทีละปัจจัย[/ทางเลือก]', created_at: new Date(created + 1).toISOString()
       });
       return { id, messageId };
     }
@@ -93,16 +93,17 @@ test('Media V2 preserves the Brief, preflights complexity, and bounds provider/r
   assert.equal(blockedSession.body.session.latest_build.error_category, 'complexity_exceeded');
 
   const selected = await seed('อยากทดลองแรงเสียดทานด้วย slider', { assistant: true });
-  const savedBrief = await call('sessions/' + selected.id + '/brief', 'POST', { message_id: selected.messageId });
+  const selectedDirection = 'ใช้แถบเลื่อนทดลองแรงเสียดทานทีละปัจจัย';
+  const savedBrief = await call('sessions/' + selected.id + '/brief', 'POST', { message_id: selected.messageId, direction: selectedDirection });
   assert.equal(savedBrief.statusCode, 200);
-  assert.equal(savedBrief.body.brief.selected_direction, 'เสนอแนวทางสื่อหนึ่งแบบ');
+  assert.equal(savedBrief.body.brief.selected_direction, selectedDirection);
 
   replies = [providerResponse('', { status: 429 }), providerResponse(artifact())];
   requests = [];
   const retried = await call('sessions/' + selected.id + '/build');
   assert.equal(retried.statusCode, 200);
   assert.equal(providerCalls, callsBeforeComplex + 2);
-  assert.ok(requests[0].messages.at(-1).content.includes('เสนอแนวทางสื่อหนึ่งแบบ'));
+  assert.ok(requests[0].messages.at(-1).content.includes(selectedDirection));
   const successBuild = objects.get(root + '/builds/' + selected.id + '_build_' + retried.body.build_id + '.json');
   assert.equal(successBuild.retry_count, 1);
   assert.equal(successBuild.status, 'passed');

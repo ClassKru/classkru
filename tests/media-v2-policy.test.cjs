@@ -80,6 +80,9 @@ test('Media V2 keeps teacher-selected direction and compact rebuild guidance in 
   assert.match(prompt, /Confirmed teacher-selected direction/);
   assert.match(prompt, /one primary screen and one core interaction/);
   assert.match(prompt, /ป\.5/);
+  assert.match(media.V2_PLANNER_RULES, /\[ทางเลือก\]idea text\[\/ทางเลือก\]/);
+  const conversation = media.buildV2ChatPrompt('', [{ role: 'assistant', content: 'คำตอบปกติ\n[ทางเลือก]ไอเดียสำรอง[/ทางเลือก]' }]);
+  assert.doesNotMatch(conversation, /ไอเดียสำรอง/);
 });
 
 test('Media V2 parser retains supported HTML and fenced JSON normalization while enforcing its schema', async () => {
