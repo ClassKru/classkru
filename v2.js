@@ -79,7 +79,7 @@ function renderUsage(usage = {}) {
   for (const call of usage.calls || []) {
     const row = document.createElement('span');
     row.className = 'usage-chip usage-call';
-    row.textContent = `${call.phase} · ${call.model} · in ${call.input_tokens ?? '—'} / out ${call.output_tokens ?? '—'} / total ${call.total_tokens ?? '—'} · ${call.usage_source}`;
+    row.textContent = `${call.phase} · ${call.model} · in ${call.input_tokens ?? '—'} / out ${call.output_tokens ?? '—'} / total ${call.total_tokens ?? '—'} · finish ${call.finish_reason ?? '—'} · ${call.response_chars ?? '—'} chars · ${call.usage_source}`;
     summary.append(row);
   }
   panel.replaceChildren(summary);

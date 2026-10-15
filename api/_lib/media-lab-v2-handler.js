@@ -3,6 +3,7 @@ const crypto = require('node:crypto');
 const { authenticatedUser } = require('./supabase-user');
 const storage = require('./media-db');
 const { sendJson, requestOriginIsValid } = require('./http');
+const { callOpenRouter } = require('./media-lab-v2-ai');
 const developers = new Set(['petch.0231@gmail.com', 'supakit.radiation@gmail.com', 'classkru.dev@gmail.com']);
 const openRouterKey = () => process.env.OPENROUTER_MEDIA_PLANNER_API_KEY;
 const now = () => new Date().toISOString();
@@ -102,7 +103,9 @@ async function recordUsage(root, sessionId, phase, model, result) {
     input_tokens: providerUsage.prompt_tokens ?? providerUsage.input_tokens ?? null,
     output_tokens: providerUsage.completion_tokens ?? providerUsage.output_tokens ?? null,
     total_tokens: providerUsage.total_tokens ?? null,
-    usage_source: providerUsage.total_tokens == null ? 'unavailable' : 'provider' };
+    usage_source: providerUsage.total_tokens == null ? 'unavailable' : 'provider',
+    finish_reason: result.finishReason || null,
+    response_chars: Number.isFinite(result.responseChars) ? result.responseChars : null };
   await storage.put(`${root}/usage/${recordName(sessionId, 'usage', call.id)}`, call);
 }
 async function sessionData(root, sessionId, includeUsage = false) {
@@ -125,19 +128,9 @@ async function addMessage(root, sessionId, role, content, kind = 'v2_chat', extr
   await storage.put(`${root}/messages/${recordName(sessionId, 'message', message.id)}`, message);
   return message;
 }
-async function callOpenRouter(model, prompt, { maxTokens, temperature, jsonMode = false, systemPrompt = '', timeoutMs = jsonMode ? 220000 : 90000 }) {
-  const key = openRouterKey();
-  if (!key) { const error = new Error('ai_not_configured'); error.status = 503; error.code = 'ai_not_configured'; throw error; }
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}`, 'HTTP-Referer': process.env.OPENROUTER_SITE_URL || 'https://classkru-kohl.vercel.app', 'X-Title': 'ClassKru Mini Lab V2' },
-    signal: AbortSignal.timeout(timeoutMs),
-    body: JSON.stringify({ model, messages: [...(systemPrompt ? [{ role: 'system', content: systemPrompt }] : []), { role: 'user', content: prompt }], temperature, max_tokens: maxTokens, ...(jsonMode ? { response_format: { type: 'json_object' } } : {}) })
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) { const error = new Error(payload.error?.message || 'ai_request_failed'); error.code = response.status === 429 ? 'ai_busy' : 'ai_request_failed'; error.status = 502; throw error; }
-  const text = payload.choices?.[0]?.message?.content;
-  if (typeof text !== 'string' || !text.trim()) { const error = new Error('ai_invalid_response'); error.code = 'ai_invalid_response'; error.status = 502; throw error; }
-  return { text: text.trim(), usage: payload.usage || null };
+function requireComplete(result) {
+  if (result.finishReason !== 'stop') throw Object.assign(new Error('ai_incomplete'), { code: 'ai_incomplete', status: 502 });
+  if (!result.text) throw Object.assign(new Error('ai_invalid_response'), { code: 'ai_invalid_response', status: 502 });
 }
 function selectedModel(input, user) {
   const isDeveloper = developers.has(String(user.email || '').trim().toLowerCase());
@@ -224,6 +217,7 @@ async function handler(req, res) {
         : promptModule.buildV2ChatPrompt('', history);
       const answer = await callOpenRouter(model, chatPrompt, { maxTokens: 700, temperature: 0.5, systemPrompt: promptModule.V2_CONVERSATION_SYSTEM_CONTEXT });
       await recordUsage(root, sessionId, 'v2_chat', model, answer);
+      requireComplete(answer);
       await addMessage(root, sessionId, 'assistant', answer.text);
       const meta = await sessionIndex(root, sessionId);
       const title = meta.title === 'สื่อใหม่' && message ? message.replace(/\s+/g, ' ').slice(0, 80) : meta.title;
@@ -237,11 +231,18 @@ async function handler(req, res) {
       const history = current.messages.filter(item => item.kind === 'v2_chat' || item.kind === 'v2_pending_start');
       if (!history.some(item => item.role === 'teacher')) return sendJson(res, 400, { error: 'conversation_required' });
       const promptModule = await prompts(), model = selectedModel(input, user);
-      const result = await callOpenRouter(model, promptModule.buildV2ArtifactPrompt('', history), { maxTokens: 8000, temperature: 0.25, jsonMode: true });
+      const result = await callOpenRouter(model, promptModule.buildV2ArtifactPrompt('', history), { maxTokens: 14000, temperature: 0.25, jsonMode: true });
       await recordUsage(root, sessionId, 'v2_build', model, result);
+      if (result.finishReason !== 'stop') {
+        console.warn('v2_build_incomplete', { finish_reason: result.finishReason, response_chars: result.responseChars });
+        return sendJson(res, 422, { error: 'ai_output_incomplete', message: 'ผลการสร้างสื่อถูกตัดก่อนจบ กรุณากดสร้างอีกครั้ง', ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
+      }
       let artifact;
       try { artifact = promptModule.parseV2Artifact(result.text); }
-      catch (_) { return sendJson(res, 422, { error: 'ai_output_unparseable', message: 'AI ส่งผลลัพธ์ที่แปลงเป็นสื่อไม่ได้ กรุณากดสร้างอีกครั้ง' }); }
+      catch (error) {
+        console.warn('v2_build_unparseable', { parser_error: String(error.message || 'unknown').slice(0, 80), finish_reason: result.finishReason, response_chars: result.responseChars });
+        return sendJson(res, 422, { error: 'ai_output_unparseable', message: 'AI ส่งผลลัพธ์ที่แปลงเป็นสื่อไม่ได้ กรุณากดสร้างอีกครั้ง', ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
+      }
       let validation = promptModule.validateV2Html(artifact.html);
       let attemptedRepair = false;
       if (!validation.ok) {
@@ -250,8 +251,9 @@ async function handler(req, res) {
         if (repairTimeout >= 30000) {
           attemptedRepair = true;
           try {
-            const repair = await callOpenRouter(model, promptModule.buildV2RepairPrompt(artifact, validation.errors), { maxTokens: 8000, temperature: 0.15, jsonMode: true, timeoutMs: repairTimeout });
+            const repair = await callOpenRouter(model, promptModule.buildV2RepairPrompt(artifact, validation.errors), { maxTokens: 14000, temperature: 0.15, jsonMode: true, timeoutMs: repairTimeout });
             await recordUsage(root, sessionId, 'v2_repair', model, repair);
+            requireComplete(repair);
             const repairedArtifact = promptModule.parseV2Artifact(repair.text);
             const repairedValidation = promptModule.validateV2Html(repairedArtifact.html);
             if (repairedValidation.ok) { artifact = repairedArtifact; validation = repairedValidation; }

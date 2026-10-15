@@ -577,4 +577,12 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 
 Learning Goal Card แนบเป้าหมายและ pattern เป็น context เสริมใน user message; แชทปกติและ prompt card อนุมาน learning pattern จากข้อความได้ตามหลักเดียวกัน ปรับการอ้างหัวข้อให้ใช้ข้อความล่าสุดของครู และลด output budget ของ Conversation AI เป็น 700 tokens เพื่อสนับสนุนคำตอบกระชับ
 
-ขอบเขต: ไม่แก้ Builder, flow สร้างสื่อ หรือ Runtime. สถานะ: แก้บน branch `feature/media-v2-conversation-context`; ยังไม่ได้รัน tests, push หรือ deploy.
+ขอบเขต: ไม่แก้ Builder, flow สร้างสื่อ หรือ Runtime. สถานะ: PR #88 (`00cba73`) merge เข้า `main` แล้วด้วย merge commit `12615eb`.
+
+## 27. ClassKru Media V2: structured Builder output และ diagnostics (2026-10-15)
+
+ปรับ Builder/Repair จาก OpenRouter `json_object` เป็น strict `json_schema` ที่บังคับเฉพาะ `title`, `summary`, `html` และตั้ง `provider.require_parameters=true`; ขยาย output budget จาก 8,000 เป็น 14,000 tokens ให้สอดคล้องกับขนาด HTML สูงสุด 45,000 ตัวอักษร. Conversation ยังรับข้อความธรรมดาและไม่ถูกบังคับด้วย artifact schema.
+
+เก็บ `finish_reason` และจำนวนตัวอักษรผลลัพธ์ใน usage record โดยไม่เก็บ raw response; หาก provider จบด้วย `length` หรือค่าอื่นที่ไม่ใช่ `stop` ระบบจะแจ้ง `ai_output_incomplete` แทนเหมารวมเป็น parse failure. Parse failure บันทึกเฉพาะรหัส parser, finish reason และความยาว ไม่บันทึกเนื้อหาสื่อหรือ secret. เพิ่ม unit tests คุ้มครอง schema และแยกโหมด conversation ออกจาก artifact output.
+
+ผลตรวจ: syntax ผ่าน; `npm.cmd run test:media` ผ่าน 26/26; `tests/media-v2-navigation.test.cjs` ผ่านทั้ง desktop และ mobile viewport; `git diff --check` ผ่าน. Asset cache version เป็น `522`. สถานะ: แก้บน branch `fix/media-v2-structured-output`; ยังไม่ได้ push, เปิด PR หรือ deploy.
