@@ -6,7 +6,8 @@ const { sendJson, requestOriginIsValid } = require('./http');
 const { callOpenRouter } = require('./media-lab-v2-ai');
 const { config: v2Config, estimateV2Complexity, classifyBuildError, retryDelay } = require('./media-lab-v2-policy');
 const developers = new Set(['petch.0231@gmail.com', 'supakit.radiation@gmail.com', 'classkru.dev@gmail.com']);
-const openRouterKey = () => process.env.OPENROUTER_MEDIA_PLANNER_API_KEY;
+const openRouterKey = () => process.env.OPENROUTER_MEDIA_PLANNER_API_KEY || process.env.OPENROUTER_API_KEY || '';
+const defaultModel = () => process.env.OPENROUTER_MEDIA_MODEL || process.env.OPENROUTER_MODEL || process.env.OPENROUTER_MEDIA_PLANNER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507';
 const now = () => new Date().toISOString();
 const uuid = () => crypto.randomUUID();
 const userRoot = id => `users/${id}/mini-lab-v2`;
@@ -433,7 +434,7 @@ async function executeRuntimeRepair(root, sessionId, runId, model, brief) {
 }
 function selectedModel(input, user) {
   const isDeveloper = developers.has(String(user.email || '').trim().toLowerCase());
-  const configured = String(process.env.OPENROUTER_MODEL || process.env.OPENROUTER_MEDIA_PLANNER_MODEL || 'openrouter/free');
+  const configured = String(defaultModel());
   return isDeveloper && typeof input.model === 'string' && input.model.trim() ? input.model.trim().slice(0, 160) : configured;
 }
 async function handler(req, res) {
@@ -461,7 +462,7 @@ async function handler(req, res) {
     const action = parts[0] || '';
     const input = req.body && typeof req.body === 'object' ? req.body : {};
     const isDeveloper = developers.has(String(user.email || '').trim().toLowerCase());
-    if (action === 'config' && req.method === 'GET') return sendJson(res, 200, { configured: Boolean(openRouterKey()), deployment: true, developer: isDeveloper, defaultBuilderModel: process.env.OPENROUTER_MODEL || process.env.OPENROUTER_MEDIA_PLANNER_MODEL || 'openrouter/free', backends: ['openrouter'] });
+    if (action === 'config' && req.method === 'GET') return sendJson(res, 200, { configured: Boolean(openRouterKey()), deployment: true, developer: isDeveloper, defaultBuilderModel: defaultModel(), backends: ['openrouter'] });
     if (action === 'models' && req.method === 'GET') {
       if (!isDeveloper) return sendJson(res, 403, { error: 'developer_access_required' });
       const response = await fetch('https://openrouter.ai/api/v1/models', { headers: { Authorization: `Bearer ${openRouterKey() || ''}` }, signal: AbortSignal.timeout(20000) });
