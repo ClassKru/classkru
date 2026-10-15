@@ -585,4 +585,4 @@ Learning Goal Card แนบเป้าหมายและ pattern เป็�
 
 เก็บ `finish_reason` และจำนวนตัวอักษรผลลัพธ์ใน usage record โดยไม่เก็บ raw response; หาก provider จบด้วย `length` หรือค่าอื่นที่ไม่ใช่ `stop` ระบบจะแจ้ง `ai_output_incomplete` แทนเหมารวมเป็น parse failure. Parse failure บันทึกเฉพาะรหัส parser, finish reason และความยาว ไม่บันทึกเนื้อหาสื่อหรือ secret. เพิ่ม unit tests คุ้มครอง schema และแยกโหมด conversation ออกจาก artifact output.
 
-ผลตรวจ: syntax ผ่าน; `npm.cmd run test:media` ผ่าน 26/26; `tests/media-v2-navigation.test.cjs` ผ่านทั้ง desktop และ mobile viewport; `git diff --check` ผ่าน. Asset cache version เป็น `522`. สถานะ: แก้บน branch `fix/media-v2-structured-output`; ยังไม่ได้ push, เปิด PR หรือ deploy.
+ผลตรวจ: syntax ผ่าน; `npm.cmd run test:media` ผ่าน 26/26; `tests/media-v2-navigation.test.cjs` ผ่านทั้ง desktop และ mobile viewport; `git diff --check` ผ่าน. Asset cache version เป็น `522`. สถานะ: commit `0843624` บน branch `fix/media-v2-structured-output`; push และเปิด PR #120 แล้ว; ยังไม่ merge หรือ deploy Production.
