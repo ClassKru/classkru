@@ -18,8 +18,24 @@ function fail(code, status) {
   return error;
 }
 
+function openRouterKey() {
+  return process.env.OPENROUTER_MEDIA_PLANNER_API_KEY || process.env.OPENROUTER_API_KEY || '';
+}
+
+function responseText(content) {
+  if (typeof content === 'string') return content;
+  if (!Array.isArray(content)) return null;
+  const text = content.map(part => {
+    if (!part || typeof part !== 'object') return '';
+    if (typeof part.text === 'string') return part.text;
+    if (typeof part.text?.value === 'string') return part.text.value;
+    return '';
+  }).join('');
+  return text || null;
+}
+
 async function callOpenRouter(model, prompt, { maxTokens, temperature, jsonMode = false, systemPrompt = '', timeoutMs = jsonMode ? 220000 : 90000 }) {
-  const key = process.env.OPENROUTER_MEDIA_PLANNER_API_KEY;
+  const key = openRouterKey();
   if (!key) throw fail('ai_not_configured', 503);
   const startedAt = Date.now();
   let response;
@@ -56,7 +72,7 @@ async function callOpenRouter(model, prompt, { maxTokens, temperature, jsonMode 
     throw failure;
   }
   const choice = payload.choices?.[0];
-  const text = choice?.message?.content;
+  const text = responseText(choice?.message?.content);
   if (typeof text !== 'string') {
     const failure = fail('ai_invalid_response_schema', 502);
     failure.responseStatus = response.status;
@@ -73,4 +89,4 @@ async function callOpenRouter(model, prompt, { maxTokens, temperature, jsonMode 
   };
 }
 
-module.exports = { artifactSchema, callOpenRouter };
+module.exports = { artifactSchema, callOpenRouter, openRouterKey };

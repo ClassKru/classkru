@@ -3,7 +3,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
 test('Media V2 requests a strict artifact schema and reports incomplete provider output', async t => {
-  const names = ['OPENROUTER_MEDIA_PLANNER_API_KEY', 'OPENROUTER_SITE_URL'];
+  const names = ['OPENROUTER_MEDIA_PLANNER_API_KEY', 'OPENROUTER_API_KEY', 'OPENROUTER_SITE_URL'];
   const old = Object.fromEntries(names.map(name => [name, process.env[name]]));
   t.after(() => {
     for (const name of names) {
@@ -57,4 +57,25 @@ test('Media V2 keeps ordinary conversation output free from the artifact schema'
   assert.equal(result.finishReason, 'stop');
   assert.equal(result.text, 'คำตอบ');
   fetchMock.mock.restore();
+});
+
+test('Media V2 reuses the Studio OpenRouter key and accepts compatible text parts', async t => {
+  const oldPlannerKey = process.env.OPENROUTER_MEDIA_PLANNER_API_KEY;
+  const oldSharedKey = process.env.OPENROUTER_API_KEY;
+  delete process.env.OPENROUTER_MEDIA_PLANNER_API_KEY;
+  process.env.OPENROUTER_API_KEY = 'shared-studio-key';
+  t.after(() => {
+    if (oldPlannerKey === undefined) delete process.env.OPENROUTER_MEDIA_PLANNER_API_KEY;
+    else process.env.OPENROUTER_MEDIA_PLANNER_API_KEY = oldPlannerKey;
+    if (oldSharedKey === undefined) delete process.env.OPENROUTER_API_KEY;
+    else process.env.OPENROUTER_API_KEY = oldSharedKey;
+  });
+  const { callOpenRouter } = require('../api/_lib/media-lab-v2-ai');
+  const fetchMock = t.mock.method(globalThis, 'fetch', async (_url, options) => {
+    assert.equal(options.headers.Authorization, 'Bearer shared-studio-key');
+    return { ok: true, status: 200, json: async () => ({ choices: [{ finish_reason: 'stop', message: { content: [{ type: 'text', text: 'ข้อความจากผู้ให้บริการ' }] } }] }) };
+  });
+  t.after(() => fetchMock.mock.restore());
+  const result = await callOpenRouter('test/model', 'chat', { maxTokens: 700, temperature: 0.5 });
+  assert.equal(result.text, 'ข้อความจากผู้ให้บริการ');
 });
