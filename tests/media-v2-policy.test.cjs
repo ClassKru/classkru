@@ -79,6 +79,8 @@ test('Media V2 keeps teacher-selected direction and compact rebuild guidance in 
   const prompt = media.buildV2ArtifactPrompt('', [{ role: 'teacher', content: 'ป.5' }], brief, { compact: true });
   assert.match(prompt, /Confirmed teacher-selected direction/);
   assert.match(prompt, /one primary screen and one core interaction/);
+  assert.match(prompt, /non-empty teacher message is enough to create a usable first draft/);
+  assert.match(prompt, /Do not return questions, an explanation, or a plan/);
   assert.match(prompt, /ป\.5/);
   assert.match(media.V2_PLANNER_RULES, /\[ทางเลือก\]idea text\[\/ทางเลือก\]/);
   const conversation = media.buildV2ChatPrompt('', [{ role: 'assistant', content: 'คำตอบปกติ\n[ทางเลือก]ไอเดียสำรอง[/ทางเลือก]' }]);

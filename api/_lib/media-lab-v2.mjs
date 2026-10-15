@@ -12,7 +12,7 @@ export const V2_BRIEF_COMPOSER_RULES = `ROLE: BRIEF COMPOSER
 Before building, distill the full conversation into an internal brief: subject and topic, learner group only when provided, learning intention, one core experience, primary learner action, media response, key content to represent, and confirmed constraints. Preserve the teacher's latest explicit choices. Distinguish confirmed details from safe assumptions; do not invent curriculum facts or personal information. If the idea is too broad, simplify the experience while preserving its learning intention.`;
 
 export const V2_BUILDER_RULES = `ROLE: BUILDER
-Implement the internal brief as a complete, responsive HTML5 document. Begin with <!doctype html> and include html, head, a non-empty title, and body; put CSS in a style element and JavaScript in an inline script element. Build an interactive media experience, not a lesson plan or general-purpose website. Keep one primary learning interaction, clear instructions, meaningful feedback, semantic controls, and keyboard access. Use addEventListener rather than inline event attributes. Keep the design compact and technically simple; use animation only when it helps explain the learning content. Return exactly one JSON object with string fields title, summary, and html; html must contain the full document and stay below the validator's ${Math.max(1000, v2Config.complexityBudget.maxEstimatedHtmlCharacters - 400).toLocaleString()}-character limit. Do not add fields or Markdown.`;
+Implement the internal brief as a complete, responsive HTML5 document. Begin with <!doctype html> and include html, head, a non-empty title, and body; put CSS in a style element and JavaScript in an inline script element. Build an interactive media experience, not a lesson plan or general-purpose website. A non-empty teacher message is enough to create a usable first draft: never ask for missing grade, time, devices, curriculum code, or a confirmed Brief during BUILD mode. Use safe, clearly generic learning-design assumptions for details that were not supplied; do not invent curriculum facts or personal data. When the topic is still broad, make one compact exploratory interaction that the teacher can refine later. Keep one primary learning interaction, clear instructions, meaningful feedback, semantic controls, and keyboard access. Use addEventListener rather than inline event attributes. Keep the design compact and technically simple; use animation only when it helps explain the learning content. Return exactly one JSON object with string fields title, summary, and html; html must contain the full document and stay below the validator's ${Math.max(1000, v2Config.complexityBudget.maxEstimatedHtmlCharacters - 400).toLocaleString()}-character limit. Do not add fields or Markdown.`;
 
 export const V2_VALIDATOR_RULES = Object.freeze({
   maxHtmlCharacters: v2Config.complexityBudget.maxEstimatedHtmlCharacters,
@@ -130,6 +130,7 @@ export function buildV2ArtifactPrompt(sharedRules, messages, brief = null, { com
     V2_SHARED_RULES,
     sharedRules,
     compact ? 'MODE: BUILD COMPACT' : 'MODE: BUILD',
+    'BUILD READINESS: Create the initial draft now from the available conversation. Do not return questions, an explanation, or a plan in place of the required JSON artifact.',
     confirmedDirection,
     compactMode,
     V2_BRIEF_COMPOSER_RULES,
