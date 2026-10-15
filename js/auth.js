@@ -96,9 +96,16 @@ function getLoginInputs() {
 }
 
 function getAuthRedirectTo() {
-  if (window.location.protocol === 'file:') return 'https://classkru-kohl.vercel.app/';
-  // พา query string กลับมาด้วย (เช่น ?v=213) ไม่งั้นเด้งกลับมาแล้วโดนแคช index.html ตัวเก่า
-  return window.location.origin + '/' + (window.location.search || '');
+  // Google/Supabase ต้องกลับเข้าหน้า index.html ซึ่งมี Supabase client รับ OAuth hash
+  // อยู่ หากกลับไปที่ root Vercel จะ redirect ต่อไป home.html และ session จะไม่ถูกอ่าน
+  // (อาการที่เห็นคือกด Google แล้วเหมือนยังอยู่หน้าเดิม)
+  const publicOrigin = 'https://www.classkru.com';
+  const publicHosts = new Set(['classkru.com', 'www.classkru.com']);
+  const origin = window.location.protocol === 'file:' || publicHosts.has(window.location.hostname)
+    ? publicOrigin
+    : window.location.origin;
+  // พา query string กลับมาด้วย (เช่น ?media_test=1) เพื่อคง deep-link หลังล็อกอิน
+  return `${origin}/index.html${window.location.search || ''}`;
 }
 
 // ==================== ลืมรหัสผ่าน ====================
@@ -180,9 +187,31 @@ function togglePasswordVisibility() {
   if (icon) icon.className = show ? 'hgi-stroke hgi-view-off' : 'hgi-stroke hgi-view';
 }
 
-function loginWithGoogle() {
+async function loginWithGoogle() {
   if (!supabaseClient) { setLoginStatus('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองใหม่อีกครั้ง', false); return; }
-  supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: getAuthRedirectTo() } });
+  const button = document.getElementById('btn-google');
+  if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
+  setLoginStatus('กำลังเชื่อมต่อ Google...', true);
+  try {
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: getAuthRedirectTo() }
+    });
+    if (error) {
+      const message = (error.message || '').toLowerCase();
+      console.warn('Google OAuth start failed:', error);
+      if (message.includes('redirect') || message.includes('origin') || message.includes('url')) {
+        setLoginStatus('โดเมนนี้ยังไม่ได้เปิดใช้ Google Login กรุณาตรวจสอบ Redirect URLs ใน Supabase', false);
+      } else {
+        setLoginStatus('เชื่อมต่อ Google ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', false);
+      }
+    }
+  } catch (error) {
+    console.warn('Google OAuth start failed:', error);
+    setLoginStatus('เชื่อมต่อ Google ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', false);
+  } finally {
+    if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
+  }
 }
 
 // ==================== UTILITIES ====================
