@@ -28,6 +28,15 @@ function runtimeMonitorHtml(html) {
   const index = closingTag.index;
   return source.slice(0, index) + monitor + closingTag[0] + source.slice(index + closingTag[0].length);
 }
+function optionalDirections(content) {
+  const directions = [];
+  String(content || '').replace(/\[ทางเลือก\]([\s\S]{1,800}?)\[\/ทางเลือก\]/g, (_tag, value) => {
+    const direction = String(value).replace(/\s+/g, ' ').trim();
+    if (direction && !directions.includes(direction)) directions.push(direction);
+    return '';
+  });
+  return directions.slice(0, 1);
+}
 
 async function writeSessionEvent(root, sessionId, event) {
   const id = `${Date.now()}_${uuid()}`;
@@ -493,7 +502,10 @@ async function handler(req, res) {
       const messageId = String(input.message_id || '');
       const selected = current.messages.find(item => item.id === messageId && item.role === 'assistant' && item.kind === 'v2_chat');
       if (!selected) return sendJson(res, 400, { error: 'direction_not_selectable' });
-      const brief = { selected_direction: String(selected.content || '').trim().slice(0, 2000), source_message_id: selected.id, updated_at: now() };
+      const requestedDirection = String(input.direction || '').replace(/\s+/g, ' ').trim();
+      const direction = optionalDirections(selected.content).find(item => item === requestedDirection);
+      if (!direction) return sendJson(res, 400, { error: 'direction_not_selectable' });
+      const brief = { selected_direction: direction, source_message_id: selected.id, updated_at: now() };
       const meta = await sessionIndex(root, parts[1]);
       await writeSessionEvent(root, parts[1], { ...meta, brief, updated_at: now() });
       return sendJson(res, 200, { brief });

@@ -35,29 +35,46 @@ function setBusy(value, status = '') {
   $('#message-input').disabled = value;
 }
 
+function extractDirectionOptions(text) {
+  const directions = [];
+  const visibleText = String(text || '').replace(/\[ทางเลือก\]([\s\S]{1,800}?)\[\/ทางเลือก\]/g, (_tag, value) => {
+    const direction = String(value).replace(/\s+/g, ' ').trim();
+    if (direction && !directions.includes(direction)) directions.push(direction);
+    return '';
+  }).replace(/\n{3,}/g, '\n\n').trim();
+  return { text: visibleText, directions: directions.slice(0, 1) };
+}
+
 function updateDirectionButtons() {
   document.querySelectorAll('.select-direction').forEach(button => {
-    const selected = button.dataset.messageId === state.brief?.source_message_id;
+    const selected = button.dataset.messageId === state.brief?.source_message_id && button.dataset.direction === state.brief?.selected_direction;
     button.disabled = false;
     button.setAttribute('aria-pressed', String(selected));
-    button.textContent = selected ? 'เลือกแล้ว' : 'เลือกแนวทางนี้';
+    button.textContent = selected ? 'กำลังใช้อยู่' : 'ใช้ไอเดียนี้แทน';
   });
 }
 
-function addMessage(role, text, pending = false, { messageId = '', selectable = false } = {}) {
+function addMessage(role, text, pending = false, { messageId = '', directions = [] } = {}) {
   const node = document.createElement('div');
   node.className = 'message ' + role + (pending ? ' pending' : '');
   node.textContent = text;
-  if (role === 'assistant' && selectable && messageId && !pending) {
+  if (role === 'assistant' && directions.length && messageId && !pending) {
+    const option = document.createElement('div');
+    option.className = 'direction-option';
+    const label = document.createElement('small');
+    label.textContent = 'มีไอเดียทางเลือกเพิ่มเติม';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'select-direction';
     button.dataset.messageId = messageId;
-    button.textContent = state.brief?.source_message_id === messageId ? 'เลือกแล้ว' : 'เลือกแนวทางนี้';
-    button.setAttribute('aria-pressed', String(state.brief?.source_message_id === messageId));
-    button.setAttribute('aria-label', 'บันทึกคำตอบนี้เป็นแนวทางใน Brief');
-    button.addEventListener('click', () => void selectDirection(messageId, button));
-    node.append(button);
+    button.dataset.direction = directions[0];
+    const selected = state.brief?.source_message_id === messageId && state.brief?.selected_direction === directions[0];
+    button.textContent = selected ? 'กำลังใช้อยู่' : 'ใช้ไอเดียนี้แทน';
+    button.setAttribute('aria-pressed', String(selected));
+    button.setAttribute('aria-label', 'ใช้ไอเดียทางเลือกนี้ใน Brief');
+    button.addEventListener('click', () => void selectDirection(messageId, directions[0], button));
+    option.append(label, button);
+    node.append(option);
   }
   $('#chat-log').append(node);
   $('#chat-log').scrollTop = $('#chat-log').scrollHeight;
@@ -88,19 +105,19 @@ function renderBuildStatus(build, message = '') {
   action.hidden = !action.dataset.suggestion;
 }
 
-async function selectDirection(messageId, button) {
+async function selectDirection(messageId, direction, button) {
   if (!state.sessionId || !messageId || button.disabled) return;
   button.disabled = true;
   button.textContent = 'กำลังบันทึก Brief…';
   try {
     const result = await api('/api/v2/sessions/' + encodeURIComponent(state.sessionId) + '/brief', {
-      method: 'POST', body: JSON.stringify({ message_id: messageId })
+      method: 'POST', body: JSON.stringify({ message_id: messageId, direction })
     });
     renderBrief(result.brief);
-    $('#status-text').textContent = 'บันทึกแนวทางใน Brief แล้ว ปรับหรือผสมต่อได้ก่อนกดสร้างสื่อ';
+    $('#status-text').textContent = 'นำไอเดียทางเลือกมาใช้ใน Brief แล้ว ปรับหรือผสมต่อได้ก่อนกดสร้างสื่อ';
   } catch (error) {
     button.disabled = false;
-    button.textContent = 'เลือกแนวทางนี้';
+    button.textContent = 'ใช้ไอเดียนี้แทน';
     $('#status-text').textContent = 'บันทึกแนวทางไม่สำเร็จ: ' + error.message;
   }
 }
@@ -110,10 +127,8 @@ function renderMessages(messages = []) {
   for (const message of messages) {
     if (message.kind !== 'v2_chat' && message.kind !== 'v2_pending_start' && message.kind !== 'v2_build_completed') continue;
     if (message.kind === 'v2_pending_start' && message.has_topic === false) continue;
-    addMessage(message.role === 'teacher' ? 'teacher' : 'assistant', message.content, false, {
-      messageId: message.id,
-      selectable: message.role === 'assistant' && message.kind === 'v2_chat'
-    });
+    const answer = message.role === 'assistant' ? extractDirectionOptions(message.content) : { text: message.content, directions: [] };
+    addMessage(message.role === 'teacher' ? 'teacher' : 'assistant', answer.text, false, { messageId: message.id, directions: answer.directions });
   }
 }
 function renderUsage(usage = {}) {
@@ -369,7 +384,8 @@ $('#chat-form').addEventListener('submit', async event => {
   try {
     const result = await api(`${API}/sessions/${encodeURIComponent(state.sessionId)}/chat`, { method: 'POST', body: JSON.stringify({ ...requestSettings(), message }) });
     pending.remove();
-    addMessage('assistant', result.reply, false, { messageId: result.message_id, selectable: Boolean(result.message_id) });
+    const answer = extractDirectionOptions(result.reply);
+    addMessage('assistant', answer.text, false, { messageId: result.message_id, directions: answer.directions });
     renderUsage(result.usage);
     setBusy(false);
     input.focus();
@@ -416,7 +432,8 @@ async function resumePendingStart(pendingStart) {
   try {
     const result = await api(`${API}/sessions/${encodeURIComponent(state.sessionId)}/chat`, { method: 'POST', body: JSON.stringify({ ...requestSettings(), pending_start_id: pendingStart.id }) });
     pending.remove();
-    addMessage('assistant', result.reply, false, { messageId: result.message_id, selectable: Boolean(result.message_id) });
+    const answer = extractDirectionOptions(result.reply);
+    addMessage('assistant', answer.text, false, { messageId: result.message_id, directions: answer.directions });
     renderUsage(result.usage);
     setBusy(false);
     $('#message-input').focus();
