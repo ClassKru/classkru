@@ -4,7 +4,7 @@ const SESSION_KEY = 'classkru.mediaLab.v2.sessionId';
 const SETTINGS_KEY = 'classkru.mediaLab.v2.settings';
 const DEVELOPER_EMAILS = new Set(['petch.0231@gmail.com', 'supakit.radiation@gmail.com', 'classkru.dev@gmail.com']);
 const supabaseClient = window.supabase?.createClient('https://dzntiiuyqvkaxqpqzxeh.supabase.co', 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc');
-const state = { userId: '', email: '', isDeveloper: false, configReady: false, sessionId: '', backend: 'openrouter', provider: 'ollama', model: 'openrouter/free', modelSelections: {}, busy: false };
+const state = { userId: '', email: '', isDeveloper: false, configReady: false, sessionId: '', backend: 'openrouter', provider: 'ollama', model: 'openrouter/free', modelSelections: {}, busy: false, brief: null, currentRunId: '', runtimeRepairPending: new Set() };
 let authGeneration = 0;
 
 function userStorageKey(key) { return `${key}:${state.userId}`; }
@@ -35,14 +35,74 @@ function setBusy(value, status = '') {
   $('#message-input').disabled = value;
 }
 
-function addMessage(role, text, pending = false) {
+function updateDirectionButtons() {
+  document.querySelectorAll('.select-direction').forEach(button => {
+    const selected = button.dataset.messageId === state.brief?.source_message_id;
+    button.disabled = false;
+    button.setAttribute('aria-pressed', String(selected));
+    button.textContent = selected ? 'เลือกแล้ว' : 'เลือกแนวทางนี้';
+  });
+}
+
+function addMessage(role, text, pending = false, { messageId = '', selectable = false } = {}) {
   const node = document.createElement('div');
-  node.className = `message ${role}${pending ? ' pending' : ''}`;
+  node.className = 'message ' + role + (pending ? ' pending' : '');
   node.textContent = text;
+  if (role === 'assistant' && selectable && messageId && !pending) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'select-direction';
+    button.dataset.messageId = messageId;
+    button.textContent = state.brief?.source_message_id === messageId ? 'เลือกแล้ว' : 'เลือกแนวทางนี้';
+    button.setAttribute('aria-pressed', String(state.brief?.source_message_id === messageId));
+    button.setAttribute('aria-label', 'บันทึกคำตอบนี้เป็นแนวทางใน Brief');
+    button.addEventListener('click', () => void selectDirection(messageId, button));
+    node.append(button);
+  }
   $('#chat-log').append(node);
   $('#chat-log').scrollTop = $('#chat-log').scrollHeight;
-  $('#build-button').disabled = state.busy || !$('#chat-log .message.teacher');
+  $('#build-button').disabled = state.busy || !state.sessionId || !$('#chat-log .message.teacher');
   return node;
+}
+
+function renderBrief(brief) {
+  state.brief = brief || null;
+  const card = $('#brief-card');
+  card.hidden = !state.brief?.selected_direction;
+  $('#brief-text').textContent = state.brief?.selected_direction || '';
+  updateDirectionButtons();
+}
+
+function renderBuildStatus(build, message = '') {
+  const panel = $('#build-status');
+  const action = $('#build-recovery-button');
+  if (!build && !message) { panel.hidden = true; return; }
+  panel.hidden = false;
+  panel.dataset.status = build?.status || 'failed';
+  const category = build?.error_category || build?.category || '';
+  const statusMessage = message || (build?.status === 'passed'
+    ? 'สร้างสื่อสำเร็จ'
+    : (build?.message || ('การสร้างสื่อไม่สำเร็จ' + (category ? ' (' + category + ')' : ''))));
+  $('#build-status-text').textContent = statusMessage;
+  action.dataset.suggestion = build?.suggested_action || '';
+  action.hidden = !action.dataset.suggestion;
+}
+
+async function selectDirection(messageId, button) {
+  if (!state.sessionId || !messageId || button.disabled) return;
+  button.disabled = true;
+  button.textContent = 'กำลังบันทึก Brief…';
+  try {
+    const result = await api('/api/v2/sessions/' + encodeURIComponent(state.sessionId) + '/brief', {
+      method: 'POST', body: JSON.stringify({ message_id: messageId })
+    });
+    renderBrief(result.brief);
+    $('#status-text').textContent = 'บันทึกแนวทางใน Brief แล้ว ปรับหรือผสมต่อได้ก่อนกดสร้างสื่อ';
+  } catch (error) {
+    button.disabled = false;
+    button.textContent = 'เลือกแนวทางนี้';
+    $('#status-text').textContent = 'บันทึกแนวทางไม่สำเร็จ: ' + error.message;
+  }
 }
 
 function renderMessages(messages = []) {
@@ -50,10 +110,12 @@ function renderMessages(messages = []) {
   for (const message of messages) {
     if (message.kind !== 'v2_chat' && message.kind !== 'v2_pending_start' && message.kind !== 'v2_build_completed') continue;
     if (message.kind === 'v2_pending_start' && message.has_topic === false) continue;
-    addMessage(message.role === 'teacher' ? 'teacher' : 'assistant', message.content);
+    addMessage(message.role === 'teacher' ? 'teacher' : 'assistant', message.content, false, {
+      messageId: message.id,
+      selectable: message.role === 'assistant' && message.kind === 'v2_chat'
+    });
   }
 }
-
 function renderUsage(usage = {}) {
   const panel = $('#usage-panel');
   if (!state.isDeveloper) { panel.replaceChildren(); return; }
@@ -150,6 +212,7 @@ async function initializeLegacy() {
 }
 
 function renderRun(run) {
+  state.currentRunId = run?.id || '';
   if (!run?.runtime_url || run.status !== 'passed') {
     $('#result-panel').hidden = true;
     $('#preview-frame').removeAttribute('src');
@@ -163,17 +226,17 @@ function renderRun(run) {
   $('#runtime-link').hidden = false;
   $('#result-panel').hidden = false;
 }
-
 function renderSession(session) {
   state.sessionId = session.id;
   $('.app-shell').dataset.view = 'session';
   localStorage.setItem(userStorageKey(SESSION_KEY), state.sessionId);
+  renderBrief(session.brief);
   renderMessages(session.messages);
   renderUsage(session.usage);
   renderRun(session.latest_run);
+  renderBuildStatus(session.latest_build);
   setBusy(false);
 }
-
 async function activateSession(session) {
   if (state.userId === session.user.id && !$('.app-shell').hidden) return;
   const generation = ++authGeneration;
@@ -218,7 +281,9 @@ async function activateSession(session) {
       state.sessionId = '';
       $('.app-shell').dataset.view = 'landing';
       renderMessages([]);
+      renderBrief(null);
       renderRun(null);
+      renderBuildStatus(null);
       renderUsage({});
       setBusy(false);
       void configTask;
@@ -235,7 +300,9 @@ async function activateSession(session) {
       state.sessionId = '';
       $('.app-shell').dataset.view = 'landing';
       renderMessages([]);
+      renderBrief(null);
       renderRun(null);
+      renderBuildStatus(null);
       setBusy(false);
       $('#status-text').textContent = 'ไม่พบงานนี้แล้ว เริ่มสื่อชิ้นใหม่ได้จากช่องด้านล่าง';
       return;
@@ -254,7 +321,7 @@ async function activateSession(session) {
 
 function signOutView() {
   authGeneration++;
-  state.userId = ''; state.email = ''; state.isDeveloper = false; state.configReady = false; state.sessionId = '';
+  state.userId = ''; state.email = ''; state.isDeveloper = false; state.configReady = false; state.sessionId = ''; state.brief = null; state.currentRunId = '';
   document.body.classList.remove('developer-mode');
   $('.app-shell').hidden = true;
   $('#settings-open').hidden = true;
@@ -302,7 +369,7 @@ $('#chat-form').addEventListener('submit', async event => {
   try {
     const result = await api(`${API}/sessions/${encodeURIComponent(state.sessionId)}/chat`, { method: 'POST', body: JSON.stringify({ ...requestSettings(), message }) });
     pending.remove();
-    addMessage('assistant', result.reply);
+    addMessage('assistant', result.reply, false, { messageId: result.message_id, selectable: Boolean(result.message_id) });
     renderUsage(result.usage);
     setBusy(false);
     input.focus();
@@ -349,7 +416,7 @@ async function resumePendingStart(pendingStart) {
   try {
     const result = await api(`${API}/sessions/${encodeURIComponent(state.sessionId)}/chat`, { method: 'POST', body: JSON.stringify({ ...requestSettings(), pending_start_id: pendingStart.id }) });
     pending.remove();
-    addMessage('assistant', result.reply);
+    addMessage('assistant', result.reply, false, { messageId: result.message_id, selectable: Boolean(result.message_id) });
     renderUsage(result.usage);
     setBusy(false);
     $('#message-input').focus();
@@ -367,15 +434,18 @@ $('#build-button').addEventListener('click', async () => {
   try {
     const result = await api(`${API}/sessions/${encodeURIComponent(state.sessionId)}/build`, { method: 'POST', body: JSON.stringify(requestSettings()) });
     renderRun({ ...result.run, status: 'passed', runtime_url: result.artifact_url });
+    renderBuildStatus({ status: 'passed' });
     $('#validation-note').hidden = !(result.run.validation && JSON.parse(result.run.validation).warnings?.length);
     $('#validation-note').textContent = result.run.validation ? JSON.parse(result.run.validation).warnings.join(' · ') : '';
     $('#result-panel').hidden = false;
-    addMessage('assistant', `สร้างสื่อ HTML หน้าเดียวเสร็จแล้ว: ${result.run.title || 'สื่อการเรียนรู้'}`);
+    addMessage('assistant', 'สร้างสื่อ HTML หน้าเดียวเสร็จแล้ว: ' + (result.run.title || 'สื่อการเรียนรู้'));
     renderUsage(result.usage);
     if (!$('#work-dialog').hidden) await loadWorkList();
     $('#result-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) {
-    addMessage('assistant', `ยังสร้างสื่อไม่สำเร็จ: ${error.message}`);
+    const failure = error.payload || {};
+    renderBuildStatus({ status: 'failed', error_category: failure.error_category, suggested_action: failure.suggested_action, message: failure.message });
+    addMessage('assistant', failure.message || ('ยังสร้างสื่อไม่สำเร็จ: ' + error.message));
     if (error.payload?.usage) renderUsage(error.payload.usage);
   } finally { setBusy(false); }
 });
@@ -612,5 +682,50 @@ document.querySelectorAll('[data-goal]').forEach(card => card.addEventListener('
   if (state.sessionId || state.busy) return;
   void startGoalConversation($('#message-input').value.trim(), card.dataset.goal);
 }));
+
+$('#think-button').addEventListener('click', () => {
+  if (state.busy) return;
+  const topic = $('#message-input').value.trim();
+  const prompt = topic
+    ? 'ช่วยคิดแนวทางสื่อ Interactive HTML หน้าเดียวจากไอเดียนี้ โดยเสนอแบบที่ทำได้จริงและไม่ต้องสร้างสื่อทันที:\n' + topic
+    : 'ช่วยคิดแนวทางสื่อ Interactive HTML หน้าเดียวที่เริ่มได้ง่าย รองรับทุกวิชา ถามฉันเพียงหนึ่งคำถามถ้าจำเป็น และยังไม่ต้องสร้างสื่อ';
+  if (!state.sessionId) void startNewMedia(prompt);
+  else {
+    $('#message-input').value = prompt;
+    $('#chat-form').requestSubmit();
+  }
+});
+
+$('#build-recovery-button').addEventListener('click', () => {
+  const suggestion = $('#build-recovery-button').dataset.suggestion;
+  if (!suggestion) return;
+  $('#message-input').value = suggestion;
+  $('#message-input').focus();
+});
+
+window.addEventListener('message', async event => {
+  const frame = $('#preview-frame');
+  if (event.source !== frame.contentWindow || event.origin !== 'null' || event.data?.type !== 'classkru-media-v2-runtime-error') return;
+  const runId = state.currentRunId;
+  if (!runId || !state.sessionId || state.runtimeRepairPending.has(runId)) return;
+  state.runtimeRepairPending.add(runId);
+  const pending = addMessage('assistant', 'Runtime ตรวจพบข้อผิดพลาด กำลังลองซ่อมจุดนี้หนึ่งครั้ง…', true);
+  try {
+    const result = await api('/api/v2/sessions/' + encodeURIComponent(state.sessionId) + '/runtime-error', {
+      method: 'POST', body: JSON.stringify({ run_id: runId })
+    });
+    pending.remove();
+    if (result.run) {
+      renderRun(result.run);
+      renderBuildStatus({ status: 'passed' }, 'ตรวจพบและซ่อม Runtime แล้ว เปิดสื่อเวอร์ชันที่แก้ไขให้แล้ว');
+      addMessage('assistant', 'ตรวจพบข้อผิดพลาดระหว่างทำงานและสร้างสื่อเวอร์ชันที่ซ่อมแล้วให้ คุณยังเปิดเวอร์ชันเดิมจากสื่อของฉันได้');
+    }
+  } catch (error) {
+    pending.remove();
+    const failure = error.payload || {};
+    renderBuildStatus({ status: 'failed', error_category: failure.error_category || 'runtime_error', suggested_action: failure.suggested_action, message: failure.message });
+    addMessage('assistant', failure.message || 'สื่อพบข้อผิดพลาดระหว่างทำงาน ระบบเก็บ Brief ไว้แล้ว');
+  }
+});
 
 initialize();

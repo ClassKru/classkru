@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f7f8fc">
   <title>ClassKru Media</title>
-  <link rel="stylesheet" href="/v2.css?v=522">
+  <link rel="stylesheet" href="/v2.css?v=523">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -30,12 +30,18 @@
       <div class="intro"><div class="eyebrow">✦ ClassKru AI Studio</div><h1>สร้างสื่อการเรียนร่วมกับ ClassKru ผู้ช่วย AI</h1><p>เล่าไอเดียหรือปัญหาในห้องเรียน แล้วช่วยกันเปลี่ยนให้เป็นประสบการณ์การเรียนรู้</p>
       <section class="chat-card" aria-label="บทสนทนาออกแบบสื่อ">
         <div id="chat-log" class="chat-log" aria-live="polite" aria-label="บทสนทนา"></div>
+        <section id="brief-card" class="brief-card" hidden aria-labelledby="brief-title">
+          <div><strong id="brief-title">แนวทางใน Brief</strong><p id="brief-text"></p></div>
+          <small>พิมพ์ต่อเพื่อปรับหรือผสมแนวทางได้ · การเลือกยังไม่เริ่มสร้างสื่อ</small>
+        </section>
         <form id="chat-form" class="composer">
           <label class="sr-only" for="message-input">พิมพ์ข้อความเพื่อคุยกับ AI</label>
           <div class="composer-intro"><span class="composer-spark" aria-hidden="true">✦</span><div><strong>เริ่มจากสิ่งที่อยากให้เด็กได้เรียนรู้</strong><small>พิมพ์สั้น ๆ ได้เลย แล้ว ClassKru จะช่วยต่อยอดเป็นสื่อให้</small></div></div>
           <textarea id="message-input" rows="2" maxlength="6000" placeholder="อยากสร้างสื่ออะไรให้นักเรียนได้ลองเรียนรู้?" required></textarea>
+          <div class="composer-tools"><button id="think-button" type="button" class="think-button">✨ คิดอะไรไม่ออก ให้ AI ช่วยคิด</button><small>เลือกแนวทางจากคำตอบเพื่อบันทึกใน Brief ก่อนสร้าง</small></div>
           <div class="composer-footer"><span id="status-text" role="status">เริ่มจากหัวข้อ ปัญหา หรือกิจกรรมที่อยากให้เด็กได้ลองทำ</span><div class="composer-actions"><button id="send-button" class="send-button" type="submit" aria-label="ส่งข้อความ">เริ่มสร้างสื่อ</button><button id="build-button" class="build-button" type="button" disabled>✦ สร้างสื่อ</button></div></div>
         </form>
+        <div id="build-status" class="build-status" role="status" aria-live="polite" hidden><span id="build-status-text"></span><button id="build-recovery-button" type="button" hidden>คุยเพื่อปรับแนวทาง</button></div>
       </section>
       </div>
       <section class="idea-starters" aria-labelledby="idea-starters-title">
@@ -93,6 +99,6 @@
       </main>
     </div>
   </section>
-  <script type="module" src="/v2.js?v=522"></script>
+  <script type="module" src="/v2.js?v=523"></script>
 </body>
 </html>

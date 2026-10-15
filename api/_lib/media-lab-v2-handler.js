@@ -4,6 +4,7 @@ const { authenticatedUser } = require('./supabase-user');
 const storage = require('./media-db');
 const { sendJson, requestOriginIsValid } = require('./http');
 const { callOpenRouter } = require('./media-lab-v2-ai');
+const { config: v2Config, estimateV2Complexity, classifyBuildError, retryDelay } = require('./media-lab-v2-policy');
 const developers = new Set(['petch.0231@gmail.com', 'supakit.radiation@gmail.com', 'classkru.dev@gmail.com']);
 const openRouterKey = () => process.env.OPENROUTER_MEDIA_PLANNER_API_KEY;
 const now = () => new Date().toISOString();
@@ -17,6 +18,17 @@ function responseError(res, error) {
   return sendJson(res, ['authentication_required', 'invalid_session'].includes(code) ? 401 : (error.status || 500), { error: code });
 }
 function recordName(sessionId, kind, id) { return `${sessionId}_${kind}_${id}.json`; }
+const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+function runtimeMonitorHtml(html) {
+  const source = String(html);
+  const monitor = '<script>(function(){var reported=false;function report(){if(reported)return;reported=true;try{parent.postMessage({type:"classkru-media-v2-runtime-error"},"*")}catch(_){}}window.addEventListener("error",report);window.addEventListener("unhandledrejection",report)})();</script>';
+  const closingTags = [...source.matchAll(/<\/body\s*>/gi)];
+  const closingTag = closingTags.at(-1);
+  if (!closingTag) return source;
+  const index = closingTag.index;
+  return source.slice(0, index) + monitor + closingTag[0] + source.slice(index + closingTag[0].length);
+}
+
 async function writeSessionEvent(root, sessionId, event) {
   const id = `${Date.now()}_${uuid()}`;
   await storage.put(`${root}/sessions/${recordName(sessionId, 'index', id)}`, event);
@@ -66,7 +78,7 @@ async function listSessionObjects(prefix, sessionId) {
 }
 async function deleteSession(root, sessionId) {
   if (!await sessionIndex(root, sessionId)) return false;
-  const prefixes = ['sessions', 'messages', 'runs', 'usage'];
+  const prefixes = ['sessions', 'messages', 'runs', 'usage', 'builds'];
   const objects = await Promise.all(prefixes.map(name => listSessionObjects(`${root}/${name}`, sessionId)));
   const files = objects.flatMap((rows, index) => rows.map(row => `${root}/${prefixes[index]}/${row.name}`));
   const runRows = objects[2];
@@ -99,14 +111,39 @@ async function usageData(root, sessionId) {
 }
 async function recordUsage(root, sessionId, phase, model, result) {
   const providerUsage = result.usage || {};
-  const call = { id: uuid(), session_id: sessionId, created_at: now(), phase, backend: 'openrouter', model,
+  const call = { id: uuid(), session_id: sessionId, created_at: now(), phase, backend: 'openrouter', provider: 'openrouter', model,
     input_tokens: providerUsage.prompt_tokens ?? providerUsage.input_tokens ?? null,
     output_tokens: providerUsage.completion_tokens ?? providerUsage.output_tokens ?? null,
     total_tokens: providerUsage.total_tokens ?? null,
     usage_source: providerUsage.total_tokens == null ? 'unavailable' : 'provider',
     finish_reason: result.finishReason || null,
-    response_chars: Number.isFinite(result.responseChars) ? result.responseChars : null };
+    response_chars: Number.isFinite(result.responseChars) ? result.responseChars : null,
+    build_id: result.buildId || null,
+    response_status: Number.isFinite(result.responseStatus) ? result.responseStatus : null,
+    duration_ms: Number.isFinite(result.durationMs) ? result.durationMs : null,
+    output_size: Number.isFinite(result.responseChars) ? result.responseChars : null,
+    error_category: result.errorCategory || null,
+    retry_count: Number.isFinite(result.retryCount) ? result.retryCount : 0 };
   await storage.put(`${root}/usage/${recordName(sessionId, 'usage', call.id)}`, call);
+}
+async function writeBuildRecord(root, sessionId, record) {
+  const saved = { ...record, session_id: sessionId, created_at: record.created_at || now(), updated_at: now() };
+  await storage.put(`${root}/builds/${recordName(sessionId, 'build', saved.id)}`, saved);
+  const meta = await sessionIndex(root, sessionId);
+  if (meta) {
+    const latest_build = {
+      id: saved.id,
+      status: saved.status,
+      error_category: saved.error_category || null,
+      run_id: saved.run_id || null,
+      suggested_action: saved.suggested_action || null,
+      duration_ms: saved.duration_ms,
+      retry_count: saved.retry_count,
+      created_at: saved.created_at
+    };
+    await writeSessionEvent(root, sessionId, { ...meta, latest_build, updated_at: now() });
+  }
+  return saved;
 }
 async function sessionData(root, sessionId, includeUsage = false) {
   const meta = await sessionIndex(root, sessionId);
@@ -121,7 +158,7 @@ async function sessionData(root, sessionId, includeUsage = false) {
   const waitingStart = waitingStartIndex < 0 ? null : orderedMessages[waitingStartIndex];
   const startHasReply = waitingStart && orderedMessages.slice(waitingStartIndex + 1).some(item => item.kind === 'v2_chat' && item.role === 'assistant');
   const pending_start = waitingStart && !startHasReply ? { id: waitingStart.id, content: waitingStart.content, goal_id: waitingStart.goal_id || meta.goal_id || null, has_topic: waitingStart.has_topic !== false } : null;
-  return { id: sessionId, title: meta.title, goal_id: meta.goal_id || null, messages: orderedMessages, pending_start, usage, latest_run_id: latest[0]?.id || null, latest_run: latest[0] ? { id: latest[0].id, title: latest[0].title, summary: latest[0].summary, status: 'passed', artifact_mime: 'text/html', runtime_url: `/api/v2/runtime/${latest[0].id}` } : null };
+  return { id: sessionId, title: meta.title, goal_id: meta.goal_id || null, brief: meta.brief || null, latest_build: meta.latest_build || null, messages: orderedMessages, pending_start, usage, latest_run_id: latest[0]?.id || null, latest_run: latest[0] ? { id: latest[0].id, title: latest[0].title, summary: latest[0].summary, status: 'passed', artifact_mime: 'text/html', runtime_url: `/api/v2/runtime/${latest[0].id}` } : null };
 }
 async function addMessage(root, sessionId, role, content, kind = 'v2_chat', extra = {}) {
   const message = { id: uuid(), session_id: sessionId, role, kind, content: String(content).slice(0, 6000), ...extra, created_at: now() };
@@ -131,6 +168,259 @@ async function addMessage(root, sessionId, role, content, kind = 'v2_chat', extr
 function requireComplete(result) {
   if (result.finishReason !== 'stop') throw Object.assign(new Error('ai_incomplete'), { code: 'ai_incomplete', status: 502 });
   if (!result.text) throw Object.assign(new Error('ai_invalid_response'), { code: 'ai_invalid_response', status: 502 });
+}
+function publicBuildMessage(category) {
+  const messages = {
+    complexity_exceeded: 'ก่อนส่งให้ AI สร้าง ระบบพบว่าแนวคิดกว้างเกินขอบเขตสื่อหน้าเดียว ลองลดจำนวนฉากหรือเลือก interaction หลักก่อน',
+    timeout: 'การสร้างใช้เวลานานเกินกำหนด ระบบเก็บบทสนทนาและแนวทางที่เลือกไว้แล้ว ลองสร้างอีกครั้งได้',
+    rate_limit: 'ขณะนี้ AI มีคำขอจำนวนมาก ระบบเก็บบทสนทนาและแนวทางที่เลือกไว้แล้ว ลองอีกครั้งภายหลัง',
+    provider_error: 'เชื่อมต่อบริการ AI ไม่สำเร็จ ระบบเก็บบทสนทนาและแนวทางที่เลือกไว้แล้ว ลองอีกครั้งได้',
+    output_truncated: 'ผลลัพธ์ถูกตัดก่อนจบ ระบบเก็บแนวทางเดิมไว้ ลองปรับให้เหลือหนึ่งหน้าจอและหนึ่ง interaction แล้วสร้างอีกครั้ง',
+    invalid_response_schema: 'รูปแบบคำตอบจาก AI ไม่ครบตามสัญญา ระบบเก็บแนวทางเดิมไว้ ลองสร้างอีกครั้งได้',
+    invalid_html: 'HTML ไม่ผ่านการตรวจสอบ ระบบเก็บแนวทางเดิมไว้และลองซ่อมหนึ่งครั้งแล้ว ลองปรับแนวทางให้เรียบง่ายขึ้น',
+    javascript_error: 'JavaScript ในสื่อมี syntax ที่ Runtime ใช้ไม่ได้ ระบบลองซ่อมหนึ่งครั้งแล้ว แนวทางเดิมยังอยู่',
+    runtime_error: 'Runtime ตรวจพบข้อผิดพลาดระหว่างทำงาน ระบบเก็บแนวทางเดิมไว้',
+    unknown_error: 'การสร้างสื่อไม่สำเร็จ ระบบเก็บบทสนทนาและแนวทางที่เลือกไว้แล้ว'
+  };
+  return messages[category] || messages.unknown_error;
+}
+function suggestedBuildAction(category, complexity) {
+  if (complexity?.suggestions?.length) return complexity.suggestions.join(' ');
+  if (category === 'output_truncated') return 'ช่วยลดขอบเขตให้เหลือหนึ่งหน้าจอและหนึ่ง interaction หลัก';
+  if (category === 'invalid_html' || category === 'javascript_error') return 'ช่วยทำสื่อนี้ให้เรียบง่ายลง โดยคงเป้าหมายการเรียนรู้และแนวทางที่เลือกไว้';
+  return '';
+}
+function addBuildUsage(context, usage) {
+  if (!usage) return;
+  const input = Number(usage.prompt_tokens ?? usage.input_tokens);
+  const output = Number(usage.completion_tokens ?? usage.output_tokens);
+  if (Number.isFinite(input)) context.inputTokens = (context.inputTokens || 0) + input;
+  if (Number.isFinite(output)) context.outputTokens = (context.outputTokens || 0) + output;
+}
+async function callBuildModel(root, sessionId, model, prompt, options, context) {
+  while (true) {
+    const remaining = v2Config.retryPolicy.maxBuildDurationMs - (Date.now() - context.startedAt);
+    if (remaining < 1000) throw Object.assign(new Error('ai_timeout'), { code: 'ai_timeout', status: 504 });
+    let recorded = false;
+    try {
+      const result = await callOpenRouter(model, prompt, {
+        ...options,
+        timeoutMs: Math.min(options.timeoutMs || v2Config.retryPolicy.requestTimeoutMs, remaining)
+      });
+      result.buildId = context.id;
+      result.retryCount = context.retryCount;
+      await recordUsage(root, sessionId, options.phase, model, result);
+      recorded = true;
+      context.responseStatus = result.responseStatus ?? null;
+      context.finishReason = result.finishReason || null;
+      context.outputSize = Number.isFinite(result.responseChars) ? result.responseChars : null;
+      addBuildUsage(context, result.usage);
+      if (result.finishReason !== 'stop') {
+        const error = Object.assign(new Error('output_truncated'), { code: 'output_truncated', finishReason: result.finishReason, responseStatus: result.responseStatus, usageRecorded: true });
+        throw error;
+      }
+      if (!result.text) throw Object.assign(new Error('invalid_response_schema'), { code: 'invalid_response_schema', responseStatus: result.responseStatus, usageRecorded: true });
+      return result;
+    } catch (error) {
+      const category = classifyBuildError(error);
+      if (!recorded && !error.usageRecorded) {
+        await recordUsage(root, sessionId, options.phase, model, {
+          buildId: context.id, responseStatus: error.responseStatus, durationMs: error.durationMs,
+          errorCategory: category, retryCount: context.retryCount, responseChars: 0
+        });
+      }
+      const remainingAfter = v2Config.retryPolicy.maxBuildDurationMs - (Date.now() - context.startedAt);
+      const canRetry = v2Config.retryPolicy.retryableCategories.includes(category)
+        && error.code !== 'ai_not_configured'
+        && context.retryCount < v2Config.retryPolicy.maxRetries
+        && remainingAfter > v2Config.retryPolicy.minRetryWindowMs;
+      if (!canRetry) throw error;
+      const delayMs = retryDelay(context.retryCount, v2Config.retryPolicy);
+      if (remainingAfter <= delayMs + v2Config.retryPolicy.minRetryWindowMs) throw error;
+      context.retryCount += 1;
+      await wait(delayMs);
+    }
+  }
+}
+async function createBuildRecord(root, sessionId, context, fields) {
+  const record = {
+    id: context.id,
+    build_id: context.id,
+    provider: 'openrouter',
+    model: context.model,
+    input_tokens: context.inputTokens ?? null,
+    output_tokens: context.outputTokens ?? null,
+    response_status: context.responseStatus ?? null,
+    finish_reason: context.finishReason ?? null,
+    duration_ms: Date.now() - context.startedAt,
+    output_size: context.outputSize ?? 0,
+    validation_result: context.validationResult || null,
+    retry_count: context.retryCount,
+    repair_count: context.repairCount,
+    complexity: context.complexity?.metrics || null,
+    has_confirmed_brief: Boolean(context.brief?.selected_direction),
+    ...fields
+  };
+  return writeBuildRecord(root, sessionId, record);
+}
+async function executeBuild(root, sessionId, current, model) {
+  const promptModule = await prompts();
+  const history = current.messages.filter(item => item.kind === 'v2_chat' || item.kind === 'v2_pending_start');
+  if (!history.some(item => item.role === 'teacher')) {
+    return { status: 400, body: { error: 'conversation_required' } };
+  }
+  const context = {
+    id: uuid(), model, brief: current.brief || null, startedAt: Date.now(),
+    retryCount: 0, repairCount: 0, inputTokens: null, outputTokens: null,
+    responseStatus: null, finishReason: null, outputSize: 0,
+    validationResult: null
+  };
+  const complexity = estimateV2Complexity(history, context.brief, v2Config.complexityBudget);
+  context.complexity = complexity;
+  if (!complexity.allowed) {
+    const category = 'complexity_exceeded';
+    const suggestion = complexity.suggestions.join(' ');
+    await createBuildRecord(root, sessionId, context, {
+      status: 'failed', error_category: category, suggested_action: suggestion,
+      validation_result: null, retry_count: 0
+    });
+    return { status: 409, body: {
+      error: category, error_category: category, build_id: context.id,
+      message: publicBuildMessage(category), suggested_action: suggestion,
+      complexity: { metrics: complexity.metrics, violations: complexity.violations }
+    } };
+  }
+  try {
+    let result;
+    try {
+      result = await callBuildModel(root, sessionId, model, promptModule.buildV2ArtifactPrompt('', history, context.brief), {
+        maxTokens: v2Config.retryPolicy.builderMaxTokens, temperature: 0.25, jsonMode: true, phase: 'v2_build'
+      }, context);
+    } catch (error) {
+      if (classifyBuildError(error) !== 'output_truncated' || context.retryCount >= v2Config.retryPolicy.maxRetries) throw error;
+      context.retryCount += 1;
+      result = await callBuildModel(root, sessionId, model, promptModule.buildV2ArtifactPrompt('', history, context.brief, { compact: true }), {
+        maxTokens: v2Config.retryPolicy.builderMaxTokens, temperature: 0.2, jsonMode: true, phase: 'v2_build_compact'
+      }, context);
+    }
+    let artifact;
+    try { artifact = promptModule.parseV2Artifact(result.text); }
+    catch { throw Object.assign(new Error('invalid_response_schema'), { code: 'invalid_response_schema' }); }
+    let validation = promptModule.validateV2Html(artifact.html);
+    context.validationResult = validation;
+    if (!validation.ok && context.repairCount < v2Config.retryPolicy.maxRepairAttempts) {
+      context.repairCount += 1;
+      const repair = await callBuildModel(root, sessionId, model, promptModule.buildV2RepairPrompt(artifact, validation.errors), {
+        maxTokens: v2Config.retryPolicy.repairMaxTokens, temperature: 0.15, jsonMode: true, phase: 'v2_repair'
+      }, context);
+      try { artifact = promptModule.parseV2Artifact(repair.text); }
+      catch { throw Object.assign(new Error('invalid_response_schema'), { code: 'invalid_response_schema' }); }
+      validation = promptModule.validateV2Html(artifact.html);
+      context.validationResult = validation;
+    }
+    if (!validation.ok) {
+      const category = classifyBuildError({}, validation);
+      throw Object.assign(new Error(category), { code: category, validation });
+    }
+    const monitoredHtml = runtimeMonitorHtml(artifact.html);
+    validation = promptModule.validateV2Html(monitoredHtml);
+    context.validationResult = validation;
+    if (!validation.ok) {
+      const category = classifyBuildError({}, validation);
+      throw Object.assign(new Error(category), { code: category, validation });
+    }
+    context.outputSize = monitoredHtml.length;
+    const runId = uuid(), created_at = now();
+    const run = { id: runId, session_id: sessionId, title: artifact.title || 'สื่อการเรียนรู้', summary: artifact.summary || '', html: monitoredHtml, status: 'passed', created_at };
+    await storage.put(`mini-lab-v2/runtime/${runId}.json`, { html: monitoredHtml, created_at });
+    try { await storage.put(`${root}/runs/${recordName(sessionId, 'run', runId)}`, run); }
+    catch (error) { await storage.remove(`mini-lab-v2/runtime/${runId}.json`); throw error; }
+    const meta = await sessionIndex(root, sessionId);
+    await writeSessionEvent(root, sessionId, { ...meta, title: artifact.title || meta.title, updated_at: now() });
+    await addMessage(root, sessionId, 'assistant', 'สร้างสื่อ HTML เสร็จแล้ว: ' + run.title, 'v2_build_completed');
+    await createBuildRecord(root, sessionId, context, { status: 'passed', error_category: null, run_id: runId });
+    return { status: 200, body: { run: { id: runId, title: run.title, summary: run.summary, status: 'passed', runtime_url: '/api/v2/runtime/' + runId }, artifact_url: '/api/v2/runtime/' + runId, build_id: context.id } };
+  } catch (error) {
+    const category = classifyBuildError(error, error.validation || context.validationResult);
+    const suggested_action = suggestedBuildAction(category, complexity);
+    await createBuildRecord(root, sessionId, context, {
+      status: 'failed', error_category: category, suggested_action,
+      validation_result: context.validationResult,
+      response_status: context.responseStatus ?? error.responseStatus ?? null,
+      finish_reason: context.finishReason ?? error.finishReason ?? null
+    });
+    const code = category === 'output_truncated' ? 'ai_output_incomplete'
+      : category === 'invalid_response_schema' ? 'ai_output_unparseable'
+      : category === 'invalid_html' || category === 'javascript_error' ? 'v2_output_invalid'
+      : category;
+    const status = category === 'rate_limit' ? 429
+      : category === 'provider_error' || category === 'timeout' ? 502
+      : 422;
+    return { status, body: {
+      error: code, error_category: category, build_id: context.id,
+      message: publicBuildMessage(category), suggested_action,
+      retry_count: context.retryCount, repair_count: context.repairCount,
+      validation: context.validationResult ? { ok: context.validationResult.ok, errors: context.validationResult.errors, error_categories: context.validationResult.error_categories, warnings: context.validationResult.warnings } : null
+    } };
+  }
+}
+async function executeRuntimeRepair(root, sessionId, runId, model, brief) {
+  const original = await storage.get(`${root}/runs/${recordName(sessionId, 'run', runId)}`);
+  if (!original || original.session_id !== sessionId) return { status: 404, body: { error: 'run_not_found' } };
+  const lockPath = `${root}/builds/${sessionId}_runtime_repair_${runId}.json`;
+  const acquired = await storage.put(lockPath, { run_id: runId, status: 'attempted', created_at: now() });
+  if (!acquired) return { status: 409, body: { error: 'runtime_repair_already_attempted', error_category: 'runtime_error', message: publicBuildMessage('runtime_error') } };
+  const context = {
+    id: uuid(), model, brief: brief || null, startedAt: Date.now(), retryCount: 0, repairCount: 1,
+    inputTokens: null, outputTokens: null, responseStatus: null, finishReason: null,
+    outputSize: 0, validationResult: null
+  };
+  try {
+    const promptModule = await prompts();
+    const artifact = { title: original.title, summary: original.summary, html: original.html };
+    const repair = await callBuildModel(root, sessionId, model, promptModule.buildV2RepairPrompt(artifact, [
+      'Runtime error: a JavaScript exception was detected in the isolated browser Runtime. Fix the runtime failure while preserving the learning goal and interaction. Do not add external resources or dependencies.'
+    ]), { maxTokens: v2Config.retryPolicy.repairMaxTokens, temperature: 0.12, jsonMode: true, phase: 'v2_runtime_repair' }, context);
+    let repaired;
+    try { repaired = promptModule.parseV2Artifact(repair.text); }
+    catch { throw Object.assign(new Error('invalid_response_schema'), { code: 'invalid_response_schema' }); }
+    let validation = promptModule.validateV2Html(repaired.html);
+    context.validationResult = validation;
+    if (!validation.ok) {
+      const category = classifyBuildError({}, validation);
+      throw Object.assign(new Error(category), { code: category, validation });
+    }
+    const monitoredHtml = runtimeMonitorHtml(repaired.html);
+    validation = promptModule.validateV2Html(monitoredHtml);
+    context.validationResult = validation;
+    if (!validation.ok) {
+      const category = classifyBuildError({}, validation);
+      throw Object.assign(new Error(category), { code: category, validation });
+    }
+    context.outputSize = monitoredHtml.length;
+    const nextRunId = uuid(), created_at = now();
+    const nextRun = { id: nextRunId, session_id: sessionId, title: repaired.title || original.title || 'สื่อการเรียนรู้', summary: repaired.summary || original.summary || '', html: monitoredHtml, status: 'passed', created_at, source_run_id: runId };
+    await storage.put(`mini-lab-v2/runtime/${nextRunId}.json`, { html: monitoredHtml, created_at });
+    try { await storage.put(`${root}/runs/${recordName(sessionId, 'run', nextRunId)}`, nextRun); }
+    catch (error) { await storage.remove(`mini-lab-v2/runtime/${nextRunId}.json`); throw error; }
+    const meta = await sessionIndex(root, sessionId);
+    await writeSessionEvent(root, sessionId, { ...meta, title: nextRun.title, updated_at: now() });
+    await addMessage(root, sessionId, 'assistant', 'ตรวจพบ Runtime error และสร้างเวอร์ชันที่ซ่อมแล้ว: ' + nextRun.title, 'v2_build_completed');
+    await createBuildRecord(root, sessionId, context, { status: 'passed', error_category: null, trigger_category: 'runtime_error', source_run_id: runId, run_id: nextRunId });
+    return { status: 200, body: { run: { id: nextRunId, title: nextRun.title, summary: nextRun.summary, status: 'passed', runtime_url: '/api/v2/runtime/' + nextRunId } } };
+  } catch (error) {
+    const category = classifyBuildError(error, error.validation || context.validationResult);
+    const suggested_action = suggestedBuildAction(category, null);
+    await createBuildRecord(root, sessionId, context, {
+      status: 'failed', error_category: category, trigger_category: 'runtime_error',
+      source_run_id: runId, suggested_action, validation_result: context.validationResult,
+      response_status: context.responseStatus ?? error.responseStatus ?? null,
+      finish_reason: context.finishReason ?? error.finishReason ?? null
+    });
+    return { status: category === 'rate_limit' ? 429 : category === 'provider_error' || category === 'timeout' ? 502 : 422, body: {
+      error_category: category, error: category, message: publicBuildMessage(category), suggested_action
+    } };
+  }
 }
 function selectedModel(input, user) {
   const isDeveloper = developers.has(String(user.email || '').trim().toLowerCase());
@@ -197,6 +487,25 @@ async function handler(req, res) {
       const deleted = await deleteSession(root, parts[1]);
       return deleted ? sendJson(res, 200, { deleted: true }) : sendJson(res, 404, { error: 'session_not_found' });
     }
+    if (action === 'sessions' && isId(parts[1]) && parts.length === 3 && req.method === 'POST' && parts[2] === 'brief') {
+      const current = await sessionData(root, parts[1], false);
+      if (!current) return sendJson(res, 404, { error: 'session_not_found' });
+      const messageId = String(input.message_id || '');
+      const selected = current.messages.find(item => item.id === messageId && item.role === 'assistant' && item.kind === 'v2_chat');
+      if (!selected) return sendJson(res, 400, { error: 'direction_not_selectable' });
+      const brief = { selected_direction: String(selected.content || '').trim().slice(0, 2000), source_message_id: selected.id, updated_at: now() };
+      const meta = await sessionIndex(root, parts[1]);
+      await writeSessionEvent(root, parts[1], { ...meta, brief, updated_at: now() });
+      return sendJson(res, 200, { brief });
+    }
+    if (action === 'sessions' && isId(parts[1]) && parts.length === 3 && req.method === 'POST' && parts[2] === 'runtime-error') {
+      if (!isId(input.run_id)) return sendJson(res, 400, { error: 'run_id_required' });
+      const current = await sessionData(root, parts[1], false);
+      if (!current) return sendJson(res, 404, { error: 'session_not_found' });
+      const result = await executeRuntimeRepair(root, parts[1], input.run_id, selectedModel(input, user), current.brief);
+      if (isDeveloper) result.body.usage = await usageData(root, parts[1]);
+      return sendJson(res, result.status, result.body);
+    }
     if (action === 'sessions' && isId(parts[1]) && parts.length === 3 && req.method === 'POST' && parts[2] === 'chat') {
       const sessionId = parts[1], current = await sessionData(root, sessionId, isDeveloper);
       if (!current) return sendJson(res, 404, { error: 'session_not_found' });
@@ -213,63 +522,23 @@ async function handler(req, res) {
       const topic = latestTeacherMessage?.content
         || (savedStart?.has_topic !== false ? message : '');
       const chatPrompt = current.goal_id
-        ? promptModule.buildV2GoalChatPrompt('', current.goal_id, topic, history)
-        : promptModule.buildV2ChatPrompt('', history);
-      const answer = await callOpenRouter(model, chatPrompt, { maxTokens: 700, temperature: 0.5, systemPrompt: promptModule.V2_CONVERSATION_SYSTEM_CONTEXT });
+        ? promptModule.buildV2GoalChatPrompt('', current.goal_id, topic, history, current.brief)
+        : promptModule.buildV2ChatPrompt('', history, current.brief);
+      const answer = await callOpenRouter(model, chatPrompt, { maxTokens: v2Config.retryPolicy.conversationMaxTokens, temperature: 0.5, systemPrompt: promptModule.V2_CONVERSATION_SYSTEM_CONTEXT });
       await recordUsage(root, sessionId, 'v2_chat', model, answer);
       requireComplete(answer);
-      await addMessage(root, sessionId, 'assistant', answer.text);
+      const assistantMessage = await addMessage(root, sessionId, 'assistant', answer.text);
       const meta = await sessionIndex(root, sessionId);
       const title = meta.title === 'สื่อใหม่' && message ? message.replace(/\s+/g, ' ').slice(0, 80) : meta.title;
       await writeSessionEvent(root, sessionId, { ...meta, title, updated_at: now() });
-      return sendJson(res, 200, { reply: answer.text, ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
+      return sendJson(res, 200, { reply: answer.text, message_id: assistantMessage.id, ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
     }
     if (action === 'sessions' && isId(parts[1]) && parts.length === 3 && req.method === 'POST' && parts[2] === 'build') {
-      const buildStarted = Date.now();
       const sessionId = parts[1], current = await sessionData(root, sessionId, isDeveloper);
       if (!current) return sendJson(res, 404, { error: 'session_not_found' });
-      const history = current.messages.filter(item => item.kind === 'v2_chat' || item.kind === 'v2_pending_start');
-      if (!history.some(item => item.role === 'teacher')) return sendJson(res, 400, { error: 'conversation_required' });
-      const promptModule = await prompts(), model = selectedModel(input, user);
-      const result = await callOpenRouter(model, promptModule.buildV2ArtifactPrompt('', history), { maxTokens: 14000, temperature: 0.25, jsonMode: true });
-      await recordUsage(root, sessionId, 'v2_build', model, result);
-      if (result.finishReason !== 'stop') {
-        console.warn('v2_build_incomplete', { finish_reason: result.finishReason, response_chars: result.responseChars });
-        return sendJson(res, 422, { error: 'ai_output_incomplete', message: 'ผลการสร้างสื่อถูกตัดก่อนจบ กรุณากดสร้างอีกครั้ง', ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
-      }
-      let artifact;
-      try { artifact = promptModule.parseV2Artifact(result.text); }
-      catch (error) {
-        console.warn('v2_build_unparseable', { parser_error: String(error.message || 'unknown').slice(0, 80), finish_reason: result.finishReason, response_chars: result.responseChars });
-        return sendJson(res, 422, { error: 'ai_output_unparseable', message: 'AI ส่งผลลัพธ์ที่แปลงเป็นสื่อไม่ได้ กรุณากดสร้างอีกครั้ง', ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
-      }
-      let validation = promptModule.validateV2Html(artifact.html);
-      let attemptedRepair = false;
-      if (!validation.ok) {
-        console.warn('v2_build_validation_failed', validation.errors);
-        const repairTimeout = Math.min(150000, 275000 - (Date.now() - buildStarted));
-        if (repairTimeout >= 30000) {
-          attemptedRepair = true;
-          try {
-            const repair = await callOpenRouter(model, promptModule.buildV2RepairPrompt(artifact, validation.errors), { maxTokens: 14000, temperature: 0.15, jsonMode: true, timeoutMs: repairTimeout });
-            await recordUsage(root, sessionId, 'v2_repair', model, repair);
-            requireComplete(repair);
-            const repairedArtifact = promptModule.parseV2Artifact(repair.text);
-            const repairedValidation = promptModule.validateV2Html(repairedArtifact.html);
-            if (repairedValidation.ok) { artifact = repairedArtifact; validation = repairedValidation; }
-            else { validation = repairedValidation; console.warn('v2_build_repair_validation_failed', validation.errors); }
-          } catch (error) { console.warn('v2_build_repair_failed', error.code || error.name || 'unknown_error'); }
-        }
-      }
-      if (!validation.ok) return sendJson(res, 422, { error: 'v2_output_invalid', message: attemptedRepair ? 'AI สร้างสื่อไม่ผ่านการตรวจสอบหลังลองปรับอัตโนมัติ กรุณากดสร้างอีกครั้ง' : 'AI สร้างสื่อไม่ผ่านการตรวจสอบ กรุณากดสร้างอีกครั้ง', details: validation.errors });
-      const id = uuid(), created_at = now();
-      const run = { id, session_id: sessionId, title: artifact.title || 'สื่อการเรียนรู้', summary: artifact.summary || '', html: artifact.html, status: 'passed', created_at };
-      await storage.put(`${root}/runs/${recordName(sessionId, 'run', id)}`, run);
-      await storage.put(`mini-lab-v2/runtime/${id}.json`, { html: artifact.html, created_at });
-      const meta = await sessionIndex(root, sessionId);
-      await writeSessionEvent(root, sessionId, { ...meta, title: artifact.title || meta.title, updated_at: now() });
-      await addMessage(root, sessionId, 'assistant', `สร้างสื่อ HTML เสร็จแล้ว: ${run.title}`, 'v2_build_completed');
-      return sendJson(res, 200, { run: { id, title: run.title, summary: run.summary, status: 'passed', runtime_url: `/api/v2/runtime/${id}` }, artifact_url: `/api/v2/runtime/${id}`, ...(isDeveloper ? { usage: await usageData(root, sessionId) } : {}) });
+      const result = await executeBuild(root, sessionId, current, selectedModel(input, user));
+      if (isDeveloper) result.body.usage = await usageData(root, sessionId);
+      return sendJson(res, result.status, result.body);
     }
     return sendJson(res, 404, { error: 'not_found' });
   } catch (error) { return responseError(res, error); }
