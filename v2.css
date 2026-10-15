@@ -136,10 +136,22 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .message.assistant { align-self: flex-start; }
 .message.teacher { align-self: flex-end; border-color: #cce7dc; background: #e8f6ef; color: #244338; }
 .message.pending { color: var(--muted); font-style: italic; }
+.select-direction { display: block; min-height: 30px; margin-top: 9px; padding: 0 10px; border: 1px solid #b8c5e7; border-radius: 8px; background: #fff; color: #315eaf; font: inherit; font-size: .72rem; font-weight: 750; cursor: pointer; }
+.select-direction:hover, .select-direction:focus-visible { border-color: #2867ee; background: #f4f7ff; }
+.select-direction[aria-pressed="true"] { border-color: #8fc9af; background: #e8f6ef; color: #24633f; }
+.brief-card { display: grid; gap: 5px; margin: 0 2px 13px; padding: 11px 13px; border: 1px solid #cce7dc; border-radius: 11px; background: #f2fbf6; color: #244338; }
+.brief-card[hidden], .build-status[hidden] { display: none !important; }
+.brief-card strong { color: #24633f; font-size: .76rem; }
+.brief-card p { margin: 4px 0 0; font-size: .8rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.brief-card small { color: #607a69; font-size: .69rem; }
 .composer { padding-top: 14px; border-top: 1px solid var(--line); }
 .composer textarea { display: block; width: 100%; min-height: 74px; max-height: 200px; padding: 10px 12px; border: 1px solid #cad6e9; border-radius: 11px; outline: 0; background: #fff; color: var(--ink); font: inherit; font-size: .9rem; line-height: 1.55; resize: vertical; }
 .composer textarea::placeholder { color: #8793a8; }
 .composer textarea:focus-visible { outline: 3px solid #7ba2ff55; outline-offset: 2px; }
+.composer-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 7px 10px; margin-top: 8px; }
+.composer-tools small { color: var(--muted); font-size: .69rem; }
+.think-button { min-height: 30px; padding: 0 10px; border: 1px solid #d6d2f4; border-radius: 8px; background: #f8f6ff; color: #574ab9; font: inherit; font-size: .72rem; font-weight: 750; cursor: pointer; }
+.think-button:hover, .think-button:focus-visible { border-color: #8e82df; background: #f0edff; }
 .composer-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 9px; color: var(--muted); font-size: .78rem; }
 .composer-actions { display: flex; align-items: center; gap: 8px; }
 .send-button, .build-button { min-height: 40px; padding: 0 15px; border: 0; border-radius: 10px; cursor: pointer; font: inherit; font-size: .82rem; font-weight: 800; white-space: nowrap; }
@@ -173,6 +185,10 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
 .usage-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
 .usage-chip { padding: 6px 9px; border: 1px solid #e5ebf5; border-radius: 99px; background: #fff; font-size: .72rem; }
 .usage-call { width: 100%; overflow-wrap: anywhere; }
+.build-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; padding: 10px 12px; border: 1px solid #f1c5c2; border-radius: 10px; background: #fff7f6; color: #8d3933; font-size: .78rem; line-height: 1.5; }
+.build-status[data-status="passed"] { border-color: #bfe0cb; background: #f2fbf6; color: #286445; }
+.build-status button { flex: 0 0 auto; min-height: 31px; padding: 0 9px; border: 1px solid #d2cdef; border-radius: 8px; background: #fff; color: #574ab9; font: inherit; font-size: .7rem; font-weight: 750; cursor: pointer; }
+.build-status button[hidden] { display: none !important; }
 
 .settings-overlay { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 20px; background: #18223d88; }
 .settings-overlay[hidden] { display: none !important; }
@@ -222,6 +238,7 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: #f7f9fc; }
   .composer-footer { align-items: flex-end; font-size: .7rem; }
   .composer-footer > span { max-width: 39%; line-height: 1.45; }
   .composer-actions { gap: 5px; }
+  .build-status { align-items: flex-start; flex-direction: column; }
   .send-button, .build-button { min-height: 38px; padding: 0 10px; font-size: .74rem; }
   .result-heading { flex-direction: column; }
   #preview-frame { height: 68vh; }

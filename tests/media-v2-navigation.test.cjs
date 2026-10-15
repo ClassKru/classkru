@@ -6,25 +6,32 @@ const http = require('node:http');
 const { launchBrowser } = require('../api/_lib/media-check');
 const root = path.join(__dirname, '..');
 const id = '00000000-0000-4000-8000-000000000001';
-let initial = '', answered = false, chatCalls = 0, releaseAnswer;
+let initial = '', answered = false, chatCalls = 0, buildCalls = 0, selectedDirection = '', releaseAnswer;
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const json = data => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(data)); };
   if (url.pathname === '/api/v2/config') return json({ developer: false, deployment: true, configured: true });
   if (url.pathname === '/api/v2/sessions' && req.method === 'POST') {
     let body = ''; for await (const chunk of req) body += chunk;
-    initial = JSON.parse(body).initial_message; answered = false;
+    initial = JSON.parse(body).initial_message; answered = false; selectedDirection = '';
     return json({ session: { id } });
   }
   if (url.pathname === `/api/v2/sessions/${id}`) return json({ session: {
     id, messages: [{ id: 'first', role: 'teacher', kind: 'v2_pending_start', content: initial },
-      ...(answered ? [{ role: 'assistant', kind: 'v2_chat', content: 'AI response' }] : [])],
-    pending_start: answered ? null : { id: 'first', content: initial }, usage: null
+      ...(answered ? [{ id: 'assistant-1', role: 'assistant', kind: 'v2_chat', content: 'AI response' }] : [])],
+    pending_start: answered ? null : { id: 'first', content: initial }, brief: selectedDirection ? { selected_direction: selectedDirection, source_message_id: 'assistant-1' } : null, usage: null
   } });
+  if (url.pathname === `/api/v2/sessions/${id}/brief` && req.method === 'POST') {
+    let body = ''; for await (const chunk of req) body += chunk;
+    assert.equal(JSON.parse(body).message_id, 'assistant-1');
+    selectedDirection = 'AI response';
+    return json({ brief: { selected_direction: selectedDirection, source_message_id: 'assistant-1' } });
+  }
+  if (url.pathname === `/api/v2/sessions/${id}/build`) { buildCalls++; return json({ run: { id: 'run' }, artifact_url: '/runtime' }); }
   if (url.pathname === `/api/v2/sessions/${id}/chat`) {
     chatCalls++;
     await new Promise(resolve => { releaseAnswer = resolve; });
-    answered = true; return json({ reply: 'AI response' });
+    answered = true; return json({ reply: 'AI response', message_id: 'assistant-1' });
   }
   const file = { '/mini-lab-v2': 'v2.html', '/v2.css': 'v2.css', '/v2.js': 'v2.js' }[url.pathname];
   if (!file) { res.statusCode = 404; return res.end(); }
@@ -63,11 +70,25 @@ async function main() {
       releaseAnswer(); releaseAnswer = null;
       await page.waitForFunction(() => document.querySelector('#chat-log').textContent.includes('AI response'));
       assert.equal(await page.$eval('#chat-log .assistant', el => el.checkVisibility()), true);
+      await page.click('.select-direction');
+      await page.waitForFunction(() => !document.querySelector('#brief-card').hidden);
+      assert.equal(await page.$eval('#brief-text', el => el.textContent), 'AI response');
+      assert.equal(buildCalls, 0, 'Choosing a direction must never start a build');
       const calls = chatCalls;
       await page.reload();
       await page.waitForSelector('#chat-log .teacher', { visible: true });
       await page.waitForSelector('#chat-log .assistant', { visible: true });
       assert.equal(chatCalls, calls, 'Reopening completed work must not repeat AI request');
+      assert.equal(await page.$eval('#brief-text', el => el.textContent), 'AI response', 'Selected direction must persist in the Brief');
+      assert.equal(await page.$eval('.select-direction', el => el.getAttribute('aria-pressed')), 'true');
+      await page.type('#message-input', 'ขอปรับและผสมแนวทางนี้ให้สั้นลง');
+      await page.click('#send-button');
+      await page.waitForSelector('#chat-log .pending', { visible: true });
+      while (!releaseAnswer) await new Promise(resolve => setTimeout(resolve, 20));
+      releaseAnswer(); releaseAnswer = null;
+      await page.waitForFunction(() => document.querySelectorAll('#chat-log .assistant').length >= 2);
+      assert.equal(await page.$eval('#brief-text', el => el.textContent), 'AI response', 'Teacher can continue refining while keeping the selected Brief');
+      assert.equal(buildCalls, 0, 'Chatting or selecting a direction must not auto-build');
     }
     assert.deepEqual(errors, []);
     console.log('PASS: first prompt, pending status, AI reply and reopened work visible at desktop and mobile widths');
