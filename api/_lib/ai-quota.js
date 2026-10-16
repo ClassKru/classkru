@@ -26,14 +26,18 @@ function quotaDate() {
 function normalizeQuota(value) {
   const row = Array.isArray(value) ? value[0] : value;
   const limit = Number(row?.limit);
-  const used = Number(row?.used);
-  const remaining = Number(row?.remaining);
+  const used = row?.used == null ? 0 : Number(row.used);
+  const safeUsed = Number.isFinite(used) ? Math.max(used, 0) : 0;
+  const remaining = row?.remaining == null ? null : Number(row.remaining);
+  const safeLimit = Number.isFinite(limit) ? limit : dailyLimit();
   return {
     allowed: row?.allowed !== false,
     date: String(row?.date || quotaDate()),
-    limit: Number.isFinite(limit) ? limit : dailyLimit(),
-    used: Number.isFinite(used) ? Math.max(used, 0) : 0,
-    remaining: Number.isFinite(remaining) ? Math.max(remaining, 0) : dailyLimit()
+    limit: safeLimit,
+    used: safeUsed,
+    remaining: remaining == null
+      ? Math.max(safeLimit - safeUsed, 0)
+      : (Number.isFinite(remaining) ? Math.max(remaining, 0) : Math.max(safeLimit - safeUsed, 0))
   };
 }
 
@@ -61,4 +65,4 @@ async function releaseAiQuota(teacherId, date) {
   return normalizeQuota(await callRpc('release_ai_daily_generation_quota', rpcArgs(teacherId, date)));
 }
 
-module.exports = { dailyLimit, quotaDate, getAiQuota, consumeAiQuota, releaseAiQuota };
+module.exports = { dailyLimit, quotaDate, normalizeQuota, getAiQuota, consumeAiQuota, releaseAiQuota };
