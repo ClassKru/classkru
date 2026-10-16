@@ -75,7 +75,13 @@
   function apiPath(path) { return window.location.protocol === 'file:' ? `https://classkru-kohl.vercel.app${path}` : path; }
   function applyAiQuota(quota) {
     if (!quota || typeof quota !== 'object') return;
-    state.aiQuota = { limit:Number(quota.limit) || 15, used:Math.max(Number(quota.used) || 0, 0), remaining:Math.max(Number(quota.remaining) || 0, 0), date:String(quota.date || '') };
+    const rawLimit = Number(quota.limit);
+    const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 15;
+    const rawUsed = quota.used == null ? 0 : Number(quota.used);
+    const used = Number.isFinite(rawUsed) ? Math.max(rawUsed, 0) : 0;
+    const rawRemaining = quota.remaining == null ? limit - used : Number(quota.remaining);
+    const remaining = Number.isFinite(rawRemaining) ? Math.max(rawRemaining, 0) : Math.max(limit - used, 0);
+    state.aiQuota = { limit, used, remaining, date:String(quota.date || '') };
   }
   function aiQuotaHtml() {
     const quota = state.aiQuota;
