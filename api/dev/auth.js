@@ -1,11 +1,37 @@
 'use strict';
 
 const { sendJson, parseBody, requestOriginIsValid } = require('../_lib/http');
-const { checkPassword, createSessionToken, sessionCookie } = require('../_lib/dev-auth');
+const {
+  checkPassword,
+  clearSessionCookie,
+  configured,
+  createSessionToken,
+  sessionCookie,
+  verifySession
+} = require('../_lib/dev-auth');
 
 module.exports = function handler(req, res) {
+  const action = String(req.query?.action || '').toLowerCase();
+
+  if (action === 'session') {
+    if (req.method !== 'GET') return sendJson(res, 405, { error: 'method_not_allowed' });
+    const session = verifySession(req);
+    return sendJson(res, 200, {
+      authenticated: session.ok,
+      configured: configured(),
+      expiresAt: session.ok ? session.claims.exp : null
+    });
+  }
+
+  if (!['login', 'logout'].includes(action)) return sendJson(res, 404, { error: 'unknown_action' });
   if (req.method !== 'POST') return sendJson(res, 405, { error: 'method_not_allowed' });
   if (!requestOriginIsValid(req)) return sendJson(res, 403, { error: 'invalid_origin' });
+
+  if (action === 'logout') {
+    res.setHeader('Set-Cookie', clearSessionCookie(req));
+    return sendJson(res, 200, { authenticated: false });
+  }
+
   const password = String(parseBody(req).password || '').slice(0, 160);
   const result = checkPassword(req, password);
   if (!result.ok) {

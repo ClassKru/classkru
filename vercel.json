@@ -3,6 +3,11 @@
     {"source":"/","destination":"/home.html","permanent":false}
   ],
   "rewrites": [
+    {"source":"/api/auth/username","destination":"/api/auth/line/start?mode=username-signup"},
+    {"source":"/api/auth/line/link/start","destination":"/api/auth/line/start?mode=link"},
+    {"source":"/api/dev/login","destination":"/api/dev/auth?action=login"},
+    {"source":"/api/dev/logout","destination":"/api/dev/auth?action=logout"},
+    {"source":"/api/dev/session","destination":"/api/dev/auth?action=session"},
     {"source":"/mini-lab-v2","destination":"/v2.html"},
     {"source":"/api/v2/(.*)","destination":"/api/media-studio?action=v2&path=$1"},
     {"source":"/api/exports/:document","destination":"/api/exports?document=:document"}

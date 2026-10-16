@@ -1,66 +1,557 @@
-/* Login screen: compact enough for short laptop and mobile viewports. */
-#login-content {
-  margin: 0 auto !important;
-  padding: 0 0 8px;
+/* ClassKru login: friendly, light and easy to scan on mobile and desktop. */
+:root {
+  --login-sky: #dff8fb;
+  --login-sky-strong: #16afc4;
+  --login-peach: #ffd9c9;
+  --login-cloud: #ffffff;
+  --login-glass: rgba(255, 255, 255, 0.82);
+  --login-line: #06c755;
+  --login-shadow: 0 22px 60px rgba(25, 94, 101, 0.14), 0 4px 14px rgba(25, 94, 101, 0.08);
+  --login-shadow-soft: 0 10px 26px rgba(25, 94, 101, 0.1);
+  --login-focus: rgba(29, 158, 117, 0.16);
 }
 
-#login-content > a:first-child img {
-  width: 92px !important;
-  margin-bottom: -2px !important;
+#login-overlay.ck-login-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: linear-gradient(145deg, var(--login-sky) 0%, var(--login-cloud) 48%, var(--primary-light) 76%, var(--login-peach) 132%);
+  isolation: isolate;
 }
 
-#login-content > h2 {
-  font-size: 1.45rem !important;
-  margin-bottom: 5px !important;
+#login-overlay.ck-login-stage::before,
+#login-overlay.ck-login-stage::after {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  border-radius: 50%;
+  content: '';
+  pointer-events: none;
 }
 
-#login-content > h2 + p {
-  margin-bottom: 12px !important;
-  line-height: 1.55 !important;
+#login-overlay.ck-login-stage::before {
+  top: -180px;
+  left: -160px;
+  width: 480px;
+  height: 480px;
+  border: 1px solid var(--login-sky-strong);
+  opacity: 0.14;
 }
 
-#login-content > div {
-  padding: 20px !important;
-  gap: 11px !important;
+#login-overlay.ck-login-stage::after {
+  right: -170px;
+  bottom: -190px;
+  width: 520px;
+  height: 520px;
+  border: 1px solid var(--login-peach);
+  opacity: 0.62;
 }
 
-#login-content > a:last-child {
-  margin-top: 10px !important;
-  padding: 3px 8px;
+.ck-login-orb {
+  position: absolute;
+  z-index: 0;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  opacity: 0.72;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.ck-login-orb-one {
+  top: 10%;
+  right: 12%;
+  background: var(--login-peach);
+}
+
+.ck-login-orb-two {
+  bottom: 8%;
+  left: 8%;
+  width: 150px;
+  height: 150px;
+  background: var(--login-sky);
+}
+
+.ck-login-shell {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 620px);
+  margin: auto;
+  padding: 4px 0 8px;
+}
+
+.ck-login-brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  margin: 0 auto 10px;
+  color: var(--primary-deep);
+  text-decoration: none;
+  transition: transform 0.18s ease;
+}
+
+.ck-login-brand:hover,
+.ck-login-brand:focus-visible {
+  transform: translateY(-2px);
+}
+
+.ck-login-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border: 5px solid var(--login-cloud);
+  border-radius: 17px;
+  background: var(--login-cloud);
+  box-shadow: var(--login-shadow-soft);
+}
+
+.ck-login-brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ck-login-brand-name {
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: -0.25px;
+}
+
+.ck-login-card {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px solid var(--login-cloud);
+  border-radius: 28px;
+  background: var(--login-glass);
+  box-shadow: var(--login-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.ck-login-heading {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.ck-login-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 4px 10px;
+  border: 1px solid var(--primary-light-border);
+  border-radius: 999px;
+  background: var(--primary-light);
+  color: var(--primary-deep);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.ck-login-heading h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: -0.45px;
+}
+
+.ck-login-heading p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.ck-auth-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--bg-light);
+}
+
+.ck-auth-tabs button {
+  flex: 1;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.ck-auth-tabs button[aria-selected='true'] {
+  background: var(--login-cloud) !important;
+  color: var(--text-main) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.ck-login-social {
+  display: grid;
+  gap: 9px;
+}
+
+.ck-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-btn);
+  background: var(--login-cloud);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: var(--transition-normal);
+}
+
+.ck-social-btn:hover:not(:disabled),
+.ck-social-btn:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.ck-social-btn:disabled,
+.ck-login-submit:disabled {
+  cursor: wait;
+}
+
+.ck-google-btn {
+  border-color: var(--border-color);
+}
+
+.ck-line-btn {
+  border-color: var(--login-line);
+  background: var(--login-line);
+  color: var(--login-cloud);
+}
+
+.ck-line-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 19px;
+  border-radius: 8px;
+  background: var(--login-cloud);
+  color: var(--login-line);
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: -0.2px;
+}
+
+.ck-login-note {
+  margin: 8px 2px 0;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.ck-login-note a,
+.ck-signup-note a {
+  color: var(--primary-deep);
+  font-weight: 800;
+}
+
+.ck-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 10px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ck-login-divider::before,
+.ck-login-divider::after {
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+  content: '';
+}
+
+.ck-login-fields {
+  display: grid;
+  gap: 9px;
+}
+
+.ck-login-field {
+  display: grid;
+  gap: 6px;
+  color: var(--text-main);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.ck-login-field > small {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 500;
   line-height: 1.4;
 }
 
-/* Keep the full form reachable when the viewport is short. */
-@media (max-height: 760px) {
-  #login-overlay {
-    padding-top: 8px !important;
-  }
+.ck-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
-  #login-content > a:first-child img {
-    width: 78px !important;
-  }
+.ck-input-wrap > i {
+  position: absolute;
+  left: 14px;
+  z-index: 1;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
 
-  #login-content > h2 {
-    font-size: 1.32rem !important;
-  }
+.ck-input-wrap .form-control {
+  width: 100%;
+  min-height: 43px;
+  box-sizing: border-box;
+  padding: 11px 14px 11px 40px;
+  border-radius: 14px;
+  background: var(--login-cloud);
+  font-size: 0.92rem;
+}
 
-  #login-content > h2 + p {
-    font-size: .82rem !important;
-    margin-bottom: 8px !important;
-  }
+.ck-input-wrap .form-control:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--login-focus);
+}
 
-  #login-content > div {
-    padding: 16px !important;
-    gap: 9px !important;
-  }
+.ck-input-wrap #login-password {
+  padding-right: 46px;
+}
+
+.ck-input-wrap > button {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.ck-input-wrap > button:hover,
+.ck-input-wrap > button:focus-visible {
+  background: var(--bg-light);
+  color: var(--primary-deep);
+}
+
+.ck-login-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 45px;
+  margin-top: 12px;
+  border-radius: var(--radius-btn);
+  font-size: 0.96rem;
+  font-weight: 900;
+}
+
+.ck-login-status {
+  min-height: 0;
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.ck-login-links {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+#forgot-pw-wrap {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+#forgot-pw-wrap button {
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--primary-deep);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ck-demo-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--primary-light-border);
+  border-radius: 14px;
+  background: var(--primary-light);
+  color: var(--primary-deep);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: var(--transition-normal);
+}
+
+.ck-demo-link i:first-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--login-cloud);
+  font-size: 0.85rem;
+}
+
+.ck-demo-link i:last-child {
+  margin-left: auto;
+  color: var(--primary);
+}
+
+.ck-demo-link:hover,
+.ck-demo-link:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.ck-signup-note {
+  margin-top: 7px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.ck-login-home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  margin-top: 10px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: var(--transition-normal);
+}
+
+.ck-login-home:hover,
+.ck-login-home:focus-visible {
+  color: var(--primary-deep);
 }
 
 @media (max-width: 480px) {
-  #login-overlay {
-    padding-inline: 14px !important;
+  #login-overlay.ck-login-stage {
+    padding: 16px 12px calc(16px + env(safe-area-inset-bottom, 0px));
   }
 
-  #login-content > div {
-    border-radius: 18px !important;
+  .ck-login-shell {
+    width: min(100%, 410px);
+  }
+
+  .ck-login-card {
+    padding: 18px 14px;
+    border-radius: 24px;
+  }
+
+  .ck-login-heading h2 {
+    font-size: 1.42rem;
+  }
+
+  .ck-login-orb-one {
+    right: -70px;
+  }
+
+  .ck-login-orb-two {
+    left: -80px;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 481px) {
+  #login-overlay.ck-login-stage {
+    padding-top: 12px;
+    padding-bottom: 14px;
+  }
+
+  .ck-login-brand {
+    margin-bottom: 7px;
+  }
+
+  .ck-login-brand-mark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ck-login-card {
+    padding: 16px 20px;
+  }
+
+  .ck-login-heading {
+    margin-bottom: 9px;
+  }
+}
+
+@media (min-width: 600px) {
+  .ck-login-social {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ck-login-brand,
+  .ck-social-btn,
+  .ck-demo-link,
+  .ck-login-home,
+  .ck-auth-tabs button {
+    transition: none;
   }
 }
