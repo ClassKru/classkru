@@ -3,6 +3,11 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
+const qrStyles = fs.readFileSync(path.join(__dirname, '..', 'css', '12-qr-scores.css'), 'utf8');
+assert.match(qrStyles, /\.qr-score-setup-scorebox \{ display: flex; width: min\(100%, 190px\)/, 'setup score input stays compact');
+assert.match(qrStyles, /\.qr-score-setup-actions \{ display: flex; justify-content: flex-end/, 'desktop actions use content-sized buttons');
+assert.match(qrStyles, /@media \(max-width: 480px\)[\s\S]*?\.qr-score-setup-actions \.btn,\.qr-score-setup-actions #qr-score-start-btn \{ width: 100%/, 'mobile primary action remains easy to tap');
+
 function seedState() {
   return {
     classes: [

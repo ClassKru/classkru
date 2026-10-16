@@ -15,8 +15,11 @@
         'scores', 'reports', 'curriculum', 'library', 'tools', 'games',
         'subscription', 'checkout', 'settings', 'checkin'
       ]);
+      const authParams = new URLSearchParams(`${location.search}${location.hash.slice(1)}`);
+      const hasOAuthResponse = ['access_token', 'code', 'error', 'error_code']
+        .some((key) => authParams.has(key));
       const route = decodeURIComponent(location.hash.slice(1)).split(':', 1)[0];
-      if (appScreens.has(route)) {
+      if (hasOAuthResponse || appScreens.has(route)) {
         location.replace(`index.html${location.search}${location.hash}`);
       }
     })();
@@ -33,7 +36,7 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/home.css?v=511">
+  <link rel="stylesheet" href="css/home.css?v=524">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700;800&display=swap" rel="stylesheet">

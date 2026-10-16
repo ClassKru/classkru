@@ -1,6 +1,6 @@
 /* Continuous QR score entry */
 .qr-score-overlay { padding: 18px; }
-.qr-score-sheet { width: min(920px, 100%); max-height: calc(100vh - 36px); overflow-y: auto; padding: 0; border-radius: 24px; }
+.qr-score-sheet { width: min(880px, 100%); max-height: calc(100dvh - 36px); overflow-y: auto; padding: 0; border-radius: 24px; }
 .qr-score-head { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px; background: #fff; border-bottom: 1px solid var(--border-color); }
 .qr-score-head h3 { margin: 2px 0 0; display: flex; align-items: center; gap: 8px; font-size: 1.25rem; }
 .qr-score-head h3 i { color: var(--primary); }
@@ -12,7 +12,9 @@
 .qr-score-picker-wrap { position: relative; }
 .qr-score-class-picker > span, .qr-score-task-picker > span, .qr-score-fields label > span, .qr-score-new > span { color: var(--text-muted); font-size: .82rem; font-weight: 700; }
 .qr-score-class-picker select, .qr-score-task-picker select { display: none; }
-.qr-score-picker-trigger { position: relative; width: 100%; min-height: 58px; padding: 10px 42px 10px 14px; border: 1.5px solid var(--border-color); border-radius: 14px; color: var(--text-main); background: #fff; font: inherit; text-align: left; cursor: pointer; }
+.qr-score-picker-trigger { position: relative; width: 100%; min-height: 56px; padding: 9px 42px 9px 14px; border: 1.5px solid var(--border-color); border-radius: 14px; color: var(--text-main); background: var(--bg-card); font: inherit; text-align: left; cursor: pointer; transition: border-color .18s ease, background .18s ease, box-shadow .18s ease; }
+.qr-score-picker-trigger:hover { border-color: var(--primary-light-border); background: color-mix(in srgb,var(--primary-light) 22%,var(--bg-card)); }
+.qr-score-picker-trigger:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .qr-score-picker-trigger strong, .qr-score-picker-trigger span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .qr-score-class-trigger-dot { position: absolute; top: 50%; left: 16px; width: 11px; height: 11px; margin-top: -5.5px; display: none !important; border-radius: 50%; background: var(--qr-class-dot, var(--primary)); box-shadow: 0 0 0 4px rgba(29,158,117,.08); }
 .qr-score-picker-trigger .qr-score-class-trigger-dot { margin-top: -5.5px; }
@@ -45,16 +47,17 @@
 .qr-score-task-summary { align-items: center; gap: 8px; margin-top: 10px; padding: 9px 11px; border: 1px solid var(--primary-light-border); border-radius: 12px; color: var(--primary); background: var(--primary-light); }
 .qr-score-task-summary i { flex: 0 0 auto; }
 .qr-score-task-summary span { min-width: 0; color: var(--primary); font-size: .8rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.qr-score-fields { display: grid; grid-template-columns: minmax(220px, 320px); gap: 14px; margin-top: 14px; }
+.qr-score-fields { display: grid; grid-template-columns: minmax(0, 220px); gap: 12px; margin-top: 12px; }
 .qr-score-fields label > span small { color: #94a3b8; font-size: .72rem; font-weight: 700; }
 .qr-score-fields select:disabled { color: #94a3b8; background: #f8fafc; cursor: not-allowed; }
 .qr-score-field-wide { grid-column: span 2; }
 .qr-score-fields input[readonly] { background: var(--bg-main); font-weight: 800; }
-.qr-score-setup-scorebox { display: flex; align-items: center; min-height: 44px; }
-.qr-score-setup-scorebox input { min-width: 0; height: 42px; text-align: center; cursor: text; }
-.qr-score-setup-scorebox b { flex: 0 0 auto; padding: 0 14px 0 8px; color: #0369a1; font-size: 1rem; white-space: nowrap; }
-.qr-score-setup-actions { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 10px; margin-top: 18px; }
-.qr-score-setup-actions .btn { min-height: 48px; justify-content: center; }
+.qr-score-setup-scorebox { display: flex; width: min(100%, 190px); align-items: center; min-height: 42px; }
+.qr-score-setup-scorebox input { width: 128px; min-width: 0; height: 42px; flex: 0 1 128px; text-align: center; cursor: text; font-size: 1rem; }
+.qr-score-setup-scorebox b { flex: 0 0 auto; padding: 0 10px 0 6px; color: var(--primary); font-size: .95rem; white-space: nowrap; }
+.qr-score-setup-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.qr-score-setup-actions .btn { min-width: 176px; min-height: 44px; justify-content: center; }
+.qr-score-setup-actions #qr-score-start-btn { min-width: 220px; }
 .qr-score-start { width: 100%; justify-content: center; }
 .qr-score-inline-error { min-height: 20px; margin-top: 8px; color: var(--color-absent, #dc2626); font-size: .84rem; font-weight: 700; }
 .qr-score-context { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; padding: 12px 16px; border: 1px solid var(--primary-light-border); border-radius: 14px; background: var(--primary-light); }
@@ -132,7 +135,7 @@
   .qr-score-setup > p { margin-bottom: 10px; font-size: .9rem; line-height: 1.45; }
   .qr-score-picker-trigger { min-height: 54px; }
   .qr-score-picker-list { max-height: 36dvh; }
-  .qr-score-fields { grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+  .qr-score-fields { grid-template-columns: minmax(0, 220px); gap: 10px; margin-top: 10px; }
   .qr-score-field-wide { grid-column: span 2; }
   .qr-score-workspace { grid-template-columns: 1fr; }
   .qr-score-context { align-items: flex-start; margin-bottom: 10px; padding: 10px 12px; }
@@ -166,10 +169,14 @@
   .qr-score-scan.has-result .qr-score-stop { margin-top: 14px; }
 }
 
+@media (max-width: 480px) {
+  .qr-score-setup-actions { flex-direction: column-reverse; }
+  .qr-score-setup-actions .btn,.qr-score-setup-actions #qr-score-start-btn { width: 100%; min-width: 0; }
+}
+
 @media (max-width: 420px) {
-  .qr-score-fields { grid-template-columns: 1fr; }
+  .qr-score-fields { grid-template-columns: minmax(0, 190px); }
   .qr-score-field-wide { grid-column: auto; }
-  .qr-score-setup-actions { grid-template-columns: 1fr; }
   .qr-score-setup-actions #qr-score-print-cards { display: none; }
   .qr-score-head h3 { font-size: 1.35rem; }
   .qr-score-result-actions { gap: 8px; }

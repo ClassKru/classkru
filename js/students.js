@@ -133,8 +133,13 @@ function renderWebStudents() {
     const av = (typeof mscAvatar === 'function') ? mscAvatar(s, realIdx < 0 ? 0 : realIdx) : { bg: '', fg: '' };
     const avatarText = nickEsc || escapeStudentCardHtml(String(displayName.first || 'นักเรียน').slice(0, 1));
     const avatarClass = avatarText.length > 5 ? ' is-tiny' : (avatarText.length > 3 ? ' is-small' : '');
-    const avatar = s.photoBase64
-      ? `<img src="${s.photoBase64}" alt="">`
+    const hasUploadedAvatar = Boolean(s.photoBase64);
+    const defaultAvatarSource = !hasUploadedAvatar && typeof mscAvatarImageSource === 'function'
+      ? mscAvatarImageSource(s, realIdx < 0 ? visibleIndex : realIdx)
+      : '';
+    const avatarSource = hasUploadedAvatar ? s.photoBase64 : defaultAvatarSource;
+    const avatar = avatarSource
+      ? `<img class="${hasUploadedAvatar ? 'is-uploaded-avatar' : 'is-default-avatar'}" src="${escapeStudentCardHtml(avatarSource)}" alt="" loading="lazy" decoding="async">`
       : `<span class="student-card-avatar-text${avatarClass}" title="${avatarText}">${avatarText}</span>`;
     const nicknameBlock = nickEsc || '';
     card.setAttribute('onclick', `if(!event.target.closest('input,button'))openStudentSummaryModal('${s.id}','${targetClass.id}')`);

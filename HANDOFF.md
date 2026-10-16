@@ -1,6 +1,35 @@
 # HANDOFF — บริบทสำหรับสานต่องาน ClassKru
 
-> อัปเดตล่าสุด: 22 กันยายน 2569
+> อัปเดตล่าสุด: 15 ตุลาคม 2569
+
+## 29. ClassKru Interactive V2: ส่งมอบการตรวจและพัฒนาครบ Phase 1–8 (2026-10-15)
+
+### 1. สถาปัตยกรรมปัจจุบัน
+
+- `/mini-lab-v2` เสิร์ฟ `v2.html`; UI เรียก V2 API ผ่าน `api/media-studio/index.js` และ `api/_lib/media-lab-v2-handler.js` โดยใช้ Auth/Storage/OpenRouter ที่มีอยู่.
+- Planner/Conversation ส่ง system context และประวัติครูผ่าน `callOpenRouter` ใน `api/_lib/media-lab-v2-ai.js`; role rules และ prompt composer อยู่ใน `api/_lib/media-lab-v2.mjs`.
+- Brief ที่บันทึกใน session คือแนวทางที่ครูเลือก (`brief.selected_direction`) จากคำตอบ assistant; Brief Composer Rules เป็นกฎที่ Builder ใช้กลั่นบริบทก่อนเขียนสื่อ ไม่ใช่ AI call แยก.
+- Builder ขอ JSON schema ที่มี `title`, `summary`, `html`; Parser รองรับ JSON และรูปแบบ HTML/fenced JSON ที่ระบบเดิมรองรับ. Validator ตรวจ HTML contract, ขนาด, dependency/network, inline handler, storage และ compile inline JavaScript แบบไม่ execute.
+- Runtime เก็บ HTML ใน `mini-lab-v2/runtime/{run_id}.json`, ส่งใน iframe sandbox พร้อม CSP จำกัด network และ resource. Runtime monitor ส่งเพียงชนิดเหตุการณ์ทั่วไปกลับหน้าแม่ ไม่ส่งรายละเอียด error ของผู้เรียน.
+
+### 2–3. สิ่งที่พบ: ข้อเท็จจริงและข้อสันนิษฐาน
+
+- **ยืนยันจากโค้ดก่อนแก้:** ไม่มี complexity preflight ก่อนเรียก Builder; validator ตรวจ JavaScript syntax ไม่ได้; ไม่มีทางส่ง runtime failure ไปซ่อมแบบจำกัด; direction ที่ครูยืนยันยังไม่อยู่ใน session Brief; และไม่มี build record ที่รวม retry/validation/result metadata ให้ไล่ตรวจต่อได้.
+- **แก้แล้ว:** เพิ่ม role-specific prompt, complexity budget, error categories, bounded retries, compact rebuild เมื่อ output ถูกตัด, repair HTML/JS หนึ่งครั้ง, runtime repair หนึ่งครั้งต่อ run, metadata แบบไม่เก็บ prompt/response เต็ม และการบันทึก Brief ก่อน Build.
+- **ข้อสันนิษฐาน/ข้อจำกัด:** complexity และ token estimates เป็น heuristic จากข้อความ ไม่ใช่ตัวพิสูจน์ว่าโมเดลจะสร้างได้จริง; ผลจริงต้องประเมินจาก safe aggregate telemetry ต่อไป. ยังไม่มีการยืนยันจากบัญชีครูจริงหรือ Production.
+
+### 4–6. ไฟล์, ลำดับงานต่อ และความเสี่ยง
+
+- เปลี่ยน `api/_lib/media-lab-v2-config.js`, `api/_lib/media-lab-v2-policy.js`, `api/_lib/media-lab-v2-ai.js`, `api/_lib/media-lab-v2-handler.js`, `api/_lib/media-lab-v2.mjs`, `v2.html`, `v2.css`, `v2.js`, `package.json`; เพิ่ม `tests/media-v2-policy.test.cjs` และ `tests/media-v2-handler.test.cjs`; ขยาย `tests/media-v2-navigation.test.cjs`; ปรับบันทึกนี้. เพิ่ม prompt version และ cache asset version `523`.
+- ลำดับถัดไป: (P0) รัน `tests/media-v2-navigation.test.cjs` ในเครื่องที่ browser launcher ใช้งานได้ และตรวจทวน flow ใน Preview ด้วยบัญชีครู; (P1) จึงพิจารณา merge PR #120 และ deploy หลังได้รับอนุญาตชัดเจน; (P2) ปรับงบใน config จาก telemetry แบบ aggregate ที่ไม่ระบุตัวบุคคล.
+- ความเสี่ยง: heuristic อาจปฏิเสธงานที่จริงสร้างได้หรือปล่อยงานซับซ้อนผ่าน; retry/repair เพิ่มค่าใช้จ่ายแต่ถูกจำกัดสูงสุด; runtime repair สร้าง run ใหม่และล็อกไม่ให้ลองซ้ำอัตโนมัติ; authenticated integration กับ Preview/บัญชีครูยังไม่ผ่านการยืนยัน.
+
+### 7–9. แผนทดสอบ, เกณฑ์รับงาน และสิทธิ์ที่ยังต้องขอ
+
+- ครอบคลุมหัวข้อแรงเสียดทาน, เศษส่วน, การเรียงประโยคภาษาไทย, เส้นเวลาประวัติศาสตร์, การผสมสี และวัฏจักรน้ำ; ทดสอบ schema ผิด, output truncation, HTML/JS ผิด, dependency, timeout, เกิน budget, retries หมด, Brief persistence และ runtime repair แบบ mock.
+- Acceptance mapping: role rules และ single-file contract อยู่ใน prompt/validator; preflight ทำก่อนเรียก AI; errors/builds/usage เก็บ metadata; retries จำกัด; มีปุ่มเลือกแนวทาง/ช่วยคิดโดยไม่สั่ง Build; Brief ไม่หายเมื่อ Build ล้มเหลว; regression ชุดที่เกี่ยวกับ V2 ผ่าน; ไม่มีการเรียก Paid API หรือ deploy.
+- ผลตรวจรอบนี้: syntax checks และ `git diff --check` ผ่าน; ชุดทดสอบออฟไลน์เฉพาะที่เกี่ยวข้องผ่าน 28/28; `npm.cmd run test:media` ผ่าน 35/35 เมื่อรันนอก sandbox; `tests/media-v2-navigation.test.cjs` ผ่านที่ desktop/mobile โดยใช้ local mock. การรัน browser ภายใน sandbox ปิดตัวด้วยรหัส `2147483651` แต่การรันนอก sandbox ผ่าน. ยังไม่ได้ทดสอบ Preview/บัญชีครูหรือเรียก AI จริง.
+- Core Rules V2.1 ที่ brief อ้างถึงไม่พบใน attachment ที่เข้าถึงได้ จึงใช้ข้อจำกัดจากโจทย์และ Runtime เดิม; ไม่มี secrets ถูกอ่าน/บันทึกในรายงาน. ไม่ได้เรียก OpenRouter แบบเสียค่าใช้จ่าย, ไม่เปลี่ยน environment, ไม่ deploy/แก้ Production. PR #120 ยังไม่ merge; การ merge/deploy และทดสอบด้วยบัญชีจริงต้องได้รับอนุญาตแยกต่างหาก.
 >
 > **29 ก.ย. 2569 — เปิดใช้งาน Production:** ส่งชุด Media Studio ที่ผ่าน `npm.cmd run test:media` (23/23) และ Browser QA เข้า `main` แบบ fast-forward ที่ commit `039929e` แล้ว. ตรวจ Vercel Production พบ OpenRouter, Storage, Supabase และ media origin ครบ; ตั้ง `MEDIA_STUDIO_ENABLED=true` แล้ว. Deployment `classkru-44zugybjo-classkru-dev.vercel.app` ขึ้น Ready และผูกกับ `https://classkru-kohl.vercel.app`; หน้าเว็บตอบ HTTP 200 พร้อม `js/media-studio.js?v=500`. Endpoint `/api/media-studio` ปฏิเสธคำขอไม่มี session ด้วย `401 authentication_required` ตามขอบเขตสิทธิ์. การสร้าง/เผยแพร่สื่อด้วยบัญชีครูจริงยังต้องทำ E2E ใน browser ที่ล็อกอินเท่านั้น.
 >
@@ -108,11 +137,14 @@ ClassKru เป็นผู้ช่วยครูไทยที่เน้�
 ## 2. สถานะ Repository และ Production ปัจจุบัน
 
 - Repository: `https://github.com/ClassKru/classkru.git`
-- Production: `https://classkru-kohl.vercel.app/`
-- Branch ทำงาน: `main`
+- Production: `https://classkru.com/` (deploy อัตโนมัติจาก `main`)
+- Demo: `https://demo.classkru.com/` (Vercel project `classkru-demo`; deployment ล่าสุด `dpl_DpPhmmqGrRa8BEM1DfUSDxQ9JZbG` พร้อมใช้งานเมื่อ 8 ต.ค. 2569)
+- Branch ทำงาน: `main`; ล่าสุด `origin/main` คือ `22c0f9f` (`Remove score tab scroll arrows`)
 - QR feature baseline: commit `fa6c1ca`
 - ค่า `HEAD`, `main` และ remote อาจมี documentation commit หลัง baseline นี้ ให้ตรวจจาก Git ทุกครั้งและไม่ยึดเลข commit ในไฟล์นี้เป็นหลัก
-- Asset version ปัจจุบันบน `feature/media-studio-live`: `488`
+- Asset คะแนนที่ตรวจบนทั้ง Production และ Demo: `css/07-scores.css?v=520`, `js/scores.js?v=517`
+- Demo deploy ใช้ source tree เดียวกับ `main` ที่ขึ้น Production แล้ว; ไม่ได้รวมการแก้ไขที่ยังไม่ merge/ยัง uncommitted ใน feature branch อื่น และไม่ได้เปลี่ยนค่าตั้งค่า Production
+- งาน UI ล่าสุดที่ sync ไป Demo: ปรับแถบหัวห้องเรียนบนมือถือ, จัด pattern/ขนาดแถบเมนูคะแนนให้สม่ำเสมอ, เปลี่ยนชื่อแท็บเป็น “กรอกคะแนน”/“สรุปคะแนน”, และให้แถบแท็บย่อยปัดซ้าย-ขวาได้โดยไม่มีปุ่มลูกศร
 - งานล่าสุด: **ปพ.5** สรุปคุณลักษณะอันพึงประสงค์จากคะแนนรายข้อ 8 คุณลักษณะตามเกณฑ์ `ดีเยี่ยม / ดี / ผ่าน / ไม่ผ่าน`, ใช้ช่องสรุปเป็นผลคำนวณในเอกสารและ Excel, และยังให้ครูกรอกผลอ่าน คิดวิเคราะห์ และเขียนแยกตามแบบเดิม
 - งานล่าสุด: คลังตัวชี้วัด ม.1-ม.3 เปิดใช้ครบ 8 กลุ่มสาระ รวม 688 ตัวชี้วัด (ภาษาไทย 103, คณิตศาสตร์ 33, วิทยาศาสตร์ 174, สังคมศึกษา 140, สุขศึกษา 72, ศิลปะ 86, การงานอาชีพ 18 และภาษาต่างประเทศ 62) พร้อมตัวตรวจจำนวน รหัสซ้ำ ความสัมพันธ์มาตรฐาน/หัวข้อ และการค้นหาผ่าน catalog
 - งานล่าสุด: แผนภาพ **ตัวชี้วัดรายวิชา** แสดงคะแนนเต็มสำหรับ ปพ.5 และแต่ละกิ่งงานแสดงคะแนนเต็มดิบ น้ำหนักแบบทศนิยมที่รวมได้ 100% พร้อมคะแนนที่คิดเป็นจากคะแนนเต็มตัวชี้วัด เพื่อลดความสับสนระหว่างสองสเกลคะแนน
@@ -574,4 +606,18 @@ Brief ควรครอบคลุมอย่างน้อย: เจตน
 
 Learning Goal Card แนบเป้าหมายและ pattern เป็น context เสริมใน user message; แชทปกติและ prompt card อนุมาน learning pattern จากข้อความได้ตามหลักเดียวกัน ปรับการอ้างหัวข้อให้ใช้ข้อความล่าสุดของครู และลด output budget ของ Conversation AI เป็น 700 tokens เพื่อสนับสนุนคำตอบกระชับ
 
-ขอบเขต: ไม่แก้ Builder, flow สร้างสื่อ หรือ Runtime. สถานะ: แก้บน branch `feature/media-v2-conversation-context`; ยังไม่ได้รัน tests, push หรือ deploy.
+ขอบเขต: ไม่แก้ Builder, flow สร้างสื่อ หรือ Runtime. สถานะ: PR #88 (`00cba73`) merge เข้า `main` แล้วด้วย merge commit `12615eb`.
+
+## 27. ClassKru Media V2: structured Builder output และ diagnostics (2026-10-15)
+
+ปรับ Builder/Repair จาก OpenRouter `json_object` เป็น strict `json_schema` ที่บังคับเฉพาะ `title`, `summary`, `html` และตั้ง `provider.require_parameters=true`; ขยาย output budget จาก 8,000 เป็น 14,000 tokens ให้สอดคล้องกับขนาด HTML สูงสุด 45,000 ตัวอักษร. Conversation ยังรับข้อความธรรมดาและไม่ถูกบังคับด้วย artifact schema.
+
+เก็บ `finish_reason` และจำนวนตัวอักษรผลลัพธ์ใน usage record โดยไม่เก็บ raw response; หาก provider จบด้วย `length` หรือค่าอื่นที่ไม่ใช่ `stop` ระบบจะแจ้ง `ai_output_incomplete` แทนเหมารวมเป็น parse failure. Parse failure บันทึกเฉพาะรหัส parser, finish reason และความยาว ไม่บันทึกเนื้อหาสื่อหรือ secret. เพิ่ม unit tests คุ้มครอง schema และแยกโหมด conversation ออกจาก artifact output.
+
+ผลตรวจ: syntax ผ่าน; `npm.cmd run test:media` ผ่าน 26/26; `tests/media-v2-navigation.test.cjs` ผ่านทั้ง desktop และ mobile viewport; `git diff --check` ผ่าน. Asset cache version เป็น `522`. สถานะ: commit `0843624` บน branch `fix/media-v2-structured-output`; push และเปิด PR #120 แล้ว; ยังไม่ merge หรือ deploy Production.
+
+## 28. ClassKru Media V2: แยก AI context ตามบทบาท (Phase 2, 2026-10-15)
+
+แยก context เป็นกฎร่วมด้านขอบเขต Runtime, Planner Rules, Brief Composer Rules, Builder Rules และ Validator Rules แบบ configuration ที่ deterministic. Planner เน้นแนวทางสื่อหนึ่งแบบที่สร้างได้จริง รองรับทุกวิชา รักษา Understand → Propose → Refine → Confirm → Build และจำกัดคำถาม/ความซับซ้อน. Brief Composer สรุปบริบทและตัวเลือกที่ครูยืนยันจากบทสนทนาโดยไม่สร้างข้อมูลหลักสูตรหรือข้อมูลส่วนบุคคลเพิ่ม. Builder สร้าง HTML5 หน้าเดียวแบบ responsive พร้อม inline CSS/JS และ JSON contract เดิม; Validator ยังคงใช้ข้อจำกัดและการตรวจเดิมโดยอ้างค่าจาก configuration.
+
+ไม่เพิ่มบริการหรือเปลี่ยน flow/Runtime/Production; prompt ส่งเฉพาะกฎที่ตรงกับขั้นตอน ไม่ส่งทุก role ซ้ำทุก call. ไฟล์ Core Rules V2.1 ที่ระบุใน brief ไม่พบใน attachment ที่เข้าถึงได้ จึงยึดข้อกำหนด Phase 2 และข้อจำกัด Runtime จากโค้ดเดิม. ยังไม่รันทดสอบ (อยู่ก่อน Phase 7); ตรวจ whitespace ด้วย `git diff --check`. สถานะ: แก้ใน working tree ของ branch `fix/media-v2-structured-output`; PR #120 ยังไม่ merge, ไม่มี deploy. Phase 3 ยังรอผู้ใช้เริ่ม.
