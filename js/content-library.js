@@ -139,6 +139,18 @@
     root.querySelectorAll('[data-create-action]').forEach(card => {
       if (card.dataset.createAction === 'interactive') {
         const status = card.querySelector('.cl-media-studio-status');
+        const isDeveloper = typeof isClassKruMediaDeveloper === 'function'
+          && isClassKruMediaDeveloper();
+        if (!isDeveloper) {
+          card.disabled = true;
+          card.classList.add('coming');
+          card.setAttribute('aria-disabled', 'true');
+          card.removeAttribute('aria-describedby');
+          if (status) status.textContent = 'พบกันเร็ว ๆ นี้';
+          const description = card.querySelector('p');
+          if (description) description.textContent = 'ฟีเจอร์นี้ยังไม่เปิดให้ใช้งานในขณะนี้';
+          return;
+        }
         const link = document.createElement('a');
         link.className = card.className;
         link.href = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:4178/v2' : new URL('/mini-lab-v2', window.location.origin).href;
