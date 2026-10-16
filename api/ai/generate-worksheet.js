@@ -2,6 +2,7 @@
 
 const { normalize } = require('../../js/worksheet-layout');
 const { sendJson, parseBody, requestOriginIsValid } = require('../_lib/http');
+const { consumeAiQuota, releaseAiQuota } = require('../_lib/ai-quota');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
@@ -19,8 +20,11 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return sendJson(res, 405, { error:'method_not_allowed' });
   if (!requestOriginIsValid(req)) return sendJson(res, 403, { error:'invalid_origin' });
   if (!process.env.OPENROUTER_API_KEY) return sendJson(res, 503, { error:'ai_not_configured', message:'ยังไม่ได้ตั้งค่า OPENROUTER_API_KEY' });
+  let reservedQuota = null;
+  let teacherId = '';
   try {
     const user = await authenticatedUser(req);
+    teacherId = user?.id || '';
     if (!user?.id) return sendJson(res, 401, { error:'authentication_required', message:'กรุณาเข้าสู่ระบบใหม่ก่อนใช้งาน AI' });
     const body = parseBody(req); const title = clean(body.title, 240);
     const indicators = Array.isArray(body.indicators) ? body.indicators.slice(0, 12).map(item => `${clean(item.code,80)}: ${clean(item.text,800)}`).filter(Boolean) : [];
@@ -38,6 +42,7 @@ module.exports = async function handler(req, res) {
     const requestedItemCount = body.itemCount === undefined || body.itemCount === null || body.itemCount === '' ? 10 : Number(body.itemCount);
     const itemCountLimit = formatId === 'questions' ? 30 : 10;
     if (!Number.isInteger(requestedItemCount) || requestedItemCount < 1 || requestedItemCount > itemCountLimit) return sendJson(res, 400, { error:'invalid_item_count', message:`จำนวนกิจกรรมหลักต้องเป็นจำนวนเต็ม 1–${itemCountLimit} รายการสำหรับแม่แบบนี้` });
+    reservedQuota = await consumeAiQuota(user.id);
     const workMode = { individual:'รายบุคคล', pair:'ทำงานเป็นคู่', group:'ทำงานเป็นกลุ่ม' }[clean(body.workMode,40)] || 'รายบุคคล';
     const difficulty = { easy:'พื้นฐาน', medium:'ปานกลาง', hard:'ท้าทาย' }[clean(body.difficulty,40)] || 'ปานกลาง';
     const visuals = 'ใช้โครงสร้างใบงานและพื้นที่วาดที่กำหนดไว้ ห้ามให้ AI สร้างภาพประกอบเอง';
@@ -72,12 +77,35 @@ answer เป็นเฉลย/แนวทางตรวจสำหรับ
 {"worksheet":{"title":"...","directions":["คำชี้แจงสั้น ๆ"],"blocks":[${formatSpec.example}]},"warnings":[]}`;
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', { method:'POST', headers:{ Authorization:`Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type':'application/json', 'HTTP-Referer':process.env.APP_URL || 'https://classkru-kohl.vercel.app', 'X-Title':'ClassKru' }, body:JSON.stringify({ model:process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature:0.25, max_tokens:requestedItemCount > 15 ? 9000 : 5000, messages:[{ role:'system', content:rules }, { role:'user', content:prompt }] }) });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) return sendJson(res, 502, { error:'generation_failed', message:'AI ยังสร้างใบงานไม่ได้ กรุณาลองใหม่อีกครั้ง' });
-    let raw; try { raw = parseJson(payload?.choices?.[0]?.message?.content); } catch (_) { return sendJson(res, 502, { error:'invalid_ai_response', message:'AI ส่งรูปแบบใบงานไม่ถูกต้อง กรุณาลองใหม่' }); }
+    if (!response.ok) {
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(error => { console.error('AI quota release failed:', error); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error:'generation_failed', message:'AI ยังสร้างใบงานไม่ได้ กรุณาลองใหม่อีกครั้ง', quota });
+    }
+    let raw; try { raw = parseJson(payload?.choices?.[0]?.message?.content); } catch (_) {
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(error => { console.error('AI quota release failed:', error); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error:'invalid_ai_response', message:'AI ส่งรูปแบบใบงานไม่ถูกต้อง กรุณาลองใหม่', quota });
+    }
     let worksheet;
     try { worksheet = normalize(raw?.worksheet || raw, { ...body, itemCount:requestedItemCount, strictItemCount:['table','inquiry','matching'].includes(formatId) }); }
-    catch (error) { return sendJson(res, 502, { error:'invalid_worksheet', message:`ร่างใบงานยังไม่ผ่านการตรวจ: ${error.message} กรุณาลองสร้างใหม่` }); }
-    if (!worksheet.title || !worksheet.directions.length) return sendJson(res, 502, { error:'empty_ai_response', message:'ใบงานขาดชื่อหรือคำชี้แจง' });
-    return sendJson(res, 200, { worksheet, warnings:asList(raw?.warnings, 8) });
-  } catch (error) { console.error('Worksheet generation error:', error); return sendJson(res, 500, { error:'server_error', message:'เกิดข้อผิดพลาดขณะสร้างใบงาน' }); }
+    catch (error) {
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(releaseError => { console.error('AI quota release failed:', releaseError); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error:'invalid_worksheet', message:`ร่างใบงานยังไม่ผ่านการตรวจ: ${error.message} กรุณาลองสร้างใหม่`, quota });
+    }
+    if (!worksheet.title || !worksheet.directions.length) {
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(error => { console.error('AI quota release failed:', error); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error:'empty_ai_response', message:'ใบงานขาดชื่อหรือคำชี้แจง', quota });
+    }
+    const quota = reservedQuota;
+    reservedQuota = null;
+    return sendJson(res, 200, { worksheet, warnings:asList(raw?.warnings, 8), quota });
+  } catch (error) {
+    if (reservedQuota && teacherId) await releaseAiQuota(teacherId, reservedQuota.date).catch(releaseError => console.error('AI quota release failed:', releaseError));
+    if (error.code !== 'AI_DAILY_LIMIT_REACHED') console.error('Worksheet generation error:', error);
+    const status = error.code === 'AI_DAILY_LIMIT_REACHED' ? 429 : error.code === 'SUPABASE_NOT_CONFIGURED' ? 503 : error.code === 'DATABASE_REQUEST_FAILED' ? 502 : 500;
+    return sendJson(res, status, { error: error.code || 'server_error', message: error.code === 'AI_DAILY_LIMIT_REACHED' ? 'วันนี้ใช้โควตาการสร้างข้อสอบ/ใบงานครบแล้ว กรุณาลองใหม่พรุ่งนี้' : error.code === 'SUPABASE_NOT_CONFIGURED' ? 'ระบบโควตา AI ยังไม่พร้อมใช้งาน' : 'เกิดข้อผิดพลาดขณะสร้างใบงาน', ...(error.quota ? { quota: error.quota } : {}) });
+  }
 };

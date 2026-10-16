@@ -182,6 +182,13 @@
 .cl-field.full { grid-column:1 / -1; }
 .cl-context-card { display:flex; align-items:flex-start; gap:10px; padding:12px 14px; margin:18px 0; border:1px solid #cdeee0; border-radius:12px; color:#316655; background:#f4fcf8; font-size:.83rem; line-height:1.55; }
 .cl-context-card i { margin-top:2px; color:var(--primary); font-size:1.1rem; }
+.cl-ai-quota { display:flex; align-items:flex-start; gap:10px; padding:11px 14px; margin:18px 0 0; border:1px solid rgba(29,158,117,.24); border-radius:12px; color:var(--primary-deep); background:var(--primary-light); font-size:.83rem; line-height:1.55; }
+.cl-ai-quota i { margin-top:2px; color:var(--primary); font-size:1.1rem; }
+.cl-ai-quota strong { color:var(--primary-deep); }
+.cl-ai-quota.is-loading { color:var(--text-muted); border-color:var(--border-color); background:var(--bg-light); }
+.cl-ai-quota.is-loading i { color:var(--text-muted); }
+.cl-ai-quota.is-warning,.cl-ai-quota.is-empty { color:var(--text-secondary); border-color:rgba(213,139,20,.42); background:rgba(213,139,20,.08); }
+.cl-ai-quota.is-warning i,.cl-ai-quota.is-empty i { color:rgba(213,139,20,1); }
 .cl-source-tabs { display:flex; gap:8px; margin:0 0 16px; overflow-x:auto; }
 .cl-source-tab { white-space:nowrap; padding:9px 12px; border:1px solid var(--border-color); border-radius:10px; color:var(--text-muted); background:#fff; cursor:pointer; font:inherit; font-size:.82rem; font-weight:800; }
 .cl-source-tab.active { color:var(--primary-deep); border-color:#8cd9bd; background:var(--primary-light); }
