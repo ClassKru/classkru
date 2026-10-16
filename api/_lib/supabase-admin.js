@@ -50,4 +50,21 @@ async function mutateRows(table, method, options = {}) {
   return response.json();
 }
 
-module.exports = { selectRows, mutateRows };
+async function callRpc(functionName, args = {}) {
+  const { url, key } = configuration();
+  const headers = { apikey: key, 'Content-Type': 'application/json' };
+  if (!key.startsWith('sb_secret_')) headers.Authorization = `Bearer ${key}`;
+  const response = await fetch(`${url}/rest/v1/rpc/${encodeURIComponent(functionName)}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(args)
+  });
+  if (!response.ok) {
+    const error = new Error(`Database RPC failed (${response.status})`);
+    error.code = 'DATABASE_REQUEST_FAILED';
+    throw error;
+  }
+  return response.json();
+}
+
+module.exports = { configuration, selectRows, mutateRows, callRpc };

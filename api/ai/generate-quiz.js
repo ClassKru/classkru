@@ -1,6 +1,7 @@
 'use strict';
 
 const { sendJson, parseBody, requestOriginIsValid } = require('../_lib/http');
+const { getAiQuota, consumeAiQuota, releaseAiQuota } = require('../_lib/ai-quota');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
@@ -45,11 +46,25 @@ function normalizeQuestion(value, allowedTypes) {
 }
 
 module.exports = async function handler(req, res) {
+  if (req.method === 'GET') {
+    if (!requestOriginIsValid(req)) return sendJson(res, 403, { error: 'invalid_origin' });
+    try {
+      const user = await authenticatedUser(req);
+      if (!user?.id) return sendJson(res, 401, { error: 'authentication_required', message: 'กรุณาเข้าสู่ระบบใหม่ก่อนใช้งาน AI' });
+      return sendJson(res, 200, { quota: await getAiQuota(user.id) });
+    } catch (error) {
+      const status = error.code === 'SUPABASE_NOT_CONFIGURED' ? 503 : error.code === 'DATABASE_REQUEST_FAILED' ? 502 : 500;
+      return sendJson(res, status, { error: error.code || 'ai_quota_failed', message: 'ยังตรวจสอบโควตา AI ไม่ได้' });
+    }
+  }
   if (req.method !== 'POST') return sendJson(res, 405, { error: 'method_not_allowed' });
   if (!requestOriginIsValid(req)) return sendJson(res, 403, { error: 'invalid_origin' });
   if (!process.env.OPENROUTER_API_KEY) return sendJson(res, 503, { error: 'ai_not_configured', message: 'ยังไม่ได้ตั้งค่า OPENROUTER_API_KEY' });
+  let reservedQuota = null;
+  let teacherId = '';
   try {
     const user = await authenticatedUser(req);
+    teacherId = user?.id || '';
     if (!user?.id) return sendJson(res, 401, { error: 'authentication_required', message: 'กรุณาเข้าสู่ระบบใหม่ก่อนใช้งาน AI' });
     const body = parseBody(req);
     const source = clean(body.source, MAX_SOURCE_LENGTH);
@@ -58,6 +73,7 @@ module.exports = async function handler(req, res) {
     const questionCount = requestedQuestionCount;
     const types = Array.isArray(body.types) ? body.types.filter(type => ALLOWED_TYPES.has(type)) : [];
     if (source.length < 3 || !types.length) return sendJson(res, 400, { error: 'invalid_request', message: 'กรุณาระบุเนื้อหาและประเภทคำถาม' });
+    reservedQuota = await consumeAiQuota(user.id);
 
     const indicators = Array.isArray(body.indicators) ? body.indicators.slice(0, 18).map(item => `${clean(item.code,80)}: ${clean(item.text,800)}`).filter(Boolean) : [];
     const qualityRules = 'กติกาคุณภาพ: ห้ามสร้างโจทย์ที่อ้างถึงรูปภาพ กราฟ แผนภาพ หรือตาราง เพราะระบบส่งให้เฉพาะข้อความ ไม่มีภาพประกอบ; ตัวเลือกปรนัยต้องแตกต่างกันทั้ง 4 ตัวเลือกและมีคำตอบถูกเพียงข้อเดียว; ตรวจเลข เศษส่วน หน่วย และการคำนวณซ้ำก่อนกำหนด answerIndex; ทุกคำถามต้องตอบได้จากแหล่งข้อมูลที่ให้มาเท่านั้น; ทุกข้อ ต้องมี explanation เป็นคำอธิบายเฉลยสั้น ๆ สำหรับครู โดยพิจารณาจากลักษณะของข้อนั้น ไม่ใช่ชื่อวิชาอย่างเดียว: ถ้ามีการคำนวณให้แสดงสูตรหรือหลักที่ใช้ การแทนค่า/ขั้นคำนวณสำคัญ และคำตอบพร้อมหน่วย; ถ้าเป็นโจทย์แนวคิดหรือบรรยายให้อธิบายหลักการ เหตุผล หรือหลักฐานจากโจทย์ที่ทำให้คำตอบถูก; ถ้าเป็นโจทย์ผสมให้อธิบายทั้งวิธีคำนวณและเหตุผล; ถ้าเป็นภาษาให้ชี้กฎภาษา ความหมาย หรือหลักฐานในข้อความตามโจทย์; ห้ามแต่งข้อมูลที่ไม่มีในแหล่งอ้างอิง และไม่ต้องเขียนกระบวนการคิดยาวเกินจำเป็น';
@@ -70,18 +86,32 @@ module.exports = async function handler(req, res) {
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       console.warn('OpenRouter generation failed', response.status, payload?.error?.message || payload);
-      return sendJson(res, 502, { error: 'generation_failed', message: 'AI ยังสร้างข้อสอบไม่ได้ กรุณาลองใหม่อีกครั้ง' });
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(error => { console.error('AI quota release failed:', error); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error: 'generation_failed', message: 'AI ยังสร้างข้อสอบไม่ได้ กรุณาลองใหม่อีกครั้ง', quota });
     }
     const content = payload?.choices?.[0]?.message?.content;
     let rows = [];
-    try { rows = questionsFromText(content); } catch (_) { return sendJson(res, 502, { error: 'invalid_ai_response', message: 'AI ส่งรูปแบบข้อสอบไม่ถูกต้อง กรุณาลองใหม่' }); }
+    try { rows = questionsFromText(content); } catch (_) {
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(error => { console.error('AI quota release failed:', error); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error: 'invalid_ai_response', message: 'AI ส่งรูปแบบข้อสอบไม่ถูกต้อง กรุณาลองใหม่', quota });
+    }
     const rawRows = Array.isArray(rows) ? rows : [];
     const questions = rawRows.map(item => normalizeQuestion(item, types)).filter(Boolean).slice(0, questionCount);
-    if (!questions.length) return sendJson(res, 502, { error: 'empty_ai_response', message: 'AI ยังไม่สามารถสร้างข้อสอบที่ผ่านการตรวจเบื้องต้นจากข้อมูลนี้ได้ กรุณาเพิ่มเนื้อหาให้ชัดเจนขึ้น' });
+    if (!questions.length) {
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(error => { console.error('AI quota release failed:', error); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error: 'empty_ai_response', message: 'AI ยังไม่สามารถสร้างข้อสอบที่ผ่านการตรวจเบื้องต้นจากข้อมูลนี้ได้ กรุณาเพิ่มเนื้อหาให้ชัดเจนขึ้น', quota });
+    }
     const warnings = questions.length < questionCount ? [`AI ส่งข้อสอบมา ${rawRows.length} ข้อ แต่ผ่านการตรวจเบื้องต้น ${questions.length} ข้อ ระบบตัดข้อที่อ้างถึงภาพ/ข้อมูลไม่ครบ/ตัวเลือกซ้ำออกแล้ว`] : [];
-    return sendJson(res, 200, { questions, warnings });
+    const quota = reservedQuota;
+    reservedQuota = null;
+    return sendJson(res, 200, { questions, warnings, quota });
   } catch (error) {
-    console.error('Quiz generation error:', error);
-    return sendJson(res, 500, { error: 'server_error', message: 'เกิดข้อผิดพลาดขณะสร้างข้อสอบ' });
+    if (reservedQuota && teacherId) await releaseAiQuota(teacherId, reservedQuota.date).catch(releaseError => console.error('AI quota release failed:', releaseError));
+    if (error.code !== 'AI_DAILY_LIMIT_REACHED') console.error('Quiz generation error:', error);
+    const status = error.code === 'AI_DAILY_LIMIT_REACHED' ? 429 : error.code === 'SUPABASE_NOT_CONFIGURED' ? 503 : error.code === 'DATABASE_REQUEST_FAILED' ? 502 : 500;
+    return sendJson(res, status, { error: error.code || 'server_error', message: error.code === 'AI_DAILY_LIMIT_REACHED' ? 'วันนี้ใช้โควตาการสร้างข้อสอบ/ใบงานครบแล้ว กรุณาลองใหม่พรุ่งนี้' : error.code === 'SUPABASE_NOT_CONFIGURED' ? 'ระบบโควตา AI ยังไม่พร้อมใช้งาน' : 'เกิดข้อผิดพลาดขณะสร้างข้อสอบ', ...(error.quota ? { quota: error.quota } : {}) });
   }
 };
