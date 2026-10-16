@@ -38,12 +38,14 @@ test('Word contains editable table, blank cells and teacher page break',async()=
   console.log('Worksheet sample:',file);
 });
 test('API passes structured output through validation and rejects incomplete content',async()=>{
-  const originalFetch = global.fetch; const originalKey = process.env.OPENROUTER_API_KEY;
+  const originalFetch = global.fetch; const originalKey = process.env.OPENROUTER_API_KEY; const originalSecret = process.env.SUPABASE_SECRET_KEY;
   process.env.OPENROUTER_API_KEY = 'test-placeholder';
+  process.env.SUPABASE_SECRET_KEY = 'test-secret';
   const handler = require('../api/ai/generate-worksheet');
   let output = raw; let called=0; let aiRequest;
   global.fetch = async (url,init)=>{
     if (url.includes('/auth/v1/user')) return {ok:true,json:async()=>({id:'test-user'})};
+    if (url.includes('/rest/v1/rpc/consume_ai_daily_generation_quota') || url.includes('/rest/v1/rpc/release_ai_daily_generation_quota')) return {ok:true,json:async()=>({allowed:true,date:'2026-10-16',limit:15,used:1,remaining:14})};
     called++; const request = JSON.parse(init.body); aiRequest = request;
     assert.match(request.messages[1].content,/จำนวนข้อ\/แถวที่นักเรียนต้องทำรวมทั้งหมด/);
     assert.match(request.messages[1].content,/แบบพอดี/);
@@ -61,7 +63,7 @@ test('API passes structured output through validation and rejects incomplete con
     assert.equal(manyQuestions.code,200); assert.equal(manyQuestions.body.worksheet.blocks.length,30); assert.match(aiRequest.messages[1].content,/จำนวนข้อ\/แถวที่นักเรียนต้องทำรวมทั้งหมด: 30/); assert.equal(aiRequest.max_tokens,9000);
     const tooMany=response(); await handler({...req,body:{...req.body,worksheetType:'questions',itemCount:31}},tooMany);
     assert.equal(tooMany.code,400); assert.equal(tooMany.body.error,'invalid_item_count'); assert.equal(called,3);
-  } finally {global.fetch=originalFetch; if(originalKey===undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY=originalKey;}
+  } finally {global.fetch=originalFetch; if(originalKey===undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY=originalKey; if(originalSecret===undefined) delete process.env.SUPABASE_SECRET_KEY; else process.env.SUPABASE_SECRET_KEY=originalSecret;}
 });
 
 test('matching and drawing templates keep layout separate from AI content',()=>{
