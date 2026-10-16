@@ -6,7 +6,7 @@
   --login-cloud: #ffffff;
   --login-glass: rgba(255, 255, 255, 0.82);
   --login-line: #06c755;
-  --login-shadow: 0 22px 60px rgba(25, 94, 101, 0.14), 0 4px 14px rgba(25, 94, 101, 0.08);
+  --login-shadow: 0 14px 38px rgba(25, 94, 101, 0.11), 0 3px 10px rgba(25, 94, 101, 0.06);
   --login-shadow-soft: 0 10px 26px rgba(25, 94, 101, 0.1);
   --login-focus: rgba(29, 158, 117, 0.16);
 }
@@ -82,7 +82,7 @@
 .ck-login-shell {
   position: relative;
   z-index: 1;
-  width: min(100%, 620px);
+  width: min(100%, 520px);
   margin: auto;
   padding: 4px 0 8px;
 }
@@ -133,7 +133,7 @@
 .ck-login-card {
   width: 100%;
   box-sizing: border-box;
-  padding: 20px;
+  padding: 18px;
   border: 1px solid var(--login-cloud);
   border-radius: 28px;
   background: var(--login-glass);
@@ -540,7 +540,7 @@
   }
 }
 
-@media (min-width: 600px) {
+@media (min-width: 481px) {
   .ck-login-social {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
