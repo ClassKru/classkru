@@ -16,6 +16,24 @@ let appState = {
 };
 
 const STORAGE_KEY = 'classkru_mobile_v4';
+const LOCAL_STATE_OWNER_KEY = 'classkru_state_owner_v1';
+
+// The working copy is shared by every account in one browser. Clear it before
+// a different authenticated teacher can initialise the app, otherwise a new
+// LINE account could inherit the previous teacher's classrooms while the
+// cloud sync is still resolving.
+function prepareLocalStateForTeacher(teacherId) {
+  const nextOwner = String(teacherId || '').trim();
+  if (!nextOwner) return;
+  const previousOwner = String(localStorage.getItem(LOCAL_STATE_OWNER_KEY) || '').trim();
+  if (previousOwner !== nextOwner) {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('classkru_relational_queue_v1');
+    localStorage.removeItem('classkru_skip_sync');
+    if (typeof resetRelationalSessionState === 'function') resetRelationalSessionState();
+  }
+  localStorage.setItem(LOCAL_STATE_OWNER_KEY, nextOwner);
+}
 let currentClassId = null;
 let currentWebReportTab = 'today';
 let currentExcelImportTab = 'students';
@@ -141,10 +159,32 @@ const SB_KEY = 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
 let supabaseClient = null;
 let pendingPasswordRecovery = false;   // เข้าจากลิงก์ตั้งรหัสใหม่ในอีเมล
 
+function readSupabaseSessionHash() {
+  const rawHash = String(window.location.hash || '').replace(/^#/, '');
+  if (!rawHash) return null;
+  const params = new URLSearchParams(rawHash);
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  if (!accessToken || !refreshToken) return null;
+  return { access_token: accessToken, refresh_token: refreshToken };
+}
+
+function clearSupabaseSessionHash() {
+  const cleanUrl = `${window.location.pathname}${window.location.search}`;
+  window.history.replaceState({}, document.title, cleanUrl);
+}
+
 // ==================== INIT ====================
 document.addEventListener('DOMContentLoaded', async () => {
   if (window.supabase) {
-    supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+    supabaseClient = window.supabase.createClient(SB_URL, SB_KEY, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce'
+      }
+    });
 
     supabaseClient.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
@@ -153,14 +193,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         pendingPasswordRecovery = true;
         if (document.getElementById('main-app').style.display !== 'none') startPasswordRecovery();
       } else if (event === 'SIGNED_IN' && session) {
-        const email = session.user.email;
+        const email = resolveLoginEmail(session.user.email, session.user);
         localStorage.setItem('classmanager_email', email);
         if (document.getElementById('login-overlay').classList.contains('show')) {
-          onLoginSuccess(email);
+          onLoginSuccess(email, session.user);
         }
       } else if (event === 'SIGNED_OUT') {
         localStorage.removeItem('classmanager_email');
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LOCAL_STATE_OWNER_KEY);
+        localStorage.removeItem('classkru_relational_queue_v1');
+        if (typeof resetRelationalSessionState === 'function') resetRelationalSessionState();
         const lo = document.getElementById('login-overlay');
         lo.classList.add('show');
         lo.style.display = 'flex';
@@ -170,18 +213,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let session = null;
     try {
-      const result = await Promise.race([
-        supabaseClient.auth.getSession(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
-      ]);
-      session = result.data?.session;
+      const hashSession = readSupabaseSessionHash();
+      if (hashSession) {
+        const result = await supabaseClient.auth.setSession(hashSession);
+        if (result.error) throw result.error;
+        session = result.data?.session;
+        clearSupabaseSessionHash();
+      }
+      if (!session) {
+        const result = await Promise.race([
+          supabaseClient.auth.getSession(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+        ]);
+        session = result.data?.session;
+      }
     } catch (e) {
       console.warn('getSession timeout/error:', e);
     }
     if (session) {
-      const email = session.user.email;
+      const email = resolveLoginEmail(session.user.email, session.user);
       localStorage.setItem('classmanager_email', email);
-      onLoginSuccess(email);
+      if (document.getElementById('login-overlay').classList.contains('show')) {
+        onLoginSuccess(email, session.user);
+      }
     } else {
       // ไม่มี session จริง → ต้องล็อกอินใหม่ (RLS ต้องใช้ JWT ในการ sync)
       localStorage.removeItem('classmanager_email');

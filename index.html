@@ -19,23 +19,23 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=524">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=524">
-  <link rel="stylesheet" href="css/03-reports.css?v=524">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=524">
-  <link rel="stylesheet" href="css/05-home.css?v=524">
-  <link rel="stylesheet" href="css/06-attendance.css?v=524">
-  <link rel="stylesheet" href="css/07-scores.css?v=524">
-  <link rel="stylesheet" href="css/pp5.css?v=524">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=524">
-    <link rel="stylesheet" href="css/09-games.css?v=524">
-  <link rel="stylesheet" href="css/10-help.css?v=524">
-  <link rel="stylesheet" href="css/11-public-help.css?v=524">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=524">
-  <link rel="stylesheet" href="css/media-studio.css?v=524">
-  <link rel="stylesheet" href="css/13-content-library.css?v=524">
-  <link rel="stylesheet" href="css/15-subscription.css?v=524">
-  <link rel="stylesheet" href="css/login.css?v=524">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=528">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=528">
+  <link rel="stylesheet" href="css/03-reports.css?v=528">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=528">
+  <link rel="stylesheet" href="css/05-home.css?v=528">
+  <link rel="stylesheet" href="css/06-attendance.css?v=528">
+  <link rel="stylesheet" href="css/07-scores.css?v=528">
+  <link rel="stylesheet" href="css/pp5.css?v=528">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=528">
+    <link rel="stylesheet" href="css/09-games.css?v=528">
+  <link rel="stylesheet" href="css/10-help.css?v=528">
+  <link rel="stylesheet" href="css/11-public-help.css?v=528">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=528">
+  <link rel="stylesheet" href="css/media-studio.css?v=528">
+  <link rel="stylesheet" href="css/13-content-library.css?v=528">
+  <link rel="stylesheet" href="css/15-subscription.css?v=528">
+  <link rel="stylesheet" href="css/login.css?v=528">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -104,102 +104,68 @@
   </div>
 
   <!-- LOGIN SCREEN -->
-  <div id="login-overlay" class="modal-overlay show" style="z-index:10000;backdrop-filter:none;background:linear-gradient(160deg,#f0fdf4 0%,#ffffff 50%,#f0fdf4 100%);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100dvh;padding:16px 24px calc(24px + env(safe-area-inset-bottom, 0px));overflow-y:auto;">
-    <div id="login-content" style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:0;margin:auto 0;">
+  <div id="login-overlay" class="modal-overlay show ck-login-stage">
+    <div class="ck-login-orb ck-login-orb-one" aria-hidden="true"></div>
+    <div class="ck-login-orb ck-login-orb-two" aria-hidden="true"></div>
+    <div id="login-content" class="ck-login-shell">
 
       <!-- Logo -->
-      <a href="home.html" aria-label="กลับหน้าแรก ClassKru" style="display:inline-flex;border-radius:16px;transition:transform 0.18s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        <img src="logo.png?v=2" style="width:112px;height:auto;object-fit:contain;display:block;margin-bottom:-4px;">
+      <a href="home.html" class="ck-login-brand" aria-label="กลับหน้าแรก ClassKru">
+        <span class="ck-login-brand-mark"><img src="logo.png?v=2" alt="ClassKru"></span><span class="ck-login-brand-name">ClassKru</span>
       </a>
 
       <!-- Heading -->
-      <h2 id="auth-heading" style="font-size:1.55rem;font-weight:800;color:var(--text-main);text-align:center;letter-spacing:-0.3px;margin:0 0 8px;">เข้าสู่ระบบ ClassKru</h2>
-      <p style="font-size:0.88rem;color:var(--text-muted);text-align:center;margin:0 0 16px;line-height:1.7;">เช็กชื่อไว จัดการห้องเรียนง่าย</p>
+      <div class="ck-login-heading"><h2 id="auth-heading">เข้าสู่ระบบ</h2><p>เช็กชื่อไว จัดการห้องเรียนง่าย</p></div>
 
       <!-- Card form -->
-      <div style="background:white;border-radius:20px;padding:24px;box-shadow:0 2px 20px rgba(0,0,0,0.08);width:100%;display:flex;flex-direction:column;gap:14px;">
+      <div class="ck-login-card" style="display:flex;flex-direction:column;gap:14px;">
 
         <!-- Tabs: เข้าสู่ระบบ / สมัครใหม่ — ให้ครูเห็นด้วยตาว่าอยู่โหมดไหน -->
-        <div style="display:flex;background:var(--bg-soft,#f1f5f9);border-radius:12px;padding:4px;gap:4px;">
+        <div class="ck-auth-tabs" role="tablist" aria-label="ประเภทบัญชี">
           <button type="button" id="auth-tab-login" onclick="setAuthMode('login')"
-            style="flex:1;padding:9px;border:none;border-radius:9px;font-size:0.88rem;font-weight:700;cursor:pointer;background:white;color:var(--text-main);box-shadow:0 1px 3px rgba(0,0,0,0.08);">เข้าสู่ระบบ</button>
+            style="flex:1;padding:9px;border:none;border-radius:9px;font-size:0.88rem;font-weight:700;cursor:pointer;background:white;color:var(--text-main);box-shadow:0 1px 3px rgba(0,0,0,0.08);" role="tab" aria-selected="true">เข้าสู่ระบบ</button>
           <button type="button" id="auth-tab-signup" onclick="setAuthMode('signup')"
-            style="flex:1;padding:9px;border:none;border-radius:9px;font-size:0.88rem;font-weight:700;cursor:pointer;background:transparent;color:var(--text-muted);">สมัครใหม่</button>
+            style="flex:1;padding:9px;border:none;border-radius:9px;font-size:0.88rem;font-weight:700;cursor:pointer;background:transparent;color:var(--text-muted);" role="tab" aria-selected="false">สมัครใหม่</button>
         </div>
 
         <!-- Google — ทางที่ง่ายที่สุดสำหรับครูที่ใช้ Google Workspace ของโรงเรียน -->
-        <button type="button" onclick="loginWithGoogle()" id="btn-google"
-          style="width:100%;padding:12px;border:1.5px solid var(--border,#e2e8f0);background:white;border-radius:12px;font-size:0.93rem;font-weight:700;color:var(--text-main);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;">
+        <div class="ck-login-social">
+        <button type="button" onclick="loginWithGoogle()" id="btn-google" class="ck-social-btn ck-google-btn">
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2.1 5.1-4.4 6.700v5.6h7.1c4.2-3.8 6.6-9.5 6.6-16.3z"/><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.6c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.6-3.9-12.4-9.1H4.3v5.8C7.9 41.1 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.6 28c-.5-1.3-.7-2.7-.7-4s.3-2.7.7-4v-5.8H4.3C2.8 17.1 2 20.4 2 24s.8 6.9 2.3 9.8l7.3-5.8z"/><path fill="#EA4335" d="M24 10.9c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.4 30 2 24 2 15.4 2 7.9 6.9 4.3 14.2l7.3 5.8c1.8-5.2 6.6-9.1 12.4-9.1z"/></svg>
-          ดำเนินการต่อด้วย Google
+          <span id="google-login-label">เข้าสู่ระบบด้วย Google</span>
         </button>
-
-        <div style="display:flex;align-items:center;gap:10px;color:var(--text-muted);font-size:0.78rem;font-weight:600;">
-          <span style="flex:1;height:1px;background:var(--border,#e2e8f0);"></span>หรือใช้อีเมล<span style="flex:1;height:1px;background:var(--border,#e2e8f0);"></span>
+        <button type="button" onclick="loginWithLine()" id="btn-line" class="ck-social-btn ck-line-btn"><span class="ck-line-mark" aria-hidden="true">LINE</span><span id="line-login-label">เข้าสู่ระบบด้วย LINE</span></button>
         </div>
 
-        <!-- Email field -->
-        <div style="width:100%;">
-          <label style="font-size:0.82rem;font-weight:600;color:var(--text-main);display:block;margin-bottom:7px;">อีเมล</label>
-          <div style="position:relative;">
-            <i class="hgi-stroke hgi-mail-01" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;pointer-events:none;"></i>
-            <input type="email" id="login-email" class="form-control" placeholder="teacher@school.ac.th" autocomplete="email"
-              style="width:100%;box-sizing:border-box;padding:13px 14px 13px 40px;border-radius:12px;font-size:0.95rem;"
-              onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('login-password').focus();}">
-          </div>
+        <div class="ck-login-divider">
+          <span style="flex:1;height:1px;background:var(--border,#e2e8f0);"></span>หรือใช้บัญชี ClassKru<span style="flex:1;height:1px;background:var(--border,#e2e8f0);"></span>
         </div>
 
-        <!-- Password field -->
-        <div style="width:100%;">
-          <label style="font-size:0.82rem;font-weight:600;color:var(--text-main);display:block;margin-bottom:7px;">รหัสผ่าน</label>
-          <div style="position:relative;">
-            <i class="hgi-stroke hgi-lock-password" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;pointer-events:none;"></i>
-            <input type="password" id="login-password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="current-password"
-              style="width:100%;box-sizing:border-box;padding:13px 44px 13px 40px;border-radius:12px;font-size:0.95rem;"
-              onkeydown="if(event.key==='Enter')submitAuth()">
-            <button type="button" onclick="togglePasswordVisibility()" id="btn-toggle-pw" title="แสดง/ซ่อนรหัสผ่าน"
-              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);padding:6px;font-size:0.95rem;"><i class="hgi-stroke hgi-view"></i></button>
-          </div>
+        <div class="ck-login-fields">
+          <label class="ck-login-field"><span>ชื่อผู้ใช้หรืออีเมล</span><span class="ck-input-wrap"><i class="hgi-stroke hgi-user" aria-hidden="true"></i><input type="text" id="login-email" class="form-control" placeholder="ชื่อผู้ใช้" autocomplete="username" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('login-password').focus();}"></span><small id="signup-username-hint" style="display:none;">ใช้ได้ 3–30 ตัวอักษร ไม่ต้องใส่ @</small></label>
+          <label class="ck-login-field"><span>รหัสผ่าน</span><span class="ck-input-wrap"><i class="hgi-stroke hgi-lock-password" aria-hidden="true"></i><input type="password" id="login-password" class="form-control" placeholder="อย่างน้อย 6 ตัวอักษร" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()"><button type="button" onclick="togglePasswordVisibility()" id="btn-toggle-pw" title="แสดง/ซ่อนรหัสผ่าน"><i class="hgi-stroke hgi-view"></i></button></span></label>
         </div>
 
         <!-- Confirm password — โหมดสมัครเท่านั้น กันพิมพ์รหัสผิดแล้วเข้าไม่ได้ตลอดกาล -->
-        <div id="signup-confirm-wrap" style="width:100%;display:none;">
-          <label style="font-size:0.82rem;font-weight:600;color:var(--text-main);display:block;margin-bottom:7px;">ยืนยันรหัสผ่าน</label>
-          <div style="position:relative;">
-            <i class="hgi-stroke hgi-lock-password" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.95rem;pointer-events:none;"></i>
-            <input type="password" id="login-password-confirm" class="form-control" placeholder="พิมพ์รหัสผ่านอีกครั้ง" autocomplete="new-password"
-              style="width:100%;box-sizing:border-box;padding:13px 14px 13px 40px;border-radius:12px;font-size:0.95rem;"
-              onkeydown="if(event.key==='Enter')submitAuth()">
-          </div>
-        </div>
+        <label id="signup-confirm-wrap" class="ck-login-field" style="display:none;"><span>ยืนยันรหัสผ่าน</span><span class="ck-input-wrap"><i class="hgi-stroke hgi-lock-password" aria-hidden="true"></i><input type="password" id="login-password-confirm" class="form-control" placeholder="พิมพ์รหัสผ่านอีกครั้ง" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitAuth()"></span></label>
 
         <!-- Submit button (ข้อความเปลี่ยนตามโหมด) -->
-        <button class="btn btn-primary" onclick="submitAuth()" id="btn-login"
-          style="width:100%;padding:14px;font-size:1rem;font-weight:700;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;">
-          <i class="hgi-stroke hgi-login-03" id="btn-login-icon"></i> <span id="btn-login-label">เข้าสู่ระบบ</span>
-        </button>
+        <button class="btn btn-primary ck-login-submit" onclick="submitAuth()" id="btn-login"><i class="hgi-stroke hgi-login-03" id="btn-login-icon"></i><span id="btn-login-label">เข้าสู่ระบบ</span></button>
 
-        <div id="login-status" style="font-size:0.85rem;font-weight:600;text-align:center;"></div>
+        <div id="login-status" class="ck-login-status"></div>
 
-        <a href="https://demo.classkru.com/index.html?demo=1&amp;preview=demo#dashboard" aria-label="ทดลองใช้ระบบโดยไม่ต้องสมัคร" style="width:100%;box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:11px 12px;margin:-10px 0;border:1px solid var(--primary-light-border);border-radius:14px;background:var(--primary-light);color:var(--text-main);text-decoration:none;">
-          <span style="width:34px;height:34px;flex:0 0 34px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--primary);color:#fff;font-size:1rem;"><i class="hgi-stroke hgi-play-circle" aria-hidden="true"></i></span>
-          <span style="display:grid;min-width:0;flex:1;line-height:1.35;"><strong style="font-size:0.9rem;color:var(--primary-deep);">ทดลองใช้ระบบ</strong><small style="margin-top:2px;color:var(--text-muted);font-size:0.74rem;">ดูห้องเรียนตัวอย่าง ไม่ต้องสมัคร</small></span>
-          <i class="hgi-stroke hgi-arrow-right-01" aria-hidden="true" style="color:var(--primary);font-size:1rem;"></i>
-        </a>
+        <a href="https://demo.classkru.com/index.html?demo=1&amp;preview=demo#dashboard" aria-label="ทดลองใช้ระบบโดยไม่ต้องสมัคร" class="ck-demo-link"><i class="hgi-stroke hgi-play-circle" aria-hidden="true"></i><span>ทดลองใช้งาน</span><i class="hgi-stroke hgi-arrow-right-01" aria-hidden="true"></i></a>
 
         <!-- ลืมรหัสผ่าน (โหมดเข้าสู่ระบบ) -->
         <div id="forgot-pw-wrap" style="font-size:0.85rem;color:var(--text-muted);text-align:center;">
-          <button type="button" onclick="sendPasswordReset()" style="background:none;border:none;padding:4px 6px;font:inherit;color:var(--primary);font-weight:700;cursor:pointer;text-decoration:underline;">ลืมรหัสผ่าน?</button>
+          <button type="button" onclick="sendPasswordReset()">ลืมรหัสผ่าน?</button>
         </div>
 
         <!-- หมายเหตุโหมดสมัคร -->
-        <div id="signup-note-wrap" style="font-size:0.8rem;color:var(--text-muted);text-align:center;line-height:1.7;display:none;">
-          สมัครฟรี ใช้งานได้ทันที<br>จำรหัสผ่านไม่ได้? เข้าด้วย Google จะง่ายกว่า<br>
-          <!-- PDPA: แอปเก็บข้อมูลนักเรียน ต้องมีทางเข้าถึงนโยบายก่อนสมัคร -->
-          <span style="display:inline-block;margin-top:6px;">การสมัครถือว่ายอมรับ <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700;">นโยบายความเป็นส่วนตัว</a></span>
-        </div>
+        <div id="signup-note-wrap" class="ck-signup-note" style="display:none;">สมัครฟรี · แนะนำให้เชื่อม Google หรือ LINE ภายหลัง · <a href="privacy.html" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a></div>
+        <p id="line-email-consent" class="ck-login-note">ใช้งานต่อถือว่ายอมรับ <a href="privacy.html" target="_blank" rel="noopener">นโยบายความเป็นส่วนตัว</a></p>
       </div>
-      <a href="home.html" style="display:inline-flex;align-items:center;gap:5px;margin-top:16px;color:var(--text-muted);font-size:0.82rem;font-weight:600;transition:color 0.18s ease;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+      <a href="home.html" class="ck-login-home">
         <i class="hgi-stroke hgi-arrow-left-01"></i> กลับหน้าแรก
       </a>
     </div>
@@ -678,7 +644,8 @@
                 <input type="file" id="profile-upload" accept="image/*" style="display:none;" onchange="handleProfileUpload(event)">
                 <div class="settings-profile-info">
                   <label class="settings-field-label" for="settings-name-input">ชื่อที่แสดง</label>
-                  <input type="text" id="settings-name-input" class="form-control" placeholder="เช่น ครูสมชาย" onchange="saveTeacherName(this.value)">
+                  <div class="settings-name-edit-row"><input type="text" id="settings-name-input" class="form-control" placeholder="เช่น ครูสมชาย" maxlength="60" autocomplete="name" oninput="setTeacherNameSaveState()" onkeydown="if(event.key==='Enter'){event.preventDefault();saveTeacherNameFromInput()}"><button type="button" id="settings-name-save" class="btn btn-primary settings-name-save" onclick="saveTeacherNameFromInput()">บันทึก</button></div>
+                  <span id="settings-name-save-status" class="settings-name-save-status" aria-live="polite"></span>
                   <div class="settings-email-row"><i class="hgi-stroke hgi-mail-01"></i> <span id="web-settings-profile-email">teacher@school.com</span></div>
                   <span id="web-settings-profile-name" style="display:none;"></span>
                 </div>
@@ -716,6 +683,12 @@
                   <span class="settings-row-label"><i class="hgi-stroke hgi-square-lock-02" style="color:var(--primary);"></i> เปลี่ยนรหัสผ่าน</span>
                   <i class="hgi-stroke hgi-arrow-right-01 settings-row-arrow"></i>
                 </div>
+                <div class="settings-row" id="btn-add-recovery-email" onclick="openRecoveryEmailModal()" style="display:none;"><span class="settings-row-label"><i class="hgi-stroke hgi-mail-01" style="color:var(--primary);"></i> เพิ่มอีเมลกู้คืนบัญชี</span><i class="hgi-stroke hgi-arrow-right-01 settings-row-arrow"></i></div>
+                <p id="settings-recovery-email-status" class="settings-row-note" style="display:none;">บัญชี LINE ยังไม่มีอีเมลสำรอง</p>
+                <div class="settings-row" id="btn-link-google" onclick="linkGoogleIdentity()"><span class="settings-row-label"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.8-2.1 5.1-4.4 6.7v5.6h7.1c4.2-3.8 6.6-9.5 6.6-16.3z"/><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.6c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.6-3.9-12.4-9.1H4.3v5.8C7.9 41.1 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.6 28c-.5-1.3-.7-2.7-.7-4s.3-2.7.7-4v-5.8H4.3C2.8 17.1 2 20.4 2 24s.8 6.9 2.3 9.8l7.3-5.8z"/><path fill="#EA4335" d="M24 10.9c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.4 30 2 24 2 15.4 2 7.9 6.9 4.3 14.2l7.3 5.8c1.8-5.2 6.6-9.1 12.4-9.1z"/></svg> เชื่อม Google เข้าบัญชีเดิม</span><i class="hgi-stroke hgi-arrow-right-01 settings-row-arrow"></i></div>
+                <p id="settings-google-link-status" class="settings-row-note">แนะนำให้เชื่อม Google หรือ LINE ไว้สักช่องทาง เผื่อลืมรหัสผ่าน</p>
+                <div class="settings-row" id="btn-link-line" onclick="linkLineIdentity()"><span class="settings-row-label"><i class="hgi-stroke hgi-message-01" style="color:#06c755;"></i> เชื่อม LINE เข้าบัญชีเดิม</span><i class="hgi-stroke hgi-arrow-right-01 settings-row-arrow"></i></div>
+                <p id="settings-line-link-status" class="settings-row-note">เชื่อม LINE ภายหลังได้ ข้อมูลห้องเรียนจะอยู่ในบัญชีเดิม</p>
               </div>
             </div>
 
@@ -1183,6 +1156,8 @@
     <div style="display:flex;gap:10px;"><button class="btn" onclick="closeChangePasswordModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="cp-submit" onclick="submitChangePassword()" style="flex:2;"><i class="hgi-stroke hgi-tick-02"></i> บันทึกรหัสใหม่</button></div>
   </div></div>
 
+  <div class="modal-overlay" id="modal-recovery-email" onclick="if(event.target===this) closeRecoveryEmailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:420px;max-width:95vw;"><div class="modal-header"><h3>เพิ่มอีเมลกู้คืนบัญชี</h3><button class="btn btn-text" onclick="closeRecoveryEmailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><p style="color:var(--text-muted);font-size:.85rem;line-height:1.6;margin:0 0 14px;">ใช้สำหรับกู้คืนบัญชี รับข้อมูลการชำระเงิน และตั้งรหัสผ่านภายหลัง ระบบจะส่งลิงก์ยืนยันไปยังอีเมลนี้</p><div class="form-group"><label for="recovery-email-input">อีเมล</label><input id="recovery-email-input" type="email" class="form-control" autocomplete="email" placeholder="teacher@school.ac.th"></div><div id="recovery-email-status" style="min-height:22px;color:var(--text-muted);font-size:.82rem;margin:8px 0 14px;"></div><div style="display:flex;gap:10px;"><button class="btn" onclick="closeRecoveryEmailModal()" style="flex:1;">ยกเลิก</button><button class="btn btn-primary" id="recovery-email-submit" onclick="submitRecoveryEmail()" style="flex:2;"><i class="hgi-stroke hgi-mail-01"></i> ส่งลิงก์ยืนยัน</button></div></div></div>
+
   <div class="modal-overlay" id="modal-period" onclick="if(event.target===this) closePeriodModal()"><div class="bottom-sheet period-editor-sheet"><div class="modal-header"><h3 id="modal-period-title">เพิ่มคาบเรียน</h3><button class="btn btn-text" onclick="closePeriodModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div class="desktop-only" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;" id="modal-period-info">วันจันทร์ · คาบ 5</div><div class="mobile-only period-mobile-fields"><div class="period-mobile-grid"><div class="form-group"><label for="input-period-mobile-day">วัน</label><select id="input-period-mobile-day" class="form-control" style="appearance:auto;" onchange="switchMobilePeriodSlot()"></select></div><div class="form-group"><label for="input-period-mobile-slot">คาบและเวลา</label><select id="input-period-mobile-slot" class="form-control" style="appearance:auto;" onchange="switchMobilePeriodSlot()"></select></div></div><div class="form-group"><label for="input-period-mobile-class">วิชาและห้องเรียน</label><select id="input-period-mobile-class" class="form-control period-mobile-class-select" style="appearance:auto;"></select><div class="period-mobile-help">เลือกครั้งเดียวได้ทั้งวิชาและห้อง</div></div></div><div class="desktop-only"><div class="form-group"><label for="input-period-subject">วิชา</label><select id="input-period-subject" class="form-control" style="appearance:auto;" onchange="filterPeriodClassBySubject()"><option value="">-- เลือก --</option></select></div><div class="form-group"><label for="input-period-class">ห้อง</label><select id="input-period-class" class="form-control" style="appearance:auto;"><option value="">-- เลือก --</option></select></div></div><div class="period-editor-actions"><button class="btn" onclick="closePeriodModal()">ยกเลิก</button><button class="btn btn-danger" id="btn-period-delete" onclick="deletePeriodSlot()" style="display:none;">ลบ</button><button class="btn btn-primary" id="btn-period-save" onclick="savePeriodSlot()"><i class="hgi-stroke hgi-tick-02"></i> บันทึกคาบ</button></div></div></div>
 
   <div class="modal-overlay" id="modal-student-detail" onclick="if(event.target===this) closeStudentDetailModal()" style="z-index:9000;"><div class="bottom-sheet" style="width:480px;"><div class="modal-header"><h3 id="student-detail-name">นักเรียน</h3><button class="btn btn-text" onclick="closeStudentDetailModal()"><i class="hgi-stroke hgi-cancel-01"></i></button></div><div id="student-detail-class" style="font-size:0.85rem;font-weight:700;color:var(--text-muted);margin-bottom:16px;"></div><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:14px;background:var(--bg-light);border:1px solid var(--border-color);border-radius:12px;"><img id="student-detail-photo-preview" alt="" style="display:none;width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--primary-light-border);"><div style="flex:1;min-width:0;"><div style="font-size:0.78rem;font-weight:700;color:var(--text-main);">รูปนักเรียน <span style="color:var(--text-muted);font-weight:400;">(ไม่บังคับ · รุ่นทดลอง)</span></div><div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">ใช้เฉพาะรูปที่ได้รับอนุญาต และลบได้ทุกเมื่อ</div></div><button type="button" class="btn" style="padding:7px 10px;font-size:0.78rem;white-space:nowrap;" onclick="openStudentDetailPhoto(event)"><i class="hgi-stroke hgi-camera-01"></i> เพิ่มรูป</button><button type="button" id="student-detail-photo-remove" class="btn btn-text" style="display:none;padding:7px 8px;font-size:0.78rem;white-space:nowrap;color:var(--color-absent);" onclick="removeStudentDetailPhoto(event)"><i class="hgi-stroke hgi-delete-02"></i> ลบรูป</button><input id="student-detail-photo-camera-input" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleStudentDetailPhoto(event)"><input id="student-detail-photo-input" type="file" accept="image/*" style="display:none;" onchange="handleStudentDetailPhoto(event)"></div><!-- สถิติ มา/สาย/ขาด/ลา ถูกตัดออก — modal นี้ทำหน้าที่ "แก้ไขข้อมูลนักเรียน" อย่างเดียว
@@ -1500,36 +1475,36 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=524"></script>
-  <script defer src="js/relational-sync.js?v=524"></script>
-  <script defer src="js/auth.js?v=524"></script>
-  <script defer src="js/shell.js?v=524"></script>
-  <script defer src="js/dashboard.js?v=524"></script>
-  <script defer src="js/classrooms.js?v=524"></script>
-  <script defer src="js/students.js?v=524"></script>
-  <script defer src="js/timetable.js?v=524"></script>
-  <script defer src="js/reports.js?v=524"></script>
-  <script defer src="js/attendance.js?v=524"></script>
-  <script defer src="js/curriculum-thai-2551.js?v=524"></script>
-  <script defer src="js/curriculum-math-2560.js?v=524"></script>
-  <script defer src="js/curriculum-science-2560.js?v=524"></script>
-  <script defer src="js/curriculum-social-2560.js?v=524"></script>
-  <script defer src="js/curriculum-health-2551.js?v=524"></script>
-  <script defer src="js/curriculum-art-2551.js?v=524"></script>
-  <script defer src="js/curriculum-career-2551.js?v=524"></script>
-  <script defer src="js/curriculum-foreign-2551.js?v=524"></script>
-  <script defer src="js/curriculum-catalog.js?v=524"></script>
-  <script defer src="js/worksheet-layout.js?v=524"></script>
-  <script defer src="js/content-library.js?v=524"></script>
-  <script defer src="js/subscription.js?v=524"></script>
-  <script defer src="js/scores.js?v=524"></script>
-  <script defer src="js/pp5.js?v=524"></script>
-  <script defer src="js/qr-scores.js?v=524"></script>
-  <script defer src="js/tools.js?v=524"></script>
-  <script defer src="js/games.js?v=524"></script>
-  <script defer src="js/media-studio.js?v=524"></script>
-  <script defer src="js/shared-utils.js?v=524"></script>
-  <script defer src="js/extras.js?v=524"></script>
-  <script defer src="js/help.js?v=524"></script>
+  <script defer src="js/core.js?v=528"></script>
+  <script defer src="js/relational-sync.js?v=528"></script>
+  <script defer src="js/auth.js?v=528"></script>
+  <script defer src="js/shell.js?v=528"></script>
+  <script defer src="js/dashboard.js?v=528"></script>
+  <script defer src="js/classrooms.js?v=528"></script>
+  <script defer src="js/students.js?v=528"></script>
+  <script defer src="js/timetable.js?v=528"></script>
+  <script defer src="js/reports.js?v=528"></script>
+  <script defer src="js/attendance.js?v=528"></script>
+  <script defer src="js/curriculum-thai-2551.js?v=528"></script>
+  <script defer src="js/curriculum-math-2560.js?v=528"></script>
+  <script defer src="js/curriculum-science-2560.js?v=528"></script>
+  <script defer src="js/curriculum-social-2560.js?v=528"></script>
+  <script defer src="js/curriculum-health-2551.js?v=528"></script>
+  <script defer src="js/curriculum-art-2551.js?v=528"></script>
+  <script defer src="js/curriculum-career-2551.js?v=528"></script>
+  <script defer src="js/curriculum-foreign-2551.js?v=528"></script>
+  <script defer src="js/curriculum-catalog.js?v=528"></script>
+  <script defer src="js/worksheet-layout.js?v=528"></script>
+  <script defer src="js/content-library.js?v=528"></script>
+  <script defer src="js/subscription.js?v=528"></script>
+  <script defer src="js/scores.js?v=528"></script>
+  <script defer src="js/pp5.js?v=528"></script>
+  <script defer src="js/qr-scores.js?v=528"></script>
+  <script defer src="js/tools.js?v=528"></script>
+  <script defer src="js/games.js?v=528"></script>
+  <script defer src="js/media-studio.js?v=528"></script>
+  <script defer src="js/shared-utils.js?v=528"></script>
+  <script defer src="js/extras.js?v=528"></script>
+  <script defer src="js/help.js?v=528"></script>
 </body>
 </html>
