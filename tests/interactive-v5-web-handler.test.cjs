@@ -91,3 +91,19 @@ test('V5 status fails readiness when the configured Storage bucket is missing or
   assert.equal(res.payload.ready, false);
   assert.equal(JSON.stringify(res.payload).includes('private storage diagnostic'), false);
 });
+
+test('V5 blocks non-status API requests when async Storage readiness is false', async () => {
+  let servicesCreated = false;
+  const handler = createInteractiveV5Handler({
+    env: { INTERACTIVE_V5_WEB_ENABLED: 'true' },
+    authenticate: async () => ({ id: 'teacher-id' }),
+    originIsValid: () => true,
+    storageIsReady: async () => false,
+    servicesForTeacher: async () => { servicesCreated = true; throw new Error('services must not be created'); }
+  });
+  const res = response();
+  await handler(request('model-settings'), res);
+  assert.equal(res.statusCode, 503);
+  assert.deepEqual(res.payload, { error: 'storage_not_configured' });
+  assert.equal(servicesCreated, false);
+});

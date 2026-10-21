@@ -128,7 +128,7 @@ function createServices(teacherId, env = process.env) {
   });
 }
 
-function createInteractiveV5Handler({ authenticate = authenticatedUser, originIsValid = requestOriginIsValid, respond = sendJson, env = process.env, checkDatabase = checkTeacherDatabase, storageIsReady = () => storage.checkBucket() } = {}) {
+function createInteractiveV5Handler({ authenticate = authenticatedUser, originIsValid = requestOriginIsValid, respond = sendJson, env = process.env, checkDatabase = checkTeacherDatabase, storageIsReady = () => storage.checkBucket(), servicesForTeacher = createServices } = {}) {
   return async function handle(req, res) {
     if (env.INTERACTIVE_V5_WEB_ENABLED !== 'true') return respond(res, 503, { error: 'interactive_v5_not_enabled' });
     const parts = pathParts(req);
@@ -178,9 +178,9 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
       if (req.method === 'GET' && parts.length === 1 && parts[0] === 'cards') {
         return respond(res, 200, { cards: cards.map(({ id, group, title, description }) => ({ id, group, title, description })) });
       }
-      if (!storageIsReady()) return respond(res, 503, { error: 'storage_not_configured' });
+      if (!await storageIsReady()) return respond(res, 503, { error: 'storage_not_configured' });
 
-      const services = await createServices(user.id, env);
+      const services = await servicesForTeacher(user.id, env);
       if (req.method === 'GET' && parts.length === 1 && parts[0] === 'models') {
         const models = await modelCatalog.list({ refresh: req.query?.refresh === '1' });
         return respond(res, 200, { models, default_models: services.settings.defaults() });
