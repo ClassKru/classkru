@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createInteractiveV5Handler } = require('../api/_lib/interactive-v5/web-handler');
+const { RUNTIME_CSP, runtimeCspForHost } = require('../api/_lib/interactive-v5/html-media-builder-ai/runtime-preview');
 
 function response() {
   return {
@@ -106,4 +107,30 @@ test('V5 blocks non-status API requests when async Storage readiness is false', 
   assert.equal(res.statusCode, 503);
   assert.deepEqual(res.payload, { error: 'storage_not_configured' });
   assert.equal(servicesCreated, false);
+});
+
+test('V5 serves the pinned Three.js module with anonymous CORS for sandboxed previews', async () => {
+  let authenticated = false;
+  const handler = createInteractiveV5Handler({
+    env: { INTERACTIVE_V5_WEB_ENABLED: 'true' },
+    authenticate: async () => { authenticated = true; return { id: 'teacher-id' }; }
+  });
+  const res = response();
+  await handler(request('three'), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.headers['access-control-allow-origin'], '*');
+  assert.match(res.headers['content-type'], /^text\/javascript/);
+  assert.match(res.payload, /three\.core\.js/);
+  assert.equal(authenticated, false);
+});
+
+test('V5 sandbox CSP allows only its exact ClassKru or project Vercel origin for Three.js modules', () => {
+  const productionPolicy = runtimeCspForHost('www.classkru.com:443');
+  assert.match(productionPolicy, /script-src 'unsafe-inline' 'self' https:\/\/www\.classkru\.com/);
+  assert.match(productionPolicy, /connect-src 'none'/);
+  assert.match(productionPolicy, /sandbox allow-scripts/);
+
+  const previewPolicy = runtimeCspForHost('classkru-git-main-classkru-dev.vercel.app');
+  assert.match(previewPolicy, /https:\/\/classkru-git-main-classkru-dev\.vercel\.app/);
+  assert.equal(runtimeCspForHost('attacker.example'), RUNTIME_CSP);
 });
