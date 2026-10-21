@@ -8,6 +8,20 @@ const vm = require('node:vm');
 
 const projectRoot = path.resolve(__dirname, '..');
 const libraryScript = fs.readFileSync(path.join(projectRoot, 'js/content-library.js'), 'utf8');
+const classKruAuth = fs.readFileSync(path.join(projectRoot, 'js/core.js'), 'utf8');
+const v5Client = fs.readFileSync(path.join(projectRoot, 'v5.js'), 'utf8');
+
+test('Mini Lab V5 uses the same persistent Supabase project credentials as ClassKru', () => {
+  const classKruUrl = classKruAuth.match(/const SB_URL = '([^']+)'/)?.[1];
+  const classKruKey = classKruAuth.match(/const SB_KEY = '([^']+)'/)?.[1];
+  const v5ClientConfig = v5Client.match(/createClient\('([^']+)', '([^']+)', \{ auth:\{([^}]+)\}/);
+  assert.ok(classKruUrl && classKruKey);
+  assert.ok(v5ClientConfig);
+  assert.equal(v5ClientConfig[1], classKruUrl);
+  assert.equal(v5ClientConfig[2], classKruKey);
+  assert.match(classKruAuth, /persistSession:\s*true/);
+  assert.match(v5ClientConfig[3], /persistSession:\s*true/);
+});
 
 test('AI media card takes a non-developer teacher to Mini Lab V5 in the same tab and origin', () => {
   const start = libraryScript.indexOf('function bindCreationCardActions(root) {');
