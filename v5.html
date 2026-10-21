@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fc">
+  <script>try { if (localStorage.getItem('classkru.interactive-v5.theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch {}</script>
+  <title>ClassKru Interactive V5</title>
+  <link rel="stylesheet" href="/base.css?v=532">
+  <link rel="stylesheet" href="/v5.css?v=532">
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <section id="auth-gate" class="auth-gate" aria-labelledby="auth-title">
+    <div class="auth-card">
+      <span class="studio-logo" aria-hidden="true">✦</span>
+      <h1 id="auth-title">Mini Lab V5</h1>
+      <p id="auth-message">กำลังตรวจสอบบัญชี ClassKru…</p>
+      <a class="build-button" href="/">กลับไปเข้าสู่ระบบ ClassKru</a>
+      <p id="auth-status" class="auth-status" role="status" aria-live="polite">หน้านี้ใช้บัญชี ClassKru เดียวกับเว็บไซต์หลัก</p>
+      <button id="auth-retry" class="secondary-button" type="button">ตรวจสอบอีกครั้ง</button>
+    </div>
+  </section>
+  <main id="app-shell" class="app-shell" data-view="landing" hidden>
+    <aside class="studio-sidebar" aria-label="เมนูหลัก">
+      <a id="home-brand" class="brand" href="/mini-lab-v5" aria-label="ClassKru Studio · หน้าแรก"><span class="studio-logo" aria-hidden="true">✦</span><span>ClassKru <b>Studio</b></span></a>
+      <nav class="studio-nav" aria-label="นำทาง">
+        <button id="home-button" type="button"><span aria-hidden="true">⌂</span>หน้าแรก</button>
+        <button id="library-open" type="button"><span aria-hidden="true">▣</span>ผลงานของฉัน</button>
+        <button id="new-conversation" type="button"><span aria-hidden="true">＋</span>สร้างงานใหม่</button>
+      </nav>
+      <div class="theme-switch">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="เปลี่ยนเป็นโหมดมืด" aria-pressed="false">
+          <span id="theme-toggle-icon" aria-hidden="true">☾</span><span id="theme-toggle-label">โหมดมืด</span>
+        </button>
+      </div>
+      <section class="sidebar-usage" aria-labelledby="sidebar-usage-title">
+        <h2 id="sidebar-usage-title">การใช้ AI ของคุณ</h2>
+        <div class="usage-orb" role="img" aria-label="โควตาใช้ฟรี 100 เปอร์เซ็นต์"><span aria-hidden="true">✦</span><strong>100%</strong></div>
+        <p>เปิดให้ใช้งานฟรี</p>
+      </section>
+      <span id="local-mode" class="backend-label">กำลังเชื่อมต่อ Mini Lab V5…</span>
+      <p id="service-notice" class="service-notice" role="status" aria-live="polite" hidden></p>
+      <small class="sidebar-caption">พื้นที่สร้างสรรค์ของคุณครู</small>
+    </aside>
+
+    <section class="workspace" aria-label="ออกแบบสื่อการเรียนรู้">
+      <div class="intro">
+        <div class="studio-hero">
+          <h1>สร้างสื่อการเรียนร่วมกับ<br><span>ClassKru AI</span></h1>
+          <div class="hero-art" aria-hidden="true">
+            <span class="hero-spark spark-one">✦</span><span class="hero-spark spark-two">✧</span><span class="hero-spark spark-three">✦</span>
+            <div class="media-tile tile-image"><div class="tile-picture"><i class="picture-sun"></i><i class="picture-mountain"></i></div><i class="tile-line"></i><i class="tile-line short"></i></div>
+            <div class="media-tile tile-game"><div class="tile-picture">🎮</div><i class="tile-line"></i><i class="tile-line short"></i></div>
+            <div class="media-tile tile-video"><div class="tile-picture"><span>▶</span></div><i class="video-track"></i><i class="tile-line short"></i></div>
+            <span class="hero-bulb">💡</span>
+          </div>
+        </div>
+
+        <section class="chat-card" aria-label="บทสนทนาออกแบบสื่อ">
+          <div id="card-directions" class="card-directions" hidden><label>เป้าหมาย <select id="learning-goal-select" aria-label="เปลี่ยนเป้าหมายการสอน"></select></label><label>แนวทางกิจกรรม <select id="creative-approach-select" aria-label="เปลี่ยนแนวทางกิจกรรม"></select></label></div>
+          <button id="retry-conversation" type="button" class="secondary-button" hidden>ลองเริ่มสนทนาอีกครั้ง</button>
+          <p id="idea-discovery-notice" class="idea-discovery-notice" role="status" aria-live="polite" hidden></p>
+          <div id="chat-log" class="chat-log" aria-live="polite" aria-label="บทสนทนา"></div>
+          <form id="chat-form" class="composer">
+            <label class="sr-only" for="message-input">พิมพ์ข้อความเพื่อคุยกับ AI</label>
+            <div class="composer-intro"><span class="composer-spark" aria-hidden="true">✎</span><strong>วันนี้อยากสร้างสื่อเรื่องอะไร?</strong><span id="message-count" class="message-count">0/6,000</span></div>
+            <fieldset id="media-mode-picker" class="media-mode-picker" aria-describedby="media-mode-help">
+              <legend>รูปแบบสื่อสำหรับงานใหม่</legend>
+              <div class="media-mode-options">
+                <label class="media-mode-option"><input type="radio" name="media-mode" value="normal" checked><span class="media-mode-copy"><strong>ปกติ</strong><small>สื่อทั่วไปแบบ 2D</small></span></label>
+                <label class="media-mode-option"><input type="radio" name="media-mode" value="3d"><span class="media-mode-copy"><strong>3D · Three.js</strong><small>ฉากสามมิติแบบโต้ตอบ</small></span></label>
+              </div>
+              <small id="media-mode-help">จำตัวเลือกนี้ไว้สำหรับงานใหม่ครั้งต่อไป</small>
+            </fieldset>
+            <textarea id="message-input" rows="2" maxlength="6000" aria-describedby="message-count" placeholder="เช่น ให้นักเรียนเข้าใจการตกอย่างอิสระ และทดลองเปลี่ยนตัวแปรได้" required></textarea>
+            <div class="composer-footer"><span id="status-text" class="sr-only" role="status">เริ่มจากหัวข้อ ปัญหา หรือกิจกรรมที่อยากให้เด็กได้ลองทำ</span><div class="composer-actions"><button id="think-button" type="button" class="think-button" aria-label="ช่วยคิดไอเดียสำหรับงานใหม่"><span aria-hidden="true">✦</span><span class="think-label">AI ช่วยคิดไอเดียให้</span></button><button id="continue-last" class="secondary-button" type="button" hidden>ต่อจากงานล่าสุด</button><button id="review-brief" class="build-button" type="button" disabled>✦ สร้างสื่อ</button><button id="send-button" class="send-button" type="submit" aria-label="ส่งข้อความ"><span class="landing-send-label">✦ เริ่มพูดคุย <span aria-hidden="true">→</span></span><span class="session-send-label"><svg viewBox="0 0 24 24" focusable="false"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg><span>ส่งข้อความ</span></span></button></div></div>
+          </form>
+          <div id="build-status" class="build-status" role="status" aria-live="polite" hidden><span id="build-status-text"></span><button id="retry-build" type="button" hidden>ลองสร้างอีกครั้ง</button></div>
+        </section>
+        <section id="brief-card" class="brief-card" hidden aria-labelledby="brief-title">
+          <div><strong id="brief-title">แนวทางที่เข้าใจตอนนี้</strong><p id="brief-text"></p></div>
+          <small>ปรับบทสนทนาต่อได้ หรือเปิดตรวจสรุปก่อนยืนยันสร้างสื่อ</small>
+        </section>
+        <section id="task-usage-panel" class="usage-panel task-usage-panel" hidden aria-labelledby="task-usage-title" aria-live="polite">
+          <div class="usage-heading"><div><small>AI USAGE · งานนี้</small><h2 id="task-usage-title">โทเคนและค่าใช้จ่าย</h2></div><span id="task-usage-mode" class="usage-mode">กำลังโหลด</span></div>
+          <div class="task-usage-metrics">
+            <div><small>โทเคนรวม</small><strong id="task-usage-tokens">—</strong></div>
+            <div><small>ค่าใช้จ่ายโดยประมาณ</small><strong id="task-usage-cost">—</strong><span id="task-usage-usd"></span></div>
+          </div>
+          <details class="usage-details"><summary>แยกตามบริการ</summary><div id="task-usage-breakdown" class="task-usage-breakdown"></div></details>
+          <p id="task-usage-note" class="usage-note">ยอดอ้างอิงจากข้อมูลการใช้งานที่บันทึกไว้ในเครื่องนี้</p>
+        </section>
+      </div>
+
+      <section class="idea-starters" aria-labelledby="idea-starters-title">
+        <div class="idea-starters-heading"><span class="section-icon" aria-hidden="true">🎯</span><div><h2 id="idea-starters-title">เริ่มจากเป้าหมายการสอน</h2><p>เลือกสิ่งที่อยากให้นักเรียนเรียนรู้ แล้ว AI จะช่วยคิดแนวทางสื่อที่เหมาะสม</p></div></div>
+        <div class="idea-grid">
+          <button class="idea-card goal-card" type="button" data-seed="อยากให้เด็กเข้าใจแนวคิดสำคัญเรื่อง "><span class="idea-icon" aria-hidden="true">💡</span><strong>เข้าใจแนวคิดสำคัญ</strong><small>ทำเรื่องยาก ซับซ้อน หรือนามธรรมให้ชัดขึ้น</small></button>
+          <button class="idea-card idea-match goal-card" type="button" data-seed="อยากให้นักเรียนทดลองเปลี่ยนค่าและสังเกตผลเรื่อง "><span class="idea-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M11 3h10M13 3v9L5 25a3 3 0 0 0 3 4h16a3 3 0 0 0 3-4l-8-13V3" fill="#a4ecff" stroke="#19a9e9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="m9 21-2 4q-.7 1.5 1 1.5h16q1.7 0 1-1.5l-2-4Z" fill="#27c7f7"/><circle cx="14" cy="20" r="1.4" fill="white"/><circle cx="18" cy="24" r="1" fill="white"/></svg></span><strong>ทดลองและค้นพบ</strong><small>เปลี่ยนบางสิ่ง สังเกตผล และค้นหาความสัมพันธ์</small></button>
+          <button class="idea-card idea-decide goal-card" type="button" data-seed="อยากให้นักเรียนเรียนผ่านเกมฝึกเรื่อง "><span class="idea-icon">🎮</span><strong>เรียนผ่านเกม</strong><small>ฝึกทักษะผ่านโจทย์ ความท้าทาย และ Feedback</small></button>
+          <button class="idea-card idea-order goal-card" type="button" data-seed="อยากทำให้เรื่องที่มองไม่เห็นหรือจินตนาการยากอย่าง "><span class="idea-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M2 16s5-8 14-8 14 8 14 8-5 8-14 8S2 16 2 16Z" fill="#35bafa" stroke="#2088f5" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="#2869ef"/><circle cx="16" cy="16" r="3" fill="#17206a"/><circle cx="18" cy="14" r="1.6" fill="white"/></svg></span><strong>ทำสิ่งที่มองไม่เห็นให้มองเห็น</strong><small>สำรวจสิ่งที่จินตนาการหรือมองตามได้ยาก</small></button>
+          <button class="idea-card goal-card" type="button" data-seed="อยากให้นักเรียนฝึกทักษะและแก้ปัญหาเรื่อง "><span class="idea-icon">🧩</span><strong>ฝึกทักษะและแก้ปัญหา</strong><small>ลงมือทำ ลองผิดลองถูก และพัฒนาทักษะ</small></button>
+          <button class="idea-card idea-match goal-card" type="button" data-seed="อยากให้นักเรียนเปรียบเทียบและสังเกตเรื่อง "><span class="idea-icon">⚖️</span><strong>เปรียบเทียบและสังเกต</strong><small>ค้นหาความเหมือน ความต่าง และรูปแบบ</small></button>
+          <button class="idea-card idea-decide goal-card" type="button" data-seed="อยากให้นักเรียนเข้าใจกระบวนการเรื่อง "><span class="idea-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 3h6c-1 5 5 5 6 0h6a4 4 0 0 1 4 4v6c-5-1-5 5 0 6v6a4 4 0 0 1-4 4h-6c1-5-5-5-6 0H7a4 4 0 0 1-4-4v-6c5 1 5-5 0-6V7a4 4 0 0 1 4-4Z" fill="#258cff"/><path d="M16 9v14M9 16h14" stroke="white" stroke-width="4" stroke-linecap="round"/></svg></span><strong>เข้าใจกระบวนการ</strong><small>เห็นขั้นตอน การเปลี่ยนแปลง และเหตุผล</small></button>
+          <button class="idea-card idea-order goal-card" type="button" data-seed="อยากให้นักเรียนลองทำนายและตรวจสอบเรื่อง "><span class="idea-icon">💭</span><strong>ทำนายและตรวจสอบ</strong><small>คิดก่อน ทดลอง แล้วอธิบายผลที่เกิดขึ้น</small></button>
+        </div>
+        <div class="idea-guide-heading"><span>⚡ ลองสร้างแบบนี้ไหม?</span><small>เลือกไอเดียตั้งต้น แล้วเติมรายละเอียดในช่องสนทนาได้เลย</small></div>
+        <div class="idea-guide-grid idea-guide-grid--prompts">
+          <button class="idea-guide-card" type="button" data-seed="ถ้าเปลี่ยน... จะเกิดอะไรขึ้นกับ "><span>🔍</span><strong>ถ้าเปลี่ยน...</strong><small>จะเกิดอะไรขึ้น?</small></button>
+          <button class="idea-guide-card" type="button" data-seed="ทำไม... ถึงเป็นแบบนี้? เรื่องที่อยากชวนเด็กสำรวจคือ "><span>❓</span><strong>ทำไม...</strong><small>ถึงเป็นแบบนี้?</small></button>
+          <button class="idea-guide-card" type="button" data-seed="อยากให้นักเรียนลองทำนายและตรวจสอบเรื่อง "><span>💡</span><strong>ทำนายก่อน</strong><small>แล้วลองตรวจสอบ</small></button>
+          <button class="idea-guide-card" type="button" data-seed="อยากให้นักเรียนลองจัด เรียง หรือจับคู่เรื่อง "><span aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m16 2 2 1 .5 2.4 2 .8 2-1.3 2 2-1.3 2 .8 2 2.4.5 1 2-1 2-2.4.5-.8 2 1.3 2-2 2-2-1.3-2 .8L18 27l-2 1-2-1-.5-2.4-2-.8-2 1.3-2-2 1.3-2-.8-2L5.6 18l-1-2 1-2 2.4-.5.8-2-1.3-2 2-2 2 1.3 2-.8L14 3Z" fill="#49c83c"/><circle cx="16" cy="15" r="4" fill="white"/><circle cx="7" cy="25" r="5" fill="#82dc52"/><circle cx="7" cy="25" r="2" fill="white"/></svg></span><strong>จัด / เรียง / จับคู่</strong><small>ให้เข้าใจได้ชัดขึ้น</small></button>
+          <button class="idea-guide-card" type="button" data-seed="อยากให้นักเรียนลองทำก่อน แล้วค่อยตรวจคำตอบเรื่อง "><span aria-hidden="true">✏️</span><strong>ลองทำก่อน</strong><small>แล้วค่อยตรวจคำตอบ</small></button>
+          <button class="idea-guide-card" type="button" data-seed="อยากให้นักเรียนเลือกคำตอบที่สมเหตุสมผลที่สุด แล้วอธิบายเหตุผลเรื่อง "><span>✅</span><strong>ลองเลือกคำตอบ</strong><small>ที่สมเหตุสมผลที่สุด</small></button>
+        </div>
+      </section>
+
+      <section id="result-panel" class="result-panel" hidden aria-live="polite">
+        <div class="result-heading"><div><span class="eyebrow">YOUR LEARNING EXPERIENCE</span><h2 id="result-title">สื่อของคุณพร้อมให้ทดลองแล้ว</h2><p id="result-summary"></p></div><a id="runtime-link" class="runtime-link" target="_blank" rel="noopener" hidden><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 3h7v7M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>เปิดสื่อในแท็บใหม่</a></div>
+        <iframe id="preview-frame" title="ตัวอย่างสื่อการเรียนรู้" sandbox="allow-scripts" hidden></iframe>
+        <form id="revision-form" class="revision-form">
+          <label for="revision-instruction">อยากแก้ไขสื่อฉบับนี้อย่างไร?</label>
+          <textarea id="revision-instruction" rows="2" maxlength="6000" required placeholder="เช่น เปลี่ยนพื้นหลังเป็นสีฟ้า แต่คงกิจกรรมเดิม"></textarea>
+          <button id="revision-submit" type="submit">สร้างฉบับแก้ไข</button>
+          <span id="revision-status" class="revision-status" role="status" aria-live="polite"></span>
+          <small>ระบบจะใช้สื่อฉบับนี้เป็นต้นฉบับ และแทนที่ฉบับเดิมเมื่อสื่อใหม่ผ่านการตรวจสอบ</small>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <button id="model-settings-open" class="lab-settings-trigger" type="button" aria-label="ตั้งค่าโมเดล AI">⚙ <span>ตั้งค่า Lab</span></button>
+  <button id="brief-versions-open" class="lab-settings-trigger brief-versions-trigger" type="button" aria-label="เลือกชุดบรีฟ">▤ <span>ชุดบรีฟ</span></button>
+  <section id="brief-versions-dialog" class="settings-overlay" hidden aria-labelledby="brief-versions-title">
+    <form id="brief-versions-form" class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="brief-versions-title" tabindex="-1">
+      <header><div><small>Mini Lab V5</small><h2 id="brief-versions-title">เลือกชุดบรีฟ</h2></div><button id="brief-versions-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
+      <div><label for="brief-version-select">ชุดที่ใช้</label><select id="brief-version-select"></select>
+        <p class="settings-note">ใช้กับการเรียก AI ครั้งถัดไป หากเปลี่ยนระหว่างงาน ขั้นตอนต่าง ๆ อาจใช้คนละชุด ควรเลือกก่อนเริ่มงานและคงไว้จนงานเสร็จ</p>
+        <p id="brief-versions-status" class="settings-note" role="status" aria-live="polite"></p>
+        <footer><button id="brief-versions-save" type="submit">บันทึก</button></footer></div>
+    </form>
+  </section>
+  <section id="model-settings-dialog" class="settings-overlay" hidden aria-labelledby="model-settings-title">
+    <form id="model-settings-form" class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="model-settings-title" tabindex="-1">
+      <header><div><small>Mini Lab V5</small><h2 id="model-settings-title">ตั้งค่าโมเดล AI</h2></div><button id="model-settings-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
+      <main>
+        <p>เลือกโมเดล OpenRouter แยกตามหน้าที่ รายชื่อจาก OpenRouter ไม่ได้รับประกันว่าโมเดลใช้ได้กับบัญชีหรือรองรับงานทุกประเภท</p>
+        <label>แชท · Conversation AI<select id="model-conversation" required><option value="">กำลังโหลด…</option></select><small>สนทนาและช่วยสรุปความต้องการ</small></label>
+        <label>ออกแบบ Prompt · Prompt Architect<select id="model-architect" required><option value="">กำลังโหลด…</option></select><small>วางแผนและสร้าง Specification สำหรับสื่อ</small></label>
+        <label>สร้างสื่อ · HTML Media Builder<select id="model-builder" required><option value="">กำลังโหลด…</option></select><small>สร้างและปรับปรุง HTML ของสื่อ</small></label>
+        <p id="model-catalog-status" class="settings-note" role="status" aria-live="polite">กำลังโหลดรายชื่อโมเดล…</p>
+        <button id="model-catalog-refresh" type="button" class="secondary-button">โหลดรายชื่อใหม่</button>
+        <p id="model-settings-status" class="settings-note" role="status" aria-live="polite">การตั้งค่ามีผลกับการเรียก AI ครั้งถัดไป งานที่กำลังทำอยู่อาจใช้ค่าต่างกันในแต่ละขั้นตอน</p>
+        <footer><button id="model-settings-defaults" type="button">คืนค่าเริ่มต้น</button><button id="model-settings-save" type="submit">บันทึก</button></footer>
+      </main>
+    </form>
+  </section>
+
+  <section id="library-dialog" class="settings-overlay" hidden aria-labelledby="library-title">
+    <div class="settings-dialog works-dialog" role="dialog" aria-modal="true" aria-labelledby="library-title" tabindex="-1">
+      <header><div><small>ผลงานของคุณ</small><h2 id="library-title">สื่อของฉัน</h2></div><button id="library-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
+      <main><p>เลือกเปิดสื่อหรือฉบับแก้ไขที่เคยสร้างไว้ในเครื่องนี้</p><p id="library-status" class="library-status" role="status" aria-live="polite"></p><div id="library-list" class="work-list" aria-live="polite">กำลังโหลดคลังสื่อ…</div></main>
+    </div>
+  </section>
+
+  <section id="brief-dialog" class="settings-overlay" hidden aria-labelledby="brief-dialog-title">
+    <form id="brief-form" class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="brief-dialog-title" tabindex="-1">
+      <header><div><small>ตรวจทานก่อนสร้าง</small><h2 id="brief-dialog-title">แนวทางสื่อที่เข้าใจ</h2></div><button id="brief-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
+      <main>
+        <p>แก้ไขสรุปได้ตามต้องการ ระบบจะใช้ข้อมูลนี้สร้างสื่อฉบับทดลอง</p>
+        <label>หัวข้อ<input id="brief-topic" required maxlength="500"></label>
+        <label>ผู้เรียน / ระดับชั้น<input id="brief-level" maxlength="100" placeholder="ระบุได้ถ้าต้องการ"></label>
+        <label>เป้าหมายการเรียนรู้<textarea id="brief-objectives" rows="2" required></textarea></label>
+        <label>รูปแบบสื่อที่ต้องการ<select id="brief-media-type"><option value="">ให้ AI เลือกตามเป้าหมาย</option><option value="interactive">สื่อโต้ตอบ</option><option value="simulation">แบบจำลอง / ทดลอง</option><option value="practice">แบบฝึก</option><option value="game">เกมการเรียนรู้</option><option value="visualization">สื่อแสดงภาพ</option><option value="explainer">สื่ออธิบาย</option></select></label>
+        <label>การกำหนดรูปแบบ<select id="brief-media-type-requirement"><option value="open">เปิดให้ AI เลือก</option><option value="preferred">ถ้าเหมาะสมให้ใช้รูปแบบนี้</option><option value="required">ต้องเป็นรูปแบบนี้</option></select></label>
+        <label>การมีปฏิสัมพันธ์<select id="brief-interaction-preference"><option value="ai_decides">ให้ AI เลือกตามเป้าหมาย</option><option value="required">ต้องมีสิ่งให้นักเรียนลงมือทำ</option><option value="avoid">ไม่ต้องมีปุ่มหรือสิ่งควบคุม</option></select></label>
+        <label>ถ้ามีสิ่งที่อยากให้นักเรียนลงมือทำ<textarea id="brief-action" rows="2" placeholder="ระบุได้ถ้าต้องการ ไม่จำเป็นต้องมีทุกสื่อ"></textarea></label>
+        <label>ข้อกำหนดเพิ่มเติม<textarea id="brief-constraints" rows="2" placeholder="เช่น ภาษาไทย, ใช้บนมือถือ"></textarea></label>
+        <p id="brief-error" class="settings-note" role="alert" hidden></p>
+        <footer><button id="brief-cancel" type="button">กลับไปคุยต่อ</button><button id="brief-confirm" type="submit">ยืนยันและสร้างสื่อ</button></footer>
+      </main>
+    </form>
+  </section>
+  <script src="/revision-intent.js?v=532"></script>
+  <script type="module" src="/v5.js?v=532"></script>
+</body>
+</html>
+
+

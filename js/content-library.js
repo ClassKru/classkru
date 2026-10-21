@@ -153,7 +153,7 @@
         }
         const link = document.createElement('a');
         link.className = card.className;
-        link.href = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:4178/v2' : new URL('/mini-lab-v2', window.location.origin).href;
+        link.href = ['localhost', '127.0.0.1'].includes(window.location.hostname) ? 'http://127.0.0.1:4178/interactive-v5' : new URL('/mini-lab-v5', window.location.origin).href;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
         link.setAttribute('aria-describedby', 'cl-media-studio-status');

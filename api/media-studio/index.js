@@ -7,6 +7,8 @@ const legacyAi = require('../_lib/media-ai');
 const plannerAi = require('../_lib/media-planner-ai');
 const imageAi = require('../_lib/media-image-ai');
 const mediaLabV2 = require('../_lib/media-lab-v2-handler');
+// V5 has its own cloud API, storage namespace, and enablement gate.
+const mediaLabV5 = require('../_lib/interactive-v5/web-handler');
 const configured = () => legacyAi.configured() || plannerAi.configured() || imageAi.configured();
 // Default to paused. Re-enable deliberately with MEDIA_STUDIO_ENABLED=true only
 // after the live AI, Storage, and access-control checks have been completed.
@@ -18,6 +20,7 @@ const MEDIA_STUDIO_DEVELOPER_EMAILS = new Set([
 ]);
 module.exports = async function handler(req,res) {
   if (req.query?.action === 'v2') return mediaLabV2(req,res);
+  if (req.query?.action === 'v5') return mediaLabV5(req,res);
   if (!['GET','POST'].includes(req.method)) return sendJson(res,405,{error:'method_not_allowed'});
   if (!requestOriginIsValid(req)) return sendJson(res,403,{error:'invalid_origin'});
   try {
