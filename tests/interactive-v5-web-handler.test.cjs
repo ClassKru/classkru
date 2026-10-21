@@ -3,7 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createInteractiveV5Handler } = require('../api/_lib/interactive-v5/web-handler');
-const { RUNTIME_CSP, runtimeCspForHost } = require('../api/_lib/interactive-v5/html-media-builder-ai/runtime-preview');
+const { RUNTIME_CSP, createRuntimePreviewService, instrumentRuntimeHtml, runtimeCspForHost } = require('../api/_lib/interactive-v5/html-media-builder-ai/runtime-preview');
 
 function response() {
   return {
@@ -134,3 +134,26 @@ test('V5 sandbox CSP allows only its exact ClassKru or project Vercel origin for
   assert.match(previewPolicy, /https:\/\/classkru-git-main-classkru-dev\.vercel\.app/);
   assert.equal(runtimeCspForHost('attacker.example'), RUNTIME_CSP);
 });
+
+test('runtime preview adds privacy-safe diagnostics before artifact scripts without loosening its sandbox', async () => {
+  const artifactHtml = '<!doctype html><html><head><title>Preview</title></head><body><script>throw new Error("private artifact detail")</script></body></html>';
+  const runtime = createRuntimePreviewService({
+    artifactStore: { getValidated: async () => ({ id: 'artifact-1', html: artifactHtml }) }
+  });
+  const preview = await runtime.loadPreview('artifact-1');
+  assert.ok(preview.html.indexOf('data-v5-runtime-diagnostics') < preview.html.indexOf('<script>throw'));
+  assert.match(preview.html, /unhandledrejection/);
+  assert.match(preview.html, /securitypolicyviolation/);
+  assert.match(preview.html, /webgl_context_unavailable/);
+  assert.doesNotMatch(preview.html, /event\.message|reason\.message/);
+  assert.equal(preview.content_security_policy, RUNTIME_CSP);
+  assert.equal(preview.iframe_sandbox, 'allow-scripts');
+  assert.equal(preview.html.includes('private artifact detail'), true);
+});
+
+test('runtime diagnostics are not duplicated and support fragments without a head element', () => {
+  const instrumented = instrumentRuntimeHtml('<body><main>Preview</main></body>');
+  assert.ok(instrumented.indexOf('<body>') < instrumented.indexOf('data-v5-runtime-diagnostics'));
+  assert.equal(instrumentRuntimeHtml(instrumented), instrumented);
+});
+
