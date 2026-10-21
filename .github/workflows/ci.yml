@@ -24,6 +24,9 @@ jobs:
       - name: Media ownership, queue and security tests
         run: npm run test:media
 
+      - name: Mini Lab V5 cloud workflow and gateway tests
+        run: npm run test:interactive-v5
+
       - name: Export routing and document regression tests
         run: node --test tests/export-routing.test.cjs tests/lesson-plan.test.cjs tests/worksheet-layout.test.cjs tests/score-export.test.cjs
 

@@ -10,10 +10,14 @@
     {"source":"/api/dev/session","destination":"/api/dev/auth?action=session"},
     {"source":"/mini-lab-v2","destination":"/v2.html"},
     {"source":"/api/v2/(.*)","destination":"/api/media-studio?action=v2&path=$1"},
+    {"source":"/mini-lab-v5","destination":"/v5.html"},
+    {"source":"/api/v5/(.*)","destination":"/api/media-studio?action=v5&path=$1"},
+    {"source":"/vendor/three.module.js","destination":"/api/media-studio?action=v5&path=three"},
+    {"source":"/vendor/three.core.js","destination":"/api/media-studio?action=v5&path=three-core"},
     {"source":"/api/exports/:document","destination":"/api/exports?document=:document"}
   ],
   "functions": {
-    "api/media-studio/index.js":{"maxDuration":300,"includeFiles":"node_modules/@sparticuz/chromium/bin/**"}
+    "api/media-studio/index.js":{"maxDuration":300,"includeFiles":"{node_modules/@sparticuz/chromium/bin/**,brief-versions/**,node_modules/three/build/three.module.js,node_modules/three/build/three.core.js}"}
   },
   "headers": [
     {

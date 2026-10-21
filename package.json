@@ -7,6 +7,7 @@
   },
   "scripts": {
     "test:media": "node --test tests/media-studio.test.cjs tests/media-storage.test.cjs tests/media-host.test.cjs tests/media-v2-ai.test.cjs tests/media-v2-delete.test.cjs tests/media-v2-policy.test.cjs tests/media-v2-handler.test.cjs",
+    "test:interactive-v5": "node --test tests/interactive-v5-cloud-build.test.cjs tests/interactive-v5-cloud-conversation.test.cjs tests/interactive-v5-cloud-store.test.cjs tests/interactive-v5-preview-tickets.test.cjs tests/interactive-v5-web-handler.test.cjs tests/interactive-v5-storage-readiness.test.cjs tests/content-library-v5-navigation.test.cjs",
     "test:media:browser": "node tests/media-studio-browser.test.cjs",
     "dev:media": "node scripts/media-dev.cjs"
   },
@@ -15,7 +16,8 @@
     "acorn": "8.15.0",
     "docx": "^9.5.1",
     "parse5": "7.3.0",
-    "puppeteer-core": "25.11.0"
+    "puppeteer-core": "25.11.0",
+    "three": "0.180.0"
   },
   "devDependencies": {
     "fflate": "0.3.11",
