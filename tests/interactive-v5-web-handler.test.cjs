@@ -75,3 +75,19 @@ test('V5 status fails readiness when its Supabase migration is missing without e
   assert.equal(res.payload.ready, false);
   assert.equal(JSON.stringify(res.payload).includes('does not exist'), false);
 });
+
+test('V5 status fails readiness when the configured Storage bucket is missing or unsafe without exposing details', async () => {
+  const handler = createInteractiveV5Handler({
+    env: { INTERACTIVE_V5_WEB_ENABLED: 'true', OPENROUTER_API_KEY: 'server-key' },
+    authenticate: async () => ({ id: 'teacher-id' }),
+    originIsValid: () => true,
+    checkDatabase: async () => true,
+    storageIsReady: async () => { throw Object.assign(new Error('private storage diagnostic'), { code: 'storage_bucket_unsafe' }); }
+  });
+  const res = response();
+  await handler(request('status'), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.payload.storage_ready, false);
+  assert.equal(res.payload.ready, false);
+  assert.equal(JSON.stringify(res.payload).includes('private storage diagnostic'), false);
+});

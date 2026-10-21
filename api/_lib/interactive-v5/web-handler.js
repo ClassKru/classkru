@@ -128,7 +128,7 @@ function createServices(teacherId, env = process.env) {
   });
 }
 
-function createInteractiveV5Handler({ authenticate = authenticatedUser, originIsValid = requestOriginIsValid, respond = sendJson, env = process.env, checkDatabase = checkTeacherDatabase, storageIsReady = () => storage.configured() } = {}) {
+function createInteractiveV5Handler({ authenticate = authenticatedUser, originIsValid = requestOriginIsValid, respond = sendJson, env = process.env, checkDatabase = checkTeacherDatabase, storageIsReady = () => storage.checkBucket() } = {}) {
   return async function handle(req, res) {
     if (env.INTERACTIVE_V5_WEB_ENABLED !== 'true') return respond(res, 503, { error: 'interactive_v5_not_enabled' });
     const parts = pathParts(req);
@@ -170,7 +170,8 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
         };
         let databaseReady = false;
         try { await checkDatabase(user.id); databaseReady = true; } catch (_) { /* expose readiness, not database details */ }
-        const storageReady = Boolean(storageIsReady());
+        let storageReady = false;
+        try { storageReady = Boolean(await storageIsReady()); } catch (_) { /* expose readiness, not storage details */ }
         const aiConfigured = Object.values(readiness).every(Boolean);
         return respond(res, 200, { mode: 'live', show_task_usage: false, ...readiness, ai_configured: aiConfigured, database_ready: databaseReady, storage_ready: storageReady, ready: aiConfigured && databaseReady && storageReady });
       }

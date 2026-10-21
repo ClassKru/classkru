@@ -57,6 +57,12 @@ async function ensureBucket() {
   }
   if(!info || info.public!==false) throw fail('storage_bucket_unsafe',503);
 }
+async function checkBucket() {
+  const {bucket}=configuration();
+  const info=await request(`bucket/${bucket}`,{missing:true});
+  if(!info || info.public!==false) throw fail('storage_bucket_unsafe',503);
+  return true;
+}
 async function get(name) {
   const value=await request(`object/authenticated/${configuration().bucket}/${path(name)}?fresh=${crypto.randomUUID()}`,{missing:true});
   return value===null?null:unseal(name,value);
@@ -85,4 +91,4 @@ async function documents(prefix,options) {
   if(result.some(x=>!x)) throw fail('storage_unavailable',502);
   return result;
 }
-module.exports={fail,configured,ensureBucket,get,put,remove,list,documents};
+module.exports={fail,configured,ensureBucket,checkBucket,get,put,remove,list,documents};
