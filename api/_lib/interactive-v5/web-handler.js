@@ -23,7 +23,7 @@ const builder = require('./html-media-builder-ai/service');
 const builderConfig = require('./html-media-builder-ai/config');
 const builderProvider = require('./html-media-builder-ai/openrouter-provider');
 const { createCloudArtifactStore } = require('./html-media-builder-ai/cloud-artifact-store');
-const { createRuntimePreviewService, RUNTIME_CSP } = require('./html-media-builder-ai/runtime-preview');
+const { createRuntimePreviewService, RUNTIME_CSP, runtimeCspForHost } = require('./html-media-builder-ai/runtime-preview');
 const { createLocalModelCatalog } = require('./interactive-orchestrator/local-model-catalog');
 
 const briefVersions = createBriefVersionCatalog({ root: pathModule.resolve(process.cwd(), 'brief-versions') });
@@ -139,6 +139,7 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
         const filename = parts[0] === 'three-core' ? 'three.core.js' : 'three.module.js';
         const source = fs.readFileSync(pathModule.join(pathModule.dirname(require.resolve('three')), filename), 'utf8');
         res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
+        res.setHeader('Access-Control-Allow-Origin', '*');
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
         res.setHeader('X-Content-Type-Options', 'nosniff');
         return res.status(200).send(source);
@@ -149,7 +150,7 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
         const preview = await previewTickets.load(parts[1]);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'private, no-store');
-        res.setHeader('Content-Security-Policy', preview.csp || RUNTIME_CSP);
+        res.setHeader('Content-Security-Policy', runtimeCspForHost(req.headers?.host, preview.csp || RUNTIME_CSP));
         res.setHeader('X-Content-Type-Options', 'nosniff');
         res.setHeader('Referrer-Policy', 'no-referrer');
         return res.status(200).send(preview.html);
