@@ -126,6 +126,25 @@ test('Prompt Architect can recover a JSON object wrapped in provider-added text 
   assert.equal(result.attempts[0].reason, 'parsed');
 });
 
+test('Prompt Architect logs only the safe upstream failure kind and HTTP status', async () => {
+  const diagnostics = [];
+  const provider = createOpenRouterProvider({
+    fetchImpl: async () => ({ ok: false, status: 401, json: async () => ({ error: { message: 'do not log provider response' } }) }),
+    logger: { error: (...args) => diagnostics.push(args) }
+  });
+
+  await assert.rejects(
+    provider.respond({ config: { apiKey: 'private-test-key', modelId: 'openai/gpt-6-luna', timeoutMs: 1000, maxTokens: 100 }, request: { systemPrompt: 'private prompt', messages: [] } }),
+    error => error.code === 'prompt_architect_provider_unavailable'
+  );
+  assert.deepEqual(diagnostics, [[
+    '[interactive-v5 prompt architect] OpenRouter request failed',
+    { kind: 'http', status: 401 }
+  ]]);
+  assert.equal(JSON.stringify(diagnostics).includes('private'), false);
+  assert.equal(JSON.stringify(diagnostics).includes('do not log'), false);
+});
+
 test('HTML Builder recovers a valid artifact from provider prose, code fences, and content parts', async () => {
   const artifact = { title: 'เกมพยัญชนะ', summary: 'ฝึกจับคู่', html: '<!doctype html><html lang="th"><head><title>เกม</title></head><body>พร้อม</body></html>' };
   let calls = 0;
@@ -205,3 +224,4 @@ test('Prompt Architect classifies a missing response after token exhaustion as t
     error => error.code === 'prompt_architect_invalid_response' && error.attempts.every(attempt => attempt.reason === 'truncated_output')
   );
 });
+
