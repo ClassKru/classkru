@@ -3,7 +3,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const FILES={conversation:'conversation-prompts.js',architect:'architect-prompts.js',builder:'builder-prompts.js'};
-const REQUIRED=[...Object.values(FILES),'media-mode.js','กฎกลาง.md'];
+const REQUIRED=[...Object.values(FILES),'media-mode.js','กฎกลาง.md','template-reference.js'];
 function createBriefVersionCatalog({root=path.resolve(process.cwd(),'brief-versions')}={}) {
   function versions() {
     let entries=[];
