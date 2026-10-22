@@ -103,6 +103,18 @@ function createOpenRouterProvider({ fetchImpl = globalThis.fetch, logger = conso
           const value = safeProviderField(payload?.error?.[field]);
           if (value !== null && value !== status) diagnostic[field] = value;
         }
+        const upstreamError = payload?.error?.metadata?.raw;
+        let parsedUpstreamError = upstreamError && typeof upstreamError === 'object' ? upstreamError : null;
+        if (!parsedUpstreamError && typeof upstreamError === 'string') {
+          try { parsedUpstreamError = JSON.parse(upstreamError); } catch (_) { /* Keep raw provider text out of logs. */ }
+        }
+        const upstreamDetails = parsedUpstreamError?.error && typeof parsedUpstreamError.error === 'object'
+          ? parsedUpstreamError.error
+          : parsedUpstreamError;
+        for (const field of ['code', 'type', 'param']) {
+          const value = safeProviderField(upstreamDetails?.[field]);
+          if (value !== null) diagnostic[`upstream_${field}`] = value;
+        }
         logProviderFailure(logger, diagnostic);
         throw Object.assign(codedError(response.status === 429 ? 'prompt_architect_rate_limited' : 'prompt_architect_provider_unavailable'), { attempts });
       }
