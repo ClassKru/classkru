@@ -239,6 +239,23 @@ function friendlyJobFailure(code) {
   return '';
 }
 
+function architectFailureMessage(job) {
+  if (job?.error?.code !== 'prompt_architect_invalid_response') return '';
+  const labels = {
+    missing_content: 'ไม่ได้รับเนื้อหาคำตอบ',
+    empty_content: 'AI ส่งคำตอบว่าง',
+    unsupported_content_type: 'รูปแบบคำตอบที่ได้รับยังอ่านไม่ได้',
+    invalid_json: 'คำตอบไม่ใช่ JSON ที่ถูกต้อง',
+    truncated_output: 'คำตอบถูกตัดก่อนครบ'
+  };
+  const details = Array.isArray(job.error.attempts)
+    ? [...new Set(job.error.attempts.map(attempt => labels[attempt?.reason]).filter(Boolean))].join(' → ')
+    : '';
+  return 'AI ส่งข้อมูลสำหรับวางโครงสร้างสื่อไม่ครบหรือไม่อยู่ในรูปแบบที่ระบบอ่านได้'
+    + (details ? ' (' + details + ')' : '')
+    + ' งานและแนวทางเดิมยังอยู่ กดลองสร้างอีกครั้งได้';
+}
+
 function addMessage(role, content, { pending = false, suggestions = [] } = {}) {
   const node = document.createElement('div');
   node.className = `message ${role}${pending ? ' pending' : ''}`;
@@ -370,7 +387,7 @@ function renderBuildStatus(job, message = '') {
   const status = state.busy && (!job || ['queued', 'architecting', 'building'].includes(job.state)) ? 'running' : job?.state || 'failed';
   panel.dataset.status = status === 'succeeded' ? 'passed' : status === 'running' ? 'running' : 'failed';
   const code = job?.error?.code;
-  $('#build-status-text').textContent = message || (status === 'succeeded' ? 'ตรวจสอบสื่อผ่านแล้ว เปิดดูและทดลองใช้งานได้เลย' : friendlyJobFailure(code) || (code === 'prompt_architect_invalid_response' ? 'ระบบจัดรูปแบบข้อมูลไม่สำเร็จ งานและแนวทางเดิมยังอยู่ กรุณาลองอีกครั้ง' : status === 'retryable_failed' ? 'ระบบขัดข้องชั่วคราว งานและแนวทางเดิมยังอยู่ ลองสร้างอีกครั้งได้' : `สร้างสื่อไม่สำเร็จ${code ? ` (${code})` : ''}`));
+  $('#build-status-text').textContent = message || (status === 'succeeded' ? 'ตรวจสอบสื่อผ่านแล้ว เปิดดูและทดลองใช้งานได้เลย' : friendlyJobFailure(code) || architectFailureMessage(job) || (status === 'retryable_failed' ? 'ระบบขัดข้องชั่วคราว งานและแนวทางเดิมยังอยู่ ลองสร้างอีกครั้งได้' : `สร้างสื่อไม่สำเร็จ${code ? ` (${code})` : ''}`));
   $('#retry-build').hidden = status !== 'retryable_failed' && !(status === 'failed' && ['prompt_architect_invalid_response', 'build_specification_invalid'].includes(job?.error?.code));
 }
 
@@ -753,7 +770,8 @@ $('#brief-form').addEventListener('submit', async event => {
 
 async function retryBuild() {
   if (!serviceReady || !state.job?.id || state.busy) return;
-  setBusy(true, 'กำลังลองสร้างงานเดิมอีกครั้ง…'); renderBuildStatus(null, 'กำลังลองใหม่ โดยใช้ Brief และ Specification ที่บันทึกไว้');
+  const hasSpecification = Boolean(state.job.specification);
+  setBusy(true, 'กำลังลองสร้างงานเดิมอีกครั้ง…'); renderBuildStatus(null, hasSpecification ? 'กำลังลองใหม่โดยใช้ Brief และ Specification ที่บันทึกไว้' : 'กำลังให้ AI วางโครงสร้างสื่อจาก Brief เดิมอีกครั้ง');
   try { const accepted = await api(`/api/local/v5/jobs/${encodeURIComponent(state.job.id)}/retry`, { method: 'POST', body: '{}' }); state.job = accepted.job || accepted; renderBuildStatus(state.job); const job = await waitForJob(state.job.id, state.job, current => { state.job = current; renderBuildStatus(current); }); state.job = job; renderBuildStatus(job); if (job.state === 'succeeded') { renderPreview(job); await refreshLibrary(); } await refreshTaskUsage(); setBusy(false); }
   catch (error) { renderBuildStatus({ ...state.job, state: 'retryable_failed', error: { code: error.code } }); await refreshTaskUsage(); setBusy(false); }
 }

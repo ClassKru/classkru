@@ -3,8 +3,21 @@
 const crypto = require('node:crypto');
 const { classifyRevisionIntent } = require('../../revision-intent');
 const RETRYABLE = new Set(['conversation_ai_timeout','conversation_ai_rate_limited','conversation_ai_provider_unavailable','prompt_architect_timeout','prompt_architect_rate_limited','prompt_architect_provider_unavailable','prompt_architect_invalid_response','build_specification_invalid','html_builder_timeout','html_builder_rate_limited','html_builder_provider_unavailable']);
+const ARCHITECT_REASONS = new Set(['missing_content','empty_content','unsupported_content_type','invalid_json','truncated_output','parsed']);
+const FINISH_REASONS = new Set(['stop','length','content_filter','tool_calls','error','unknown']);
 function fail(code) { return Object.assign(new Error(code),{code}); }
 function safeCode(error) { return typeof error?.code === 'string' && /^[a-z0-9_]+$/i.test(error.code) ? error.code.toLowerCase() : 'workflow_unknown_error'; }
+function safeArchitectAttempts(error) {
+  if (!Array.isArray(error?.attempts)) return null;
+  return error.attempts.slice(-2).map(attempt => ({
+    reason: ARCHITECT_REASONS.has(attempt?.reason) ? attempt.reason : 'unknown',
+    finish_reason: FINISH_REASONS.has(attempt?.finish_reason) ? attempt.finish_reason : 'unknown'
+  }));
+}
+function jobError(error, code) {
+  const attempts = code === 'prompt_architect_invalid_response' ? safeArchitectAttempts(error) : null;
+  return { code, retryable: RETRYABLE.has(code), ...(attempts ? { attempts } : {}) };
+}
 
 function createCloudBuild({store,conversationClient,architectClient,builderClient,artifactStore,clock=()=>Date.now(),idFactory=crypto.randomUUID,leaseMs=300000}={}) {
   async function task(id) { const row=await store.get(id); if (!row) throw fail('conversation_not_found'); if(row.state.deletion_pending) throw fail('task_deletion_pending'); return row; }
@@ -34,7 +47,7 @@ function createCloudBuild({store,conversationClient,architectClient,builderClien
           job={...job,specification:result.specification,revision:{...job.revision,architecture_completed:true},state:'queued'};
           row=await replaceJob(row,job);
         } catch(error) {
-          const code=safeCode(error); job={...job,state:RETRYABLE.has(code)?'retryable_failed':'failed',error:{code,retryable:RETRYABLE.has(code)},failed_stage:'architect'};
+          const code=safeCode(error); job={...job,state:RETRYABLE.has(code)?'retryable_failed':'failed',error:jobError(error,code),failed_stage:'architect'};
           row=await replaceJob(row,job); return job;
         }
       } else if (!job.specification) {
@@ -44,7 +57,7 @@ function createCloudBuild({store,conversationClient,architectClient,builderClien
           job={...job,specification:result.specification,state:'queued'};
           row=await replaceJob(row,job);
         } catch(error) {
-          const code=safeCode(error); job={...job,state:RETRYABLE.has(code)?'retryable_failed':'failed',error:{code,retryable:RETRYABLE.has(code)},failed_stage:'architect'};
+          const code=safeCode(error); job={...job,state:RETRYABLE.has(code)?'retryable_failed':'failed',error:jobError(error,code),failed_stage:'architect'};
           row=await replaceJob(row,job); return job;
         }
       }
@@ -57,7 +70,7 @@ function createCloudBuild({store,conversationClient,architectClient,builderClien
         for(const artifactId of obsolete) { try { await artifactStore.deleteValidated(artifactId); } catch (_) {} }
         return job;
       } catch(error) {
-        const code=safeCode(error); job={...job,state:RETRYABLE.has(code)?'retryable_failed':'failed',error:{code,retryable:RETRYABLE.has(code)},failed_stage:'builder'};
+        const code=safeCode(error); job={...job,state:RETRYABLE.has(code)?'retryable_failed':'failed',error:jobError(error,code),failed_stage:'builder'};
         row=await replaceJob(row,job); return job;
       }
     } finally {
