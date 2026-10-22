@@ -2,7 +2,11 @@
 
 const { buildSpecificationSchema, codedError } = require('./contracts');
 
-function createOpenRouterProvider({ fetchImpl = globalThis.fetch } = {}) {
+function logProviderFailure(logger, diagnostic) {
+  try { logger?.error?.('[interactive-v5 prompt architect] OpenRouter request failed', diagnostic); } catch (_) {}
+}
+
+function createOpenRouterProvider({ fetchImpl = globalThis.fetch, logger = console } = {}) {
   return Object.freeze({
     async respond({ config, request }) {
       if (!config?.apiKey || !config?.modelId) throw codedError('prompt_architect_not_configured');
@@ -14,9 +18,17 @@ function createOpenRouterProvider({ fetchImpl = globalThis.fetch } = {}) {
           method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.apiKey}`, ...(config.siteUrl ? { 'HTTP-Referer': config.siteUrl } : {}), 'X-Title': 'ClassKru Prompt Architect AI' }, signal: AbortSignal.timeout(config.timeoutMs),
           body: JSON.stringify({ model: config.modelId, ...(config.reasoningEffort ? { reasoning: { effort: config.reasoningEffort } } : {}), messages: [{ role: 'system', content: request.systemPrompt }, ...request.messages, ...(attempt ? [{ role: 'user', content: 'Return only a complete valid JSON object matching the required schema. Do not include markdown or explanatory text.' }] : [])], ...(!/^openai\/gpt-6-luna(?:-pro)?(?:[-:]|$)/.test(config.modelId) ? { temperature: config.temperature } : {}), max_tokens: config.maxTokens, provider: { data_collection: 'deny', require_parameters: true }, response_format: { type: 'json_schema', json_schema: { name: 'classkru_build_specification', strict: true, schema: buildSpecificationSchema } } })
         });
-      } catch (error) { throw Object.assign(codedError(error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'prompt_architect_timeout' : 'prompt_architect_provider_unavailable'), { attempts }); }
+      } catch (error) {
+        const timedOut = error?.name === 'TimeoutError' || error?.name === 'AbortError';
+        logProviderFailure(logger, { kind: timedOut ? 'timeout' : 'network' });
+        throw Object.assign(codedError(timedOut ? 'prompt_architect_timeout' : 'prompt_architect_provider_unavailable'), { attempts });
+      }
       const payload = await response.json().catch(() => null);
-      if (!response.ok) throw Object.assign(codedError(response.status === 429 ? 'prompt_architect_rate_limited' : 'prompt_architect_provider_unavailable'), { attempts });
+      if (!response.ok) {
+        const status = Number.isInteger(response.status) && response.status >= 100 && response.status <= 599 ? response.status : null;
+        logProviderFailure(logger, { kind: 'http', status });
+        throw Object.assign(codedError(response.status === 429 ? 'prompt_architect_rate_limited' : 'prompt_architect_provider_unavailable'), { attempts });
+      }
       const message = payload?.choices?.[0]?.message;
       const content = message?.content;
       const finishReason = ['stop', 'length', 'content_filter', 'tool_calls', 'error'].includes(payload?.choices?.[0]?.finish_reason) ? payload.choices[0].finish_reason : 'unknown';
@@ -76,6 +88,7 @@ function sanitizeUsage(usage) {
 }
 
 module.exports = { createOpenRouterProvider, parseJsonResponse };
+
 
 
 
