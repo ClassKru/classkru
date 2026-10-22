@@ -307,6 +307,8 @@ function hideGenerationDialog() {
 $('#generation-dialog').addEventListener('cancel', event => event.preventDefault());
 
 function friendlyJobFailure(code) {
+  if (code === 'html_builder_invalid_response') return 'AI ส่งรูปแบบสื่อมาไม่ครบ ระบบบันทึกบทสนทนาไว้แล้ว ลองสร้างอีกครั้งได้';
+  if (code === 'artifact_response_invalid' || code === 'artifact_validation_failed') return 'สื่อที่ AI สร้างยังไม่ผ่านการตรวจสอบความปลอดภัย ระบบบันทึกบทสนทนาไว้แล้ว ลองสร้างอีกครั้งได้';
   if (code === 'revision_source_superseded') return 'มีสื่อฉบับใหม่กว่าแล้ว กรุณาเปิดฉบับล่าสุดจากผลงานของฉันก่อนปรับปรุง';
   if (code === 'revision_in_progress') return 'สื่อฉบับนี้กำลังปรับปรุงอยู่ กรุณารอให้การปรับปรุงปัจจุบันเสร็จก่อน';
   if (code === 'revision_scope_confirmation_required') return 'คำขอยังไม่ชัดเจนพอ กรุณาระบุส่วนที่ต้องการปรับปรุงให้ชัดก่อน';
@@ -467,7 +469,7 @@ function renderBuildStatus(job, message = '') {
   panel.dataset.status = status === 'succeeded' ? 'passed' : status === 'running' ? 'running' : 'failed';
   const code = job?.error?.code;
   $('#build-status-text').textContent = message || (status === 'succeeded' ? 'ตรวจสอบสื่อผ่านแล้ว เปิดดูและทดลองใช้งานได้เลย' : friendlyJobFailure(code) || architectFailureMessage(job) || (status === 'retryable_failed' ? 'ระบบขัดข้องชั่วคราว งานและแนวทางเดิมยังอยู่ ลองสร้างอีกครั้งได้' : `สร้างสื่อไม่สำเร็จ${code ? ` (${code})` : ''}`));
-  $('#retry-build').hidden = status !== 'retryable_failed' && !(status === 'failed' && ['prompt_architect_invalid_response', 'build_specification_invalid'].includes(job?.error?.code));
+  $('#retry-build').hidden = status !== 'retryable_failed' && !(status === 'failed' && ['prompt_architect_invalid_response', 'build_specification_invalid', 'html_builder_invalid_response', 'artifact_response_invalid', 'artifact_validation_failed'].includes(job?.error?.code));
 }
 
 async function openPreviewInNewTab(jobId, statusElement = $('#library-status')) {

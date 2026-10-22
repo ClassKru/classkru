@@ -7,7 +7,7 @@ const { normalizeSubjects } = require('../teacher-context/idea-discovery-context
 const { classifyRevisionIntent } = require('../../revision-intent');
 
 const CONTRACT_VERSION = '1.1';
-const RETRYABLE = new Set(['conversation_ai_timeout', 'conversation_ai_rate_limited', 'conversation_ai_provider_unavailable', 'prompt_architect_timeout', 'prompt_architect_rate_limited', 'prompt_architect_provider_unavailable', 'prompt_architect_invalid_response', 'build_specification_invalid', 'html_builder_timeout', 'html_builder_rate_limited', 'html_builder_provider_unavailable']);
+const RETRYABLE = new Set(['conversation_ai_timeout', 'conversation_ai_rate_limited', 'conversation_ai_provider_unavailable', 'prompt_architect_timeout', 'prompt_architect_rate_limited', 'prompt_architect_provider_unavailable', 'prompt_architect_invalid_response', 'build_specification_invalid', 'html_builder_timeout', 'html_builder_rate_limited', 'html_builder_provider_unavailable', 'html_builder_invalid_response', 'artifact_response_invalid', 'artifact_validation_failed']);
 function codedError(code) { return Object.assign(new Error(code), { code }); }
 
 function collectTaskJobs(selected, allJobs) {
