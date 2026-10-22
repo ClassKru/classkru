@@ -27,23 +27,44 @@ function classifyProviderFailure(error) {
     metadata?.message
   ].filter(value => typeof value === 'string');
   const message = candidates.join(' ').toLowerCase();
-  const category = /no endpoints|no matching providers?|no available providers?|provider.{0,20}unavailable/.test(message)
-    ? 'no_matching_provider'
-    : /response.?format|json.?schema|structured.?output|schema/.test(message)
-      ? 'structured_output'
-      : /reasoning/.test(message)
-        ? 'reasoning_parameter'
-        : /temperature|top_p|top_k/.test(message)
-          ? 'sampling_parameter'
-          : /max_tokens|max_completion_tokens|token limit/.test(message)
-            ? 'token_limit'
-            : /unsupported|unknown parameter|invalid parameter/.test(message)
-              ? 'unsupported_parameter'
-              : 'provider_rejected_request';
+  const knownFields = new Set([
+    'response_format', 'json_schema', 'strict', 'reasoning', 'reasoning.effort', 'temperature',
+    'max_tokens', 'max_completion_tokens', 'maxlength', 'minlength', 'pattern', 'format',
+    'minimum', 'maximum', 'minitems', 'maxitems', 'additionalproperties', 'anyof', 'oneof',
+    'enum', 'type', 'required', 'properties', 'items'
+  ]);
+  let field = null;
+  for (const candidate of candidates) {
+    const matches = [
+      candidate.match(/(?:unsupported|unknown|invalid|unrecognized)\\s+(?:parameter|keyword|field|property)\\s*[:=]?\\s*["'\x60]?([a-z0-9_.$-]{1,80})/i),
+      candidate.match(/["'\x60]([a-z0-9_.$-]{1,80})["'\x60]\\s+(?:is not permitted|is not supported|is unsupported|not allowed)/i)
+    ];
+    const value = matches.find(Boolean)?.[1]?.toLowerCase();
+    if (value && knownFields.has(value)) { field = value; break; }
+  }
+  const category = field?.startsWith('reasoning')
+    ? 'reasoning_parameter'
+    : field === 'temperature' || field === 'max_tokens' || field === 'max_completion_tokens'
+      ? field === 'temperature' ? 'sampling_parameter' : 'token_limit'
+      : field
+        ? 'structured_output'
+        : /no endpoints|no matching providers?|no available providers?|provider.{0,20}unavailable/.test(message)
+          ? 'no_matching_provider'
+          : /response.?format|json.?schema|structured.?output|schema/.test(message)
+            ? 'structured_output'
+            : /reasoning/.test(message)
+              ? 'reasoning_parameter'
+              : /temperature|top_p|top_k/.test(message)
+                ? 'sampling_parameter'
+                : /max_tokens|max_completion_tokens|token limit/.test(message)
+                  ? 'token_limit'
+                  : /unsupported|unknown parameter|invalid parameter/.test(message)
+                    ? 'unsupported_parameter'
+                    : 'provider_rejected_request';
   const provider = ['OpenAI', 'Amazon Bedrock', 'Azure'].includes(metadata?.provider_name) ? metadata.provider_name : null;
   const errorFields = ['code', 'type', 'param', 'message', 'metadata'].filter(field => Object.hasOwn(error || {}, field));
   const metadataFields = ['provider_name', 'raw', 'message', 'error_type', 'error_code', 'upstream_status'].filter(field => Object.hasOwn(metadata || {}, field));
-  return { category, error_fields: errorFields, metadata_fields: metadataFields, ...(provider ? { provider } : {}) };
+  return { category, ...(field ? { field } : {}), error_fields: errorFields, metadata_fields: metadataFields, ...(provider ? { provider } : {}) };
 }
 
 function createOpenRouterProvider({ fetchImpl = globalThis.fetch, logger = console } = {}) {
