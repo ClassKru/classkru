@@ -126,10 +126,10 @@ test('Prompt Architect can recover a JSON object wrapped in provider-added text 
   assert.equal(result.attempts[0].reason, 'parsed');
 });
 
-test('Prompt Architect logs only the safe upstream failure kind and HTTP status', async () => {
+test('Prompt Architect classifies provider errors without logging response text', async () => {
   const diagnostics = [];
   const provider = createOpenRouterProvider({
-    fetchImpl: async () => ({ ok: false, status: 400, json: async () => ({ error: { message: 'private response content', type: 'invalid_request_error', code: 'unsupported_value', param: 'reasoning.effort' } }) }),
+    fetchImpl: async () => ({ ok: false, status: 400, json: async () => ({ error: { message: 'Provider returned an error', code: 400, metadata: { provider_name: 'OpenAI', raw: 'Unsupported parameter: reasoning.effort' } } }) }),
     logger: { error: (...args) => diagnostics.push(args) }
   });
 
@@ -139,10 +139,13 @@ test('Prompt Architect logs only the safe upstream failure kind and HTTP status'
   );
   assert.deepEqual(diagnostics, [[
     '[interactive-v5 prompt architect] OpenRouter request failed',
-    { kind: 'http', status: 400, code: 'unsupported_value', type: 'invalid_request_error', param: 'reasoning.effort' }
+    {
+      kind: 'http', status: 400, category: 'reasoning_parameter',
+      error_fields: ['code', 'message', 'metadata'], metadata_fields: ['provider_name', 'raw'], provider: 'OpenAI'
+    }
   ]]);
   assert.equal(JSON.stringify(diagnostics).includes('private'), false);
-  assert.equal(JSON.stringify(diagnostics).includes('private response content'), false);
+  assert.equal(JSON.stringify(diagnostics).includes('Unsupported parameter'), false);
 });
 
 test('HTML Builder recovers a valid artifact from provider prose, code fences, and content parts', async () => {
