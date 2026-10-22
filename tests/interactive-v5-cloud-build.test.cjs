@@ -5,6 +5,8 @@ const assert = require('node:assert/strict');
 const { createCloudBuild, RETRYABLE } = require('../api/_lib/interactive-v5/cloud/cloud-build');
 const { createOpenRouterProvider } = require('../api/_lib/interactive-v5/prompt-architect-ai/openrouter-provider');
 const { createOpenRouterProvider: createHtmlBuilderProvider } = require('../api/_lib/interactive-v5/html-media-builder-ai/openrouter-provider');
+const { normalizeSpecification } = require('../api/_lib/interactive-v5/prompt-architect-ai/contracts');
+const { validateBuildSpecification } = require('../api/_lib/interactive-v5/html-media-builder-ai/contracts');
 const architectConfig = require('../api/_lib/interactive-v5/prompt-architect-ai/config');
 
 function createStore(initial) {
@@ -144,6 +146,26 @@ test('V5 marks recoverable Builder output failures as retryable jobs', () => {
   assert.equal(RETRYABLE.has('html_builder_invalid_response'), true);
   assert.equal(RETRYABLE.has('artifact_response_invalid'), true);
   assert.equal(RETRYABLE.has('artifact_validation_failed'), true);
+});
+
+test('V5 requires a concrete 3D scene brief before a Three.js build can start', () => {
+  const brief = { schema_version: '1.1', brief_id: 'brief-3d', revision: 1, media_intent: { type: null, type_requirement: 'open', interaction_preference: 'ai_decides' } };
+  const specification = {
+    schema_version: '1.1', brief_ref: { brief_id: 'brief-3d', revision: 1 },
+    media: { title: 'เรียงพยัญชนะไทย', format: 'single-page-html', presentation_type: 'game', rendering_strategy: 'html-css-three-js', presentation_strategy: 'บัตรพยัญชนะลอยในห้องเรียน', design_rationale: 'ให้เห็นลำดับผ่านตำแหน่งในฉาก' },
+    three_d_scene: { scene: 'ห้องเรียนที่มีบัตรพยัญชนะลอยตามลำดับ', learning_focus: 'ตำแหน่งซ้ายไปขวาช่วยให้เห็นลำดับ ก–ฮ', objects: ['บัตรพยัญชนะ', 'รางลำดับ'], camera: 'มุมมองด้านหน้าเห็นรางครบ', learner_action: 'เลือกบัตรตามลำดับ', fallback: 'รางบัตรพยัญชนะ 2D ที่เลือกและเรียงได้' },
+    learning_design: { intent: 'เรียงพยัญชนะไทย', objective_alignment: ['เรียง ก–ฮ ได้'], learner_experience: ['เลือกบัตร', 'ตรวจลำดับ'], academic_rules: ['ใช้ลำดับพยัญชนะไทย'] },
+    interaction: { requirement: 'required', primary_action: 'เลือกบัตร', media_response: 'บัตรเลื่อนไปยังราง', states: ['เริ่มต้น'], feedback_rules: ['บอกว่าลำดับถูกหรือผิด'] },
+    content: { key_concepts: ['พยัญชนะไทย'], teacher_review_required: [] },
+    ui: { components: ['ฉาก', 'ปุ่มเริ่มใหม่'], responsive_viewports: ['390x844'], accessibility_requirements: ['ควบคุมด้วยแป้นพิมพ์'] },
+    html_requirements: { single_page: true, document_structure: ['doctype'], max_html_characters: 30000 },
+    runtime_requirements: { network: 'deny', persistent_storage: 'deny', external_dependencies: 'deny', allowed_browser_apis: [] },
+    acceptance_criteria: ['เรียงบัตรได้']
+  };
+  const normalized = normalizeSpecification(specification, brief);
+  assert.equal(normalized.three_d_scene.scene, specification.three_d_scene.scene);
+  assert.equal(validateBuildSpecification(normalized).three_d_scene.fallback, specification.three_d_scene.fallback);
+  assert.throws(() => normalizeSpecification({ ...specification, three_d_scene: null }, brief), error => error.code === 'build_specification_invalid');
 });
 
 test('Prompt Architect identifies output truncation across its two formatting attempts', async () => {
