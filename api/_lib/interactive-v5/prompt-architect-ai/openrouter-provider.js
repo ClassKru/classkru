@@ -17,13 +17,20 @@ function createOpenRouterProvider({ fetchImpl = globalThis.fetch } = {}) {
       } catch (error) { throw Object.assign(codedError(error?.name === 'TimeoutError' || error?.name === 'AbortError' ? 'prompt_architect_timeout' : 'prompt_architect_provider_unavailable'), { attempts }); }
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw Object.assign(codedError(response.status === 429 ? 'prompt_architect_rate_limited' : 'prompt_architect_provider_unavailable'), { attempts });
-      const content = payload?.choices?.[0]?.message?.content;
+      const message = payload?.choices?.[0]?.message;
+      const content = message?.content;
       const finishReason = ['stop', 'length', 'content_filter', 'tool_calls', 'error'].includes(payload?.choices?.[0]?.finish_reason) ? payload.choices[0].finish_reason : 'unknown';
-      let reason = typeof content !== 'string' ? 'missing_content' : !content.trim() ? 'empty_content' : null;
-      let data;
-      if (!reason) {
-        const stripped = content.trim().replace(/^```(?:json)?\s*\n([\s\S]*?)\n```\s*$/i, '$1');
-        try { data = JSON.parse(stripped); } catch (_) { reason = 'invalid_json'; }
+      let data = message?.parsed && typeof message.parsed === 'object' && !Array.isArray(message.parsed) ? message.parsed : undefined;
+      let reason = data ? null : content === undefined || content === null ? 'missing_content' : null;
+      const textContent = typeof content === 'string'
+        ? content
+        : Array.isArray(content)
+          ? content.filter(part => part && typeof part.text === 'string').map(part => part.text).join('\n')
+          : '';
+      if (!data && !reason && !textContent.trim()) reason = typeof content === 'string' || Array.isArray(content) ? 'empty_content' : 'unsupported_content_type';
+      if (!data && !reason) {
+        data = parseJsonResponse(textContent);
+        if (data === undefined) reason = finishReason === 'length' ? 'truncated_output' : 'invalid_json';
       }
       attempts.push({ reason: reason || 'parsed', finish_reason: finishReason, usage: sanitizeUsage(payload?.usage) });
       if (!reason) return Object.freeze({ data, usage: payload?.usage || null, finishReason, attempts });
@@ -33,12 +40,41 @@ function createOpenRouterProvider({ fetchImpl = globalThis.fetch } = {}) {
   });
 }
 
+function parseJsonResponse(content) {
+  const text = content.trim();
+  const fenced = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const candidate = fenced ? fenced[1].trim() : text;
+  try { return JSON.parse(candidate); } catch (_) { /* Recover JSON wrapped in provider-added prose. */ }
+  const objectText = extractFirstJsonObject(candidate);
+  if (!objectText) return undefined;
+  try { return JSON.parse(objectText); } catch (_) { return undefined; }
+}
+
+function extractFirstJsonObject(text) {
+  for (let start = text.indexOf('{'); start !== -1; start = text.indexOf('{', start + 1)) {
+    let depth = 0, inString = false, escaped = false;
+    for (let index = start; index < text.length; index++) {
+      const character = text[index];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (character === '\\') escaped = true;
+        else if (character === '"') inString = false;
+        continue;
+      }
+      if (character === '"') inString = true;
+      else if (character === '{') depth++;
+      else if (character === '}' && --depth === 0) return text.slice(start, index + 1);
+    }
+  }
+  return null;
+}
+
 function sanitizeUsage(usage) {
   if (!usage || typeof usage !== 'object') return null;
   const number = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : null;
   return { input_tokens: number(usage.prompt_tokens ?? usage.input_tokens), output_tokens: number(usage.completion_tokens ?? usage.output_tokens), total_tokens: number(usage.total_tokens), cost: number(usage.cost) };
 }
 
-module.exports = { createOpenRouterProvider };
+module.exports = { createOpenRouterProvider, parseJsonResponse };
 
 
