@@ -36,8 +36,8 @@ function classifyProviderFailure(error) {
   let field = null;
   for (const candidate of candidates) {
     const matches = [
-      candidate.match(/(?:unsupported|unknown|invalid|unrecognized)\\s+(?:parameter|keyword|field|property)\\s*[:=]?\\s*["'\x60]?([a-z0-9_.$-]{1,80})/i),
-      candidate.match(/["'\x60]([a-z0-9_.$-]{1,80})["'\x60]\\s+(?:is not permitted|is not supported|is unsupported|not allowed)/i)
+      candidate.match(/(?:unsupported|unknown|invalid|unrecognized)\s+(?:parameter|keyword|field|property)\s*[:=]?\s*["'\x60]?([a-z0-9_.$-]{1,80})/i),
+      candidate.match(/["'\x60]([a-z0-9_.$-]{1,80})["'\x60]\s+(?:is not permitted|is not supported|is unsupported|not allowed)/i)
     ];
     const value = matches.find(Boolean)?.[1]?.toLowerCase();
     if (value && knownFields.has(value)) { field = value; break; }
