@@ -1,6 +1,7 @@
 'use strict';
 const {authenticatedUser} = require('../_lib/supabase-user');
 const {sendJson,requestOriginIsValid} = require('../_lib/http');
+const {isClassKruMediaDeveloper} = require('../_lib/classkru-developers');
 const db = require('../_lib/media-db');
 const service = require('../_lib/media-service');
 const legacyAi = require('../_lib/media-ai');
@@ -13,11 +14,6 @@ const configured = () => legacyAi.configured() || plannerAi.configured() || imag
 // Default to paused. Re-enable deliberately with MEDIA_STUDIO_ENABLED=true only
 // after the live AI, Storage, and access-control checks have been completed.
 const MEDIA_STUDIO_ENABLED = process.env.MEDIA_STUDIO_ENABLED === 'true';
-const MEDIA_STUDIO_DEVELOPER_EMAILS = new Set([
-  'petch.0231@gmail.com',
-  'supakit.radiation@gmail.com',
-  'classkru.dev@gmail.com'
-]);
 module.exports = async function handler(req,res) {
   if (req.query?.action === 'v2') return mediaLabV2(req,res);
   if (req.query?.action === 'v5') return mediaLabV5(req,res);
@@ -26,7 +22,7 @@ module.exports = async function handler(req,res) {
   try {
     const teacher = await authenticatedUser(req);
     if (!teacher.id) throw db.fail('authentication_required',401);
-    if (!MEDIA_STUDIO_DEVELOPER_EMAILS.has(String(teacher.email || '').trim().toLowerCase())) throw db.fail('developer_access_required',403);
+    if (!isClassKruMediaDeveloper(teacher.email)) throw db.fail('developer_access_required',403);
     if (!MEDIA_STUDIO_ENABLED) return sendJson(res,503,{error:'media_studio_paused'});
     let body = req.body || {};
     if (typeof body === 'string') { if (Buffer.byteLength(body)>32000) throw db.fail('body_too_large',413); try {body=JSON.parse(body);} catch (_) {throw db.fail('invalid_json');} }

@@ -25,10 +25,13 @@ test('V5 landing reset and saved-work controls do not remain locked by a stale t
   const clientScript = fs.readFileSync(path.join(__dirname, '..', 'v5.js'), 'utf8');
   const showHome = clientScript.slice(clientScript.indexOf('function showHome('), clientScript.indexOf('async function continueLast('));
   const library = clientScript.slice(clientScript.indexOf('async function refreshLibrary('), clientScript.indexOf('function openLibrary('));
+  const developerAccess = clientScript.slice(clientScript.indexOf('async function refreshDeveloperAccess('), clientScript.indexOf('function closeDeveloperDialogs('));
 
   assert.doesNotMatch(showHome, /dataset\.view === 'landing'\) \{ window\.scrollTo\(0, 0\); return; \}/);
   assert.match(showHome, /state\.conversation = null; state\.job = null; state\.previewJob = null;/);
   assert.match(showHome, /renderBrief\(null\); renderBuildStatus\(null\);/);
+  assert.match(developerAccess, /api\('\/api\/local\/v5\/developer-access'\)/);
+  assert.doesNotMatch(developerAccess, /api\/dev\/auth/);
   assert.doesNotMatch(library, /edit\.addEventListener\('click', async \(\) => \{\s*if \(state\.busy\) return;/);
   assert.match(library, /edit\.textContent = 'กำลังเปิด…';/);
   assert.match(library, /#library-status'\)\.textContent = `\$\{isConversationOnly/);
@@ -60,6 +63,66 @@ test('V5 status requires an authenticated, same-origin request and reports serve
     conversation_configured: true, architect_configured: true, builder_configured: true,
     ai_configured: true, database_ready: true, storage_ready: true, ready: true
   });
+});
+
+test('V5 reports developer controls from the authenticated ClassKru developer account', async () => {
+  const handler = createInteractiveV5Handler({
+    env: { INTERACTIVE_V5_WEB_ENABLED: 'true' },
+    authenticate: async () => ({ id: 'developer-id', email: 'CLASSKRU.DEV@GMAIL.COM' }),
+    originIsValid: () => true,
+    storageIsReady: async () => false,
+    servicesForTeacher: async () => { throw new Error('developer-access check must not depend on Storage'); }
+  });
+  const res = response();
+  await handler(request('developer-access'), res);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.payload, { developer: true });
+  assert.equal(res.headers['cache-control'], 'no-store, private');
+});
+
+test('V5 developer access endpoint does not expose controls to ordinary accounts', async () => {
+  const handler = createInteractiveV5Handler({
+    env: { INTERACTIVE_V5_WEB_ENABLED: 'true' },
+    authenticate: async () => ({ id: 'teacher-id', email: 'teacher@example.com' }),
+    originIsValid: () => true
+  });
+  const res = response();
+  await handler(request('developer-access'), res);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.payload, { developer: false });
+});
+
+test('V5 settings APIs reject ordinary accounts before loading settings', async () => {
+  let servicesCreated = false;
+  const handler = createInteractiveV5Handler({
+    env: { INTERACTIVE_V5_WEB_ENABLED: 'true' },
+    authenticate: async () => ({ id: 'teacher-id', email: 'teacher@example.com' }),
+    originIsValid: () => true,
+    storageIsReady: async () => true,
+    servicesForTeacher: async () => { servicesCreated = true; throw new Error('ordinary account must be rejected first'); }
+  });
+  const res = response();
+  await handler(request('model-settings'), res);
+  assert.equal(res.statusCode, 403);
+  assert.deepEqual(res.payload, { error: 'developer_access_required' });
+  assert.equal(res.headers['cache-control'], 'no-store, private');
+  assert.equal(servicesCreated, false);
+});
+
+test('V5 settings APIs allow the configured developer account', async () => {
+  const models = { conversation: 'conversation-model', architect: 'architect-model', builder: 'builder-model' };
+  const defaults = { conversation: 'default-conversation', architect: 'default-architect', builder: 'default-builder' };
+  const handler = createInteractiveV5Handler({
+    env: { INTERACTIVE_V5_WEB_ENABLED: 'true' },
+    authenticate: async () => ({ id: 'developer-id', email: 'classkru.dev@gmail.com' }),
+    originIsValid: () => true,
+    storageIsReady: async () => true,
+    servicesForTeacher: async () => ({ settings: { getModels: async () => models, defaults: () => defaults } })
+  });
+  const res = response();
+  await handler(request('model-settings'), res);
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual(res.payload, { models, default_models: defaults });
 });
 
 test('V5 gateway rejects an invalid origin before accessing account data', async () => {
@@ -112,7 +175,7 @@ test('V5 blocks non-status API requests when async Storage readiness is false', 
   let servicesCreated = false;
   const handler = createInteractiveV5Handler({
     env: { INTERACTIVE_V5_WEB_ENABLED: 'true' },
-    authenticate: async () => ({ id: 'teacher-id' }),
+    authenticate: async () => ({ id: 'teacher-id', email: 'classkru.dev@gmail.com' }),
     originIsValid: () => true,
     storageIsReady: async () => false,
     servicesForTeacher: async () => { servicesCreated = true; throw new Error('services must not be created'); }

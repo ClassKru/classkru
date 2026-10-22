@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const pathModule = require('node:path');
 const { authenticatedUser } = require('../supabase-user');
-const { verifySession: verifyDeveloperSession } = require('../dev-auth');
+const { isClassKruMediaDeveloper } = require('../classkru-developers');
 const { requestOriginIsValid, sendJson } = require('../http');
 const db = require('../supabase-admin');
 const storage = require('../media-db');
@@ -183,12 +183,17 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
       if (req.method === 'GET' && parts.length === 1 && parts[0] === 'cards') {
         return respond(res, 200, { cards: cards.map(({ id, group, title, description }) => ({ id, group, title, description })) });
       }
-      if (!await storageIsReady()) return respond(res, 503, { error: 'storage_not_configured' });
-
+      const isDeveloperAccount = isClassKruMediaDeveloper(user.email);
+      if (req.method === 'GET' && parts.length === 1 && parts[0] === 'developer-access') {
+        res.setHeader('Cache-Control', 'private, no-store');
+        return respond(res, 200, { developer: isDeveloperAccount });
+      }
       const developerOnlyRoute = parts.length === 1 && ['models', 'model-settings', 'brief-versions'].includes(parts[0]);
-      if (developerOnlyRoute && !verifyDeveloperSession(req).ok) {
+      if (developerOnlyRoute) res.setHeader('Cache-Control', 'private, no-store');
+      if (developerOnlyRoute && !isDeveloperAccount) {
         return respond(res, 403, { error: 'developer_access_required' });
       }
+      if (!await storageIsReady()) return respond(res, 503, { error: 'storage_not_configured' });
 
       const services = await servicesForTeacher(user.id, env);
       if (req.method === 'GET' && parts.length === 1 && parts[0] === 'models') {

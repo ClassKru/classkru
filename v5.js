@@ -122,9 +122,8 @@ function setDeveloperControls(enabled) {
 
 async function refreshDeveloperAccess() {
   try {
-    const response = await fetch('/api/dev/auth?action=session', { credentials: 'same-origin', cache: 'no-store' });
-    const result = await response.json().catch(() => ({}));
-    setDeveloperControls(response.ok && result.authenticated === true);
+    const result = await api('/api/local/v5/developer-access');
+    setDeveloperControls(result.developer === true);
   } catch (_) {
     setDeveloperControls(false);
   }
