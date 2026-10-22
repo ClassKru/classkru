@@ -129,7 +129,7 @@ test('Prompt Architect can recover a JSON object wrapped in provider-added text 
 test('Prompt Architect logs only the safe upstream failure kind and HTTP status', async () => {
   const diagnostics = [];
   const provider = createOpenRouterProvider({
-    fetchImpl: async () => ({ ok: false, status: 401, json: async () => ({ error: { message: 'do not log provider response' } }) }),
+    fetchImpl: async () => ({ ok: false, status: 400, json: async () => ({ error: { message: 'private response content', type: 'invalid_request_error', code: 'unsupported_value', param: 'reasoning.effort' } }) }),
     logger: { error: (...args) => diagnostics.push(args) }
   });
 
@@ -139,10 +139,10 @@ test('Prompt Architect logs only the safe upstream failure kind and HTTP status'
   );
   assert.deepEqual(diagnostics, [[
     '[interactive-v5 prompt architect] OpenRouter request failed',
-    { kind: 'http', status: 401 }
+    { kind: 'http', status: 400, code: 'unsupported_value', type: 'invalid_request_error', param: 'reasoning.effort' }
   ]]);
   assert.equal(JSON.stringify(diagnostics).includes('private'), false);
-  assert.equal(JSON.stringify(diagnostics).includes('do not log'), false);
+  assert.equal(JSON.stringify(diagnostics).includes('private response content'), false);
 });
 
 test('HTML Builder recovers a valid artifact from provider prose, code fences, and content parts', async () => {
