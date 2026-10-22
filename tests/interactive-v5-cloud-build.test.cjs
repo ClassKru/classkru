@@ -2,8 +2,9 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createCloudBuild } = require('../api/_lib/interactive-v5/cloud/cloud-build');
+const { createCloudBuild, RETRYABLE } = require('../api/_lib/interactive-v5/cloud/cloud-build');
 const { createOpenRouterProvider } = require('../api/_lib/interactive-v5/prompt-architect-ai/openrouter-provider');
+const { createOpenRouterProvider: createHtmlBuilderProvider } = require('../api/_lib/interactive-v5/html-media-builder-ai/openrouter-provider');
 const architectConfig = require('../api/_lib/interactive-v5/prompt-architect-ai/config');
 
 function createStore(initial) {
@@ -121,6 +122,28 @@ test('Prompt Architect can recover a JSON object wrapped in provider-added text 
   const result = await provider.respond({ config: { apiKey: 'test-key', modelId: 'test/model', timeoutMs: 1000, maxTokens: 100 }, request: { systemPrompt: '', messages: [] } });
   assert.deepEqual(result.data, { title: 'curly } brace', nested: { ok: true } });
   assert.equal(result.attempts[0].reason, 'parsed');
+});
+
+test('HTML Builder recovers a valid artifact from provider prose, code fences, and content parts', async () => {
+  const artifact = { title: 'เกมพยัญชนะ', summary: 'ฝึกจับคู่', html: '<!doctype html><html lang="th"><head><title>เกม</title></head><body>พร้อม</body></html>' };
+  let calls = 0;
+  const provider = createHtmlBuilderProvider({ fetchImpl: async () => {
+    calls++;
+    return ({
+    ok: true,
+    status: 200,
+    json: async () => ({ choices: [{ finish_reason: 'stop', message: { content: [{ type: 'text', text: `ผลลัพธ์\n\`\`\`json\n${JSON.stringify(artifact)}\n\`\`\`` }] } }], usage: { total_tokens: 123 } })
+    });
+  } });
+  const result = await provider.respond({ config: { apiKey: 'test-key', modelId: 'test/model', timeoutMs: 1000, maxTokens: 100 }, request: { systemPrompt: '', messages: [] } });
+  assert.deepEqual(result.data, artifact);
+  assert.equal(calls, 1);
+});
+
+test('V5 marks recoverable Builder output failures as retryable jobs', () => {
+  assert.equal(RETRYABLE.has('html_builder_invalid_response'), true);
+  assert.equal(RETRYABLE.has('artifact_response_invalid'), true);
+  assert.equal(RETRYABLE.has('artifact_validation_failed'), true);
 });
 
 test('Prompt Architect identifies output truncation across its two formatting attempts', async () => {
