@@ -6,6 +6,12 @@ function logProviderFailure(logger, diagnostic) {
   try { logger?.error?.('[interactive-v5 prompt architect] OpenRouter request failed', diagnostic); } catch (_) {}
 }
 
+function safeProviderField(value) {
+  if (Number.isInteger(value) && value >= 0 && value <= 999) return value;
+  if (typeof value === 'string' && /^[a-z0-9_.-]{1,80}$/i.test(value)) return value;
+  return null;
+}
+
 function createOpenRouterProvider({ fetchImpl = globalThis.fetch, logger = console } = {}) {
   return Object.freeze({
     async respond({ config, request }) {
@@ -26,7 +32,12 @@ function createOpenRouterProvider({ fetchImpl = globalThis.fetch, logger = conso
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
         const status = Number.isInteger(response.status) && response.status >= 100 && response.status <= 599 ? response.status : null;
-        logProviderFailure(logger, { kind: 'http', status });
+        const diagnostic = { kind: 'http', status };
+        for (const field of ['code', 'type', 'param']) {
+          const value = safeProviderField(payload?.error?.[field]);
+          if (value !== null && value !== status) diagnostic[field] = value;
+        }
+        logProviderFailure(logger, diagnostic);
         throw Object.assign(codedError(response.status === 429 ? 'prompt_architect_rate_limited' : 'prompt_architect_provider_unavailable'), { attempts });
       }
       const message = payload?.choices?.[0]?.message;
