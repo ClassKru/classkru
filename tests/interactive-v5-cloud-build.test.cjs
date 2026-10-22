@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { createCloudBuild } = require('../api/_lib/interactive-v5/cloud/cloud-build');
 const { createOpenRouterProvider } = require('../api/_lib/interactive-v5/prompt-architect-ai/openrouter-provider');
+const architectConfig = require('../api/_lib/interactive-v5/prompt-architect-ai/config');
 
 function createStore(initial) {
   const rows = new Map([[initial.id, { ...initial, revision: 0 }]]);
@@ -109,3 +110,30 @@ test('Prompt Architect identifies output truncation across its two formatting at
     error => error.code === 'prompt_architect_invalid_response' && error.attempts.length === 2 && error.attempts.every(attempt => attempt.reason === 'truncated_output' && attempt.finish_reason === 'length')
   );
 });
+
+test('Prompt Architect disables GPT-6 reasoning by default so the structured answer is not consumed by hidden reasoning', async () => {
+  assert.equal(architectConfig.fromEnvironment({}).reasoningEffort, 'none');
+  assert.equal(architectConfig.fromEnvironment({ ARCHITECT_MODEL_ID: 'google/gemini-2.5-flash' }).reasoningEffort, null);
+  assert.equal(architectConfig.fromEnvironment({ ARCHITECT_REASONING_EFFORT: 'low' }).reasoningEffort, 'low');
+
+  let requestBody;
+  const provider = createOpenRouterProvider({ fetchImpl: async (_url, request) => {
+    requestBody = JSON.parse(request.body);
+    return { ok: true, status: 200, json: async () => ({ choices: [{ finish_reason: 'stop', message: { content: '{"ok":true}' } }], usage: {} }) };
+  } });
+  await provider.respond({ config: { apiKey: 'test-key', modelId: 'openai/gpt-6-luna', reasoningEffort: 'none', timeoutMs: 1000, maxTokens: 100 }, request: { systemPrompt: '', messages: [] } });
+  assert.deepEqual(requestBody.reasoning, { effort: 'none' });
+});
+
+test('Prompt Architect classifies a missing response after token exhaustion as truncated output', async () => {
+  const provider = createOpenRouterProvider({ fetchImpl: async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ choices: [{ finish_reason: 'length', message: { content: null } }], usage: {} })
+  }) });
+  await assert.rejects(
+    provider.respond({ config: { apiKey: 'test-key', modelId: 'test/model', timeoutMs: 1000, maxTokens: 100 }, request: { systemPrompt: '', messages: [] } }),
+    error => error.code === 'prompt_architect_invalid_response' && error.attempts.every(attempt => attempt.reason === 'truncated_output')
+  );
+});
+

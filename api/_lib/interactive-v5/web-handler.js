@@ -82,6 +82,9 @@ function providerForRole(provider, role, modelId, env) {
     if (role === 'conversation') {
       selectedConfig.reasoningEffort = conversationConfig.fromEnvironment({ ...env, CONVERSATION_MODEL_ID: modelId }).reasoningEffort;
     }
+    if (role === 'architect') {
+      selectedConfig.reasoningEffort = architectConfig.fromEnvironment({ ...env, ARCHITECT_MODEL_ID: modelId }).reasoningEffort;
+    }
     return provider.respond({ ...input, config: selectedConfig });
   } });
 }
@@ -249,3 +252,4 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
 const defaultHandler = createInteractiveV5Handler();
 module.exports = defaultHandler;
 module.exports.createInteractiveV5Handler = createInteractiveV5Handler;
+
