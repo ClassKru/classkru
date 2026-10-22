@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const { createCloudBuild, RETRYABLE } = require('../api/_lib/interactive-v5/cloud/cloud-build');
 const { createOpenRouterProvider } = require('../api/_lib/interactive-v5/prompt-architect-ai/openrouter-provider');
 const { createOpenRouterProvider: createHtmlBuilderProvider } = require('../api/_lib/interactive-v5/html-media-builder-ai/openrouter-provider');
-const { normalizeSpecification } = require('../api/_lib/interactive-v5/prompt-architect-ai/contracts');
+const { buildSpecificationSchema, normalizeSpecification } = require('../api/_lib/interactive-v5/prompt-architect-ai/contracts');
 const { validateBuildSpecification } = require('../api/_lib/interactive-v5/html-media-builder-ai/contracts');
 const architectConfig = require('../api/_lib/interactive-v5/prompt-architect-ai/config');
 
@@ -26,6 +26,23 @@ function createStore(initial) {
     async delete(id, revision) { const row = rows.get(id); if (!row || row.revision !== revision) throw new Error('conflict'); rows.delete(id); return true; }
   };
 }
+
+test('Prompt Architect strict schema marks every object property as required', () => {
+  const visit = (schema, path = 'root') => {
+    if (!schema || typeof schema !== 'object') return;
+    if (schema.properties) {
+      assert.deepEqual(
+        [...schema.required].sort(),
+        Object.keys(schema.properties).sort(),
+        `all properties must be required for strict output at ${path}`
+      );
+      for (const [name, child] of Object.entries(schema.properties)) visit(child, `${path}.${name}`);
+    }
+    if (schema.items) visit(schema.items, `${path}[]`);
+  };
+  visit(buildSpecificationSchema);
+  assert.deepEqual(buildSpecificationSchema.properties.three_d_scene.type, ['object', 'null']);
+});
 
 test('V5 cloud build exposes a process operation and persists a successful artifact', async () => {
   const conversation = { id: 'conversation-1', status: 'draft', draft: {} };

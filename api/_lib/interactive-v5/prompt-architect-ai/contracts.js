@@ -8,7 +8,7 @@ const RENDERING_STRATEGIES = new Set(['html-css-js', 'html-css-svg-js', 'html-cs
 
 const buildSpecificationSchema = Object.freeze({
   type: 'object', additionalProperties: false,
-  required: ['schema_version', 'brief_ref', 'media', 'learning_design', 'interaction', 'content', 'ui', 'html_requirements', 'runtime_requirements', 'acceptance_criteria'],
+  required: ['schema_version', 'brief_ref', 'media', 'three_d_scene', 'learning_design', 'interaction', 'content', 'ui', 'html_requirements', 'runtime_requirements', 'acceptance_criteria'],
   properties: {
     schema_version: { type: 'string', enum: [CONTRACT_VERSION] },
     brief_ref: { type: 'object', additionalProperties: false, required: ['brief_id', 'revision'], properties: { brief_id: { type: 'string' }, revision: { type: 'integer' } } },
@@ -113,5 +113,6 @@ function normalizeSpecification(value, brief) {
 }
 
 module.exports = { CONTRACT_VERSION, LEGACY_CONTRACT_VERSION, MEDIA_TYPES, INTERACTION_REQUIREMENTS, RENDERING_STRATEGIES, buildSpecificationSchema, validateConfirmedBrief, normalizeSpecification, codedError };
+
 
 
