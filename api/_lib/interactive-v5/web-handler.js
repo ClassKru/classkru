@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const pathModule = require('node:path');
 const { authenticatedUser } = require('../supabase-user');
+const { verifySession: verifyDeveloperSession } = require('../dev-auth');
 const { requestOriginIsValid, sendJson } = require('../http');
 const db = require('../supabase-admin');
 const storage = require('../media-db');
@@ -183,6 +184,11 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
         return respond(res, 200, { cards: cards.map(({ id, group, title, description }) => ({ id, group, title, description })) });
       }
       if (!await storageIsReady()) return respond(res, 503, { error: 'storage_not_configured' });
+
+      const developerOnlyRoute = parts.length === 1 && ['models', 'model-settings', 'brief-versions'].includes(parts[0]);
+      if (developerOnlyRoute && !verifyDeveloperSession(req).ok) {
+        return respond(res, 403, { error: 'developer_access_required' });
+      }
 
       const services = await servicesForTeacher(user.id, env);
       if (req.method === 'GET' && parts.length === 1 && parts[0] === 'models') {

@@ -8,7 +8,7 @@ const MEDIA_MODE_KEY_BASE = 'classkru.interactive-v5.mediaMode';
 let CONVERSATION_KEY = CONVERSATION_KEY_BASE;
 let JOB_KEY = JOB_KEY_BASE;
 let MEDIA_MODE_KEY = MEDIA_MODE_KEY_BASE;
-const state = { conversation: null, job: null, previewJob: null, busy: false };
+const state = { conversation: null, job: null, previewJob: null, busy: false, isDeveloper: false };
 let defaultModels = null;
 let savedModels = null;
 let modelCatalog = [];
@@ -31,9 +31,11 @@ function setAccountStorageKeys(userId) {
 
 function clearAccountView() {
   serviceReady = false;
+  setDeveloperControls(false);
   state.conversation = null; state.job = null; state.previewJob = null; state.busy = false; pendingStart = null; savedDraft = '';
   $('#chat-log').replaceChildren();
   $('#message-input').value = '';
+  resizeMessageInput();
   $('#task-usage-panel').hidden = true;
   $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true;
   $('#runtime-link').removeAttribute('href'); $('#runtime-link').hidden = true;
@@ -94,6 +96,15 @@ function updateMessageCount() {
   $('#message-count').textContent = `${input.value.length.toLocaleString('en-US')}/${input.maxLength.toLocaleString('en-US')}`;
 }
 
+function resizeMessageInput() {
+  const input = $('#message-input');
+  input.style.height = 'auto';
+  const maxHeight = Number.parseFloat(getComputedStyle(input).maxHeight);
+  const height = Math.min(input.scrollHeight, Number.isFinite(maxHeight) ? maxHeight : 320);
+  input.style.height = `${height}px`;
+  input.style.overflowY = input.scrollHeight > height ? 'auto' : 'hidden';
+}
+
 async function api(path, options = {}) {
   const { data:{ session } } = await getAuthClient().auth.getSession();
   if (!session?.access_token) throw Object.assign(new Error('authentication_required'), { code:'authentication_required' });
@@ -101,6 +112,36 @@ async function api(path, options = {}) {
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw Object.assign(new Error(payload.error || 'local_request_failed'), { code: payload.error || 'local_request_failed', payload, status: response.status });
   return payload;
+}
+
+function setDeveloperControls(enabled) {
+  state.isDeveloper = enabled === true;
+  $('#model-settings-open').hidden = !state.isDeveloper;
+  $('#brief-versions-open').hidden = !state.isDeveloper;
+}
+
+async function refreshDeveloperAccess() {
+  try {
+    const response = await fetch('/api/dev/auth?action=session', { credentials: 'same-origin', cache: 'no-store' });
+    const result = await response.json().catch(() => ({}));
+    setDeveloperControls(response.ok && result.authenticated === true);
+  } catch (_) {
+    setDeveloperControls(false);
+  }
+  return state.isDeveloper;
+}
+
+function closeDeveloperDialogs() {
+  $('#model-settings-dialog').hidden = true;
+  $('#brief-versions-dialog').hidden = true;
+  $('.app-shell').inert = false;
+}
+
+function handleDeveloperAccessFailure(error) {
+  if (error?.status === 401 || error?.status === 403) {
+    setDeveloperControls(false);
+    closeDeveloperDialogs();
+  }
 }
 
 function fillModelSettings(models) {
@@ -122,7 +163,8 @@ async function loadModelCatalog(refresh = false) {
     modelCatalog = result.models;
     fillModelSettings(selection);
     $('#model-catalog-status').textContent = `โหลดรายชื่อ ${modelCatalog.length} โมเดลแล้ว · ตรวจสอบสิทธิ์ ราคา และความเข้ากันได้ก่อนใช้`;
-  } catch (_) {
+  } catch (error) {
+    handleDeveloperAccessFailure(error);
     $('#model-catalog-status').textContent = 'โหลดรายชื่อจาก OpenRouter ไม่สำเร็จ ยังเลือกค่าที่บันทึกหรือค่าเริ่มต้นได้ กรุณาตรวจอินเทอร์เน็ตแล้วลองโหลดใหม่';
   } finally { $('#model-catalog-refresh').disabled = false; }
 }
@@ -132,6 +174,7 @@ function closeModelSettings() {
   $('#model-settings-open').focus();
 }
 $('#model-settings-open').addEventListener('click', async () => {
+  if (!await refreshDeveloperAccess()) return;
   $('#model-settings-dialog').hidden = false;
   $('.app-shell').inert = true;
   $('#model-settings-form').focus();
@@ -145,7 +188,7 @@ $('#model-settings-open').addEventListener('click', async () => {
     $('#model-settings-status').textContent = result.mode === 'mock' ? 'โหมด Mock ใช้ข้อมูลจำลอง โมเดลที่เลือกจะใช้เมื่อเปิดโหมด OpenRouter การเปลี่ยนค่ามีผลกับการเรียก AI ครั้งถัดไป' : 'การเปลี่ยนค่ามีผลกับการเรียก AI ครั้งถัดไป งานที่กำลังทำอยู่อาจใช้ค่าต่างกันในแต่ละขั้นตอน';
     $('#model-settings-save').disabled = false;
     void loadModelCatalog();
-  } catch (_) { $('#model-settings-status').textContent = 'โหลดการตั้งค่าไม่สำเร็จ กรุณาลองเปิดอีกครั้ง'; }
+  } catch (error) { handleDeveloperAccessFailure(error); $('#model-settings-status').textContent = 'โหลดการตั้งค่าไม่สำเร็จ กรุณาลองเปิดอีกครั้ง'; }
 });
 $('#model-settings-close').addEventListener('click', closeModelSettings);
 $('#model-settings-dialog').addEventListener('click', event => { if (event.target === event.currentTarget) closeModelSettings(); });
@@ -161,6 +204,7 @@ $('#model-settings-form').addEventListener('submit', async event => {
     savedModels = models;
     $('#model-settings-status').textContent = 'บันทึกแล้ว ใช้กับการเรียก AI ครั้งถัดไป';
   } catch (error) {
+    handleDeveloperAccessFailure(error);
     $('#model-settings-status').textContent = error.code === 'invalid_model_settings' ? 'กรุณาเลือกโมเดลให้ครบทุกส่วน' : 'บันทึกไม่สำเร็จ กรุณาลองอีกครั้ง';
   } finally { $('#model-settings-save').disabled = false; }
 });
@@ -171,6 +215,7 @@ function closeBriefVersions() {
   $('#brief-versions-open').focus();
 }
 $('#brief-versions-open').addEventListener('click', async () => {
+  if (!await refreshDeveloperAccess()) return;
   $('#brief-versions-dialog').hidden = false;
   $('.app-shell').inert = true;
   $('#brief-versions-form').focus();
@@ -182,7 +227,7 @@ $('#brief-versions-open').addEventListener('click', async () => {
     $('#brief-version-select').value = result.selected;
     $('#brief-versions-status').textContent = result.missing ? 'ชุดที่เคยเลือกไม่พร้อมใช้งาน กรุณาเลือกชุดใหม่' : 'เลือกชุดแล้วกดบันทึก';
     $('#brief-versions-save').disabled = false;
-  } catch (_) { $('#brief-versions-status').textContent = 'โหลดชุดบรีฟไม่สำเร็จ'; }
+  } catch (error) { handleDeveloperAccessFailure(error); $('#brief-versions-status').textContent = 'โหลดชุดบรีฟไม่สำเร็จ'; }
 });
 $('#brief-versions-close').addEventListener('click', closeBriefVersions);
 $('#brief-versions-dialog').addEventListener('click', event => { if (event.target === event.currentTarget) closeBriefVersions(); });
@@ -193,7 +238,7 @@ $('#brief-versions-form').addEventListener('submit', async event => {
   try {
     await api('/api/local/v5/brief-versions', { method:'POST', body:JSON.stringify({ version:$('#brief-version-select').value }) });
     $('#brief-versions-status').textContent = 'บันทึกแล้ว ใช้กับการเรียก AI ครั้งถัดไป';
-  } catch (_) { $('#brief-versions-status').textContent = 'บันทึกไม่สำเร็จ ตรวจสอบว่าชุดบรีฟมีไฟล์ครบแล้วลองอีกครั้ง'; }
+  } catch (error) { handleDeveloperAccessFailure(error); $('#brief-versions-status').textContent = 'บันทึกไม่สำเร็จ ตรวจสอบว่าชุดบรีฟมีไฟล์ครบแล้วลองอีกครั้ง'; }
   finally { $('#brief-versions-save').disabled = false; }
 });
 
@@ -228,6 +273,38 @@ function setBusy(busy, status = '') {
   document.querySelectorAll('.idea-card, .idea-guide-card, #card-directions select, #media-mode-picker input, #retry-conversation').forEach(element => { element.disabled = busy; });
   $('#status-text').textContent = status || (busy ? 'กำลังทำงาน…' : 'พิมพ์สั้น ๆ ได้เลย แล้วค่อยช่วยกันคิดต่อ');
 }
+
+const generationMessages = {
+  create: {
+    title: 'กำลังสร้างสื่อของคุณ',
+    description: 'กำลังเปลี่ยนบทสนทนาให้เป็นสื่อการเรียนรู้ที่ทดลองได้'
+  },
+  revise: {
+    title: 'กำลังปรับปรุงสื่อของคุณ',
+    description: 'กำลังนำคำแนะนำไปปรับสื่อ โดยเก็บฉบับเดิมไว้ระหว่างทำ'
+  },
+  retry: {
+    title: 'กำลังทำสื่อของคุณต่อ',
+    description: 'กำลังดำเนินงานเดิมต่อจากข้อมูลที่บันทึกไว้'
+  }
+};
+
+function showGenerationDialog(action = 'create') {
+  const dialog = $('#generation-dialog');
+  const message = generationMessages[action] || generationMessages.create;
+  $('#generation-title').textContent = message.title;
+  $('#generation-description').textContent = message.description;
+  dialog.setAttribute('aria-busy', 'true');
+  if (!dialog.open) dialog.showModal();
+}
+
+function hideGenerationDialog() {
+  const dialog = $('#generation-dialog');
+  dialog.setAttribute('aria-busy', 'false');
+  if (dialog.open) dialog.close();
+}
+
+$('#generation-dialog').addEventListener('cancel', event => event.preventDefault());
 
 function friendlyJobFailure(code) {
   if (code === 'revision_source_superseded') return 'มีสื่อฉบับใหม่กว่าแล้ว กรุณาเปิดฉบับล่าสุดจากผลงานของฉันก่อนปรับปรุง';
@@ -264,7 +341,7 @@ function addMessage(role, content, { pending = false, suggestions = [] } = {}) {
     const choices = document.createElement('div'); choices.className = 'suggested-actions';
     for (const suggestion of suggestions.slice(0, 3)) {
       const button = document.createElement('button'); button.type = 'button'; button.className = 'suggested-action'; button.textContent = suggestion;
-      button.addEventListener('click', () => { $('#message-input').value = suggestion; $('#chat-form').requestSubmit(); });
+      button.addEventListener('click', () => { $('#message-input').value = suggestion; resizeMessageInput(); $('#chat-form').requestSubmit(); });
       choices.append(button);
     }
     node.append(choices);
@@ -408,7 +485,6 @@ function renderPreview(job) {
   if (!job?.artifact_id || job.state !== 'succeeded') return;
   state.previewJob = job;
   $('#result-title').textContent = 'สื่อของคุณพร้อมให้ทดลองแล้ว';
-  $('#result-summary').textContent = `Artifact ${job.artifact_id}`;
   const frame = $('#preview-frame');
   frame.removeAttribute('src'); frame.hidden = true;
   $('#runtime-link').hidden = true;
@@ -418,7 +494,7 @@ function renderPreview(job) {
     if (state.previewJob?.id !== job.id || typeof preview_url !== 'string') return;
     frame.src = preview_url; frame.hidden = false;
     $('#runtime-link').href = preview_url; $('#runtime-link').hidden = false;
-    $('#result-summary').textContent = `Artifact ${job.artifact_id}`;
+    $('#result-summary').textContent = 'ตัวอย่างพร้อมแล้ว';
   }).catch(error => {
     if (state.previewJob?.id !== job.id) return;
     $('#result-summary').textContent = `เปิดตัวอย่างไม่สำเร็จ (${error.code || 'preview_unavailable'})`;
@@ -430,23 +506,44 @@ async function refreshLibrary() {
   try {
     const { items } = await api('/api/local/v5/library');
     list.replaceChildren();
-    if (!items.length) { list.textContent = 'ยังไม่มีสื่อที่บันทึกไว้'; return; }
+    if (!items.length) { list.textContent = 'ยังไม่มีบทสนทนาหรือสื่อที่บันทึกไว้'; return; }
     for (const item of items) {
       const row = document.createElement('div'); row.className = 'library-item';
       const info = document.createElement('div'); const title = document.createElement('strong'); title.textContent = item.title;
-      const details = document.createElement('small'); details.textContent = `${item.parent_job_id ? 'ฉบับล่าสุด' : 'ฉบับแรก'} · ${new Date(item.created_at).toLocaleString('th-TH')}`;
+      const isConversationOnly = item.type === 'conversation';
+      const details = document.createElement('small');
+      const createdAt = item.created_at ? new Date(item.created_at).toLocaleString('th-TH') : '';
+      details.textContent = isConversationOnly
+        ? `ยังไม่สร้างสื่อ${createdAt ? ` · ${createdAt}` : ''}`
+        : `${item.parent_job_id ? 'ฉบับล่าสุด' : 'ฉบับแรก'}${createdAt ? ` · ${createdAt}` : ''}`;
       info.append(title, details);
       const actions = document.createElement('div'); actions.className = 'library-actions';
-      const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = 'แก้ไข';
+      const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = isConversationOnly ? 'เปิดบทสนทนา' : 'แก้ไข';
       edit.addEventListener('click', async () => {
         if (state.busy) return;
         try {
-          const { job } = await api(`/api/local/v5/jobs/${encodeURIComponent(item.id)}`);
+          const conversationId = item.conversation_id;
+          let job = null;
           let conversation = null;
-          if (job.conversation_id) {
-            ({ conversation } = await api(`/api/local/v5/conversations/${encodeURIComponent(job.conversation_id)}`));
+          if (isConversationOnly) {
+            ({ conversation } = await api(`/api/local/v5/conversations/${encodeURIComponent(conversationId)}`));
+          } else {
+            ({ job } = await api(`/api/local/v5/jobs/${encodeURIComponent(item.job_id || item.id)}`));
+            if (job.conversation_id) {
+              ({ conversation } = await api(`/api/local/v5/conversations/${encodeURIComponent(job.conversation_id)}`));
+            }
           }
-          state.job = job; localStorage.setItem(JOB_KEY, job.id);
+          state.job = job;
+          state.previewJob = null;
+          if (job) localStorage.setItem(JOB_KEY, job.id);
+          else localStorage.removeItem(JOB_KEY);
+          $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true;
+          $('#runtime-link').removeAttribute('href'); $('#runtime-link').hidden = true;
+          $('#result-panel').hidden = true;
+          renderBuildStatus(job);
+          savedDraft = '';
+          $('#message-input').value = ''; resizeMessageInput();
+          $('#revision-instruction').value = ''; $('#revision-status').textContent = '';
           if (conversation) renderConversation(conversation);
           else {
             state.conversation = null;
@@ -455,63 +552,75 @@ async function refreshLibrary() {
             $('#task-usage-panel').hidden = true;
             renderBrief(null);
           }
-          $('.app-shell').dataset.view = 'session'; closeLibrary(); renderBuildStatus(job); renderPreview(job); $('#result-panel').scrollIntoView({ behavior: 'smooth' });
+          $('.app-shell').dataset.view = 'session'; closeLibrary();
+          if (job?.state === 'succeeded') renderPreview(job);
+          setBusy(false);
+          $('#chat-log').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          $('#message-input').focus();
         }
-        catch (_) { list.insertAdjacentText('afterbegin', 'เปิดงานเพื่อแก้ไขไม่สำเร็จ กรุณาลองใหม่ '); }
+        catch (_) { list.insertAdjacentText('afterbegin', `${isConversationOnly ? 'เปิดบทสนทนา' : 'เปิดงานเพื่อแก้ไข'}ไม่สำเร็จ กรุณาลองใหม่ `); }
       });
-      const openInNewTab = document.createElement('a');
-      openInNewTab.className = 'library-open-tab';
-      openInNewTab.href = '#';
-      openInNewTab.target = '_blank'; openInNewTab.rel = 'noopener';
-      openInNewTab.setAttribute('aria-label', `เปิดสื่อในแท็บใหม่: ${item.title}`);
-      openInNewTab.addEventListener('click', event => {
-        event.preventDefault();
-        void openPreviewInNewTab(item.id);
-      });
-      const externalIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      externalIcon.setAttribute('viewBox', '0 0 24 24'); externalIcon.setAttribute('aria-hidden', 'true');
-      const externalPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      externalPath.setAttribute('d', 'M14 3h7v7M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6');
-      externalIcon.append(externalPath); openInNewTab.append(externalIcon, document.createTextNode('เปิดสื่อ'));
-      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'library-delete-button'; remove.textContent = 'ลบ'; remove.setAttribute('aria-label', `ลบ: ${item.title}`);
-      remove.addEventListener('click', async () => {
-        const scopeNote = item.conversation_id
-          ? 'ระบบจะลบบทสนทนาและสื่อทุกรุ่นของงานนี้ออกจากเครื่องอย่างถาวร และไม่สามารถกู้คืนได้'
-          : 'ไม่พบข้อมูลเชื่อมโยงบทสนทนาของงานเดิม ระบบจะลบสื่อและฉบับแก้ไขที่เชื่อมโยงกันออกจากเครื่องอย่างถาวร';
-        if (state.busy || !window.confirm(`ยืนยันที่จะลบงานหรือไม่\n\n${item.title}\n\n${scopeNote}`)) return;
-        remove.disabled = true; remove.textContent = 'กำลังลบ…'; $('#library-status').textContent = '';
-        try {
-          const deleted = await api(`/api/local/v5/jobs/${encodeURIComponent(item.id)}`, { method: 'DELETE' });
-          const deletedJobIds = new Set(deleted.deleted_job_ids || [item.id]);
-          if (state.previewJob && deletedJobIds.has(state.previewJob.id)) {
-            state.previewJob = null; $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true; $('#runtime-link').hidden = true; $('#result-panel').hidden = true;
+      if (!isConversationOnly) {
+        const openInNewTab = document.createElement('a');
+        openInNewTab.className = 'library-open-tab';
+        openInNewTab.href = '#';
+        openInNewTab.target = '_blank'; openInNewTab.rel = 'noopener';
+        openInNewTab.setAttribute('aria-label', `เปิดสื่อในแท็บใหม่: ${item.title}`);
+        openInNewTab.addEventListener('click', event => {
+          event.preventDefault();
+          void openPreviewInNewTab(item.job_id || item.id);
+        });
+        const externalIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        externalIcon.setAttribute('viewBox', '0 0 24 24'); externalIcon.setAttribute('aria-hidden', 'true');
+        const externalPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        externalPath.setAttribute('d', 'M14 3h7v7M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6');
+        externalIcon.append(externalPath); openInNewTab.append(externalIcon, document.createTextNode('เปิดสื่อ'));
+        actions.append(openInNewTab);
+      }
+      const remove = !isConversationOnly && document.createElement('button');
+      if (remove) { remove.type = 'button'; remove.className = 'library-delete-button'; remove.textContent = 'ลบ'; remove.setAttribute('aria-label', `ลบ: ${item.title}`); }
+      if (remove) {
+        remove.addEventListener('click', async () => {
+          const scopeNote = item.conversation_id
+            ? 'ระบบจะลบบทสนทนาและสื่อทุกรุ่นของงานนี้ออกจากเครื่องอย่างถาวร และไม่สามารถกู้คืนได้'
+            : 'ไม่พบข้อมูลเชื่อมโยงบทสนทนาของงานเดิม ระบบจะลบสื่อและฉบับแก้ไขที่เชื่อมโยงกันออกจากเครื่องอย่างถาวร';
+          if (state.busy || !window.confirm(`ยืนยันที่จะลบงานหรือไม่\n\n${item.title}\n\n${scopeNote}`)) return;
+          remove.disabled = true; remove.textContent = 'กำลังลบ…'; $('#library-status').textContent = '';
+          try {
+            const deleted = await api(`/api/local/v5/jobs/${encodeURIComponent(item.job_id || item.id)}`, { method: 'DELETE' });
+            const deletedJobIds = new Set(deleted.deleted_job_ids || [item.job_id || item.id]);
+            if (state.previewJob && deletedJobIds.has(state.previewJob.id)) {
+              state.previewJob = null; $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true; $('#runtime-link').hidden = true; $('#result-panel').hidden = true;
+            }
+            if (state.job && deletedJobIds.has(state.job.id)) {
+              state.job = null; renderBuildStatus(null);
+            }
+            if (deleted.conversation_id && localStorage.getItem(CONVERSATION_KEY) === deleted.conversation_id) localStorage.removeItem(CONVERSATION_KEY);
+            if (deletedJobIds.has(localStorage.getItem(JOB_KEY))) localStorage.removeItem(JOB_KEY);
+            const activeTaskDeleted = Boolean(deleted.conversation_id && state.conversation?.id === deleted.conversation_id);
+            if (activeTaskDeleted) {
+              showHome(true);
+            }
+            await refreshLibrary();
+            await refreshTaskUsage();
+            $('#library-status').textContent = deleted.conversation_id
+              ? 'ลบงานแล้ว ทั้งบทสนทนาและสื่อทุกฉบับถูกนำออกจากเครื่อง'
+              : 'ลบสื่อและฉบับแก้ไขที่เชื่อมโยงแล้ว แต่ไม่พบข้อมูลเชื่อมโยงบทสนทนาของงานเดิม';
+          } catch (error) {
+            const message = error.code === 'artifact_in_use'
+              ? 'ลบไม่ได้ เพราะมีฉบับแก้ไขที่ยังรอดำเนินการและต้องใช้สื่อนี้'
+              : error.code === 'task_generation_in_progress'
+                ? 'งานนี้กำลังประมวลผล กรุณารอให้เสร็จก่อนแล้วลองลบอีกครั้ง'
+                : error.code === 'task_delete_in_progress'
+                  ? 'กำลังลบงานนี้อยู่ กรุณารอสักครู่'
+                  : `ลบสื่อไม่สำเร็จ (${error.code || 'local_request_failed'}) กรุณาลองอีกครั้ง`;
+            $('#library-status').textContent = message; remove.disabled = false; remove.textContent = 'ลบ';
           }
-          if (state.job && deletedJobIds.has(state.job.id)) {
-            state.job = null; renderBuildStatus(null);
-          }
-          if (deleted.conversation_id && localStorage.getItem(CONVERSATION_KEY) === deleted.conversation_id) localStorage.removeItem(CONVERSATION_KEY);
-          if (deletedJobIds.has(localStorage.getItem(JOB_KEY))) localStorage.removeItem(JOB_KEY);
-          const activeTaskDeleted = Boolean(deleted.conversation_id && state.conversation?.id === deleted.conversation_id);
-          if (activeTaskDeleted) {
-            showHome(true);
-          }
-          await refreshLibrary();
-          await refreshTaskUsage();
-          $('#library-status').textContent = deleted.conversation_id
-            ? 'ลบงานแล้ว ทั้งบทสนทนาและสื่อทุกฉบับถูกนำออกจากเครื่อง'
-            : 'ลบสื่อและฉบับแก้ไขที่เชื่อมโยงแล้ว แต่ไม่พบข้อมูลเชื่อมโยงบทสนทนาของงานเดิม';
-        } catch (error) {
-          const message = error.code === 'artifact_in_use'
-            ? 'ลบไม่ได้ เพราะมีฉบับแก้ไขที่ยังรอดำเนินการและต้องใช้สื่อนี้'
-            : error.code === 'task_generation_in_progress'
-              ? 'งานนี้กำลังประมวลผล กรุณารอให้เสร็จก่อนแล้วลองลบอีกครั้ง'
-              : error.code === 'task_delete_in_progress'
-                ? 'กำลังลบงานนี้อยู่ กรุณารอสักครู่'
-            : `ลบสื่อไม่สำเร็จ (${error.code || 'local_request_failed'}) กรุณาลองอีกครั้ง`;
-          $('#library-status').textContent = message; remove.disabled = false; remove.textContent = 'ลบ';
-        }
-      });
-      actions.append(openInNewTab, edit, remove); row.append(info, actions); list.append(row);
+        });
+      }
+      actions.append(edit);
+      if (remove) actions.append(remove);
+      row.append(info, actions); list.append(row);
     }
   } catch (_) { list.textContent = 'โหลดคลังสื่อไม่สำเร็จ'; }
 }
@@ -551,6 +660,7 @@ $('#revision-form').addEventListener('submit', async event => {
   }
   $('#revision-status').textContent = 'กำลังสร้างฉบับแก้ไข อาจใช้เวลาสักครู่ โดยฉบับเดิมยังอยู่ในคลัง';
   setBusy(true, 'กำลังสร้างสื่อฉบับแก้ไขจากฉบับที่เลือก…');
+  showGenerationDialog('revise');
   try {
     const queued = await api(`/api/local/v5/jobs/${encodeURIComponent(parent.id)}/revise`, { method: 'POST', body: JSON.stringify({ instruction, confirmed_scope:confirmedScope, idempotency_key: crypto.randomUUID() }) });
     state.job = queued.job; localStorage.setItem(JOB_KEY, queued.job.id);
@@ -571,6 +681,8 @@ $('#revision-form').addEventListener('submit', async event => {
     $('#revision-status').textContent = message || `สร้างฉบับแก้ไขไม่สำเร็จ (${error.code || 'local_request_failed'}) ลองอีกครั้งได้ ฉบับเดิมยังอยู่ในคลัง`;
     if (['revision_source_superseded', 'artifact_not_found'].includes(error.code)) await refreshLibrary();
     await refreshTaskUsage(); setBusy(false, message || 'สร้างฉบับแก้ไขไม่สำเร็จ ฉบับเดิมยังอยู่ในคลัง');
+  } finally {
+    hideGenerationDialog();
   }
 });
 
@@ -609,7 +721,7 @@ function showHome(newWork = false) {
   pendingStart = null; $('#retry-conversation').hidden = true; renderDirections(null);
   $('#chat-log').replaceChildren(); $('.app-shell').dataset.view = 'landing'; renderBrief(null); renderBuildStatus(null);
   $('#result-panel').hidden = true; $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true; $('#runtime-link').hidden = true; $('#task-usage-panel').hidden = true;
-  $('#message-input').value = ''; $('#revision-instruction').value = ''; $('#revision-status').textContent = '';
+  $('#message-input').value = ''; resizeMessageInput(); $('#revision-instruction').value = ''; $('#revision-status').textContent = '';
   updateContinueButton(); setBusy(false); window.scrollTo(0, 0);
   if (newWork) $('#message-input').focus();
 }
@@ -643,6 +755,7 @@ async function continueLast() {
     await refreshTaskUsage();
     $('.app-shell').dataset.view = 'session';
     $('#message-input').value = savedDraft;
+    resizeMessageInput();
     setBusy(false);
   } catch (_) { setBusy(false, 'เปิดงานล่าสุดไม่สำเร็จ กรุณาลองใหม่'); }
 }
@@ -660,6 +773,7 @@ async function startIdeaDiscovery() {
     localStorage.setItem(CONVERSATION_KEY, state.conversation.id);
     localStorage.removeItem(JOB_KEY);
     $('#message-input').value = '';
+    resizeMessageInput();
     pendingStart = null;
     $('#retry-conversation').hidden = true;
     renderConversation(state.conversation);
@@ -713,7 +827,7 @@ async function sendConversation({ context = null, allowEmpty = false } = {}) {
       || savedConversation.turns[savedConversation.turns.length - 1]?.role !== 'assistant') {
       throw Object.assign(new Error('conversation_response_invalid'), { code: 'conversation_response_invalid' });
     }
-    input.value = ''; pendingStart = null; $('#retry-conversation').hidden = true; $('#idea-discovery-notice').hidden = true;
+    input.value = ''; resizeMessageInput(); pendingStart = null; $('#retry-conversation').hidden = true; $('#idea-discovery-notice').hidden = true;
     renderConversation(savedConversation);
   } catch (error) {
     pendingNode?.remove(); addMessage('assistant', `ส่งข้อความไม่สำเร็จ (${error.code || 'local_request_failed'})`);
@@ -750,6 +864,7 @@ $('#brief-form').addEventListener('submit', async event => {
   if (!editedDraft.topic || !editedDraft.learning_objectives.length || (editedDraft.media_type_requirement !== 'open' && !editedDraft.media_type)) { $('#brief-error').textContent = 'กรุณาระบุหัวข้อและเป้าหมายการเรียนรู้ และเลือกรูปแบบสื่อเมื่อกำหนดให้เป็นรูปแบบที่ต้องการ'; $('#brief-error').hidden = false; return; }
   const parentJobId = state.previewJob?.state === 'succeeded' && state.previewJob.artifact_id ? state.previewJob.id : null;
   closeBriefEditor(); setBusy(true, parentJobId ? 'กำลังปรับปรุงสื่อเดิม…' : 'กำลังออกแบบข้อกำหนดและสร้างสื่อ…'); renderBuildStatus(null, parentJobId ? 'กำลังปรับสื่อเดิมตามแนวทางล่าสุด ฉบับเดิมจะยังอยู่จนกว่าฉบับใหม่จะผ่านการตรวจสอบ' : 'กำลังออกแบบรายละเอียดสื่อ ตรวจสอบ และเตรียมตัวอย่างให้ทดลอง');
+  showGenerationDialog(parentJobId ? 'revise' : 'create');
   try {
     const queued = await api(`/api/local/v5/conversations/${encodeURIComponent(state.conversation.id)}/confirm`, { method: 'POST', body: JSON.stringify({ edited_draft: editedDraft, ...(parentJobId ? { parent_job_id: parentJobId } : {}), idempotency_key: crypto.randomUUID() }) });
     state.conversation = { ...state.conversation, draft: editedDraft, status: 'confirmed', confirmed_brief: queued.brief }; renderBrief(editedDraft);
@@ -765,6 +880,8 @@ $('#brief-form').addEventListener('submit', async event => {
     renderBuildStatus({ state: 'failed', error: { code: error.code } }, message);
     if (['revision_source_superseded', 'artifact_not_found'].includes(error.code)) await refreshLibrary();
     await refreshTaskUsage(); setBusy(false, message || 'การสร้างไม่สำเร็จ แก้แนวทางหรือส่งคำขอใหม่ได้');
+  } finally {
+    hideGenerationDialog();
   }
 });
 
@@ -772,8 +889,20 @@ async function retryBuild() {
   if (!serviceReady || !state.job?.id || state.busy) return;
   const hasSpecification = Boolean(state.job.specification);
   setBusy(true, 'กำลังลองสร้างงานเดิมอีกครั้ง…'); renderBuildStatus(null, hasSpecification ? 'กำลังลองใหม่โดยใช้ Brief และ Specification ที่บันทึกไว้' : 'กำลังให้ AI วางโครงสร้างสื่อจาก Brief เดิมอีกครั้ง');
-  try { const accepted = await api(`/api/local/v5/jobs/${encodeURIComponent(state.job.id)}/retry`, { method: 'POST', body: '{}' }); state.job = accepted.job || accepted; renderBuildStatus(state.job); const job = await waitForJob(state.job.id, state.job, current => { state.job = current; renderBuildStatus(current); }); state.job = job; renderBuildStatus(job); if (job.state === 'succeeded') { renderPreview(job); await refreshLibrary(); } await refreshTaskUsage(); setBusy(false); }
-  catch (error) { renderBuildStatus({ ...state.job, state: 'retryable_failed', error: { code: error.code } }); await refreshTaskUsage(); setBusy(false); }
+  showGenerationDialog('retry');
+  try {
+    const accepted = await api(`/api/local/v5/jobs/${encodeURIComponent(state.job.id)}/retry`, { method: 'POST', body: '{}' });
+    state.job = accepted.job || accepted; renderBuildStatus(state.job);
+    const job = await waitForJob(state.job.id, state.job, current => { state.job = current; renderBuildStatus(current); });
+    state.job = job; renderBuildStatus(job);
+    if (job.state === 'succeeded') { renderPreview(job); await refreshLibrary(); }
+    await refreshTaskUsage(); setBusy(false);
+  } catch (error) {
+    renderBuildStatus({ ...state.job, state: 'retryable_failed', error: { code: error.code } });
+    await refreshTaskUsage(); setBusy(false);
+  } finally {
+    hideGenerationDialog();
+  }
 }
 
 $('#review-brief').addEventListener('click', openBriefEditor);
@@ -810,6 +939,7 @@ $('#think-button').addEventListener('click', () => {
   if ($('.app-shell').dataset.view === 'session') {
     const request = 'ช่วยคิดต่อจากบทสนทนานี้ โดยเสนอแนวทางหรือกิจกรรมเพิ่มเติมที่สอดคล้องกับหัวข้อและเป้าหมายที่คุยกัน พร้อมตัวเลือกสั้น ๆ ให้ฉันเลือก';
     input.value = draft ? `${draft}\n\n${request}` : request;
+    resizeMessageInput();
     $('#chat-form').requestSubmit();
     return;
   }
@@ -832,9 +962,11 @@ for (const [selector,key] of [['#learning-goal-select','learning_goal_id'],['#cr
   });
 }
 
-$('#message-input').addEventListener('input', updateMessageCount);
+$('#message-input').addEventListener('input', () => { updateMessageCount(); resizeMessageInput(); });
+window.addEventListener('resize', resizeMessageInput);
+resizeMessageInput();
 document.addEventListener('click', event => {
-  if (event.target.closest('[data-seed], #think-button')) updateMessageCount();
+  if (event.target.closest('[data-seed], #think-button')) { updateMessageCount(); resizeMessageInput(); }
 });
 
 async function initialize() {
@@ -854,6 +986,7 @@ async function initialize() {
     if (loadedUserId && loadedUserId !== session.user.id) clearAccountView();
     loadedUserId = session.user.id;
     setAccountStorageKeys(session.user.id);
+    setDeveloperControls(false);
     serviceReady = false;
     $('#send-button').disabled = true;
     $('#think-button').disabled = true;
@@ -863,9 +996,8 @@ async function initialize() {
     $('#send-button').disabled = false;
     try {
       const status = await api('/api/local/v5/status');
+      await refreshDeveloperAccess();
       serviceReady = status.ready === true;
-      $('#local-mode').textContent = `Mini Lab V5 · ${status.mode === 'live' ? 'Cloud' : 'Mock'}`;
-      $('#local-mode').classList.add('local-mode');
       $('#send-button').disabled = !serviceReady;
       $('#think-button').disabled = !serviceReady;
       cardRegistry = (await api('/api/local/v5/cards')).cards;
@@ -879,7 +1011,6 @@ async function initialize() {
         if (status.storage_ready !== true) missing.push('พื้นที่เก็บสื่อ');
         if (status.ai_configured !== true) missing.push('บริการ AI');
         $('#status-text').textContent = `Mini Lab V5 ยังเตรียมระบบไม่ครบ: ${missing.join(', ')} · กรุณาแจ้งผู้ดูแลระบบ`;
-        $('#local-mode').textContent = 'Mini Lab V5 · ยังไม่พร้อม';
         $('#service-notice').textContent = $('#status-text').textContent;
         $('#service-notice').hidden = false;
         $('#send-button').disabled = true;
@@ -889,7 +1020,6 @@ async function initialize() {
     } catch (error) {
       loadedUserId = null;
       serviceReady = false;
-      $('#local-mode').textContent = 'Mini Lab V5 ยังไม่พร้อม';
       $('#status-text').textContent = `เชื่อมต่อบริการ Mini Lab V5 ไม่สำเร็จ (${error.code || 'service_unavailable'})`;
       $('#service-notice').textContent = $('#status-text').textContent;
       $('#service-notice').hidden = false;
@@ -905,6 +1035,7 @@ async function initialize() {
   return initialization;
 }
 $('#auth-retry').addEventListener('click', () => { $('#auth-status').textContent = 'กำลังตรวจสอบบัญชี…'; void initialize(); });
+window.addEventListener('focus', () => { if (loadedUserId) void refreshDeveloperAccess(); });
 try {
   getAuthClient().auth.onAuthStateChange((_event, session) => {
     if (!session) {

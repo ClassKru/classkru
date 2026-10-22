@@ -7,7 +7,7 @@
   <script>try { if (localStorage.getItem('classkru.interactive-v5.theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch {}</script>
   <title>ClassKru Interactive V5</title>
   <link rel="stylesheet" href="/base.css?v=534">
-  <link rel="stylesheet" href="/v5.css?v=534">
+  <link rel="stylesheet" href="/v5.css?v=537">
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -39,7 +39,6 @@
         <div class="usage-orb" role="img" aria-label="โควตาใช้ฟรี 100 เปอร์เซ็นต์"><span aria-hidden="true">✦</span><strong>100%</strong></div>
         <p>เปิดให้ใช้งานฟรี</p>
       </section>
-      <span id="local-mode" class="backend-label">กำลังเชื่อมต่อ Mini Lab V5…</span>
       <p id="service-notice" class="service-notice" role="status" aria-live="polite" hidden></p>
       <small class="sidebar-caption">พื้นที่สร้างสรรค์ของคุณครู</small>
     </aside>
@@ -69,12 +68,15 @@
               <legend>รูปแบบสื่อสำหรับงานใหม่</legend>
               <div class="media-mode-options">
                 <label class="media-mode-option"><input type="radio" name="media-mode" value="normal" checked><span class="media-mode-copy"><strong>ปกติ</strong><small>สื่อทั่วไปแบบ 2D</small></span></label>
-                <label class="media-mode-option"><input type="radio" name="media-mode" value="3d"><span class="media-mode-copy"><strong>3D · Three.js</strong><small>ฉากสามมิติแบบโต้ตอบ</small></span></label>
+                <label class="media-mode-option"><input type="radio" name="media-mode" value="3d"><span class="media-mode-copy"><strong>3D</strong><small>ฉากสามมิติแบบโต้ตอบ</small></span></label>
               </div>
               <small id="media-mode-help">จำตัวเลือกนี้ไว้สำหรับงานใหม่ครั้งต่อไป</small>
             </fieldset>
-            <textarea id="message-input" rows="2" maxlength="6000" aria-describedby="message-count" placeholder="เช่น ให้นักเรียนเข้าใจการตกอย่างอิสระ และทดลองเปลี่ยนตัวแปรได้" required></textarea>
-            <div class="composer-footer"><span id="status-text" class="sr-only" role="status">เริ่มจากหัวข้อ ปัญหา หรือกิจกรรมที่อยากให้เด็กได้ลองทำ</span><div class="composer-actions"><button id="think-button" type="button" class="think-button" aria-label="ช่วยคิดไอเดียสำหรับงานใหม่"><span aria-hidden="true">✦</span><span class="think-label">AI ช่วยคิดไอเดียให้</span></button><button id="continue-last" class="secondary-button" type="button" hidden>ต่อจากงานล่าสุด</button><button id="review-brief" class="build-button" type="button" disabled>✦ สร้างสื่อ</button><button id="send-button" class="send-button" type="submit" aria-label="ส่งข้อความ"><span class="landing-send-label">✦ เริ่มพูดคุย <span aria-hidden="true">→</span></span><span class="session-send-label"><svg viewBox="0 0 24 24" focusable="false"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg><span>ส่งข้อความ</span></span></button></div></div>
+            <div class="composer-input-wrap">
+              <textarea id="message-input" rows="2" maxlength="6000" aria-describedby="message-count" placeholder="เช่น ให้นักเรียนเข้าใจการตกอย่างอิสระ และทดลองเปลี่ยนตัวแปรได้" required></textarea>
+              <button id="send-button" class="send-button" type="submit" aria-label="ส่งข้อความ"><span class="landing-send-label">✦ เริ่มพูดคุย <span aria-hidden="true">→</span></span><span class="session-send-label"><svg viewBox="0 0 24 24" focusable="false"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg><span>ส่งข้อความ</span></span></button>
+            </div>
+            <div class="composer-footer"><span id="status-text" class="sr-only" role="status">เริ่มจากหัวข้อ ปัญหา หรือกิจกรรมที่อยากให้เด็กได้ลองทำ</span><div class="composer-actions"><button id="think-button" type="button" class="think-button" aria-label="ช่วยคิดไอเดียสำหรับงานใหม่"><span aria-hidden="true">✦</span><span class="think-label">AI ช่วยคิดไอเดียให้</span></button><button id="continue-last" class="secondary-button" type="button" hidden>ต่อจากงานล่าสุด</button><button id="review-brief" class="build-button" type="button" disabled>✦ สร้างสื่อ</button></div></div>
           </form>
           <div id="build-status" class="build-status" role="status" aria-live="polite" hidden><span id="build-status-text"></span><button id="retry-build" type="button" hidden>ลองสร้างอีกครั้ง</button></div>
         </section>
@@ -130,8 +132,8 @@
     </section>
   </main>
 
-  <button id="model-settings-open" class="lab-settings-trigger" type="button" aria-label="ตั้งค่าโมเดล AI">⚙ <span>ตั้งค่า Lab</span></button>
-  <button id="brief-versions-open" class="lab-settings-trigger brief-versions-trigger" type="button" aria-label="เลือกชุดบรีฟ">▤ <span>ชุดบรีฟ</span></button>
+  <button id="model-settings-open" class="lab-settings-trigger" type="button" aria-label="ตั้งค่าโมเดล AI" hidden>⚙ <span>ตั้งค่า Lab</span></button>
+  <button id="brief-versions-open" class="lab-settings-trigger brief-versions-trigger" type="button" aria-label="เลือกชุดบรีฟ" hidden>▤ <span>ชุดบรีฟ</span></button>
   <section id="brief-versions-dialog" class="settings-overlay" hidden aria-labelledby="brief-versions-title">
     <form id="brief-versions-form" class="settings-dialog" role="dialog" aria-modal="true" aria-labelledby="brief-versions-title" tabindex="-1">
       <header><div><small>Mini Lab V5</small><h2 id="brief-versions-title">เลือกชุดบรีฟ</h2></div><button id="brief-versions-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
@@ -159,8 +161,8 @@
 
   <section id="library-dialog" class="settings-overlay" hidden aria-labelledby="library-title">
     <div class="settings-dialog works-dialog" role="dialog" aria-modal="true" aria-labelledby="library-title" tabindex="-1">
-      <header><div><small>ผลงานของคุณ</small><h2 id="library-title">สื่อของฉัน</h2></div><button id="library-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
-      <main><p>เลือกเปิดสื่อหรือฉบับแก้ไขที่เคยสร้างไว้ในเครื่องนี้</p><p id="library-status" class="library-status" role="status" aria-live="polite"></p><div id="library-list" class="work-list" aria-live="polite">กำลังโหลดคลังสื่อ…</div></main>
+      <header><div><small>ผลงานของคุณ</small><h2 id="library-title">ผลงานของฉัน</h2></div><button id="library-close" type="button" aria-label="ปิดหน้าต่าง">×</button></header>
+      <main><p>เลือกกลับไปอ่านบทสนทนา หรือเปิดสื่อที่เคยสร้างไว้</p><p id="library-status" class="library-status" role="status" aria-live="polite"></p><div id="library-list" class="work-list" aria-live="polite">กำลังโหลดผลงาน…</div></main>
     </div>
   </section>
 
@@ -182,8 +184,24 @@
       </main>
     </form>
   </section>
+  <dialog id="generation-dialog" class="generation-dialog" aria-labelledby="generation-title" aria-describedby="generation-description">
+    <div class="generation-card">
+      <div class="generation-art" aria-hidden="true">
+        <span class="generation-orbit generation-orbit--outer"><i></i></span>
+        <span class="generation-orbit generation-orbit--inner"><i></i></span>
+        <span class="generation-core"><span>✦</span></span>
+        <span class="generation-spark generation-spark--one">✧</span>
+        <span class="generation-spark generation-spark--two">✦</span>
+      </div>
+      <p class="generation-kicker"><span></span> CLASSKRU STUDIO</p>
+      <h2 id="generation-title">กำลังสร้างสื่อของคุณ</h2>
+      <p id="generation-description" class="generation-description">กำลังเปลี่ยนบทสนทนาให้เป็นสื่อการเรียนรู้ที่ทดลองได้</p>
+      <div class="generation-progress" aria-hidden="true"><span></span></div>
+      <p class="generation-note"><span aria-hidden="true">✧</span> การทำงานอาจใช้เวลาสักครู่</p>
+    </div>
+  </dialog>
   <script src="/revision-intent.js?v=534"></script>
-  <script type="module" src="/v5.js?v=534"></script>
+  <script type="module" src="/v5.js?v=537"></script>
 </body>
 </html>
 

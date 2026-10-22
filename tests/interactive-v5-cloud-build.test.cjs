@@ -60,6 +60,30 @@ test('V5 cloud retry queues a retryable failure and processes it without relying
   assert.equal(result.artifact_id, 'artifact-retry');
 });
 
+test('V5 library includes saved conversations without media and omits tasks pending deletion', async () => {
+  const conversation = {
+    id: 'conversation-unsaved',
+    status: 'draft',
+    created_at: '2026-10-22T01:00:00.000Z',
+    draft: { topic: 'วัฏจักรน้ำ' },
+    turns: [{ role: 'teacher', content: 'อยากสอนเรื่องวัฏจักรน้ำ ป.6' }]
+  };
+  const store = createStore({ id: conversation.id, state: { conversation, jobs: [], active_operation: null } });
+  store.list = async () => [
+    { id: conversation.id, created_at: conversation.created_at, updated_at: conversation.created_at, state: { conversation, jobs: [], active_operation: null } },
+    { id: 'conversation-deleting', state: { conversation: { id: 'conversation-deleting', draft: { topic: 'ไม่ควรแสดง' } }, jobs: [], deletion_pending: true } }
+  ];
+  const build = createCloudBuild({ store, conversationClient: {}, architectClient: {}, builderClient: {} });
+
+  assert.deepEqual(await build.library(), [{
+    type: 'conversation',
+    id: 'conversation-unsaved',
+    conversation_id: 'conversation-unsaved',
+    job_id: null,
+    title: 'วัฏจักรน้ำ',
+    created_at: '2026-10-22T01:00:00.000Z'
+  }]);
+});
 test('V5 cloud build preserves safe Architect response diagnostics without provider usage or response text', async () => {
   const conversation = { id: 'conversation-diagnostics', status: 'draft', draft: {} };
   const store = createStore({ id: conversation.id, state: { conversation, jobs: [], active_operation: null } });
@@ -136,4 +160,3 @@ test('Prompt Architect classifies a missing response after token exhaustion as t
     error => error.code === 'prompt_architect_invalid_response' && error.attempts.every(attempt => attempt.reason === 'truncated_output')
   );
 });
-

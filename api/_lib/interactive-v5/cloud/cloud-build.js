@@ -145,8 +145,18 @@ function createCloudBuild({store,conversationClient,architectClient,builderClien
     async library() {
       const rows=await store.list();
       return rows.map(row=>{
-        const latest=(row.state.jobs||[]).filter(job=>job.state==='succeeded').at(-1);
-        return latest&&{id:latest.id,artifact_id:latest.artifact_id,conversation_id:row.id,title:latest.specification?.media?.title||latest.brief?.learning?.topic||'สื่อการเรียนรู้',created_at:latest.created_at,parent_job_id:latest.revision?.parent_job_id||null};
+        if(row.state.deletion_pending) return null;
+        const jobs=row.state.jobs||[];
+        const latest=jobs.filter(job=>job.state==='succeeded').at(-1);
+        if(latest) return {type:'media',id:latest.id,job_id:latest.id,artifact_id:latest.artifact_id,conversation_id:latest.conversation_id||row.id,title:latest.specification?.media?.title||latest.brief?.learning?.topic||'สื่อการเรียนรู้',created_at:latest.created_at||row.updated_at,parent_job_id:latest.revision?.parent_job_id||null};
+
+        const conversation=row.state.conversation;
+        if(!conversation) return null;
+        const firstTeacherMessage=(conversation.turns||[]).find(turn=>turn.role==='teacher')?.content;
+        const messageTitle=typeof firstTeacherMessage==='string' ? firstTeacherMessage.trim().replace(/\s+/g,' ') : '';
+        const draftTitle=typeof conversation.draft?.topic==='string' ? conversation.draft.topic.trim() : '';
+        const title=draftTitle||messageTitle.slice(0,90)||'บทสนทนาที่ยังไม่สร้างสื่อ';
+        return {type:'conversation',id:row.id,conversation_id:row.id,job_id:jobs.at(-1)?.id||null,title,created_at:conversation.created_at||row.created_at||row.updated_at};
       }).filter(Boolean);
     },
     async process(jobId) { return execute(jobId); }
