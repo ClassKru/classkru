@@ -2,6 +2,8 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const { createInteractiveV5Handler } = require('../api/_lib/interactive-v5/web-handler');
 const { RUNTIME_CSP, createRuntimePreviewService, instrumentRuntimeHtml, runtimeCspForHost } = require('../api/_lib/interactive-v5/html-media-builder-ai/runtime-preview');
 
@@ -18,6 +20,19 @@ function response() {
 }
 
 function request(path, method = 'GET') { return { method, query: { path }, headers: {} }; }
+
+test('V5 landing reset and saved-work controls do not remain locked by a stale task state', () => {
+  const clientScript = fs.readFileSync(path.join(__dirname, '..', 'v5.js'), 'utf8');
+  const showHome = clientScript.slice(clientScript.indexOf('function showHome('), clientScript.indexOf('async function continueLast('));
+  const library = clientScript.slice(clientScript.indexOf('async function refreshLibrary('), clientScript.indexOf('function openLibrary('));
+
+  assert.doesNotMatch(showHome, /dataset\.view === 'landing'\) \{ window\.scrollTo\(0, 0\); return; \}/);
+  assert.match(showHome, /state\.conversation = null; state\.job = null; state\.previewJob = null;/);
+  assert.match(showHome, /renderBrief\(null\); renderBuildStatus\(null\);/);
+  assert.doesNotMatch(library, /edit\.addEventListener\('click', async \(\) => \{\s*if \(state\.busy\) return;/);
+  assert.match(library, /edit\.textContent = 'กำลังเปิด…';/);
+  assert.match(library, /#library-status'\)\.textContent = `\$\{isConversationOnly/);
+});
 
 test('V5 web gateway stays disabled until its explicit feature flag is enabled', async () => {
   let authenticated = false;
@@ -156,4 +171,3 @@ test('runtime diagnostics are not duplicated and support fragments without a hea
   assert.ok(instrumented.indexOf('<body>') < instrumented.indexOf('data-v5-runtime-diagnostics'));
   assert.equal(instrumentRuntimeHtml(instrumented), instrumented);
 });
-

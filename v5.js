@@ -375,7 +375,9 @@ function briefSummary(draft = {}) {
 function renderBrief(draft = null) {
   const card = $('#brief-card');
   card.hidden = !draft?.topic;
-  $('#brief-text').textContent = draft ? briefSummary(draft) : '';
+  // Do not let an incomplete record from an older task leak a literal "null"
+  // into the composer when the teacher returns to the landing page.
+  $('#brief-text').textContent = draft?.topic ? briefSummary(draft) : '';
   $('#review-brief').disabled = state.busy || !draft?.topic;
 }
 
@@ -520,7 +522,14 @@ async function refreshLibrary() {
       const actions = document.createElement('div'); actions.className = 'library-actions';
       const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = isConversationOnly ? 'เปิดบทสนทนา' : 'แก้ไข';
       edit.addEventListener('click', async () => {
-        if (state.busy) return;
+        // The library cannot be opened while the current task is processing.
+        // Do not also reject this action based on a stale local busy flag: doing
+        // so left the teacher unable to switch to any saved work after a request.
+        const actionButtons = [...actions.querySelectorAll('button, a')];
+        actionButtons.forEach(button => { button.setAttribute('aria-busy', 'true'); button.style.pointerEvents = 'none'; });
+        const originalLabel = edit.textContent;
+        edit.textContent = 'กำลังเปิด…';
+        $('#library-status').textContent = '';
         try {
           const conversationId = item.conversation_id;
           let job = null;
@@ -558,7 +567,11 @@ async function refreshLibrary() {
           $('#chat-log').scrollIntoView({ behavior: 'smooth', block: 'start' });
           $('#message-input').focus();
         }
-        catch (_) { list.insertAdjacentText('afterbegin', `${isConversationOnly ? 'เปิดบทสนทนา' : 'เปิดงานเพื่อแก้ไข'}ไม่สำเร็จ กรุณาลองใหม่ `); }
+        catch (error) {
+          actionButtons.forEach(button => { button.removeAttribute('aria-busy'); button.style.pointerEvents = ''; });
+          edit.textContent = originalLabel;
+          $('#library-status').textContent = `${isConversationOnly ? 'เปิดบทสนทนา' : 'เปิดงานเพื่อแก้ไข'}ไม่สำเร็จ (${error.code || 'local_request_failed'}) กรุณาลองใหม่`;
+        }
       });
       if (!isConversationOnly) {
         const openInNewTab = document.createElement('a');
@@ -710,7 +723,6 @@ function updateContinueButton() {
 
 function showHome(newWork = false) {
   if (state.busy) return;
-  if (!newWork && $('.app-shell').dataset.view === 'landing') { window.scrollTo(0, 0); return; }
   if (!newWork && (state.conversation || state.job)) savedDraft = $('#message-input').value;
   if (newWork) savedDraft = '';
   $('.composer-actions').prepend($('#think-button'));
