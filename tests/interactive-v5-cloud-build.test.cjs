@@ -140,7 +140,7 @@ test('Prompt Architect classifies provider errors without logging response text'
   assert.deepEqual(diagnostics, [[
     '[interactive-v5 prompt architect] OpenRouter request failed',
     {
-      kind: 'http', status: 400, category: 'reasoning_parameter',
+      kind: 'http', status: 400, category: 'reasoning_parameter', field: 'reasoning.effort',
       error_fields: ['code', 'message', 'metadata'], metadata_fields: ['provider_name', 'raw'], provider: 'OpenAI'
     }
   ]]);
