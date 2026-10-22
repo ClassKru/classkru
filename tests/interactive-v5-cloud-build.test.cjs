@@ -126,7 +126,7 @@ test('Prompt Architect can recover a JSON object wrapped in provider-added text 
   assert.equal(result.attempts[0].reason, 'parsed');
 });
 
-test('Prompt Architect classifies provider errors without logging response text', async () => {
+test('Prompt Architect logs only the safe upstream failure kind and HTTP status', async () => {
   const diagnostics = [];
   const provider = createOpenRouterProvider({
     fetchImpl: async () => ({ ok: false, status: 400, json: async () => ({ error: { message: 'Provider returned an error', code: 400, metadata: { provider_name: 'OpenAI', raw: JSON.stringify({ error: { message: "Invalid schema: 'minItems' is not permitted", type: 'invalid_request_error', param: 'response_format', code: 'invalid_json_schema' } }) } } }) }),
@@ -142,12 +142,15 @@ test('Prompt Architect classifies provider errors without logging response text'
     {
       kind: 'http', status: 400, category: 'structured_output', field: 'minitems',
       error_fields: ['code', 'message', 'metadata'], metadata_fields: ['provider_name', 'raw'],
-      raw_fields: ['error'], raw_error_fields: ['code', 'type', 'param', 'message'], provider: 'OpenAI'
+      raw_fields: ['error'], raw_error_fields: ['code', 'type', 'param', 'message'], provider: 'OpenAI',
+      upstream_code: 'invalid_json_schema', upstream_type: 'invalid_request_error', upstream_param: 'response_format'
     }
   ]]);
   assert.equal(JSON.stringify(diagnostics).includes('private'), false);
   assert.equal(JSON.stringify(diagnostics).includes('Invalid schema'), false);
+  assert.equal(JSON.stringify(diagnostics).includes('minItems'), false);
 });
+
 test('HTML Builder recovers a valid artifact from provider prose, code fences, and content parts', async () => {
   const artifact = { title: 'เกมพยัญชนะ', summary: 'ฝึกจับคู่', html: '<!doctype html><html lang="th"><head><title>เกม</title></head><body>พร้อม</body></html>' };
   let calls = 0;
