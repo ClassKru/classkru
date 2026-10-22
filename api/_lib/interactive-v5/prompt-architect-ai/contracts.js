@@ -13,6 +13,7 @@ const buildSpecificationSchema = Object.freeze({
     schema_version: { type: 'string', enum: [CONTRACT_VERSION] },
     brief_ref: { type: 'object', additionalProperties: false, required: ['brief_id', 'revision'], properties: { brief_id: { type: 'string' }, revision: { type: 'integer' } } },
     media: { type: 'object', additionalProperties: false, required: ['title', 'format', 'presentation_type', 'rendering_strategy', 'presentation_strategy', 'design_rationale'], properties: { title: { type: 'string' }, format: { type: 'string', enum: ['single-page-html'] }, presentation_type: { type: 'string', enum: [...MEDIA_TYPES] }, rendering_strategy: { type: 'string', enum: [...RENDERING_STRATEGIES] }, presentation_strategy: { type: 'string' }, design_rationale: { type: 'string' } } },
+    three_d_scene: { type: ['object', 'null'], additionalProperties: false, required: ['scene', 'learning_focus', 'objects', 'camera', 'learner_action', 'fallback'], properties: { scene: { type: 'string' }, learning_focus: { type: 'string' }, objects: { type: 'array', items: { type: 'string' } }, camera: { type: 'string' }, learner_action: { type: ['string', 'null'] }, fallback: { type: 'string' } } },
     learning_design: { type: 'object', additionalProperties: false, required: ['intent', 'objective_alignment', 'learner_experience', 'academic_rules'], properties: { intent: { type: 'string' }, objective_alignment: { type: 'array', items: { type: 'string' } }, learner_experience: { type: 'array', items: { type: 'string' } }, academic_rules: { type: 'array', items: { type: 'string' } } } },
     interaction: { type: 'object', additionalProperties: false, required: ['requirement', 'primary_action', 'media_response', 'states', 'feedback_rules'], properties: { requirement: { type: 'string', enum: [...INTERACTION_REQUIREMENTS] }, primary_action: { type: ['string', 'null'] }, media_response: { type: ['string', 'null'] }, states: { type: 'array', items: { type: 'string' } }, feedback_rules: { type: 'array', items: { type: 'string' } } } },
     content: { type: 'object', additionalProperties: false, required: ['key_concepts', 'teacher_review_required'], properties: { key_concepts: { type: 'array', items: { type: 'string' } }, teacher_review_required: { type: 'array', items: { type: 'string' } } } },
@@ -74,12 +75,13 @@ function normalizeSpecification(value, brief) {
   if (text(ref.brief_id, 100) !== brief.brief_id || ref.revision !== brief.revision) throw codedError('build_specification_brief_mismatch');
   if (value.schema_version === LEGACY_CONTRACT_VERSION) return normalizeLegacySpecification(value, brief);
   if (value.schema_version !== CONTRACT_VERSION) throw codedError('build_specification_invalid');
-  const media = value.media || {}, learning = value.learning_design || {}, interaction = value.interaction || {}, content = value.content || {}, ui = value.ui || {}, html = value.html_requirements || {}, runtime = value.runtime_requirements || {};
+  const media = value.media || {}, scene = value.three_d_scene || {}, learning = value.learning_design || {}, interaction = value.interaction || {}, content = value.content || {}, ui = value.ui || {}, html = value.html_requirements || {}, runtime = value.runtime_requirements || {};
   const strategy = text(media.rendering_strategy, 40);
   const requirement = text(interaction.requirement, 20);
   const output = Object.freeze({
     schema_version: CONTRACT_VERSION, brief_ref: { brief_id: brief.brief_id, revision: brief.revision },
     media: { title: text(media.title, 160), format: text(media.format, 50), presentation_type: text(media.presentation_type, 40), rendering_strategy: strategy, presentation_strategy: text(media.presentation_strategy, 500), design_rationale: text(media.design_rationale, 800) },
+    three_d_scene: strategy === 'html-css-three-js' ? { scene: text(scene.scene, 500), learning_focus: text(scene.learning_focus, 500), objects: texts(scene.objects, 8), camera: text(scene.camera, 300), learner_action: nullableText(scene.learner_action, 300), fallback: text(scene.fallback, 300) } : null,
     learning_design: { intent: text(learning.intent, 500), objective_alignment: texts(learning.objective_alignment, 5), learner_experience: texts(learning.learner_experience, 6), academic_rules: texts(learning.academic_rules, 8) },
     interaction: { requirement, primary_action: nullableText(interaction.primary_action), media_response: nullableText(interaction.media_response), states: texts(interaction.states, 6), feedback_rules: texts(interaction.feedback_rules, 6) },
     content: { key_concepts: texts(content.key_concepts, 8), teacher_review_required: texts(content.teacher_review_required, 5) },
@@ -104,7 +106,8 @@ function normalizeSpecification(value, brief) {
     && output.ui.components.length && output.html_requirements.single_page && output.html_requirements.document_structure.includes('doctype')
     && Number.isInteger(output.html_requirements.max_html_characters) && output.html_requirements.max_html_characters > 0 && output.html_requirements.max_html_characters <= 45000
     && output.runtime_requirements.network === 'deny' && output.runtime_requirements.persistent_storage === 'deny' && output.runtime_requirements.external_dependencies === 'deny'
-    && output.acceptance_criteria.length && matchesRequiredType && matchesInteractionPreference;
+    && output.acceptance_criteria.length && matchesRequiredType && matchesInteractionPreference
+    && (strategy !== 'html-css-three-js' || (output.three_d_scene.scene && output.three_d_scene.learning_focus && output.three_d_scene.objects.length && output.three_d_scene.camera && output.three_d_scene.fallback));
   if (!valid) throw codedError('build_specification_invalid');
   return output;
 }

@@ -17,10 +17,12 @@ function validateBuildSpecification(value) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw codedError('build_specification_invalid');
   if (value.schema_version === LEGACY_CONTRACT_VERSION) return validateLegacySpecification(value);
   if (value.schema_version !== CONTRACT_VERSION) throw codedError('build_specification_invalid');
-  const ref = value.brief_ref || {}, media = value.media || {}, learning = value.learning_design || {}, interaction = value.interaction || {}, ui = value.ui || {}, html = value.html_requirements || {}, runtime = value.runtime_requirements || {};
+  const ref = value.brief_ref || {}, media = value.media || {}, scene = value.three_d_scene || {}, learning = value.learning_design || {}, interaction = value.interaction || {}, ui = value.ui || {}, html = value.html_requirements || {}, runtime = value.runtime_requirements || {};
+  const strategy = text(media.rendering_strategy, 40);
   const normalized = Object.freeze({
     schema_version: CONTRACT_VERSION, brief_ref: { brief_id: text(ref.brief_id, 100), revision: Number(ref.revision) },
-    media: { title: text(media.title, 160), format: text(media.format, 50), presentation_type: text(media.presentation_type, 40), rendering_strategy: text(media.rendering_strategy, 40), presentation_strategy: text(media.presentation_strategy, 500), design_rationale: text(media.design_rationale, 800) },
+    media: { title: text(media.title, 160), format: text(media.format, 50), presentation_type: text(media.presentation_type, 40), rendering_strategy: strategy, presentation_strategy: text(media.presentation_strategy, 500), design_rationale: text(media.design_rationale, 800) },
+    three_d_scene: strategy === 'html-css-three-js' ? { scene: text(scene.scene, 500), learning_focus: text(scene.learning_focus, 500), objects: texts(scene.objects, 8), camera: text(scene.camera, 300), learner_action: nullableText(scene.learner_action, 300), fallback: text(scene.fallback, 300) } : null,
     learning_design: { intent: text(learning.intent, 500), objective_alignment: texts(learning.objective_alignment, 5), learner_experience: texts(learning.learner_experience, 6), academic_rules: texts(learning.academic_rules, 8) },
     interaction: { requirement: text(interaction.requirement, 20), primary_action: nullableText(interaction.primary_action), media_response: nullableText(interaction.media_response), states: texts(interaction.states, 6), feedback_rules: texts(interaction.feedback_rules, 6) },
     content: { key_concepts: texts(value.content?.key_concepts, 8), teacher_review_required: texts(value.content?.teacher_review_required, 5) },
@@ -36,7 +38,8 @@ function validateBuildSpecification(value) {
     && (normalized.interaction.requirement !== 'none' || (!normalized.interaction.primary_action && !normalized.interaction.media_response))
     && normalized.ui.components.length && normalized.ui.accessibility_requirements.length && normalized.html_requirements.single_page && normalized.html_requirements.document_structure.includes('doctype')
     && Number.isInteger(normalized.html_requirements.max_html_characters) && normalized.html_requirements.max_html_characters > 0 && normalized.html_requirements.max_html_characters <= 45000
-    && normalized.runtime_requirements.network === 'deny' && normalized.runtime_requirements.persistent_storage === 'deny' && normalized.runtime_requirements.external_dependencies === 'deny' && normalized.acceptance_criteria.length;
+    && normalized.runtime_requirements.network === 'deny' && normalized.runtime_requirements.persistent_storage === 'deny' && normalized.runtime_requirements.external_dependencies === 'deny' && normalized.acceptance_criteria.length
+    && (strategy !== 'html-css-three-js' || (normalized.three_d_scene.scene && normalized.three_d_scene.learning_focus && normalized.three_d_scene.objects.length && normalized.three_d_scene.camera && normalized.three_d_scene.fallback));
   if (!valid) throw codedError('build_specification_invalid');
   return normalized;
 }
