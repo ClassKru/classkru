@@ -12,6 +12,40 @@ function safeProviderField(value) {
   return null;
 }
 
+function classifyProviderFailure(error) {
+  const metadata = error?.metadata;
+  const raw = metadata?.raw;
+  const candidates = [
+    error?.message,
+    error?.type,
+    error?.param,
+    typeof raw === 'string' ? raw : null,
+    raw?.message,
+    raw?.error,
+    raw?.type,
+    raw?.param,
+    metadata?.message
+  ].filter(value => typeof value === 'string');
+  const message = candidates.join(' ').toLowerCase();
+  const category = /no endpoints|no matching providers?|no available providers?|provider.{0,20}unavailable/.test(message)
+    ? 'no_matching_provider'
+    : /response.?format|json.?schema|structured.?output|schema/.test(message)
+      ? 'structured_output'
+      : /reasoning/.test(message)
+        ? 'reasoning_parameter'
+        : /temperature|top_p|top_k/.test(message)
+          ? 'sampling_parameter'
+          : /max_tokens|max_completion_tokens|token limit/.test(message)
+            ? 'token_limit'
+            : /unsupported|unknown parameter|invalid parameter/.test(message)
+              ? 'unsupported_parameter'
+              : 'provider_rejected_request';
+  const provider = ['OpenAI', 'Amazon Bedrock', 'Azure'].includes(metadata?.provider_name) ? metadata.provider_name : null;
+  const errorFields = ['code', 'type', 'param', 'message', 'metadata'].filter(field => Object.hasOwn(error || {}, field));
+  const metadataFields = ['provider_name', 'raw', 'message', 'error_type', 'error_code', 'upstream_status'].filter(field => Object.hasOwn(metadata || {}, field));
+  return { category, error_fields: errorFields, metadata_fields: metadataFields, ...(provider ? { provider } : {}) };
+}
+
 function createOpenRouterProvider({ fetchImpl = globalThis.fetch, logger = console } = {}) {
   return Object.freeze({
     async respond({ config, request }) {
@@ -32,7 +66,7 @@ function createOpenRouterProvider({ fetchImpl = globalThis.fetch, logger = conso
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
         const status = Number.isInteger(response.status) && response.status >= 100 && response.status <= 599 ? response.status : null;
-        const diagnostic = { kind: 'http', status };
+        const diagnostic = { kind: 'http', status, ...classifyProviderFailure(payload?.error) };
         for (const field of ['code', 'type', 'param']) {
           const value = safeProviderField(payload?.error?.[field]);
           if (value !== null && value !== status) diagnostic[field] = value;
