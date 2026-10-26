@@ -40,7 +40,7 @@ test('mapV5TaskRows returns one latest media row per V5 task with a protected pr
   assert.equal(rows[0].teacher, 'teacher@example.test');
   assert.equal(rows[0].title, 'ระบบสุริยะจำลอง');
   assert.equal(rows[0].chat.available, false);
-  assert.match(rows[0].runtimeUrl, /\/api\/dev\/media-preview\?/);
+  assert.match(rows[0].runtimeUrl, /\/api\/dev\/data\?resource=studio-media-preview&/);
   assert.match(rows[0].runtimeUrl, /job_id=33333333-3333-4333-8333-333333333333/);
   assert.match(rows[0].runtimeUrl, /artifact_id=44444444-4444-4444-8444-444444444444/);
 });

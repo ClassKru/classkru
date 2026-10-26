@@ -40,7 +40,7 @@ const studioMedia = {
     updatedAt: now,
     chat: { available: false },
     build: { available: false },
-    runtimeUrl: '/api/dev/media-preview?source=v5'
+    runtimeUrl: '/api/dev/data?resource=studio-media-preview&source=v5'
   }]
 };
 

@@ -3,8 +3,13 @@
 const { sendJson } = require('../_lib/http');
 const { verifySession } = require('../_lib/dev-auth');
 const { selectRows } = require('../_lib/supabase-admin');
+const storage = require('../_lib/media-db');
 const { loadBusinessAnalytics } = require('../_lib/business-analytics');
 const { loadStudioMedia } = require('../_lib/developer-v2-media');
+const { createCloudArtifactStore } = require('../_lib/interactive-v5/html-media-builder-ai/cloud-artifact-store');
+const { RUNTIME_CSP, instrumentRuntimeHtml, runtimeCspForHost } = require('../_lib/interactive-v5/html-media-builder-ai/runtime-preview');
+
+const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const ISSUE_REPORT_FIELDS = 'id,reporter_id,category,message,page_url,browser_info,status,created_at,updated_at';
 const LEGACY_ISSUE_REPORT_FIELDS = 'id,reporter_id,message,page_url,browser_info,status,created_at,updated_at';
@@ -17,6 +22,25 @@ function reportCategory(report) {
   const legacyCategory = String(report.browser_info || '').match(/feedback-category:(issue|feature)/)?.[1];
   if (legacyCategory) return legacyCategory;
   return report.category === 'feature' ? 'feature' : 'issue';
+}
+
+function queryValue(value) {
+  return Array.isArray(value) ? String(value[0] || '') : String(value || '');
+}
+
+function validId(value) {
+  return ID.test(queryValue(value));
+}
+
+async function loadV5Artifact(teacherId, jobId, artifactId) {
+  const [row] = await selectRows('interactive_v5_tasks', {
+    select: 'state',
+    filters: { teacher_id: `eq.${teacherId}`, 'state->jobs': `cs.${JSON.stringify([{ id: jobId }])}` },
+    limit: 1
+  });
+  const job = (row?.state?.jobs || []).find(item => item?.id === jobId && item?.state === 'succeeded' && item?.artifact_id === artifactId);
+  if (!job) return null;
+  return createCloudArtifactStore({ storage, teacherId }).getValidated(artifactId);
 }
 
 async function loadReportRows() {
@@ -56,6 +80,22 @@ async function handler(req, res) {
     const resource = normalize(req.query.resource || 'overview', 30);
     if (resource === 'business') return sendJson(res, 200, await loadBusinessAnalytics());
     if (resource === 'studio-media' || resource === 'v2-media') return sendJson(res, 200, await loadStudioMedia());
+    if (resource === 'studio-media-preview') {
+      const teacherId = queryValue(req.query.teacher_id);
+      const jobId = queryValue(req.query.job_id);
+      const artifactId = queryValue(req.query.artifact_id);
+      if (!validId(teacherId) || !validId(jobId) || !validId(artifactId)) return sendJson(res, 400, { error: 'invalid_preview' });
+      if (!storage.configured()) return sendJson(res, 503, { error: 'storage_not_configured' });
+      const artifact = await loadV5Artifact(teacherId, jobId, artifactId);
+      if (!artifact?.html) return sendJson(res, 404, { error: 'preview_not_found' });
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, private');
+      res.setHeader('Content-Security-Policy', runtimeCspForHost(req.headers?.host, RUNTIME_CSP));
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('Referrer-Policy', 'no-referrer');
+      return res.status(200).send(instrumentRuntimeHtml(artifact.html));
+    }
     const reportRows = await loadReportRows();
 
     if (resource === 'overview') {

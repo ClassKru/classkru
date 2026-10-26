@@ -159,7 +159,7 @@ function mapV5TaskRows(tasks, teachers = new Map()) {
       updatedAt,
       chat: { available: false },
       build: { available: false },
-      runtimeUrl: `/api/dev/media-preview?${preview.toString()}`,
+      runtimeUrl: `/api/dev/data?resource=studio-media-preview&${preview.toString()}`,
       runtimeLabel: 'เปิด Preview'
     };
   }).filter(Boolean);
