@@ -5,7 +5,7 @@ const assert = require('node:assert/strict');
 const { createCloudBuild, RETRYABLE } = require('../api/_lib/interactive-v5/cloud/cloud-build');
 const { createOpenRouterProvider } = require('../api/_lib/interactive-v5/prompt-architect-ai/openrouter-provider');
 const { createOpenRouterProvider: createHtmlBuilderProvider } = require('../api/_lib/interactive-v5/html-media-builder-ai/openrouter-provider');
-const { normalizeSpecification } = require('../api/_lib/interactive-v5/prompt-architect-ai/contracts');
+const { buildSpecificationSchema, normalizeSpecification } = require('../api/_lib/interactive-v5/prompt-architect-ai/contracts');
 const { validateBuildSpecification } = require('../api/_lib/interactive-v5/html-media-builder-ai/contracts');
 const architectConfig = require('../api/_lib/interactive-v5/prompt-architect-ai/config');
 
@@ -26,6 +26,23 @@ function createStore(initial) {
     async delete(id, revision) { const row = rows.get(id); if (!row || row.revision !== revision) throw new Error('conflict'); rows.delete(id); return true; }
   };
 }
+
+test('Prompt Architect strict schema marks every object property as required', () => {
+  const visit = (schema, path = 'root') => {
+    if (!schema || typeof schema !== 'object') return;
+    if (schema.properties) {
+      assert.deepEqual(
+        [...schema.required].sort(),
+        Object.keys(schema.properties).sort(),
+        `all properties must be required for strict output at ${path}`
+      );
+      for (const [name, child] of Object.entries(schema.properties)) visit(child, `${path}.${name}`);
+    }
+    if (schema.items) visit(schema.items, `${path}[]`);
+  };
+  visit(buildSpecificationSchema);
+  assert.deepEqual(buildSpecificationSchema.properties.three_d_scene.type, ['object', 'null']);
+});
 
 test('V5 cloud build exposes a process operation and persists a successful artifact', async () => {
   const conversation = { id: 'conversation-1', status: 'draft', draft: {} };
@@ -124,6 +141,31 @@ test('Prompt Architect can recover a JSON object wrapped in provider-added text 
   const result = await provider.respond({ config: { apiKey: 'test-key', modelId: 'test/model', timeoutMs: 1000, maxTokens: 100 }, request: { systemPrompt: '', messages: [] } });
   assert.deepEqual(result.data, { title: 'curly } brace', nested: { ok: true } });
   assert.equal(result.attempts[0].reason, 'parsed');
+});
+
+test('Prompt Architect logs only the safe upstream failure kind and HTTP status', async () => {
+  const diagnostics = [];
+  const provider = createOpenRouterProvider({
+    fetchImpl: async () => ({ ok: false, status: 400, json: async () => ({ error: { message: 'Provider returned an error', code: 400, metadata: { provider_name: 'OpenAI', raw: JSON.stringify({ error: { message: "Invalid schema: 'minItems' is not permitted", type: 'invalid_request_error', param: 'response_format', code: 'invalid_json_schema' } }) } } }) }),
+    logger: { error: (...args) => diagnostics.push(args) }
+  });
+
+  await assert.rejects(
+    provider.respond({ config: { apiKey: 'private-test-key', modelId: 'openai/gpt-6-luna', timeoutMs: 1000, maxTokens: 100 }, request: { systemPrompt: 'private prompt', messages: [] } }),
+    error => error.code === 'prompt_architect_provider_unavailable'
+  );
+  assert.deepEqual(diagnostics, [[
+    '[interactive-v5 prompt architect] OpenRouter request failed',
+    {
+      kind: 'http', status: 400, category: 'structured_output', field: 'minitems',
+      error_fields: ['code', 'message', 'metadata'], metadata_fields: ['provider_name', 'raw'],
+      raw_fields: ['error'], raw_error_fields: ['code', 'type', 'param', 'message'], provider: 'OpenAI',
+      upstream_code: 'invalid_json_schema', upstream_type: 'invalid_request_error', upstream_param: 'response_format'
+    }
+  ]]);
+  assert.equal(JSON.stringify(diagnostics).includes('private'), false);
+  assert.equal(JSON.stringify(diagnostics).includes('Invalid schema'), false);
+  assert.equal(JSON.stringify(diagnostics).includes('minItems'), false);
 });
 
 test('HTML Builder recovers a valid artifact from provider prose, code fences, and content parts', async () => {

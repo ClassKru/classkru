@@ -621,3 +621,13 @@ Learning Goal Card แนบเป้าหมายและ pattern เป็�
 แยก context เป็นกฎร่วมด้านขอบเขต Runtime, Planner Rules, Brief Composer Rules, Builder Rules และ Validator Rules แบบ configuration ที่ deterministic. Planner เน้นแนวทางสื่อหนึ่งแบบที่สร้างได้จริง รองรับทุกวิชา รักษา Understand → Propose → Refine → Confirm → Build และจำกัดคำถาม/ความซับซ้อน. Brief Composer สรุปบริบทและตัวเลือกที่ครูยืนยันจากบทสนทนาโดยไม่สร้างข้อมูลหลักสูตรหรือข้อมูลส่วนบุคคลเพิ่ม. Builder สร้าง HTML5 หน้าเดียวแบบ responsive พร้อม inline CSS/JS และ JSON contract เดิม; Validator ยังคงใช้ข้อจำกัดและการตรวจเดิมโดยอ้างค่าจาก configuration.
 
 ไม่เพิ่มบริการหรือเปลี่ยน flow/Runtime/Production; prompt ส่งเฉพาะกฎที่ตรงกับขั้นตอน ไม่ส่งทุก role ซ้ำทุก call. ไฟล์ Core Rules V2.1 ที่ระบุใน brief ไม่พบใน attachment ที่เข้าถึงได้ จึงยึดข้อกำหนด Phase 2 และข้อจำกัด Runtime จากโค้ดเดิม. ยังไม่รันทดสอบ (อยู่ก่อน Phase 7); ตรวจ whitespace ด้วย `git diff --check`. สถานะ: แก้ใน working tree ของ branch `fix/media-v2-structured-output`; PR #120 ยังไม่ merge, ไม่มี deploy. Phase 3 ยังรอผู้ใช้เริ่ม.
+
+## 29. Mini Lab V5 Production: แก้ schema และทดสอบสร้างสื่อจริง (2026-10-23)
+
+แก้ปัญหาการสร้างสื่อบน Production ของ Mini Lab V5 ที่เกิดก่อนถึงขั้น Builder: Prompt Architect ส่ง strict JSON Schema ที่ provider ปฏิเสธ เพราะ `three_d_scene` ไม่ได้อยู่ใน `required` แม้เป็น property ที่ nullable จึงตอบ `invalid_json_schema` ที่ `text.format.schema`. ปรับ schema ให้ระบุ field นี้เป็น required nullable property และเพิ่ม regression test ตรวจ schema แบบ recursive. เพิ่มการทำความสะอาด diagnostics ของข้อผิดพลาด upstream เพื่อไม่ส่งรายละเอียดภายใน/ข้อมูลอ่อนไหวกลับหน้าเว็บ.
+
+สถานะการส่งมอบ: PR #149 (sanitized upstream error diagnostics) และ PR #150 (Prompt Architect schema fix) merge แล้ว; Vercel checks/deployments รายงาน Ready/สำเร็จ. `npm run test:interactive-v5` ผ่าน 36/36 และ `git diff --check` ผ่านก่อนสร้าง PR.
+
+ทดสอบ Production จริงตามที่ผู้ใช้อนุญาต โดยใช้ brief และโมเดลที่ตั้งค่าไว้เดิมเท่านั้น: เปิดบทสนทนาที่บันทึกไว้ “การบวกเลข” แล้วสร้าง artifact “เกมจับคู่โจทย์บวก” สำเร็จและเปิด Preview ได้. ทดสอบการโต้ตอบ 7+5 จับคู่กับ 12 แล้วแสดง feedback สำเร็จ. ผลงานเป็นสื่อ 2D ตามการตัดสินใจของ AI จาก brief; ไม่ได้บังคับให้เป็น 3D และไม่มีการแก้ brief หรือเปลี่ยนโมเดล/การตั้งค่า.
+
+หมายเหตุ: ระหว่างตรวจมี GET แบบไม่ล็อกอินในแท็บชั่วคราวตอบ 500 หนึ่งครั้ง แต่เส้นทางสร้างสื่อของผู้ใช้ที่ล็อกอินทำงานและทดสอบสำเร็จแล้ว; ให้ติดตามเฉพาะหากพบซ้ำในเส้นทางใช้งานปกติ.
