@@ -21,7 +21,7 @@ const business = {
   accounts: { total: 2, activated: 1, recordedToday: 1, recorded7d: 1, recorded30d: 1, trial: 1, paid: 1, eligible: 2, expired: 0 },
   payments: { paidOrders: 1, paidAmountSatang: 9900 },
   rows: [
-    { teacherId: 'one', email: 'active@example.test', registeredAt: now, subscriptionStatus: 'active', paidUntil: null, classrooms: 2, timetableEntries: 3, attendance30d: 4, scoreItems30d: 1, studentScores30d: 5, lastRecordedAt: now, recordedToday: true, recorded7d: true, recorded30d: true, hasPaid: true },
+    { teacherId: 'one', email: 'active@example.test', registeredAt: now, subscriptionStatus: 'active', paidUntil: null, classrooms: 2, classDetails: [{ subject: 'วิทยาศาสตร์', gradeLevel: 'ม.2', className: 'ห้อง 1' }, { subject: 'คณิตศาสตร์', gradeLevel: 'ม.3', className: 'ห้อง 2' }], timetableEntries: 3, attendance30d: 4, scoreItems30d: 1, studentScores30d: 5, lastRecordedAt: now, recordedToday: true, recorded7d: true, recorded30d: true, hasPaid: true },
     { teacherId: 'two', email: 'new@example.test', registeredAt: now, subscriptionStatus: 'trial', paidUntil: null, classrooms: 0, timetableEntries: 0, attendance30d: 0, scoreItems30d: 0, studentScores30d: 0, lastRecordedAt: null, recordedToday: false, recorded7d: false, recorded30d: false, hasPaid: false }
   ]
 };
@@ -85,6 +85,8 @@ test('developer business and per-account usage work on desktop and mobile', asyn
     assert.equal(await page.$$eval('.usage-account-card', nodes => nodes.length), 1);
     await page.$eval('.usage-account-card .row-button', node => node.click());
     assert.match(await page.$eval('#detail-content', node => node.textContent), /คะแนนนักเรียนที่แก้ไขใน 30 วัน/);
+    assert.match(await page.$eval('#detail-content', node => node.textContent), /วิทยาศาสตร์ · ม.2 · ห้อง 1/);
+    assert.match(await page.$eval('#detail-content', node => node.textContent), /คณิตศาสตร์ · ม.3 · ห้อง 2/);
     await page.$eval('#close-modal', node => node.click());
     await page.click('[data-view="studio-media"]');
     await page.waitForFunction(() => document.querySelectorAll('#studio-media-rows tr').length === 1);

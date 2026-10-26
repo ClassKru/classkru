@@ -566,6 +566,9 @@ function renderBusinessAccounts() {
 function accountDetail(row) {
   ui.modalTitle.textContent = row.email || 'รายละเอียดบัญชี';
   ui.modalContent.replaceChildren();
+  const classDetails = Array.isArray(row.classDetails) && row.classDetails.length
+    ? row.classDetails.map(item => [item.subject || 'ไม่ระบุรายวิชา', item.gradeLevel || 'ไม่ระบุระดับชั้น', item.className].filter(Boolean).join(' · ')).join('\n')
+    : 'ยังไม่มีข้อมูลรายวิชา/ระดับชั้น';
   const fields = [
     ['อีเมล', row.email],
     ['สถานะสมาชิก', row.subscriptionStatus || 'ไม่ระบุ'],
@@ -573,6 +576,7 @@ function accountDetail(row) {
     ['วันหมดอายุ', formatDate(row.paidUntil)],
     ['เคยชำระเงิน', row.hasPaid ? 'ใช่' : 'ยังไม่พบรายการชำระสำเร็จ'],
     ['จำนวนห้องเรียน', row.classrooms ?? 0],
+    ['รายวิชา / ระดับชั้น', classDetails],
     ['รายการตารางสอน', row.timetableEntries ?? 0],
     ['รายการเช็กชื่อที่แก้ไขใน 30 วัน', row.attendance30d ?? 0],
     ['หัวข้อคะแนนที่แก้ไขใน 30 วัน', row.scoreItems30d ?? 0],
