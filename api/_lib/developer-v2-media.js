@@ -5,6 +5,8 @@ const storage = require('./media-db');
 
 const PAGE_SIZE = 1000;
 const isId = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
+const V5_SOURCE_LABEL = 'ClassKru Studio V5';
+const V2_SOURCE_LABEL = 'ClassKru Studio V2';
 
 async function mapLimit(items, concurrency, mapper) {
   const result = new Array(items.length);
@@ -40,6 +42,15 @@ async function loadTeachers() {
     if (page.length < PAGE_SIZE) break;
   }
   return rows.filter(row => isId(row.teacher_id));
+}
+
+async function listAllRows(table, options = {}) {
+  const rows = [];
+  for (let offset = 0; ; offset += PAGE_SIZE) {
+    const page = await selectRows(table, { ...options, limit: PAGE_SIZE, offset });
+    rows.push(...page);
+    if (page.length < PAGE_SIZE) return rows;
+  }
 }
 
 function sumUsage(calls) {
@@ -103,6 +114,8 @@ async function teacherVersions(teacher) {
     sessions: [...new Set(runs.map(run => run.session_id))],
     rows: runs.map(run => ({
       teacher: teacher.email || teacher.teacher_id,
+      source: 'v2',
+      sourceLabel: V2_SOURCE_LABEL,
       title: run.title || 'สื่อการเรียนรู้',
       versionId: run.id,
       sessionId: run.session_id,
@@ -114,7 +127,53 @@ async function teacherVersions(teacher) {
   };
 }
 
-async function loadV2Media() {
+function latestSucceededV5Job(state) {
+  const jobs = Array.isArray(state?.jobs) ? state.jobs : [];
+  return [...jobs]
+    .filter(job => job?.state === 'succeeded' && isId(job.id) && isId(job.artifact_id))
+    .sort((left, right) => Date.parse(left.updated_at || left.created_at || '') - Date.parse(right.updated_at || right.created_at || ''))
+    .at(-1) || null;
+}
+
+function mapV5TaskRows(tasks, teachers = new Map()) {
+  return tasks.map(task => {
+    const teacherId = String(task?.teacher_id || '');
+    const job = latestSucceededV5Job(task?.state);
+    if (!job || !isId(teacherId)) return null;
+    const teacher = teachers.get(teacherId);
+    const title = job.specification?.media?.title || job.brief?.learning?.topic || 'สื่อการเรียนรู้';
+    const updatedAt = job.updated_at || job.created_at || task.updated_at || task.created_at;
+    const preview = new URLSearchParams({
+      source: 'v5',
+      teacher_id: teacherId,
+      job_id: job.id,
+      artifact_id: job.artifact_id
+    });
+    return {
+      teacher: teacher?.email || teacherId,
+      source: 'v5',
+      sourceLabel: V5_SOURCE_LABEL,
+      title,
+      versionId: job.id,
+      sessionId: job.conversation_id || task.id || null,
+      updatedAt,
+      chat: { available: false },
+      build: { available: false },
+      runtimeUrl: `/api/dev/data?resource=studio-media-preview&${preview.toString()}`,
+      runtimeLabel: 'เปิด Preview'
+    };
+  }).filter(Boolean);
+}
+
+async function loadV5Media(teachers) {
+  const tasks = await listAllRows('interactive_v5_tasks', {
+    select: 'teacher_id,id,state,created_at,updated_at',
+    order: 'updated_at.asc,teacher_id.asc'
+  });
+  return mapV5TaskRows(tasks, new Map(teachers.map(teacher => [teacher.teacher_id, teacher])));
+}
+
+async function loadStudioMedia() {
   if (!storage.configured()) {
     const error = new Error('storage_not_configured');
     error.code = 'storage_not_configured';
@@ -122,15 +181,35 @@ async function loadV2Media() {
     throw error;
   }
   const teachers = await loadTeachers();
-  const results = await mapLimit(teachers, 8, teacherVersions);
-  const rows = results.flatMap(result => result.rows).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+  const [v2Results, v5Result] = await Promise.all([
+    mapLimit(teachers, 8, teacherVersions),
+    loadV5Media(teachers).catch(error => ({ error }))
+  ]);
+  const v2Rows = v2Results.flatMap(result => result.rows);
+  const v5Rows = v5Result.error ? [] : v5Result;
+  const rows = [...v2Rows, ...v5Rows].sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
+  const sourceCounts = {
+    v2: v2Rows.length,
+    v5: v5Rows.length
+  };
+  const sourceErrors = v5Result.error ? { v5: v5Result.error.code || 'database_unavailable' } : {};
   return {
     generatedAt: new Date().toISOString(),
     rows,
     scannedTeachers: teachers.length,
-    generatedSessions: new Set(results.flatMap(result => result.sessions)).size,
-    generatedVersions: rows.length
+    generatedSessions: new Set([
+      ...v2Results.flatMap(result => result.sessions),
+      ...v5Rows.map(row => row.sessionId).filter(Boolean)
+    ]).size,
+    generatedVersions: rows.length,
+    sourceCounts,
+    sourceErrors
   };
 }
 
-module.exports = { loadV2Media };
+module.exports = {
+  loadStudioMedia,
+  loadV2Media: loadStudioMedia,
+  latestSucceededV5Job,
+  mapV5TaskRows
+};

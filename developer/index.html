@@ -54,7 +54,7 @@
         <button class="nav-button" type="button" data-view="billing">สมาชิกและการชำระเงิน</button>
         <button class="nav-button" type="button" data-view="media-models">ตั้งค่า AI Media Studio</button>
         <button class="nav-button" type="button" data-view="usage">การใช้งาน</button>
-        <button class="nav-button" type="button" data-view="v2-media">สื่อ V2 ที่สร้าง</button>
+        <button class="nav-button" type="button" data-view="studio-media">สื่อการสอนจาก classkru studio</button>
         <button class="nav-button nav-button-disabled" type="button" disabled title="จะเปิดเมื่อเริ่มเก็บ AI usage log">AI Usage</button>
       </nav>
 
@@ -90,14 +90,14 @@
         <div id="usage-list" class="usage-card-list" aria-live="polite"></div>
       </section>
 
-      <section id="view-v2-media" class="workspace-view" aria-labelledby="v2-media-title">
-        <div class="section-heading"><div><p class="eyebrow">CLASSKRU MEDIA V2 · TEACHER MEDIA</p><h2 id="v2-media-title">สื่อ V2 ที่ครูสร้าง</h2></div><p id="v2-media-updated">ยังไม่ได้โหลดข้อมูล</p></div>
-        <p class="business-note">แสดงทุก Version ของ ClassKru Media V2 ที่สร้าง Runtime สำเร็จ และแยกโทเคนการสนทนากับการสร้างสื่อของแต่ละ Version รวมการซ่อมผลลัพธ์อัตโนมัติ</p>
-        <div class="v2-media-toolbar"><p id="v2-media-count" class="database-note">กดโหลดข้อมูลเพื่อเริ่ม</p><button id="v2-media-refresh" class="secondary-button" type="button">โหลดข้อมูล</button></div>
+      <section id="view-studio-media" class="workspace-view" aria-labelledby="studio-media-title">
+        <div class="section-heading"><div><p class="eyebrow">CLASSKRU STUDIO · TEACHER MEDIA</p><h2 id="studio-media-title">สื่อการสอนจาก classkru studio</h2></div><p id="studio-media-updated">ยังไม่ได้โหลดข้อมูล</p></div>
+        <p class="business-note">แสดงสื่อที่สร้างสำเร็จจาก ClassKru Studio ทั้ง V2 และ V5 รวมงานเดิมที่มีอยู่แล้ว พร้อมระบุแหล่งที่มาและเปิด Runtime/Preview ได้จากรายการ</p>
+        <div class="v2-media-toolbar"><p id="studio-media-count" class="database-note">กดโหลดข้อมูลเพื่อเริ่ม</p><button id="studio-media-refresh" class="secondary-button" type="button">โหลดข้อมูล</button></div>
         <div class="table-shell v2-media-table-shell">
           <table class="v2-media-table">
-            <thead><tr><th scope="col">ชื่อผู้ใช้งาน</th><th scope="col">ชื่องาน</th><th scope="col">โทเคนสนทนา</th><th scope="col">โทเคนสร้างสื่อ</th><th scope="col">Runtime</th></tr></thead>
-            <tbody id="v2-media-rows"><tr><td colspan="5" class="empty-state">ยังไม่ได้โหลดข้อมูล</td></tr></tbody>
+            <thead><tr><th scope="col">ชื่อผู้ใช้งาน</th><th scope="col">แหล่งที่มา</th><th scope="col">ชื่องาน</th><th scope="col">โทเคนสนทนา</th><th scope="col">โทเคนสร้างสื่อ</th><th scope="col">Runtime / Preview</th></tr></thead>
+            <tbody id="studio-media-rows"><tr><td colspan="6" class="empty-state">ยังไม่ได้โหลดข้อมูล</td></tr></tbody>
           </table>
         </div>
       </section>

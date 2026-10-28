@@ -14,8 +14,8 @@ test('business activity counts saved work, not eligible or merely registered acc
     ],
     orders: [{ teacher_id: 'b', status: 'paid', amount_satang: 9900 }],
     classrooms: [
-      { teacher_id: 'a', updated_at: '2026-08-10T00:00:00Z' },
-      { teacher_id: 'b', updated_at: '2026-08-10T00:00:00Z' }
+      { teacher_id: 'a', subject: 'วิทยาศาสตร์', grade_level: 'ม.2', class_name: 'ห้อง 1', updated_at: '2026-08-10T00:00:00Z' },
+      { teacher_id: 'b', subject: 'ภาษาไทย', grade_level: 'ป.5', class_name: 'ห้อง 2', updated_at: '2026-08-10T00:00:00Z' }
     ],
     attendance_records: [{ teacher_id: 'a', updated_at: '2026-09-27T08:00:00Z' }],
     score_items: []
@@ -28,6 +28,7 @@ test('business activity counts saved work, not eligible or merely registered acc
   assert.equal(result.accounts.paid, 1);
   assert.equal(result.payments.paidAmountSatang, 9900);
   assert.equal(result.rows.find(row => row.teacherId === 'c').recorded7d, false);
+  assert.deepEqual(result.rows.find(row => row.teacherId === 'a').classDetails, [{ subject: 'วิทยาศาสตร์', gradeLevel: 'ม.2', className: 'ห้อง 1' }]);
 });
 
 test('Thai day boundary and paged cloud reads do not silently cap account counts', async () => {
