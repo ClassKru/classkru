@@ -35,6 +35,10 @@
   <link rel="stylesheet" href="css/media-studio.css?v=548">
   <link rel="stylesheet" href="css/13-content-library.css?v=548">
   <link rel="stylesheet" href="css/15-subscription.css?v=548">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/16-classkru-ai-launcher.css?v=1">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/17-classkru-ai-panel.css?v=1">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/18-classkru-ai-brief-selector.css?v=2">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/19-classkru-ai-model-selector.css?v=1">
   <link rel="stylesheet" href="css/login.css?v=548">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -241,6 +245,18 @@
           <div class="decor-books"><i></i><i></i><i></i></div>
           <div class="decor-cup"><b></b><b></b><b></b></div>
         </div>
+      </div>
+      <div class="classkru-ai-topbar">
+        <div id="ck-ai-brief-controls" class="ck-ai-brief-controls" hidden>
+          <button id="ck-ai-brief-toggle" type="button" aria-label="เลือกชุดบรีฟ" title="เลือกชุดบรีฟ" aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">▤</span><span class="ck-ai-brief-label">Brief V1</span></button>
+          <div id="ck-ai-brief-menu" class="ck-ai-brief-menu" role="listbox" aria-label="เลือก AI Brief Version" hidden></div>
+        </div>
+        <div id="ck-ai-model-controls" class="ck-ai-model-controls" hidden>
+          <button id="ck-ai-model-open" class="ck-ai-tool-button" type="button" aria-label="เลือก API และโมเดล" title="ตั้งค่า API และโมเดล" aria-haspopup="dialog">⚙</button>
+        </div>
+        <button id="classkru-ai-launcher" class="classkru-ai-launcher" type="button" aria-label="เปิด ClassKru AI">
+          <span class="ck-ai-visually-hidden">ClassKru AI</span>
+        </button>
       </div>
       <div class="app-content">
 
@@ -761,6 +777,51 @@
     <button class="report-mascot-fab" type="button" onclick="openIssueReportForm('feature')" aria-label="เสนอฟีเจอร์ใหม่โดยตรง" title="เสนอฟีเจอร์ใหม่โดยตรง">
       <img src="assets/classkru-mascot-support.png?v=1" alt="มาสคอตสำหรับเสนอฟีเจอร์ใหม่">
     </button>
+
+    <section id="ck-ai-panel" class="ck-ai-panel" aria-label="สนทนากับ ClassKru AI" hidden>
+      <header class="ck-ai-panel-head">
+        <div><strong>ClassKru AI</strong><small>ผู้ช่วยนำทางสำหรับคุณครู</small></div>
+        <div class="ck-ai-panel-controls">
+          <button id="ck-ai-expand" type="button" aria-label="ขยายแผงสนทนา" title="ขยาย">⛶</button>
+          <button id="ck-ai-minimize" type="button" aria-label="ย่อแผงสนทนา" title="ย่อ">−</button>
+          <button id="ck-ai-close" type="button" aria-label="ปิดแผงสนทนา" title="ปิด">×</button>
+        </div>
+      </header>
+      <div class="ck-ai-panel-body">
+        <div id="ck-ai-history" class="ck-ai-history" role="log" aria-live="polite" aria-relevant="additions"></div>
+        <div id="ck-ai-starters" class="ck-ai-starters" aria-label="คำถามเริ่มต้น">
+          <button type="button" data-prompt="ClassKru ทำอะไรได้บ้าง?">ClassKru ทำอะไรได้บ้าง?</button>
+          <button type="button" data-prompt="พาไปหน้าเช็กชื่อ">พาไปหน้าเช็กชื่อ</button>
+          <button type="button" data-prompt="อยากสร้างรายวิชา">อยากสร้างรายวิชา</button>
+          <button type="button" data-prompt="เพิ่มนักเรียนยังไง?">เพิ่มนักเรียนยังไง?</button>
+        </div>
+        <p id="ck-ai-status" class="ck-ai-status" role="status" aria-live="polite"></p>
+        <form id="ck-ai-form" class="ck-ai-form">
+          <label class="ck-ai-visually-hidden" for="ck-ai-input">ข้อความถึง ClassKru AI</label>
+          <textarea id="ck-ai-input" maxlength="1000" rows="2" placeholder="บอกได้เลยว่าอยากทำอะไรใน ClassKru"></textarea>
+          <button id="ck-ai-send" type="submit" aria-label="ส่งข้อความ">ส่ง</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="ck-ai-model-overlay" class="ck-ai-model-overlay" hidden aria-label="ตั้งค่า API และโมเดล">
+      <form id="ck-ai-model-form" class="ck-ai-model-dialog" role="dialog" aria-modal="true" aria-labelledby="ck-ai-model-title" tabindex="-1">
+        <header>
+          <div><small>ClassKru AI · Developer</small><h2 id="ck-ai-model-title">ตั้งค่า API และโมเดล</h2></div>
+          <button id="ck-ai-model-close" class="ck-ai-model-close" type="button" aria-label="ปิดหน้าต่าง">×</button>
+        </header>
+        <main>
+          <div class="ck-ai-provider-card"><span>API จริง</span><strong id="ck-ai-provider-name">OpenRouter</strong><small id="ck-ai-key-status">กำลังตรวจสอบ API Key…</small></div>
+          <label for="ck-ai-model-select">โมเดลสำหรับ ClassKru AI</label>
+          <select id="ck-ai-model-select" required><option value="">กำลังโหลดรายชื่อโมเดล…</option></select>
+          <p id="ck-ai-model-detail" class="ck-ai-model-detail"></p>
+          <p id="ck-ai-model-status" class="ck-ai-model-status" role="status" aria-live="polite"></p>
+          <button id="ck-ai-model-refresh" class="ck-ai-model-refresh" type="button">โหลดรายชื่อจาก OpenRouter ใหม่</button>
+          <p class="ck-ai-model-note">ClassKru AI ใช้โมเดลที่เลือกกับคำขอถัดไป ส่วน Mini Lab V5 อ่านค่าเดียวกันเมื่อโหลดการตั้งค่าใหม่</p>
+          <footer><button id="ck-ai-model-cancel" type="button">ยกเลิก</button><button id="ck-ai-model-save" type="submit">บันทึก</button></footer>
+        </main>
+      </form>
+    </section>
 
   </div>
 
@@ -1519,6 +1580,11 @@
   <script defer src="js/curriculum-catalog.js?v=548"></script>
   <script defer src="js/worksheet-layout.js?v=548"></script>
   <script defer src="js/content-library.js?v=548"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-actions.js?v=1"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-panel.js?v=1"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-launcher.js?v=1"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-brief-selector.js?v=5"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-model-selector.js?v=1"></script>
   <script defer src="js/subscription.js?v=548"></script>
   <script defer src="js/scores.js?v=548"></script>
   <script defer src="js/pp5.js?v=548"></script>

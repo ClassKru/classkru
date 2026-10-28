@@ -20,13 +20,17 @@ function createServer({media=false,handler,publicHandler,renderHandler,harness}=
         req.body=Buffer.concat(chunks).toString();
       }
       if(media && url.pathname==='/api/render')return await (renderHandler||require('../media-host/api/render'))(req,res);
+      if(!media && url.pathname==='/api/ai/navigation')return await require('../api/ai/navigation')(req,res);
+      if(!media && url.pathname==='/api/ai/brief-versions')return await require('../api/ai/brief-versions')(req,res);
+      if(!media && url.pathname==='/api/ai/model-settings')return await require('../api/ai/model-settings')(req,res);
       if(!media && url.pathname==='/api/media-studio')return await (handler||require('../api/media-studio'))(req,res);
       if(!media && url.pathname==='/api/media-studio/public')return await (publicHandler||require('../api/media-studio/public'))(req,res);
       const pathname=url.pathname==='/'?'/index.html':decodeURIComponent(url.pathname);
       const base=media?path.join(root,'media-host'):root;
       const target=path.resolve(base,'.'+pathname);
-      if(!target.startsWith(base+path.sep)||/(?:^|[\/\\])(?:\.|api|node_modules|scripts|tests|supabase|docs)/.test(pathname)||!/[.](?:html|css|js|png|svg|woff2?|jpg)$/.test(target))return res.status(404).send('Not found');
-      const types={'.html':'text/html','.css':'text/css','.js':'application/javascript','.png':'image/png','.svg':'image/svg+xml'};
+      const registryJson=pathname==='/classkru ai chat/assets/classkru-ai-actions.json';
+      if(!target.startsWith(base+path.sep)||/(?:^|[\/\\])(?:\.|api|node_modules|scripts|tests|supabase|docs)/.test(pathname)||(!registryJson&&!/[.](?:html|css|js|png|svg|woff2?|jpg)$/.test(target)))return res.status(404).send('Not found');
+      const types={'.html':'text/html','.css':'text/css','.js':'application/javascript','.png':'image/png','.svg':'image/svg+xml','.json':'application/json'};
       res.setHeader('Content-Type',(types[path.extname(target)]||'application/octet-stream')+'; charset=utf-8');
       res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
       res.end(await fs.promises.readFile(target));

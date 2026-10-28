@@ -1,0 +1,249 @@
+/* ClassKru AI shortcut — isolated from the shared app shell styles. */
+.classkru-ai-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 190;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 66px;
+  padding: 10px 24px 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--bg-app) 0%, color-mix(in srgb, var(--bg-app) 92%, transparent) 72%, transparent 100%);
+}
+
+.classkru-ai-topbar + .app-content {
+  padding-top: 10px;
+}
+
+.classkru-ai-launcher {
+  --ck-ai-blue: #3276ff;
+  --ck-ai-cyan: #63e6ff;
+  --ck-ai-violet: #7c3cff;
+  --ck-ai-pink: #e38cff;
+  position: relative;
+  display: inline-flex;
+  min-width: 176px;
+  height: 50px;
+  padding: 2px;
+  border: 0;
+  border-radius: 999px;
+  color: #0b1834;
+  cursor: pointer;
+  font: inherit;
+  isolation: isolate;
+  pointer-events: auto;
+  background: linear-gradient(110deg, var(--ck-ai-pink), var(--ck-ai-cyan), var(--ck-ai-blue), var(--ck-ai-violet), var(--ck-ai-pink));
+  background-size: 320% 100%;
+  box-shadow: 0 8px 20px rgba(96, 93, 255, 0.18), 0 1px 5px rgba(37, 99, 235, 0.12);
+  animation: ckAiBorderSweep 6.2s ease-in-out infinite;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.classkru-ai-launcher::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -7px;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 8%, var(--ck-ai-pink) 28%, var(--ck-ai-cyan) 48%, var(--ck-ai-blue) 68%, transparent 90%);
+  background-size: 280% 100%;
+  filter: blur(11px);
+  opacity: 0.16;
+  animation: ckAiGlowSweep 6.2s ease-in-out infinite;
+}
+
+.classkru-ai-launcher__surface {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 18px 0 13px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 16% 45%, rgba(120, 232, 255, 0.2), transparent 29%),
+    radial-gradient(circle at 88% 35%, rgba(192, 132, 252, 0.16), transparent 35%),
+    rgba(255, 255, 255, 0.94);
+  box-shadow: inset 0 0 16px rgba(121, 140, 255, 0.12);
+}
+
+.classkru-ai-launcher__surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-145%) skewX(-22deg);
+  width: 44%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), transparent);
+  opacity: 0;
+  animation: ckAiSurfaceShine 6.2s ease-in-out infinite;
+}
+
+.classkru-ai-launcher__mark {
+  position: relative;
+  display: grid;
+  flex: 0 0 33px;
+  width: 33px;
+  height: 33px;
+  place-items: center;
+}
+
+.classkru-ai-launcher__spark-main,
+.classkru-ai-launcher__spark-small {
+  position: absolute;
+  line-height: 1;
+  background: linear-gradient(145deg, #1c7cff 12%, #8154ff 55%, #d64cf2 88%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.28));
+}
+
+.classkru-ai-launcher__spark-main {
+  left: 0;
+  bottom: -1px;
+  font-size: 33px;
+}
+
+.classkru-ai-launcher__spark-small {
+  top: 0;
+  right: 0;
+  font-size: 14px;
+}
+
+.classkru-ai-launcher__label {
+  position: relative;
+  z-index: 1;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+}
+
+.classkru-ai-launcher__label strong {
+  color: var(--ck-ai-violet);
+  font-weight: 800;
+}
+
+.classkru-ai-launcher:hover,
+.classkru-ai-launcher:focus-visible {
+  transform: translateY(-2px) scale(1.015);
+  box-shadow: 0 12px 28px rgba(96, 93, 255, 0.27), 0 2px 8px rgba(37, 99, 235, 0.18);
+}
+
+.classkru-ai-launcher:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ck-ai-violet) 34%, transparent);
+  outline-offset: 4px;
+}
+
+html.dark-mode .classkru-ai-launcher {
+  color: #f7f7ff;
+  box-shadow: 0 8px 24px rgba(91, 115, 255, 0.28);
+}
+
+html.dark-mode .classkru-ai-launcher__surface {
+  border-color: rgba(255, 255, 255, 0.28);
+  background:
+    radial-gradient(circle at 16% 45%, rgba(47, 211, 255, 0.2), transparent 30%),
+    radial-gradient(circle at 88% 35%, rgba(196, 104, 255, 0.2), transparent 38%),
+    rgba(25, 31, 44, 0.96);
+}
+
+html.dark-mode .classkru-ai-launcher__label strong {
+  color: #aa8cff;
+}
+
+@keyframes ckAiBorderSweep {
+  0%, 52%, 100% { background-position: 0% 50%; }
+  65% { background-position: 95% 50%; }
+  80% { background-position: 200% 50%; }
+}
+
+@keyframes ckAiGlowSweep {
+  0%, 52%, 100% { background-position: 0% 50%; opacity: 0.12; }
+  60% { opacity: 0.68; }
+  78% { background-position: 100% 50%; opacity: 0.44; }
+  86% { background-position: 200% 50%; opacity: 0.12; }
+}
+
+@keyframes ckAiSurfaceShine {
+  0%, 56%, 100% { transform: translateX(-145%) skewX(-22deg); opacity: 0; }
+  62% { opacity: 0.82; }
+  78% { transform: translateX(360%) skewX(-22deg); opacity: 0.22; }
+  79% { opacity: 0; }
+}
+
+@media (max-width: 768px) {
+  .classkru-ai-topbar {
+    min-height: 56px;
+    padding: 7px 12px 0;
+  }
+
+  .classkru-ai-topbar + .app-content {
+    padding-top: 8px;
+  }
+
+  .classkru-ai-launcher {
+    min-width: 139px;
+    height: 43px;
+  }
+
+  .classkru-ai-launcher__surface {
+    gap: 7px;
+    padding: 0 13px 0 10px;
+  }
+
+  .classkru-ai-launcher__mark {
+    flex-basis: 27px;
+    width: 27px;
+    height: 27px;
+  }
+
+  .classkru-ai-launcher__spark-main { font-size: 27px; }
+  .classkru-ai-launcher__spark-small { font-size: 11px; }
+  .classkru-ai-launcher__label { font-size: 0.86rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classkru-ai-launcher,
+  .classkru-ai-launcher::before,
+  .classkru-ai-launcher__surface::after {
+    animation: none;
+  }
+
+  .classkru-ai-launcher:hover,
+  .classkru-ai-launcher:focus-visible {
+    transform: none;
+  }
+}
+
+@media print {
+  .classkru-ai-topbar { display: none !important; }
+}
+
+/* Use the approved button artwork, cropped to its capsule bounds. */
+.classkru-ai-launcher {
+  width: 132px;
+  min-width: 132px;
+  height: 42px;
+  background: url('../../assets/classkru-ai-button-reference.png') center / 115% auto no-repeat;
+  box-shadow: 0 6px 20px rgba(104, 78, 210, .18);
+  animation: ckAiButtonBreathe 6s ease-in-out infinite;
+}
+
+@keyframes ckAiButtonBreathe {
+  0%, 55%, 100% { box-shadow: 0 6px 20px rgba(104, 78, 210, .18); }
+  70% { box-shadow: 0 8px 25px rgba(129, 78, 255, .32), 0 0 15px rgba(96, 200, 255, .3); }
+}
+
+@media (max-width: 768px) {
+  .classkru-ai-launcher { width: 132px; min-width: 132px; height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .classkru-ai-launcher { animation: none; }
+}
