@@ -1,4 +1,4 @@
-/* ClassKru AI shortcut — isolated from the shared app shell styles. */
+/* Native capsule. Reference artwork is never loaded by this component. */
 .classkru-ai-topbar {
   position: sticky;
   top: 0;
@@ -11,239 +11,113 @@
   pointer-events: none;
   background: linear-gradient(180deg, var(--bg-app) 0%, color-mix(in srgb, var(--bg-app) 92%, transparent) 72%, transparent 100%);
 }
-
-.classkru-ai-topbar + .app-content {
-  padding-top: 10px;
-}
-
+.classkru-ai-topbar + .app-content { padding-top: 10px; }
 .classkru-ai-launcher {
-  --ck-ai-blue: #3276ff;
-  --ck-ai-cyan: #63e6ff;
-  --ck-ai-violet: #7c3cff;
-  --ck-ai-pink: #e38cff;
+  --ck-ai-blue: #608eff;
+  --ck-ai-cyan: #a5f0ff;
+  --ck-ai-violet: #ac8aff;
+  --ck-ai-pink: #f1b9ff;
+  --ck-ai-ink: #111e40;
+  --ck-ai-radius: 999px;
+  --ck-ai-speed: 12s;
+  --ck-ai-height: 2.625rem;
   position: relative;
   display: inline-flex;
-  min-width: 176px;
-  height: 50px;
+  flex: 0 0 auto;
+  align-items: stretch;
+  box-sizing: border-box;
+  min-inline-size: 0;
+  min-block-size: var(--ck-ai-height);
   padding: 2px;
   border: 0;
-  border-radius: 999px;
-  color: #0b1834;
+  border-radius: var(--ck-ai-radius);
+  appearance: none;
+  color: var(--ck-ai-ink);
   cursor: pointer;
   font: inherit;
+  text-align: center;
   isolation: isolate;
   pointer-events: auto;
-  background: linear-gradient(110deg, var(--ck-ai-pink), var(--ck-ai-cyan), var(--ck-ai-blue), var(--ck-ai-violet), var(--ck-ai-pink));
-  background-size: 320% 100%;
-  box-shadow: 0 8px 20px rgba(96, 93, 255, 0.18), 0 1px 5px rgba(37, 99, 235, 0.12);
-  animation: ckAiBorderSweep 6.2s ease-in-out infinite;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  background: linear-gradient(115deg, var(--ck-ai-pink), #efe4ff 20%, var(--ck-ai-cyan) 38%, var(--ck-ai-blue) 58%, var(--ck-ai-pink) 78%, var(--ck-ai-cyan));
+  background-size: 300% 100%;
+  box-shadow: 0 3px 11px #9a6fea26, -4px 0 14px #d78cff24, 4px 2px 14px #66baff24;
+  animation: ckAiBorderSweep var(--ck-ai-speed) ease-in-out infinite;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+  -webkit-tap-highlight-color: transparent;
 }
-
-.classkru-ai-launcher::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -7px;
-  border-radius: inherit;
-  background: linear-gradient(105deg, transparent 8%, var(--ck-ai-pink) 28%, var(--ck-ai-cyan) 48%, var(--ck-ai-blue) 68%, transparent 90%);
-  background-size: 280% 100%;
-  filter: blur(11px);
-  opacity: 0.16;
-  animation: ckAiGlowSweep 6.2s ease-in-out infinite;
-}
-
 .classkru-ai-launcher__surface {
   position: relative;
-  z-index: 1;
   display: flex;
   flex: 1;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 0 18px 0 13px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.88);
+  gap: .375rem;
+  padding: .18rem .8rem .18rem .5rem;
+  border: 1px solid #fffffff0;
   border-radius: inherit;
-  background:
-    radial-gradient(circle at 16% 45%, rgba(120, 232, 255, 0.2), transparent 29%),
-    radial-gradient(circle at 88% 35%, rgba(192, 132, 252, 0.16), transparent 35%),
-    rgba(255, 255, 255, 0.94);
-  box-shadow: inset 0 0 16px rgba(121, 140, 255, 0.12);
+  background: radial-gradient(ellipse at 12% 75%, #cfbdff73, transparent 58%), radial-gradient(ellipse at 88% 90%, #c2ebff94, transparent 66%), linear-gradient(180deg, #ffffffed, #f4edffeb 55%, #eeeaffed);
+  box-shadow: inset 0 2px 3px #fff, inset 0 -2px 4px #b4b3ff52, inset 0 0 9px #fff9;
 }
-
-.classkru-ai-launcher__surface::after {
+.classkru-ai-launcher__surface::before {
   content: "";
   position: absolute;
-  inset: 0;
-  transform: translateX(-145%) skewX(-22deg);
-  width: 44%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), transparent);
-  opacity: 0;
-  animation: ckAiSurfaceShine 6.2s ease-in-out infinite;
+  inset: 1px 8% 53%;
+  border-radius: 999px 999px 70% 70%;
+  background: linear-gradient(180deg, #fff8, #fff0);
+  pointer-events: none;
 }
-
 .classkru-ai-launcher__mark {
   position: relative;
-  display: grid;
-  flex: 0 0 33px;
-  width: 33px;
-  height: 33px;
-  place-items: center;
+  flex: 0 0 auto;
+  inline-size: 1.8rem;
+  block-size: 1.8rem;
+  overflow: visible;
 }
-
 .classkru-ai-launcher__spark-main,
-.classkru-ai-launcher__spark-small {
-  position: absolute;
-  line-height: 1;
-  background: linear-gradient(145deg, #1c7cff 12%, #8154ff 55%, #d64cf2 88%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(99, 102, 241, 0.28));
-}
-
-.classkru-ai-launcher__spark-main {
-  left: 0;
-  bottom: -1px;
-  font-size: 33px;
-}
-
-.classkru-ai-launcher__spark-small {
-  top: 0;
-  right: 0;
-  font-size: 14px;
-}
-
+.classkru-ai-launcher__spark-small { transform-box: fill-box; transform-origin: center; }
+.classkru-ai-launcher__spark-small { animation: ckAiTwinkle 7s ease-in-out infinite; }
 .classkru-ai-launcher__label {
   position: relative;
-  z-index: 1;
-  font-size: 1rem;
+  font-size: .83rem;
   font-weight: 800;
-  letter-spacing: -0.025em;
+  line-height: 1.2;
+  letter-spacing: -.035em;
   white-space: nowrap;
+  color: var(--ck-ai-ink);
 }
-
-.classkru-ai-launcher__label strong {
-  color: var(--ck-ai-violet);
-  font-weight: 800;
+.classkru-ai-launcher__label strong { color: var(--ck-ai-ink); font-weight: inherit; }
+@media (hover: hover) {
+  .classkru-ai-launcher:hover {
+    transform: translateY(-1.5px);
+    box-shadow: 0 5px 15px #9a6fea38, -4px 0 17px #d78cff38, 4px 2px 17px #66baff38;
+  }
 }
-
-.classkru-ai-launcher:hover,
-.classkru-ai-launcher:focus-visible {
-  transform: translateY(-2px) scale(1.015);
-  box-shadow: 0 12px 28px rgba(96, 93, 255, 0.27), 0 2px 8px rgba(37, 99, 235, 0.18);
-}
-
-.classkru-ai-launcher:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--ck-ai-violet) 34%, transparent);
-  outline-offset: 4px;
-}
-
-html.dark-mode .classkru-ai-launcher {
-  color: #f7f7ff;
-  box-shadow: 0 8px 24px rgba(91, 115, 255, 0.28);
-}
-
-html.dark-mode .classkru-ai-launcher__surface {
-  border-color: rgba(255, 255, 255, 0.28);
-  background:
-    radial-gradient(circle at 16% 45%, rgba(47, 211, 255, 0.2), transparent 30%),
-    radial-gradient(circle at 88% 35%, rgba(196, 104, 255, 0.2), transparent 38%),
-    rgba(25, 31, 44, 0.96);
-}
-
-html.dark-mode .classkru-ai-launcher__label strong {
-  color: #aa8cff;
-}
-
+.classkru-ai-launcher:focus-visible { outline: 2px solid #6c48d8; outline-offset: 4px; }
+.classkru-ai-launcher:active { transform: translateY(0) scale(.98); }
 @keyframes ckAiBorderSweep {
-  0%, 52%, 100% { background-position: 0% 50%; }
-  65% { background-position: 95% 50%; }
-  80% { background-position: 200% 50%; }
+  0%, 15%, 100% { background-position: 0% 50%; }
+  55%, 70% { background-position: 100% 50%; }
 }
-
-@keyframes ckAiGlowSweep {
-  0%, 52%, 100% { background-position: 0% 50%; opacity: 0.12; }
-  60% { opacity: 0.68; }
-  78% { background-position: 100% 50%; opacity: 0.44; }
-  86% { background-position: 200% 50%; opacity: 0.12; }
+@keyframes ckAiTwinkle {
+  0%, 65%, 100% { opacity: .85; transform: scale(1); }
+  78% { opacity: 1; transform: scale(1.09); }
 }
-
-@keyframes ckAiSurfaceShine {
-  0%, 56%, 100% { transform: translateX(-145%) skewX(-22deg); opacity: 0; }
-  62% { opacity: 0.82; }
-  78% { transform: translateX(360%) skewX(-22deg); opacity: 0.22; }
-  79% { opacity: 0; }
-}
-
 @media (max-width: 768px) {
-  .classkru-ai-topbar {
-    min-height: 56px;
-    padding: 7px 12px 0;
-  }
-
-  .classkru-ai-topbar + .app-content {
-    padding-top: 8px;
-  }
-
-  .classkru-ai-launcher {
-    min-width: 139px;
-    height: 43px;
-  }
-
-  .classkru-ai-launcher__surface {
-    gap: 7px;
-    padding: 0 13px 0 10px;
-  }
-
-  .classkru-ai-launcher__mark {
-    flex-basis: 27px;
-    width: 27px;
-    height: 27px;
-  }
-
-  .classkru-ai-launcher__spark-main { font-size: 27px; }
-  .classkru-ai-launcher__spark-small { font-size: 11px; }
-  .classkru-ai-launcher__label { font-size: 0.86rem; }
+  .classkru-ai-topbar { min-height: 56px; padding: 7px 12px 0; }
+  .classkru-ai-topbar + .app-content { padding-top: 8px; }
+  .classkru-ai-launcher__surface { padding-inline: .4rem .65rem; gap: .3rem; }
+  .classkru-ai-launcher__mark { inline-size: 1.6rem; block-size: 1.6rem; }
+  .classkru-ai-launcher__label { font-size: .78rem; }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .classkru-ai-launcher,
-  .classkru-ai-launcher::before,
-  .classkru-ai-launcher__surface::after {
-    animation: none;
-  }
-
+  .classkru-ai-launcher__spark-small { animation: none; transition: none; }
   .classkru-ai-launcher:hover,
-  .classkru-ai-launcher:focus-visible {
-    transform: none;
-  }
+  .classkru-ai-launcher:active { transform: none; }
 }
-
-@media print {
-  .classkru-ai-topbar { display: none !important; }
+@media (forced-colors: active) {
+  .classkru-ai-launcher { border: 2px solid ButtonText; }
+  .classkru-ai-launcher__label,
+  .classkru-ai-launcher__label strong { color: ButtonText; }
 }
-
-/* Use the approved button artwork, cropped to its capsule bounds. */
-.classkru-ai-launcher {
-  width: 132px;
-  min-width: 132px;
-  height: 42px;
-  background: url('../../assets/classkru-ai-button-reference.png') center / 115% auto no-repeat;
-  box-shadow: 0 6px 20px rgba(104, 78, 210, .18);
-  animation: ckAiButtonBreathe 6s ease-in-out infinite;
-}
-
-@keyframes ckAiButtonBreathe {
-  0%, 55%, 100% { box-shadow: 0 6px 20px rgba(104, 78, 210, .18); }
-  70% { box-shadow: 0 8px 25px rgba(129, 78, 255, .32), 0 0 15px rgba(96, 200, 255, .3); }
-}
-
-@media (max-width: 768px) {
-  .classkru-ai-launcher { width: 132px; min-width: 132px; height: 42px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .classkru-ai-launcher { animation: none; }
-}
+@media print { .classkru-ai-topbar { display: none !important; } }
