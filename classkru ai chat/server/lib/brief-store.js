@@ -47,8 +47,8 @@ function load(id) {
   }
   const dir = path.join(root, 'versions', id);
   const config = readJson(safeFile(dir, 'config.json'));
-  const system = fs.readFileSync(safeFile(dir, 'system.md'), 'utf8').trim();
-  const navigation = fs.readFileSync(safeFile(dir, 'navigation.md'), 'utf8').trim();
+  const system = fs.readFileSync(safeFile(dir, 'system.md'), 'utf8').replace(/\r\n/g, '\n').trim();
+  const navigation = fs.readFileSync(safeFile(dir, 'navigation.md'), 'utf8').replace(/\r\n/g, '\n').trim();
   if (!system || !navigation) throw new Error('invalid_brief_version');
   return { id, label: available.versions.find(version => version.id === id).label, config, system, navigation };
 }
