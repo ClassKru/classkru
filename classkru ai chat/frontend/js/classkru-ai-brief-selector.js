@@ -6,6 +6,11 @@
   const menu = document.getElementById('ck-ai-brief-menu');
   if (!controls || !toggle || !menu) return;
   const label = toggle.querySelector('.ck-ai-brief-label');
+  let currentSession = null;
+  let generation = 0;
+  let saving = false;
+  function cacheKey() { return `classkru-ai-brief:${currentSession?.user?.id || ''}`; }
+  function cachedVersion() { try { return localStorage.getItem(cacheKey()); } catch (_) { return null; } }
 
   function updateToggle(version) {
     const shortVersion = version.toUpperCase();
@@ -20,10 +25,10 @@
   }
 
   function showDeveloperControls(activeVersion = null) {
-    const version = activeVersion || window.classKruAiBriefVersion || 'v1';
+    const version = activeVersion || window.classKruAiBriefVersion;
     window.configureClassKruAiDeveloper?.(true, version);
-    window.configureClassKruAiModelSelector?.(true);
-    updateToggle(window.classKruAiBriefVersion || version);
+    window.configureClassKruAiModelSelector?.(true, currentSession?.user?.id);
+    if (version) updateToggle(window.classKruAiBriefVersion || version);
     controls.hidden = false;
   }
 
@@ -49,8 +54,9 @@
       showBriefLoadError('โหลดชุดบรีฟจากเซิร์ฟเวอร์ไม่ได้');
       return;
     }
-    showDeveloperControls(data.activeVersion);
-    const selected = window.classKruAiBriefVersion || data.activeVersion;
+    const preferred = data.selectedVersion || cachedVersion() || window.classKruAiBriefVersion;
+    const selected = data.versions.some(item => item.id === preferred) ? preferred : data.activeVersion;
+    showDeveloperControls(selected);
     updateToggle(selected);
     menu.replaceChildren();
     for (const version of data.versions) {
@@ -60,11 +66,24 @@
       option.setAttribute('role', 'option');
       option.setAttribute('aria-selected', String(version.id === selected));
       option.textContent = `${version.id === selected ? '✓ ' : ''}${version.label}`;
-      option.addEventListener('click', () => {
-        window.setClassKruAiBriefVersion(version.id);
-        updateToggle(version.id);
-        for (const item of menu.querySelectorAll('[role="option"]')) item.setAttribute('aria-selected', String(item === option));
-        closeMenu();
+      option.addEventListener('click', async () => {
+        if (saving) return;
+        saving = true;
+        const request = ++generation;
+        const session = currentSession;
+        for (const item of menu.querySelectorAll('[role="option"]')) item.disabled = true;
+        try {
+          const response = await fetch('/api/ai/brief-versions', { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ briefVersion: version.id }), cache: 'no-store', signal: AbortSignal.timeout(12000) });
+          const result = await response.json();
+          if (!response.ok || result.selectedVersion !== version.id) throw new Error('save_failed');
+          if (request !== generation) return;
+          try { localStorage.setItem(cacheKey(), version.id); } catch (_) {}
+          window.setClassKruAiBriefVersion(version.id);
+          render({ ...data, selectedVersion: version.id });
+          closeMenu();
+        } catch (_) {
+          if (request === generation) showBriefLoadError('บันทึกบรีฟไม่สำเร็จ กรุณาโหลดหน้าใหม่เพื่อลองอีกครั้ง');
+        } finally { saving = false; }
       });
       menu.appendChild(option);
     }
@@ -80,18 +99,24 @@
   document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeMenu(); toggle.focus(); } });
 
   async function loadVersions(session) {
+    if (saving && session?.user?.id === currentSession?.user?.id) { currentSession = session; return; }
+    const request = ++generation;
+    if (session?.user?.id !== currentSession?.user?.id) hideDeveloperControls();
+    currentSession = session;
     const token = session?.access_token;
     const isDeveloper = Boolean(token && typeof window.isClassKruMediaDeveloper === 'function'
       && window.isClassKruMediaDeveloper(session?.user?.email));
     if (!isDeveloper) { hideDeveloperControls(); return; }
 
-    showDeveloperControls();
+    showDeveloperControls(cachedVersion());
     try {
-      const response = await fetch('/api/ai/brief-versions', { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(12000) });
+      const response = await fetch('/api/ai/brief-versions', { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store', signal: AbortSignal.timeout(12000) });
+      if (request !== generation) return;
       if (!response.ok) { showBriefLoadError('โหลดชุดบรีฟจากเซิร์ฟเวอร์ไม่ได้'); return; }
-      render(await response.json());
+      const data = await response.json();
+      if (request === generation) render(data);
     } catch (_) {
-      showBriefLoadError('เชื่อมต่อรายการบรีฟไม่ได้');
+      if (request === generation) showBriefLoadError('เชื่อมต่อรายการบรีฟไม่ได้');
     }
   }
 

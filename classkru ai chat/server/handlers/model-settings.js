@@ -34,7 +34,7 @@ function saveConversationModel(file, modelId) {
   return next;
 }
 
-function createHandler({ authenticate = authenticatedUser, originIsValid = requestOriginIsValid, isDeveloper = user => isClassKruMediaDeveloper(user?.email), env = process.env, listModels = options => modelCatalog.list(options) } = {}) {
+function createHandler({ authenticate = authenticatedUser, originIsValid = requestOriginIsValid, isDeveloper = user => isClassKruMediaDeveloper(user?.email), env = process.env, listModels = options => modelCatalog.list(options), cloudStore = cloudSettings.createStore() } = {}) {
   return async function handler(req, res) {
     if (!['GET', 'POST'].includes(req.method)) return sendJson(res, 405, { error: 'method_not_allowed' });
     if (!originIsValid(req)) return sendJson(res, 403, { error: 'invalid_origin' });
@@ -54,7 +54,7 @@ function createHandler({ authenticate = authenticatedUser, originIsValid = reque
     let brief;
     try { brief = briefs.load(catalog.activeVersion); } catch (_) { return sendJson(res, 503, { error: 'brief_unavailable' }); }
     const file = settingsPath(brief, env);
-    const cloud = cloudSettings.enabled(env) ? cloudSettings.createStore() : null;
+    const cloud = cloudSettings.enabled(env) ? cloudStore : null;
     let savedModel = null;
     if (cloud) {
       try { savedModel = await cloud.get(user.id); }

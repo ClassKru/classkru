@@ -20,6 +20,9 @@ test('cloud model settings persist per developer across store instances without 
     async documents(prefix) { return [...rows].filter(([name]) => name.startsWith(prefix + '/')).map(([, value]) => value).reverse().slice(0, 1); }
   };
   await createStore(db).save(teacherId, 'openai/test-model');
+  await createStore(db).saveBrief(teacherId, 'v2');
+  assert.equal(await createStore(db).getBrief(teacherId), 'v2');
+  assert.equal(await createStore(db).getBrief('11111111-1111-4111-8111-111111111111'), null);
   assert.equal(await createStore(db).get(teacherId), 'openai/test-model');
   assert.equal(await createStore(db).get('11111111-1111-4111-8111-111111111111'), null);
   await assert.rejects(createStore(db).save(teacherId, 'invalid model'));
@@ -197,6 +200,7 @@ test('brief selector appears only after server-confirmed developer access and hi
   };
   let authListener;
   let isAuthedDeveloper = true;
+  let savedVersion = null;
   const window = {
     isClassKruMediaDeveloper: () => isAuthedDeveloper,
     configureClassKruAiDeveloper(enabled, version) { this.classKruAiDeveloper = enabled; if (enabled) this.setClassKruAiBriefVersion(version); },
@@ -206,8 +210,11 @@ test('brief selector appears only after server-confirmed developer access and hi
   require('node:vm').runInNewContext(source, {
     document, window,
     supabaseClient: { auth: { getSession: async () => ({ data: { session: { access_token: 'teacher-token' } } }), onAuthStateChange: callback => { authListener = callback; } } },
-    fetch: async () => isAuthedDeveloper
-      ? { ok: true, json: async () => ({ developer: true, activeVersion: 'v1', versions: [{ id: 'v1', label: 'V1 · Production' }, { id: 'v2', label: 'V2 · Test' }] }) }
+    fetch: async (_url, options) => isAuthedDeveloper
+      ? { ok: true, json: async () => {
+        if (options.method === 'POST') { savedVersion = JSON.parse(options.body).briefVersion; return { selectedVersion: savedVersion }; }
+        return { developer: true, activeVersion: 'v1', selectedVersion: savedVersion, versions: [{ id: 'v1', label: 'V1 · Production' }, { id: 'v2', label: 'V2 · Test' }] };
+      } }
       : { ok: false },
     AbortSignal: { timeout: () => ({}) }
   });
@@ -215,10 +222,41 @@ test('brief selector appears only after server-confirmed developer access and hi
   assert.equal(elements['ck-ai-brief-controls'].hidden, false);
   assert.equal(elements['ck-ai-brief-menu'].children.length, 2);
   elements['ck-ai-brief-menu'].children[1].fire('click');
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(window.classKruAiBriefVersion, 'v2');
+  authListener('TOKEN_REFRESHED', { access_token: 'teacher-token' });
+  await new Promise(resolve => setImmediate(resolve));
   assert.equal(window.classKruAiBriefVersion, 'v2');
   isAuthedDeveloper = false;
   authListener('SIGNED_OUT', null);
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(elements['ck-ai-brief-controls'].hidden, true);
   assert.equal(window.classKruAiDeveloper, false);
+  isAuthedDeveloper = true;
+  authListener('SIGNED_IN', { access_token: 'teacher-token' });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(window.classKruAiBriefVersion, 'v2');
+});
+
+test('new authenticated handlers restore both preferences per account and reject unauthorized writes', async () => {
+  const modelApi = require('../server/handlers/model-settings');
+  const models = new Map(), versions = new Map();
+  const cloudStore = {
+    get: async id => models.get(id) || null, save: async (id, value) => models.set(id, value),
+    getBrief: async id => versions.get(id) || null, saveBrief: async (id, value) => versions.set(id, value)
+  };
+  const options = id => ({ authenticate: async () => ({ id }), originIsValid: () => true, isDeveloper: () => true, cloudStore,
+    env: { CLASSKRU_AI_NAV_ENABLED: 'true', CLASSKRU_AI_CLOUD_SETTINGS: 'true', CLASSKRU_AI_NAV_MODEL: 'openai/default' },
+    listModels: async () => [{ id: 'openai/selected' }] });
+  assert.equal((await exchange(versionsApi.createHandler(options(teacherId)), 'POST', { briefVersion: 'v2' })).statusCode, 200);
+  assert.equal((await exchange(modelApi.createHandler(options(teacherId)), 'POST', { modelId: 'openai/selected' })).statusCode, 200);
+  assert.equal((await exchange(versionsApi.createHandler(options(teacherId)), 'GET')).payload.selectedVersion, 'v2');
+  assert.equal((await exchange(modelApi.createHandler(options(teacherId)), 'GET')).payload.modelId, 'openai/selected');
+  const other = '11111111-1111-4111-8111-111111111111';
+  assert.equal((await exchange(versionsApi.createHandler(options(other)), 'GET')).payload.selectedVersion, null);
+  assert.equal((await exchange(modelApi.createHandler(options(other)), 'GET')).payload.modelId, 'openai/default');
+  assert.equal((await exchange(versionsApi.createHandler(options(teacherId)), 'POST', { briefVersion: 'unknown' })).statusCode, 400);
+  assert.equal((await exchange(versionsApi.createHandler({ ...options(other), isDeveloper: () => false }), 'POST', { briefVersion: 'v1' })).statusCode, 403);
+  const broken = { ...options(teacherId), cloudStore: { getBrief: async () => { throw new Error('unavailable'); } } };
+  assert.equal((await exchange(versionsApi.createHandler(broken), 'GET')).statusCode, 503);
 });
