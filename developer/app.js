@@ -1,6 +1,6 @@
 'use strict';
 
-const state = { view: 'overview', overview: null, business: null, businessAccountSort: 'registered', reports: [], billing: null, v2Media: null, ideas: { biggy: [], petchpetch: [] }, mediaModels: null, mediaCatalog: { text: [], image: [] } };
+const state = { view: 'overview', overview: null, business: null, businessAccountSort: 'registered', reports: [], billing: null, studioMedia: null, ideas: { biggy: [], petchpetch: [] }, mediaModels: null, mediaCatalog: { text: [], image: [] } };
 const byId = id => document.getElementById(id);
 const ui = {
   loginView: byId('login-view'), consoleView: byId('console-view'), loginForm: byId('login-form'),
@@ -14,7 +14,7 @@ const ui = {
   modalTitle: byId('detail-title'), modalContent: byId('detail-content'), closeModal: byId('close-modal')
   ,billingSummary: byId('billing-summary'), billingTable: byId('billing-table'), billingSalesTable: byId('billing-sales-table'),
   mediaModelsForm: byId('media-models-form'), mediaModelsUpdated: byId('media-models-updated'), mediaModelCatalogKind: byId('media-model-catalog-kind'), mediaModelSearch: byId('media-model-search'), mediaModelRefresh: byId('media-model-refresh'), mediaPlannerModel: byId('media-planner-model'), mediaBuilderModel: byId('media-builder-model'), mediaImageModel: byId('media-image-model'), mediaModelSave: byId('media-model-save'), mediaModelSaveStatus: byId('media-model-save-status'),
-  businessSummary: byId('business-summary'), businessAvailable: byId('business-available'), businessFuture: byId('business-future'), businessUpdated: byId('business-updated'), businessAccountList: byId('business-account-list'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'), usageList: byId('usage-list'), usageCount: byId('usage-count'), usageUpdated: byId('usage-updated'), v2MediaRows: byId('v2-media-rows'), v2MediaCount: byId('v2-media-count'), v2MediaUpdated: byId('v2-media-updated'), v2MediaRefresh: byId('v2-media-refresh')
+  businessSummary: byId('business-summary'), businessAvailable: byId('business-available'), businessFuture: byId('business-future'), businessUpdated: byId('business-updated'), businessAccountList: byId('business-account-list'), usageSearch: byId('usage-search'), usageFilter: byId('usage-filter'), usageList: byId('usage-list'), usageCount: byId('usage-count'), usageUpdated: byId('usage-updated'), studioMediaRows: byId('studio-media-rows'), studioMediaCount: byId('studio-media-count'), studioMediaUpdated: byId('studio-media-updated'), studioMediaRefresh: byId('studio-media-refresh')
 };
 
 const STATUS_LABELS = Object.freeze({ new: 'ใหม่', reviewing: 'กำลังตรวจสอบ', resolved: 'แก้ไขแล้ว', closed: 'ปิดรายการ' });
@@ -566,6 +566,9 @@ function renderBusinessAccounts() {
 function accountDetail(row) {
   ui.modalTitle.textContent = row.email || 'รายละเอียดบัญชี';
   ui.modalContent.replaceChildren();
+  const classDetails = Array.isArray(row.classDetails) && row.classDetails.length
+    ? row.classDetails.map(item => [item.subject || 'ไม่ระบุรายวิชา', item.gradeLevel || 'ไม่ระบุระดับชั้น', item.className].filter(Boolean).join(' · ')).join('\n')
+    : 'ยังไม่มีข้อมูลรายวิชา/ระดับชั้น';
   const fields = [
     ['อีเมล', row.email],
     ['สถานะสมาชิก', row.subscriptionStatus || 'ไม่ระบุ'],
@@ -573,6 +576,7 @@ function accountDetail(row) {
     ['วันหมดอายุ', formatDate(row.paidUntil)],
     ['เคยชำระเงิน', row.hasPaid ? 'ใช่' : 'ยังไม่พบรายการชำระสำเร็จ'],
     ['จำนวนห้องเรียน', row.classrooms ?? 0],
+    ['รายวิชา / ระดับชั้น', classDetails],
     ['รายการตารางสอน', row.timetableEntries ?? 0],
     ['รายการเช็กชื่อที่แก้ไขใน 30 วัน', row.attendance30d ?? 0],
     ['หัวข้อคะแนนที่แก้ไขใน 30 วัน', row.scoreItems30d ?? 0],
@@ -643,51 +647,57 @@ function tokenCell(usage) {
   return cell;
 }
 
-function renderV2Media(data) {
-  state.v2Media = data;
-  ui.v2MediaRows.replaceChildren();
+function renderStudioMedia(data) {
+  state.studioMedia = data;
+  ui.studioMediaRows.replaceChildren();
   const rows = data.rows || [];
   for (const row of rows) {
     const tr = document.createElement('tr');
     tr.append(element('td', 'v2-media-user', row.teacher || '—'));
+    const source = element('td', 'v2-media-source', row.sourceLabel || 'ClassKru Studio');
+    source.append(element('small', '', row.source === 'v5' ? 'Artifact จากคลัง V5' : 'Runtime จากคลัง V2'));
     const title = element('td', 'v2-media-title', row.title || 'สื่อการเรียนรู้');
     const version = row.versionId ? ` · Ver ${String(row.versionId).slice(0, 8)}` : '';
     title.append(element('small', '', `${formatDate(row.updatedAt, true)}${version}`));
-    tr.append(title, tokenCell(row.chat), tokenCell(row.build));
+    tr.append(source, title, tokenCell(row.chat), tokenCell(row.build));
     const runtimeCell = document.createElement('td');
     if (row.runtimeUrl) {
-      const runtime = element('a', 'secondary-button v2-runtime-link', 'เปิด Runtime');
+      const runtime = element('a', 'secondary-button v2-runtime-link', row.runtimeLabel || 'เปิด Runtime');
       runtime.href = row.runtimeUrl;
       runtime.target = '_blank';
       runtime.rel = 'noopener noreferrer';
       runtimeCell.append(runtime);
     } else runtimeCell.append(element('span', 'muted-text', 'ยังไม่ตั้งค่า Media Host'));
     tr.append(runtimeCell);
-    ui.v2MediaRows.append(tr);
+    ui.studioMediaRows.append(tr);
   }
   if (!rows.length) {
     const tr = document.createElement('tr');
-    tr.append(element('td', 'empty-state', 'ยังไม่พบสื่อที่สร้าง Runtime สำเร็จ'));
-    tr.firstElementChild.colSpan = 5;
-    ui.v2MediaRows.append(tr);
+    tr.append(element('td', 'empty-state', 'ยังไม่พบสื่อที่สร้างสำเร็จจาก ClassKru Studio'));
+    tr.firstElementChild.colSpan = 6;
+    ui.studioMediaRows.append(tr);
   }
-  ui.v2MediaCount.textContent = `พบ ${Number(data.generatedVersions || rows.length).toLocaleString('th-TH')} Version จาก ${Number(data.generatedSessions || 0).toLocaleString('th-TH')} Session · ตรวจ ${Number(data.scannedTeachers || 0).toLocaleString('th-TH')} บัญชี`;
-  ui.v2MediaUpdated.textContent = `อัปเดต ${formatDate(data.generatedAt, true)}`;
+  const sourceCounts = data.sourceCounts || {};
+  const sourceSummary = `V2 ${Number(sourceCounts.v2 || 0).toLocaleString('th-TH')} · V5 ${Number(sourceCounts.v5 || 0).toLocaleString('th-TH')}`;
+  ui.studioMediaCount.textContent = `พบ ${Number(data.generatedVersions || rows.length).toLocaleString('th-TH')} สื่อ · ${sourceSummary} · ${Number(data.generatedSessions || 0).toLocaleString('th-TH')} Session · ตรวจ ${Number(data.scannedTeachers || 0).toLocaleString('th-TH')} บัญชี`;
+  ui.studioMediaUpdated.textContent = data.sourceErrors?.v5
+    ? `อัปเดต ${formatDate(data.generatedAt, true)} · V5 ยังอ่านไม่ได้ (${data.sourceErrors.v5})`
+    : `อัปเดต ${formatDate(data.generatedAt, true)}`;
 }
 
-async function loadV2Media() {
-  ui.globalStatus.textContent = 'กำลังโหลดรายการสื่อและโทเคน…';
-  ui.v2MediaRefresh.disabled = true;
+async function loadStudioMedia() {
+  ui.globalStatus.textContent = 'กำลังโหลดรายการสื่อจาก ClassKru Studio…';
+  ui.studioMediaRefresh.disabled = true;
   try {
-    renderV2Media(await request('/api/dev/data?resource=v2-media'));
+    renderStudioMedia(await request('/api/dev/data?resource=studio-media'));
     ui.globalStatus.textContent = '';
   } catch (error) {
     if (error.status === 401) handleDataError(error);
     else ui.globalStatus.textContent = error.status === 503
-      ? 'ยังไม่พร้อมอ่านข้อมูล ClassKru Media V2 กรุณาตรวจการตั้งค่า Storage และฐานข้อมูล'
-      : 'โหลดรายการสื่อ ClassKru Media V2 ไม่สำเร็จ กรุณาลองใหม่';
+      ? 'ยังไม่พร้อมอ่านข้อมูล ClassKru Studio กรุณาตรวจการตั้งค่า Storage และฐานข้อมูล'
+      : 'โหลดรายการสื่อจาก ClassKru Studio ไม่สำเร็จ กรุณาลองใหม่';
   } finally {
-    ui.v2MediaRefresh.disabled = false;
+    ui.studioMediaRefresh.disabled = false;
   }
 }
 
@@ -717,7 +727,7 @@ function switchView(view) {
   if (view === 'database') loadDatabase();
   if (view === 'billing') loadBilling();
   if (view === 'media-models') loadMediaModels();
-  if (view === 'v2-media') loadV2Media();
+  if (view === 'studio-media') loadStudioMedia();
 }
 
 ui.loginForm.addEventListener('submit', async event => {
@@ -753,7 +763,7 @@ ui.logout.addEventListener('click', async () => {
   showLogin('ออกจากระบบแล้ว');
 });
 ui.refresh.addEventListener('click', () => switchView(state.view));
-ui.v2MediaRefresh.addEventListener('click', loadV2Media);
+ui.studioMediaRefresh.addEventListener('click', loadStudioMedia);
 ui.reportFilters.addEventListener('submit', event => { event.preventDefault(); loadReports(); });
 ui.usageSearch.addEventListener('input', renderUsage);
 ui.usageFilter.addEventListener('change', renderUsage);

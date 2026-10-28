@@ -21,9 +21,27 @@ const business = {
   accounts: { total: 2, activated: 1, recordedToday: 1, recorded7d: 1, recorded30d: 1, trial: 1, paid: 1, eligible: 2, expired: 0 },
   payments: { paidOrders: 1, paidAmountSatang: 9900 },
   rows: [
-    { teacherId: 'one', email: 'active@example.test', registeredAt: now, subscriptionStatus: 'active', paidUntil: null, classrooms: 2, timetableEntries: 3, attendance30d: 4, scoreItems30d: 1, studentScores30d: 5, lastRecordedAt: now, recordedToday: true, recorded7d: true, recorded30d: true, hasPaid: true },
+    { teacherId: 'one', email: 'active@example.test', registeredAt: now, subscriptionStatus: 'active', paidUntil: null, classrooms: 2, classDetails: [{ subject: 'วิทยาศาสตร์', gradeLevel: 'ม.2', className: 'ห้อง 1' }, { subject: 'คณิตศาสตร์', gradeLevel: 'ม.3', className: 'ห้อง 2' }], timetableEntries: 3, attendance30d: 4, scoreItems30d: 1, studentScores30d: 5, lastRecordedAt: now, recordedToday: true, recorded7d: true, recorded30d: true, hasPaid: true },
     { teacherId: 'two', email: 'new@example.test', registeredAt: now, subscriptionStatus: 'trial', paidUntil: null, classrooms: 0, timetableEntries: 0, attendance30d: 0, scoreItems30d: 0, studentScores30d: 0, lastRecordedAt: null, recordedToday: false, recorded7d: false, recorded30d: false, hasPaid: false }
   ]
+};
+const studioMedia = {
+  generatedAt: now,
+  generatedVersions: 1,
+  generatedSessions: 1,
+  scannedTeachers: 1,
+  sourceCounts: { v2: 0, v5: 1 },
+  rows: [{
+    teacher: 'teacher@example.test',
+    source: 'v5',
+    sourceLabel: 'ClassKru Studio V5',
+    title: 'ระบบสุริยะจำลอง',
+    versionId: '33333333-3333-4333-8333-333333333333',
+    updatedAt: now,
+    chat: { available: false },
+    build: { available: false },
+    runtimeUrl: '/api/dev/data?resource=studio-media-preview&source=v5'
+  }]
 };
 
 test('developer business and per-account usage work on desktop and mobile', async () => {
@@ -36,7 +54,8 @@ test('developer business and per-account usage work on desktop and mobile', asyn
     }
     if (url.pathname === '/api/dev/data') {
       res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify(url.searchParams.get('resource') === 'business' ? business : { total: 0, recent: [] }));
+      const resource = url.searchParams.get('resource');
+      res.end(JSON.stringify(resource === 'business' ? business : resource === 'studio-media' ? studioMedia : { total: 0, recent: [] }));
       return;
     }
     const asset = files[url.pathname];
@@ -66,7 +85,13 @@ test('developer business and per-account usage work on desktop and mobile', asyn
     assert.equal(await page.$$eval('.usage-account-card', nodes => nodes.length), 1);
     await page.$eval('.usage-account-card .row-button', node => node.click());
     assert.match(await page.$eval('#detail-content', node => node.textContent), /คะแนนนักเรียนที่แก้ไขใน 30 วัน/);
+    assert.match(await page.$eval('#detail-content', node => node.textContent), /วิทยาศาสตร์ · ม.2 · ห้อง 1/);
+    assert.match(await page.$eval('#detail-content', node => node.textContent), /คณิตศาสตร์ · ม.3 · ห้อง 2/);
     await page.$eval('#close-modal', node => node.click());
+    await page.click('[data-view="studio-media"]');
+    await page.waitForFunction(() => document.querySelectorAll('#studio-media-rows tr').length === 1);
+    assert.match(await page.$eval('#studio-media-rows', node => node.textContent), /ClassKru Studio V5/);
+    assert.match(await page.$eval('#studio-media-rows', node => node.textContent), /ระบบสุริยะจำลอง/);
     await page.setViewport({ width: 390, height: 844 });
     const layout = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
     assert.ok(layout.scroll <= layout.viewport + 2, `mobile overflow: ${JSON.stringify(layout)}`);
