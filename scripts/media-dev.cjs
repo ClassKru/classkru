@@ -20,9 +20,10 @@ function createServer({media=false,handler,publicHandler,renderHandler,harness}=
         req.body=Buffer.concat(chunks).toString();
       }
       if(media && url.pathname==='/api/render')return await (renderHandler||require('../media-host/api/render'))(req,res);
-      if(!media && url.pathname==='/api/ai/navigation')return await require('../api/ai/navigation')(req,res);
-      if(!media && url.pathname==='/api/ai/brief-versions')return await require('../api/ai/brief-versions')(req,res);
-      if(!media && url.pathname==='/api/ai/model-settings')return await require('../api/ai/model-settings')(req,res);
+      if(!media && ['/api/ai/navigation','/api/ai/brief-versions','/api/ai/model-settings'].includes(url.pathname)) {
+        req.query.path=url.pathname.split('/').pop();
+        return await require('../classkru ai chat/server/handlers/gateway')(req,res);
+      }
       if(!media && url.pathname==='/api/media-studio')return await (handler||require('../api/media-studio'))(req,res);
       if(!media && url.pathname==='/api/media-studio/public')return await (publicHandler||require('../api/media-studio/public'))(req,res);
       const pathname=url.pathname==='/'?'/index.html':decodeURIComponent(url.pathname);

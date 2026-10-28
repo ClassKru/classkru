@@ -17,7 +17,7 @@
 ไฟล์เหล่านี้อยู่ที่รากโปรเจกต์เพราะระบบแอปและ Vercel ต้องใช้ตำแหน่งมาตรฐาน:
 
 - `index.html` โหลด frontend จากโฟลเดอร์นี้
-- `api/ai/{navigation,brief-versions,model-settings}.js` เป็น route wrapper ที่ส่งต่อไปยัง `server/handlers/`
+- URL `/api/ai/{navigation,brief-versions,model-settings}` ใช้ Vercel rewrites ไปยัง `api/media-studio/index.js` และส่งต่อเข้า `server/handlers/gateway.js` เพื่อคงจำนวน Functions ไม่เกิน 12
 - `api/_lib/` มี auth และ HTTP helpers ที่แชร์กับ API อื่นใน ClassKru
 - `scripts/media-dev.cjs`, `vercel.json` และ `.vercelignore` เชื่อมการรัน local และ deploy
 

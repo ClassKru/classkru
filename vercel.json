@@ -3,6 +3,9 @@
     {"source":"/","destination":"/home.html","permanent":false}
   ],
   "rewrites": [
+    {"source":"/api/ai/navigation","destination":"/api/media-studio?action=classkru-ai&path=navigation"},
+    {"source":"/api/ai/brief-versions","destination":"/api/media-studio?action=classkru-ai&path=brief-versions"},
+    {"source":"/api/ai/model-settings","destination":"/api/media-studio?action=classkru-ai&path=model-settings"},
     {"source":"/api/auth/username","destination":"/api/auth/line/start?mode=username-signup"},
     {"source":"/api/auth/line/link/start","destination":"/api/auth/line/start?mode=link"},
     {"source":"/api/dev/login","destination":"/api/dev/auth?action=login"},
@@ -17,10 +20,7 @@
     {"source":"/api/exports/:document","destination":"/api/exports?document=:document"}
   ],
   "functions": {
-    "api/media-studio/index.js":{"maxDuration":300,"includeFiles":"{node_modules/@sparticuz/chromium/bin/**,brief-versions/**,node_modules/three/build/three.module.js,node_modules/three/build/three.core.js}"},
-    "api/ai/navigation.js":{"includeFiles":"classkru ai chat/briefs/**"},
-    "api/ai/brief-versions.js":{"includeFiles":"classkru ai chat/briefs/**"},
-    "api/ai/model-settings.js":{"includeFiles":"classkru ai chat/briefs/**"}
+    "api/media-studio/index.js":{"maxDuration":300,"includeFiles":"{node_modules/@sparticuz/chromium/bin/**,brief-versions/**,classkru ai chat/briefs/**,node_modules/three/build/three.module.js,node_modules/three/build/three.core.js}"}
   },
   "headers": [
     {

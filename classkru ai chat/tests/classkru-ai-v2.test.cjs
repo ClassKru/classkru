@@ -30,8 +30,22 @@ test('private brief catalog loads only registered, complete versions', () => {
 
 test('private brief files are excluded from static deployment and bundled only into AI functions', () => {
   assert.match(vercelIgnore, /^classkru ai chat\/briefs\/$/m);
-  assert.equal(vercel.functions['api/ai/navigation.js'].includeFiles, 'classkru ai chat/briefs/**');
-  assert.equal(vercel.functions['api/ai/brief-versions.js'].includeFiles, 'classkru ai chat/briefs/**');
+  assert.ok(vercel.functions['api/media-studio/index.js'].includeFiles.includes('classkru ai chat/briefs/**'));
+  for (const route of ['navigation', 'brief-versions', 'model-settings']) {
+    assert.ok(vercel.rewrites.some(rule => rule.source === `/api/ai/${route}` && rule.destination === `/api/media-studio?action=classkru-ai&path=${route}`));
+  }
+});
+
+test('AI gateway rejects unknown routes and preserves endpoint enablement checks', async () => {
+  const gateway = require('../server/handlers/gateway');
+  for (const route of ['unknown', '__proto__']) {
+    const res = { setHeader() {}, status(code) { this.code = code; return this; }, json(body) { this.body = body; } };
+    await gateway({ method: 'GET', query: { path: route } }, res);
+    assert.equal(res.code, 404);
+  }
+  const res = { setHeader() {}, status(code) { this.code = code; return this; }, json(body) { this.body = body; } };
+  await gateway({ method: 'GET', query: { path: 'navigation' } }, res);
+  assert.equal(res.code, 405);
 });
 
 test('developer version catalog is private and returns metadata only', async () => {
