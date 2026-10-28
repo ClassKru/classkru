@@ -5,7 +5,7 @@ const { selectRows } = require('./supabase-admin');
 const PAGE_SIZE = 1000;
 const MAX_ROWS = 20000;
 const WORK_TABLES = Object.freeze([
-  { name: 'classrooms', select: 'teacher_id,created_at,updated_at', order: 'updated_at.desc,teacher_id.asc,id.asc', all: true },
+  { name: 'classrooms', select: 'teacher_id,subject,class_name,grade_level,created_at,updated_at', order: 'updated_at.desc,teacher_id.asc,id.asc', all: true },
   { name: 'timetable_entries', select: 'teacher_id,updated_at', order: 'updated_at.desc,teacher_id.asc,week.asc,day_of_week.asc,period.asc', all: true },
   { name: 'students', select: 'teacher_id,updated_at', order: 'updated_at.desc,teacher_id.asc,id.asc' },
   { name: 'classroom_students', select: 'teacher_id,updated_at', order: 'updated_at.desc,teacher_id.asc,classroom_id.asc,student_id.asc' },
@@ -50,6 +50,7 @@ function summarize({ teachers, orders, classrooms, timetable_entries = [], stude
       subscriptionStatus: row.subscription_status,
       paidUntil: row.paid_until,
       classrooms: 0,
+      classDetails: [],
       timetableEntries: 0,
       attendance30d: 0,
       scoreItems30d: 0,
@@ -80,7 +81,18 @@ function summarize({ teachers, orders, classrooms, timetable_entries = [], stude
     if (timestamp >= sevenDays) account.recorded7d = true;
     if (timestamp >= today) account.recordedToday = true;
   };
-  classrooms.forEach(row => record(row, 'classrooms'));
+  classrooms.forEach(row => {
+    record(row, 'classrooms');
+    const account = accountsById.get(row.teacher_id);
+    if (!account) return;
+    const detail = {
+      subject: String(row.subject || '').trim(),
+      gradeLevel: String(row.grade_level || '').trim(),
+      className: String(row.class_name || '').trim()
+    };
+    const key = `${detail.subject}\u0000${detail.gradeLevel}\u0000${detail.className}`;
+    if (key !== '\u0000\u0000' && !account.classDetails.some(item => `${item.subject}\u0000${item.gradeLevel}\u0000${item.className}` === key)) account.classDetails.push(detail);
+  });
   timetable_entries.forEach(row => record(row, 'timetable_entries'));
   students.forEach(row => record(row, 'students'));
   classroom_students.forEach(row => record(row, 'classroom_students'));
