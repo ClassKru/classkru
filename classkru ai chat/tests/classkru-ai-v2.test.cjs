@@ -11,6 +11,21 @@ const vercelIgnore = require('node:fs').readFileSync(require('node:path').join(_
 
 const teacherId = '2f69bfa5-1522-47b2-8c27-e1a0f20e8118';
 
+test('cloud model settings persist per developer across store instances without filesystem writes', async () => {
+  const { createStore } = require('../server/lib/cloud-model-settings');
+  const rows = new Map();
+  const db = {
+    async checkBucket() {},
+    async put(name, value) { rows.set(name, value); },
+    async documents(prefix) { return [...rows].filter(([name]) => name.startsWith(prefix + '/')).map(([, value]) => value).reverse().slice(0, 1); }
+  };
+  await createStore(db).save(teacherId, 'openai/test-model');
+  assert.equal(await createStore(db).get(teacherId), 'openai/test-model');
+  assert.equal(await createStore(db).get('11111111-1111-4111-8111-111111111111'), null);
+  await assert.rejects(createStore(db).save(teacherId, 'invalid model'));
+  await assert.rejects(createStore({ ...db, async checkBucket() { throw new Error('storage_bucket_unsafe'); } }).save(teacherId, 'openai/test-model'), /storage_bucket_unsafe/);
+});
+
 function exchange(handler, method, body, options = {}) {
   let statusCode;
   let payload;

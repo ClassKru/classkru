@@ -6,6 +6,7 @@ const { sendJson, parseBody, requestOriginIsValid } = require('../../../api/_lib
 const briefs = require('../lib/brief-store');
 const { createModelCatalog, MODEL_ID } = require('../lib/model-catalog');
 const navigation = require('./navigation');
+const cloudSettings = require('../lib/cloud-model-settings');
 const { isClassKruMediaDeveloper } = require('../../../api/_lib/classkru-developers');
 
 const modelCatalog = createModelCatalog();
@@ -53,6 +54,12 @@ function createHandler({ authenticate = authenticatedUser, originIsValid = reque
     let brief;
     try { brief = briefs.load(catalog.activeVersion); } catch (_) { return sendJson(res, 503, { error: 'brief_unavailable' }); }
     const file = settingsPath(brief, env);
+    const cloud = cloudSettings.enabled(env) ? cloudSettings.createStore() : null;
+    let savedModel = null;
+    if (cloud) {
+      try { savedModel = await cloud.get(user.id); }
+      catch (_) { return sendJson(res, 503, { error: 'model_settings_unavailable' }); }
+    }
     const keyConfigured = Boolean(String(env.CLASSKRU_AI_NAV_OPENROUTER_API_KEY || env.OPENROUTER_API_KEY || '').trim());
     const provider = env.CLASSKRU_AI_NAV_PROVIDER === 'openrouter' ? 'openrouter' : 'mock';
 
@@ -65,8 +72,8 @@ function createHandler({ authenticate = authenticatedUser, originIsValid = reque
         developer: true,
         provider,
         keyConfigured,
-        modelId: navigation.resolveModelId(brief, env),
-        settingsWritable: canWriteSettings(file),
+        modelId: savedModel || navigation.resolveModelId(brief, env),
+        settingsWritable: Boolean(cloud) || canWriteSettings(file),
         catalogAvailable,
         models
       });
@@ -80,7 +87,8 @@ function createHandler({ authenticate = authenticatedUser, originIsValid = reque
     catch (_) { return sendJson(res, 503, { error: 'model_catalog_unavailable' }); }
     if (!models.some(model => model.id === modelId)) return sendJson(res, 400, { error: 'unsupported_model' });
     try {
-      saveConversationModel(file, modelId);
+      if (cloud) await cloud.save(user.id, modelId);
+      else saveConversationModel(file, modelId);
       return sendJson(res, 200, { ok: true, modelId, provider, keyConfigured });
     } catch (error) {
       return sendJson(res, 503, { error: error.code || 'model_settings_unavailable' });

@@ -28,3 +28,9 @@
 แต่ละเวอร์ชันอยู่ใน `briefs/versions/<id>/` พร้อม `system.md`, `navigation.md` และ `config.json`; เพิ่มรายการที่ `briefs/registry.json` บรีฟไม่ถูกเสิร์ฟเป็นไฟล์ static และ API key ต้องอยู่ใน environment ฝั่ง server เท่านั้น
 
 รายละเอียดการทำงานและการตั้งค่าอยู่ที่ [เอกสาร Navigation V1](docs/classkru-ai-navigation-v1.md) และ [แนวทางจัดการบรีฟ](briefs/README.md)
+
+## โมเดลบน Production
+
+เมื่อ `VERCEL=1` การเลือกโมเดลของ Developer จะบันทึกเป็น JSON เข้ารหัสใน private Storage เดิม แยก namespace `classkru-ai/settings/<user-id>/` และอ่านค่าล่าสุดทุกคำขอ ไม่ใช้ไฟล์บน serverless และไม่เขียนทับการตั้งค่าของ Mini Lab หาก Storage ใช้งานไม่ได้ ระบบแจ้งข้อผิดพลาดแทนการอ้างว่าบันทึกสำเร็จ
+
+ต้องมี `SUPABASE_SECRET_KEY`, `MEDIA_STORAGE_KEY` และ private bucket ตาม `MEDIA_STORAGE_BUCKET` เดิม ส่วน local ยังอ่านและบันทึกไฟล์ตามเดิม เลือกทดสอบ cloud ด้วย `CLASSKRU_AI_CLOUD_SETTINGS=true` ได้ การเปิดใช้งานจริงต้องตั้ง `CLASSKRU_AI_NAV_ENABLED=true`, `CLASSKRU_AI_NAV_PROVIDER=openrouter`, `CLASSKRU_AI_NAV_MODEL` และ Secret `CLASSKRU_AI_NAV_OPENROUTER_API_KEY` ใน Vercel
