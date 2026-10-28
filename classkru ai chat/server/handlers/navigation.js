@@ -6,6 +6,7 @@ const { sendJson, parseBody, requestOriginIsValid } = require('../../../api/_lib
 const navigation = require('../lib/navigation');
 const briefs = require('../lib/brief-store');
 const openrouter = require('../lib/openrouter');
+const cloudSettings = require('../lib/cloud-model-settings');
 const { isClassKruMediaDeveloper } = require('../../../api/_lib/classkru-developers');
 const requests = new Map();
 const conversations = new Map();
@@ -93,7 +94,11 @@ function createHandler({ authenticate = authenticatedUser, originIsValid = reque
     const history = navigation.cleanHistory(body.history).slice(-Math.min(16, Number(brief.config.maxHistoryTurns) || 8));
     const requestId = crypto.randomUUID();
     const startedAt = now();
-    const modelId = resolveModelId(brief, env);
+    let modelId = resolveModelId(brief, env);
+    if (hasDeveloperAccess && cloudSettings.enabled(env)) {
+      try { modelId = await cloudSettings.createStore().get(user.id) || modelId; }
+      catch (_) { return sendJson(res, 503, { error: 'model_settings_unavailable' }); }
+    }
     const requestEnv = { ...env, [brief.config.modelEnv]: modelId };
     try {
       let result;
