@@ -6,6 +6,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..', '..', 'briefs');
 const registryPath = path.join(root, 'registry.json');
 const idPattern = /^[a-z0-9][a-z0-9_-]{0,39}$/i;
+const packed = require('../../../api/_lib/classkru-ai-briefs.cjs');
 
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
 function safeFile(base, name) {
@@ -16,6 +17,7 @@ function safeFile(base, name) {
 }
 
 function catalog() {
+  if (!fs.existsSync(registryPath)) return JSON.parse(JSON.stringify(packed.registry));
   const data = readJson(safeFile(root, 'registry.json'));
   if (!Array.isArray(data.versions)) throw new Error('invalid_brief_registry');
   const versions = data.versions.filter(item => item && typeof item.id === 'string' && idPattern.test(item.id) && typeof item.label === 'string')
@@ -39,10 +41,14 @@ function load(id) {
   if (typeof id !== 'string' || !idPattern.test(id)) throw new Error('invalid_brief_version');
   const available = catalog();
   if (!available.versions.some(version => version.id === id)) throw new Error('invalid_brief_version');
+  if (!fs.existsSync(registryPath)) {
+    if (!packed.versions[id]?.system || !packed.versions[id]?.navigation) throw new Error('invalid_brief_version');
+    return JSON.parse(JSON.stringify(packed.versions[id]));
+  }
   const dir = path.join(root, 'versions', id);
   const config = readJson(safeFile(dir, 'config.json'));
-  const system = fs.readFileSync(safeFile(dir, 'system.md'), 'utf8').trim();
-  const navigation = fs.readFileSync(safeFile(dir, 'navigation.md'), 'utf8').trim();
+  const system = fs.readFileSync(safeFile(dir, 'system.md'), 'utf8').replace(/\r\n/g, '\n').trim();
+  const navigation = fs.readFileSync(safeFile(dir, 'navigation.md'), 'utf8').replace(/\r\n/g, '\n').trim();
   if (!system || !navigation) throw new Error('invalid_brief_version');
   return { id, label: available.versions.find(version => version.id === id).label, config, system, navigation };
 }
