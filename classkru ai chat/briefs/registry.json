@@ -1,0 +1,8 @@
+{
+  "defaultVersion": "v1",
+  "activeVersion": "v1",
+  "versions": [
+    { "id": "v1", "label": "V1 · Production" },
+    { "id": "v2", "label": "V2 · Intent Test" }
+  ]
+}

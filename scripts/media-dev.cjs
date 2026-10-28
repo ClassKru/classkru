@@ -20,13 +20,18 @@ function createServer({media=false,handler,publicHandler,renderHandler,harness}=
         req.body=Buffer.concat(chunks).toString();
       }
       if(media && url.pathname==='/api/render')return await (renderHandler||require('../media-host/api/render'))(req,res);
+      if(!media && ['/api/ai/navigation','/api/ai/brief-versions','/api/ai/model-settings'].includes(url.pathname)) {
+        req.query.path=url.pathname.split('/').pop();
+        return await require('../classkru ai chat/server/handlers/gateway')(req,res);
+      }
       if(!media && url.pathname==='/api/media-studio')return await (handler||require('../api/media-studio'))(req,res);
       if(!media && url.pathname==='/api/media-studio/public')return await (publicHandler||require('../api/media-studio/public'))(req,res);
       const pathname=url.pathname==='/'?'/index.html':decodeURIComponent(url.pathname);
       const base=media?path.join(root,'media-host'):root;
       const target=path.resolve(base,'.'+pathname);
-      if(!target.startsWith(base+path.sep)||/(?:^|[\/\\])(?:\.|api|node_modules|scripts|tests|supabase|docs)/.test(pathname)||!/[.](?:html|css|js|png|svg|woff2?|jpg)$/.test(target))return res.status(404).send('Not found');
-      const types={'.html':'text/html','.css':'text/css','.js':'application/javascript','.png':'image/png','.svg':'image/svg+xml'};
+      const registryJson=pathname==='/classkru ai chat/assets/classkru-ai-actions.json';
+      if(!target.startsWith(base+path.sep)||/(?:^|[\/\\])(?:\.|api|node_modules|scripts|tests|supabase|docs)/.test(pathname)||(!registryJson&&!/[.](?:html|css|js|png|svg|woff2?|jpg)$/.test(target)))return res.status(404).send('Not found');
+      const types={'.html':'text/html','.css':'text/css','.js':'application/javascript','.png':'image/png','.svg':'image/svg+xml','.json':'application/json'};
       res.setHeader('Content-Type',(types[path.extname(target)]||'application/octet-stream')+'; charset=utf-8');
       res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
       res.end(await fs.promises.readFile(target));

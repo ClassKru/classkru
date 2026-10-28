@@ -23,9 +23,13 @@ classkru-app/
 ├── style.css           # ดีไซน์และ layout ทั้งแอป
 ├── logo.png            # โลโก้
 ├── clear-cache.html    # หน้าเครื่องมือล้าง cache
+├── classkru ai chat/   # ฟีเจอร์ ClassKru AI Chat แยก frontend/server/briefs/docs/tests
+├── api/ai/             # routes ของ API รวมถึง wrapper สำหรับ ClassKru AI Chat
 ├── .gitignore
 └── .vercelignore
 ```
+
+ตรรกะและไฟล์เฉพาะของ ClassKru AI Chat รวมอยู่ใน [`classkru ai chat/`](<classkru ai chat/README.md>) ส่วน `index.html`, API route wrappers, shared API helpers และไฟล์ตั้งค่า deploy ยังอยู่ที่รากโปรเจกต์เพราะเป็นจุดเชื่อมต่อของแอปหลัก
 
 > หมายเหตุ: ปัจจุบันโค้ดรวมอยู่ในไฟล์หลักไม่กี่ไฟล์ มีแผนจะแยกไฟล์ตามหน้าที่ (state / auth / sync / ...) ในอนาคตเพื่อให้ดูแลง่ายขึ้น
 

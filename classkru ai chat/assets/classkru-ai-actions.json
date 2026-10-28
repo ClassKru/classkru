@@ -1,0 +1,17 @@
+[
+  {"id":"dashboard","screen":"dashboard","highlight":"#web-screen-dashboard","label":"หน้าหลัก"},
+  {"id":"classrooms","screen":"classrooms","highlight":"#btn-add-class-header","label":"ห้องเรียนของฉัน"},
+  {"id":"add_class","screen":"classrooms","highlight":"#btn-add-class-header","label":"ปุ่มเพิ่มห้องเรียน"},
+  {"id":"students","screen":"students","requiresClass":true,"highlight":"#web-students-detail-title","label":"รายชื่อนักเรียน"},
+  {"id":"add_student","screen":"students","requiresClass":true,"highlight":"#btn-add-student-roster","label":"ปุ่มเพิ่มนักเรียน"},
+  {"id":"checkin","screen":"checkin","requiresClass":true,"highlight":"#swipe-class-title","label":"หน้าเช็กชื่อ"},
+  {"id":"timetable","screen":"timetable","highlight":"#web-screen-timetable","label":"ตารางสอน"},
+  {"id":"scores","screen":"scores","requiresClass":true,"highlight":"#web-screen-scores","label":"คะแนน"},
+  {"id":"reports","screen":"reports","requiresClass":true,"highlight":"#web-screen-reports","label":"รายงาน"},
+  {"id":"library","screen":"library","highlight":"#web-screen-library","label":"คลังสื่อ"},
+  {"id":"curriculum","screen":"curriculum","highlight":"#web-screen-curriculum","label":"คลังตัวชี้วัด"},
+  {"id":"tools","screen":"tools","highlight":"#web-screen-tools","label":"เครื่องมือช่วยสอน"},
+  {"id":"games","screen":"games","highlight":"#web-screen-games","label":"เกมการศึกษา"},
+  {"id":"help","screen":"help","highlight":"#web-screen-help","label":"ศูนย์ช่วยเหลือ"},
+  {"id":"settings","screen":"settings","highlight":"#web-screen-settings","label":"ตั้งค่า"}
+]

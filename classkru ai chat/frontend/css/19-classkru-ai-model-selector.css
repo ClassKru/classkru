@@ -1,0 +1,40 @@
+.ck-ai-model-controls[hidden], .ck-ai-model-overlay[hidden] { display:none !important; }
+.ck-ai-model-overlay { position:fixed; z-index:11000; inset:0; display:grid; place-items:center; padding:18px; background:rgba(20,18,38,.38); backdrop-filter:blur(5px); }
+.ck-ai-model-dialog { width:min(520px,100%); max-height:min(88vh,760px); overflow:auto; border:1px solid #ded7ef; border-radius:20px; background:var(--bg-card,#fff); color:var(--text-main,#25243a); box-shadow:0 24px 70px rgba(23,20,48,.28); }
+.ck-ai-model-dialog > header { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:18px 20px; border-bottom:1px solid #eeeaf5; background:linear-gradient(110deg,#eff9ff,#f8f0ff); }
+.ck-ai-model-dialog > header small { display:block; color:#6d6483; font-size:.72rem; }
+.ck-ai-model-dialog h2 { margin:4px 0 0; color:#211a3d; font-size:1.05rem; }
+.ck-ai-model-close { display:grid; place-items:center; width:34px; height:34px; border:1px solid #ddd5eb; border-radius:10px; background:#fff; color:#514579; cursor:pointer; font-size:1.25rem; }
+.ck-ai-model-dialog main { display:grid; gap:12px; padding:18px 20px 20px; }
+.ck-ai-model-dialog label { color:var(--text-main,#25243a); font-size:.85rem; font-weight:700; }
+#ck-ai-model-select { width:100%; min-height:42px; padding:8px 10px; border:1px solid #d8d1e8; border-radius:10px; background:var(--bg-card,#fff); color:var(--text-main,#25243a); font:inherit; font-size:.8rem; }
+#ck-ai-model-select:focus-visible { outline:2px solid #9e8aec; outline-offset:2px; }
+.ck-ai-provider-card { display:grid; grid-template-columns:1fr auto; gap:3px 12px; padding:12px 13px; border:1px solid #dceaf2; border-radius:12px; background:linear-gradient(105deg,#f4fbff,#fbf6ff); }
+.ck-ai-provider-card span { color:#5f6078; font-size:.72rem; }
+.ck-ai-provider-card strong { grid-column:2; grid-row:1 / span 2; align-self:center; color:#3c3185; font-size:.88rem; }
+.ck-ai-provider-card small { color:#586576; font-size:.72rem; }
+.ck-ai-provider-card small.is-warning { color:#a04a22; }
+.ck-ai-model-detail { min-height:18px; margin:0; color:#625a78; font-size:.72rem; overflow-wrap:anywhere; }
+.ck-ai-model-status { min-height:20px; margin:0; color:#4e6475; font-size:.75rem; }
+.ck-ai-model-status.error { color:#b32945; }
+.ck-ai-model-refresh { justify-self:start; padding:7px 10px; border:1px solid #ddd6ef; border-radius:9px; background:#fff; color:#514579; cursor:pointer; font:inherit; font-size:.75rem; }
+.ck-ai-model-refresh:disabled, #ck-ai-model-save:disabled { opacity:.55; cursor:wait; }
+.ck-ai-model-note { margin:0; color:#6e687e; font-size:.72rem; line-height:1.45; }
+.ck-ai-model-dialog footer { display:flex; justify-content:flex-end; gap:8px; padding-top:6px; }
+.ck-ai-model-dialog footer button { min-height:38px; padding:0 14px; border:1px solid #d8d1e8; border-radius:10px; background:#fff; color:#514579; cursor:pointer; font:inherit; font-size:.8rem; font-weight:700; }
+.ck-ai-model-dialog footer #ck-ai-model-save { border-color:#6854d8; background:#6854d8; color:#fff; }
+html.dark-mode .ck-ai-model-dialog { border-color:#434157; background:#20202d; color:#f0eff8; }
+html.dark-mode .ck-ai-model-dialog > header { border-color:#3c394b; background:linear-gradient(110deg,#252f40,#30263f); }
+html.dark-mode .ck-ai-model-dialog h2, html.dark-mode .ck-ai-model-dialog label { color:#f0eff8; }
+html.dark-mode #ck-ai-model-select, html.dark-mode .ck-ai-model-close, html.dark-mode .ck-ai-model-refresh, html.dark-mode .ck-ai-model-dialog footer button { border-color:#4a465d; background:#282737; color:#efedf8; }
+html.dark-mode .ck-ai-provider-card { border-color:#46425a; background:linear-gradient(105deg,#252e3a,#30283e); }
+html.dark-mode .ck-ai-provider-card strong { color:#c8b8ff; }
+html.dark-mode .ck-ai-provider-card small, html.dark-mode .ck-ai-model-detail, html.dark-mode .ck-ai-model-status, html.dark-mode .ck-ai-model-note { color:#c1bbcf; }
+html.dark-mode .ck-ai-provider-card small.is-warning { color:#ffb687; }
+@media (max-width:520px) {
+  .ck-ai-model-overlay { padding:10px; }
+  .ck-ai-model-dialog > header, .ck-ai-model-dialog main { padding-left:15px; padding-right:15px; }
+  #ck-ai-model-select { font-size:.72rem; }
+}
+@media (prefers-reduced-motion:reduce) { .ck-ai-model-overlay { backdrop-filter:none; } }
+@media print { .ck-ai-model-controls, .ck-ai-model-overlay { display:none !important; } }

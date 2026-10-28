@@ -21,6 +21,9 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --ignore-scripts
 
+      - name: ClassKru AI Chat mock and contract tests
+        run: node --test "classkru ai chat/tests/classkru-ai-navigation.test.cjs" "classkru ai chat/tests/classkru-ai-panel.test.cjs" "classkru ai chat/tests/classkru-ai-v2.test.cjs" "classkru ai chat/tests/classkru-ai-brief-v2.test.cjs"
+
       - name: Media ownership, queue and security tests
         run: npm run test:media
 
@@ -63,7 +66,7 @@ jobs:
           MISSING=0
           # ดึง src ของ <script> ที่เป็น local (ไม่ใช่ http/cdn) — ตัด ?v=... ออกก่อนเช็ค
           for src in $(grep -oE '<script[^>]*src="[^"]+"' index.html | grep -oE 'src="[^"]+"' | sed 's/src="//;s/"//' | grep -vE '^https?://'); do
-            file="${src%%\?*}"
+            file=$(node -e 'process.stdout.write(decodeURIComponent(process.argv[1]))' "${src%%\?*}")
             if [ ! -f "$file" ]; then
               echo "❌ index.html เรียก <script src=\"$src\"> แต่ไฟล์ไม่มีจริง"
               MISSING=1
@@ -71,7 +74,7 @@ jobs:
           done
           # ตรวจ <link rel=stylesheet> local ด้วย — ตัด ?v=... ออกก่อนเช็ค
           for href in $(grep -oE '<link[^>]*href="[^"]+"' index.html | grep -oE 'href="[^"]+"' | sed 's/href="//;s/"//' | grep -vE '^https?://'); do
-            file="${href%%\?*}"
+            file=$(node -e 'process.stdout.write(decodeURIComponent(process.argv[1]))' "${href%%\?*}")
             if [ ! -f "$file" ]; then
               echo "❌ index.html เรียก <link href=\"$href\"> แต่ไฟล์ไม่มีจริง"
               MISSING=1
