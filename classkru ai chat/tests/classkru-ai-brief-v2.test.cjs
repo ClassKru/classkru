@@ -15,6 +15,20 @@ const actionRegistry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
 const evaluation = JSON.parse(fs.readFileSync(casesPath, 'utf8'));
 const intents = new Set(['INFORMATION', 'EXPLANATION', 'NAVIGATION', 'UI_GUIDANCE', 'GENERAL_CHAT', 'ACTION_REQUEST', 'AMBIGUOUS', 'UNSUPPORTED']);
 
+test('deployed server loads both briefs without the excluded source folder and package matches sources', () => {
+  const packed = require('../../api/_lib/classkru-ai-briefs.cjs');
+  assert.deepEqual(packed.registry, versionRegistry);
+  for (const { id } of versionRegistry.versions) assert.deepEqual(packed.versions[id], briefs.load(id));
+  const vm = require('node:vm');
+  const filename = path.join(__dirname, '../server/lib/brief-store.js');
+  const localRequire = require('node:module').createRequire(filename);
+  const sandbox = { __dirname: path.dirname(filename), module: { exports: {} }, require: id => id === 'node:fs' ? { ...fs, existsSync: () => false } : localRequire(id) };
+  vm.runInNewContext(fs.readFileSync(filename, 'utf8'), sandbox);
+  assert.deepEqual(JSON.parse(JSON.stringify(sandbox.module.exports.catalog())), versionRegistry);
+  for (const { id } of versionRegistry.versions) assert.equal(sandbox.module.exports.load(id).system, packed.versions[id].system);
+  assert.throws(() => sandbox.module.exports.load('unknown'), /invalid_brief_version/);
+});
+
 test('V2 is registered for Developer testing while V1 remains both active and default', () => {
   assert.equal(versionRegistry.activeVersion, 'v1');
   assert.equal(versionRegistry.defaultVersion, 'v1');
