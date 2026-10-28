@@ -19,12 +19,12 @@ function renderWebTimetable() {
   const container = document.getElementById('web-timetable-matrix-container');
   if (container) {
     // สีประจำวันไทย (พื้นอ่อน + ตัวอักษรเข้ม)
-    let html = '<table><thead><tr><th style="width:84px;"><div style="font-size:0.8rem;font-weight:700;color:#334155;">วัน</div><div style="font-size:0.78rem;font-weight:600;color:#94a3b8;">เวลา</div></th>';
-    slots.forEach(slot => { html += `<th style="min-width:104px;padding:9px 6px;"><div style="font-size:0.8rem;font-weight:700;color:#334155;">คาบ ${slot.period}</div><div style="margin-top:4px;font-size:0.78rem;font-weight:400;color:#64748b;">${slot.s}–${slot.e}</div></th>`; });
+    let html = '<table><thead><tr><th style="width:84px;"><div style="font-size:0.8rem;font-weight:700;color:var(--timetable-header-strong);">วัน</div><div style="font-size:0.78rem;font-weight:600;color:var(--timetable-header-muted);">เวลา</div></th>';
+    slots.forEach(slot => { html += `<th style="min-width:104px;padding:9px 6px;"><div style="font-size:0.8rem;font-weight:700;color:var(--timetable-header-strong);">คาบ ${slot.period}</div><div style="margin-top:4px;font-size:0.78rem;font-weight:400;color:var(--timetable-header-muted);">${slot.s}–${slot.e}</div></th>`; });
     html += '</tr></thead><tbody>';
     dows.forEach(d => {
       const dt = DAY_TINT[d] || { bg:'#eef2ff', text:'#3730a3' };
-      html += `<tr><td style="font-weight:700;font-size:0.84rem;text-align:center;background-color:${dt.bg};color:${dt.text};">${DAY_NAMES[d].slice(3)}</td>`;
+      html += `<tr><td class="timetable-day-cell" style="font-weight:700;font-size:0.84rem;text-align:center;--timetable-day-surface:${dt.bg};--timetable-day-accent:${dt.text};">${DAY_NAMES[d].slice(3)}</td>`;
       slots.forEach(slot => {
         const entry = resolveEntry((appState.timetable || []).find(t => timetableEntryMatches(t, d, slot.period)));
         const [sH,sM] = slot.s.split(':').map(Number);
@@ -35,10 +35,10 @@ function renderWebTimetable() {
         if (entry) {
           const col = getClassColor(entry.classId);
           cellStyle = isNow
-            ? `background-color:${col.text};border-color:${col.text};color:#fff;`
-            : `background-color:${col.bg};border-color:transparent;color:${col.text};`;
+            ? `--timetable-subject-accent:${col.text};background-color:${col.text};border-color:${col.text};color:#fff;`
+            : `--timetable-subject-accent:${col.text};--timetable-subject-surface:${col.bg};`;
         }
-        const label = entry ? `<strong style="font-size:0.76rem;font-weight:700;">${entry.subject}</strong><br><span style="font-size:0.64rem;opacity:0.78;">${entry.className}</span>` : '<span style="font-size:0.72rem;color:#b8bec8;font-weight:600;">+</span>';
+        const label = entry ? `<strong style="font-size:0.76rem;font-weight:700;">${entry.subject}</strong><br><span style="font-size:0.64rem;opacity:0.78;">${entry.className}</span>` : '<span style="font-size:0.72rem;color:var(--timetable-empty);font-weight:600;">+</span>';
         html += `<td class="${cls}" style="${cellStyle}" onclick="openPeriodModal(${d},${slot.period})">${label}</td>`;
       });
       html += '</tr>';

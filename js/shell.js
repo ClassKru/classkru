@@ -130,7 +130,13 @@ function renderAppNavigation() {
   const desktop = document.getElementById('desktop-navigation');
   const mobile = document.getElementById('mobile-bottom-nav');
   const more = document.getElementById('mobile-more-navigation');
-  if (desktop) desktop.innerHTML = APP_NAVIGATION.filter(item => item.desktopOrder).sort((a, b) => a.desktopOrder - b.desktopOrder).map(item => navigationButton(item, 'desktop')).join('');
+  if (desktop) {
+    const sectionLabels = { library: 'การจัดการการสอน', help: 'ระบบและการใช้งาน' };
+    desktop.innerHTML = APP_NAVIGATION.filter(item => item.desktopOrder).sort((a, b) => a.desktopOrder - b.desktopOrder).map(item => {
+      const heading = sectionLabels[item.id] ? `<div class="sidebar-section-label" aria-hidden="true"><span>${sectionLabels[item.id]}</span></div>` : '';
+      return heading + navigationButton(item, 'desktop');
+    }).join('');
+  }
   if (mobile) {
     const quickItems = APP_NAVIGATION.filter(item => item.mobileOrder).sort((a, b) => a.mobileOrder - b.mobileOrder);
     const moreItems = APP_NAVIGATION.filter(item => item.moreOrder).sort((a, b) => a.moreOrder - b.moreOrder);
@@ -190,6 +196,7 @@ syncDisplaySettings();
 // ถ้า sidebar หดครอบตำแหน่ง pointer เดิม browser อาจไม่ยิง mouseleave จึงต้องปลดล็อก
 // เมื่อผู้ใช้ขยับเมาส์ครั้งถัดไปด้วย ไม่เช่นนั้นข้อความเมนูจะถูกตัดค้างใน rail แคบ
 const appSidebar = document.getElementById('app-sidebar');
+
 appSidebar?.addEventListener('click', (event) => {
   if (event.detail === 0) return; // การกดด้วยคีย์บอร์ดยังใช้ focus-visible เพื่อเปิดเมนู
   if (event.target.closest('.nav-item, .sidebar-profile')) {

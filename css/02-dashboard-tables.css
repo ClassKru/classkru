@@ -111,9 +111,14 @@
 }
 
 .timetable-matrix-table td.has-class {
-  background-color: var(--primary-light);
-  color: var(--text-main);
+  background-color: var(--timetable-subject-surface, var(--primary-light));
+  color: var(--timetable-subject-accent, var(--text-main));
   border-color: transparent;
+}
+
+.timetable-matrix-table td.timetable-day-cell {
+  background-color: var(--timetable-day-surface);
+  color: var(--timetable-day-accent);
 }
 
 .timetable-matrix-table td.is-now {
