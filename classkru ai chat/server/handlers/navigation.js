@@ -78,7 +78,12 @@ function createHandler({ authenticate = authenticatedUser, originIsValid = reque
     if (priorSession && requestedVersion && requestedVersion !== priorSession.versionId) return sendJson(res, 409, { error: 'brief_version_changed' });
     if (requestedVersion && !hasDeveloperAccess && requestedVersion !== catalog.activeVersion) return sendJson(res, 409, { error: 'active_version_changed' });
     if (requestedVersion && hasDeveloperAccess && !catalog.versions.some(version => version.id === requestedVersion)) return sendJson(res, 400, { error: 'invalid_brief_version' });
-    const versionId = priorSession?.versionId || requestedVersion || catalog.activeVersion;
+    let savedVersion = null;
+    if (hasDeveloperAccess && cloudSettings.enabled(env) && !priorSession && !requestedVersion) {
+      try { savedVersion = await cloudSettings.createStore().getBrief(user.id); }
+      catch (_) { return sendJson(res, 503, { error: 'brief_settings_unavailable' }); }
+    }
+    const versionId = priorSession?.versionId || requestedVersion || (catalog.versions.some(item => item.id === savedVersion) ? savedVersion : catalog.activeVersion);
     let brief;
     try { brief = briefs.load(versionId); } catch { return sendJson(res, 400, { error: 'invalid_brief_version' }); }
     conversations.set(sessionKey, { versionId, expiresAt: now() + 30 * 60 * 1000 });

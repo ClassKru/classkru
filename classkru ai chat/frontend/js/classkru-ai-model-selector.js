@@ -17,8 +17,19 @@
   let settings = null;
   let models = [];
   let busy = false;
+  let ownerId = null;
+  let requestGeneration = 0;
 
-  window.configureClassKruAiModelSelector = function (enabled) {
+  window.configureClassKruAiModelSelector = function (enabled, userId = null) {
+    if (!enabled || ownerId !== userId) {
+      requestGeneration++;
+      settings = null;
+      models = [];
+      busy = false;
+      select.replaceChildren();
+      saveButton.disabled = true;
+    }
+    ownerId = enabled ? userId : null;
     controls.hidden = !enabled;
     if (!enabled) closeDialog(false);
   };
@@ -44,6 +55,7 @@
     if (!token) throw Object.assign(new Error('กรุณาเข้าสู่ระบบใหม่'), { code: 'authentication_required' });
     const response = await fetch(`/api/ai/model-settings${refresh ? '?refresh=1' : ''}`, {
       method,
+      cache: 'no-store',
       headers: { Authorization: `Bearer ${token}`, ...(method === 'POST' ? { 'Content-Type': 'application/json' } : {}) },
       ...(method === 'POST' ? { body: JSON.stringify({ modelId }) } : {}),
       signal: AbortSignal.timeout(20000)
@@ -93,13 +105,16 @@
   }
 
   async function loadSettings(refresh = false) {
+    const request = ++requestGeneration;
     busy = true;
     refreshButton.disabled = true;
     saveButton.disabled = true;
     setStatus(refresh ? 'กำลังโหลดรายชื่อโมเดลจาก OpenRouter…' : 'กำลังตรวจสอบ API และโมเดล…');
     try {
-      fillModels(await requestSettings({ refresh }));
+      const result = await requestSettings({ refresh });
+      if (request === requestGeneration) fillModels(result);
     } catch (error) {
+      if (request !== requestGeneration) return;
       const messages = {
         authentication_required: 'กรุณาเข้าสู่ระบบใหม่',
         developer_access_required: 'เมนูนี้ใช้ได้เฉพาะบัญชี Developer',
@@ -108,6 +123,7 @@
       };
       setStatus(messages[error.code] || 'โหลดการตั้งค่า API ไม่สำเร็จ', true);
     } finally {
+      if (request !== requestGeneration) return;
       busy = false;
       refreshButton.disabled = false;
       if (settings) saveButton.disabled = !(settings.settingsWritable && settings.catalogAvailable && models.length);
@@ -131,15 +147,18 @@
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (busy || !select.value) return;
+    const request = ++requestGeneration;
     busy = true;
     saveButton.disabled = true;
     refreshButton.disabled = true;
     setStatus('กำลังบันทึกโมเดล…');
     try {
       const saved = await requestSettings({ method: 'POST', modelId: select.value });
+      if (request !== requestGeneration) return;
       if (settings) settings.modelId = saved.modelId;
-      setStatus(`บันทึก ${saved.modelId} แล้ว · ClassKru AI ใช้ทันที; Mini Lab V5 อ่านค่าเดียวกันเมื่อโหลดการตั้งค่าใหม่`);
+      setStatus(`บันทึก ${saved.modelId} แล้ว · ใช้กับคำขอถัดไปและเมื่อเข้าสู่ระบบใหม่`);
     } catch (error) {
+      if (request !== requestGeneration) return;
       const messages = {
         unsupported_model: 'โมเดลนี้ไม่รองรับ Structured Output ที่ ClassKru AI ต้องใช้',
         model_catalog_unavailable: 'ตรวจสอบรายชื่อโมเดลไม่ได้ กรุณาโหลดรายชื่อใหม่',
@@ -148,6 +167,7 @@
       };
       setStatus(messages[error.code] || 'บันทึกโมเดลไม่สำเร็จ', true);
     } finally {
+      if (request !== requestGeneration) return;
       busy = false;
       refreshButton.disabled = false;
       saveButton.disabled = !(settings?.settingsWritable && settings?.catalogAvailable && models.length);
