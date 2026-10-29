@@ -1,6 +1,6 @@
 'use strict';
 
-const { Document, Packer, Paragraph, TextRun, PageBreak, AlignmentType, LevelFormat } = require('docx');
+const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType, PageBreak, AlignmentType, LevelFormat } = require('docx');
 const { normalize } = require('../../../js/worksheet-layout');
 const { sendJson, parseBody, requestOriginIsValid } = require('../http');
 
@@ -34,22 +34,84 @@ function sectionBlocks(title, values) {
   return [heading(title), ...(list.length ? list.map(item => new Paragraph({ numbering: { reference: 'pack-bullets', level: 0 }, children: [new TextRun({ text: item, font: BODY_FONT, size: BODY_SIZE })] })) : [paragraph('........................................................................................................................')])];
 }
 
+const planBorders = { top:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, bottom:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, left:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, right:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, insideHorizontal:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, insideVertical:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'} };
+const noPlanBorders = Object.fromEntries(['top','bottom','left','right','insideHorizontal','insideVertical'].map(edge => [edge,{style:BorderStyle.NONE,size:0,color:'FFFFFF'}]));
+
+function planMetadata(lessonPlan) {
+  const left = [
+    `รหัสวิชา ${clean(lessonPlan.courseCode,80) || '................................'}`,
+    `ระดับชั้น ${clean(lessonPlan.grade,80) || '................................'}`,
+    `${lessonPlan.subjectId === 'guidance' ? 'หน่วยการจัดกิจกรรมที่' : 'หน่วยการเรียนรู้ที่'} ${clean(lessonPlan.unitNumber,40) || '....'} ${clean(lessonPlan.unitName,180)}`,
+    `เรื่อง ${clean(lessonPlan.topic,220) || '................................'}`,
+    `ผู้สอน ${clean(lessonPlan.teacherName,160) || '................................'}`
+  ];
+  const right = [
+    `รายวิชา ${clean(lessonPlan.courseName,180) || '................................'}`,
+    `ภาคเรียนที่ ${clean(lessonPlan.semester,20) || '....'} ปีการศึกษา ${clean(lessonPlan.academicYear,10) || '........'}`,
+    `${lessonPlan.subjectId === 'guidance' ? 'เวลาแผนนี้' : 'เวลา'} ${clean(lessonPlan.duration,80) || '................................'}${lessonPlan.subjectId === 'guidance' && clean(lessonPlan.unitHours,20) ? ` · รวมหน่วย ${clean(lessonPlan.unitHours,20)} ชั่วโมง` : ''}`,
+    `ชั้น/ห้อง ${(lessonPlan.classSections || []).map(item => clean(item,80)).filter(Boolean).join(', ') || '................................'}`,
+    `กลุ่มสาระ/กิจกรรม ${clean(lessonPlan.subjectGroup || lessonPlan.subject,180) || '................................'}`
+  ];
+  return new Table({ width:{size:100,type:WidthType.PERCENTAGE}, columnWidths:[4820,4820], borders:noPlanBorders, rows:left.map((value,index) => new TableRow({ children:[value,right[index]].map(text => new TableCell({ width:{size:50,type:WidthType.PERCENTAGE}, margins:{top:30,bottom:30,left:80,right:80}, borders:noPlanBorders, children:[paragraph(text)] })) })) });
+}
+
+function planAssessmentTable(plan) {
+  const records = Array.isArray(plan.assessmentMatrix) ? plan.assessmentMatrix.slice(0,12) : [];
+  const header = ['สิ่งที่วัดและประเมินผล','วิธีการ/เป้าหมาย','เครื่องมือ','เกณฑ์'];
+  const rows = [new TableRow({ tableHeader:true, children:header.map(text => new TableCell({ width:{size:25,type:WidthType.PERCENTAGE}, shading:{fill:'EAF6F1',type:ShadingType.SOLID}, margins:{top:70,bottom:70,left:80,right:80}, borders:planBorders, children:[paragraph(text,{bold:true,alignment:AlignmentType.CENTER})] })) })];
+  for (const item of records) rows.push(new TableRow({ children:[item.domain,item.target,item.instrument,item.criterion].map(text => new TableCell({ width:{size:25,type:WidthType.PERCENTAGE}, margins:{top:60,bottom:60,left:80,right:80}, borders:planBorders, children:[paragraph(text || '................................')] })) }));
+  if (!records.length) rows.push(new TableRow({ children:header.map(() => new TableCell({ width:{size:25,type:WidthType.PERCENTAGE}, margins:{top:60,bottom:60,left:80,right:80}, borders:planBorders, children:[paragraph('................................................................')] })) }));
+  return new Table({ width:{size:100,type:WidthType.PERCENTAGE}, columnWidths:[2410,2410,2410,2410], borders:planBorders, rows });
+}
+
 function planBlocks(lessonPlan) {
   const data = lessonPlan.plan && typeof lessonPlan.plan === 'object' ? lessonPlan.plan : {};
   const indicators = Array.isArray(lessonPlan.indicators) ? lessonPlan.indicators.map(item => `${clean(item.code, 80)} ${clean(item.text, 900)}`.trim()).filter(Boolean) : [];
   return [
-    paragraph('แผนการจัดการเรียนรู้รายคาบ', { size: TITLE_SIZE, bold: true, alignment: AlignmentType.CENTER, spacing: { after: 70 } }),
-    paragraph(clean(data.title || lessonPlan.title || lessonPlan.topic, 240), { size: TITLE_SIZE, bold: true, alignment: AlignmentType.CENTER, spacing: { after: 170 } }),
-    paragraph(`กลุ่มสาระการเรียนรู้ ${clean(lessonPlan.subject, 180) || '................................'}    ระดับชั้น ${clean(lessonPlan.grade, 80) || '................................'}`, { spacing: { after: 35 } }),
-    paragraph(`ห้องเรียน ${clean(lessonPlan.classLabel, 220) || '................................'}    เวลาเรียน ${clean(lessonPlan.duration, 80) || '................................'}`, { spacing: { after: 35 } }),
-    paragraph(`รูปแบบการจัดการเรียนรู้ ${clean(lessonPlan.method, 140) || '................................'}`, { spacing: { after: 90 } }),
-    ...sectionBlocks('ตัวชี้วัด / ผลการเรียนรู้', indicators),
-    ...sectionBlocks('สาระสำคัญ', data.keyConcepts),
-    ...sectionBlocks('จุดประสงค์การเรียนรู้', data.objectives),
-    ...sectionBlocks('ขั้นตอนการจัดกิจกรรมการเรียนรู้', data.activities),
-    ...sectionBlocks('สื่อและแหล่งเรียนรู้', data.resources),
-    ...sectionBlocks('การวัดและประเมินผล', data.assessment),
+    paragraph(clean(lessonPlan.planTitle || `แผนการจัดการเรียนรู้ที่ ${lessonPlan.planNumber || 1}`, 120), { size: TITLE_SIZE, bold: true, alignment: AlignmentType.CENTER, spacing: { after: 40 } }),
+    paragraph(clean(data.title || lessonPlan.title || lessonPlan.topic, 240), { size: TITLE_SIZE, bold: true, alignment: AlignmentType.CENTER, spacing: { after: 140 } }),
+    planMetadata(lessonPlan),
+    paragraph('________________________________________________________________________________', { spacing: { before: 70, after: 20 } }),
+    ...(lessonPlan.subjectId === 'guidance' ? [
+      paragraph('ภาพรวมหน่วยการจัดกิจกรรม', { bold:true, spacing:{ before:120, after:40 } }),
+      paragraph(`หน่วยที่ ${clean(lessonPlan.unitNumber,40) || '....'} ${clean(lessonPlan.unitName,180)}${clean(lessonPlan.unitHours,20) ? ` · รวม ${clean(lessonPlan.unitHours,20)} ชั่วโมง` : ''}`, { spacing:{ after:45 } }),
+      ...sectionBlocks('กรอบแนะแนวที่อ้างอิง', (lessonPlan.standards || []).map(item => `${clean(item.code,100)} ${clean(item.title,900)}`.trim())),
+      ...sectionBlocks('ผลลัพธ์ที่เลือกสำหรับหน่วย', indicators),
+      ...sectionBlocks('วัตถุประสงค์ชั้นปี', lessonPlan.yearObjective ? [lessonPlan.yearObjective] : []),
+      ...sectionBlocks('วัตถุประสงค์ของหน่วย', lessonPlan.unitObjective || data.unitObjective ? [lessonPlan.unitObjective || data.unitObjective] : []),
+      ...sectionBlocks('1. สาระสำคัญ', data.keyConcepts),
+      ...sectionBlocks('2. จุดประสงค์การเรียนรู้', data.objectives),
+      ...sectionBlocks('3. สาระการเรียนรู้', [...asList(data.contentKnowledge).map(item => `ความรู้: ${item}`), ...asList(data.contentSkills).map(item => `ทักษะ/กระบวนการ: ${item}`)])
+    ] : [
+      ...sectionBlocks('มาตรฐานการเรียนรู้', (lessonPlan.standards || []).map(item => `${clean(item.code,100)} ${clean(item.title,900)}`.trim())),
+      ...sectionBlocks('ตัวชี้วัด / ผลการเรียนรู้', indicators),
+      ...sectionBlocks('สาระสำคัญ', data.keyConcepts),
+      ...sectionBlocks('จุดประสงค์การเรียนรู้', data.objectives),
+      ...sectionBlocks('สาระการเรียนรู้: ความรู้', data.contentKnowledge),
+      ...sectionBlocks('สาระการเรียนรู้: ทักษะ/กระบวนการ', data.contentSkills)
+    ]),
+    ...(lessonPlan.subjectId === 'guidance' ? [
+      ...sectionBlocks('4. วิธีดำเนินกิจกรรม', data.activities),
+      ...sectionBlocks('5. ชิ้นงาน/ภาระงาน', data.workProducts),
+      ...sectionBlocks('6. สื่อ/อุปกรณ์/แหล่งเรียนรู้', data.resources),
+      paragraph('7. การวัดและประเมินผล', { bold:true, spacing:{before:180,after:60} }),
+      planAssessmentTable(data),
+      ...sectionBlocks('สมรรถนะสำคัญของผู้เรียน', data.competencies),
+      ...sectionBlocks('คุณลักษณะอันพึงประสงค์', data.desirableCharacteristics),
+      ...sectionBlocks('ความสามารถและทักษะในศตวรรษที่ 21', data.skills21)
+    ] : [
+      ...sectionBlocks('สมรรถนะสำคัญของผู้เรียน', data.competencies),
+      ...sectionBlocks('คุณลักษณะอันพึงประสงค์', data.desirableCharacteristics),
+      ...sectionBlocks('ความสามารถและทักษะในศตวรรษที่ 21', data.skills21),
+      ...sectionBlocks('ชิ้นงาน / ภาระงาน', data.workProducts),
+      ...sectionBlocks('ขั้นตอนการจัดกิจกรรมการเรียนรู้', data.activities),
+      ...sectionBlocks('สื่อและแหล่งเรียนรู้', data.resources),
+      paragraph('ตารางการวัดและประเมินผล', { bold:true, spacing:{before:180,after:60} }),
+      planAssessmentTable(data)
+    ]),
+    ...sectionBlocks('รายละเอียดการประเมินเพิ่มเติม', data.assessment),
     ...sectionBlocks('หลักฐานที่ควรเก็บ', data.evidence),
+    ...sectionBlocks('กิจกรรมเสนอแนะ', data.suggestedActivities),
     paragraph('บันทึกหลังสอน', { bold: true, spacing: { before: 230, after: 70 } }),
     paragraph('ผลการจัดการเรียนรู้ ........................................................................................................................................'),
     paragraph('ปัญหา / อุปสรรค ..............................................................................................................................................'),

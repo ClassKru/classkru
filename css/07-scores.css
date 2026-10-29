@@ -1235,6 +1235,47 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
   text-decoration: none;
 }
 
+.curriculum-source-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.curriculum-source-note > i {
+  margin-top: 2px;
+  color: var(--primary);
+}
+
+.curriculum-source-note strong,
+.curriculum-source-note p,
+.curriculum-source-note a {
+  display: block;
+  margin: 0;
+}
+
+.curriculum-source-note strong {
+  color: var(--text-main);
+  font-weight: 800;
+}
+
+.curriculum-source-note p {
+  margin-top: 2px;
+}
+
+.curriculum-source-note a {
+  margin-top: 5px;
+  color: var(--primary);
+  font-weight: 750;
+  text-decoration: none;
+}
+
 .curriculum-indicator-list {
   display: grid;
   gap: 7px;

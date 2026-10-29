@@ -13,9 +13,12 @@
     health: window.CK_CURRICULUM_HEALTH_2551 || null,
     art: window.CK_CURRICULUM_ART_2551 || null,
     career: window.CK_CURRICULUM_CAREER_2551 || null,
+    guidance: window.CK_CURRICULUM_GUIDANCE_2559 || null,
     foreign: window.CK_CURRICULUM_FOREIGN_2551 || null
   };
   const gradeOrder = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M4_6'];
+  let hydrationPromise = null;
+  let hydrated = false;
   function inferGrades(dataset) {
     if (!dataset) return ['M1', 'M2', 'M3'];
     const used = new Set(dataset.indicators.map(item => item.grade).filter(Boolean));
@@ -29,11 +32,13 @@
     { id: 'health', code: 'พ', name: 'สุขศึกษาและพลศึกษา', shortName: 'สุขศึกษา' },
     { id: 'art', code: 'ศ', name: 'ศิลปะ', shortName: 'ศิลปะ' },
     { id: 'career', code: 'ง', name: 'การงานอาชีพ', shortName: 'การงานอาชีพ' },
+    { id: 'guidance', code: 'น', name: 'กิจกรรมแนะแนว', shortName: 'แนะแนว' },
     { id: 'foreign', code: 'ต', name: 'ภาษาต่างประเทศ', shortName: 'ภาษาอังกฤษ' }
   ].map(subject => ({
     ...subject,
     available: !!datasets[subject.id],
-    grades: subject.grades || inferGrades(datasets[subject.id]),
+    scoreCompatible: subject.scoreCompatible ?? (datasets[subject.id]?.scoreCompatible !== false),
+    grades: subject.grades || datasets[subject.id]?.grades || inferGrades(datasets[subject.id]),
     dataset: datasets[subject.id]
   }));
 
@@ -57,17 +62,17 @@
     const dataset = getSubject(subjectId).dataset;
     if (!dataset) return [];
     return dataset.units
-      .filter(unit => !grade || unit.grade === grade)
+      .filter(unit => !grade || unit.grade === grade || unit.grade === 'ALL')
       .map(unit => ({
         ...unit,
-        indicatorCount: dataset.indicators.filter(item => item.grade === unit.grade && item.unitId === unit.id).length
+        indicatorCount: dataset.indicators.filter(item => (!grade || item.grade === grade || item.grade === 'ALL') && item.unitId === unit.id).length
       }));
   }
 
   function getStandards(subjectId, grade) {
     const dataset = getSubject(subjectId).dataset;
     if (!dataset) return [];
-    const used = new Set(dataset.indicators.filter(item => !grade || item.grade === grade).map(item => item.standard));
+    const used = new Set(dataset.indicators.filter(item => !grade || item.grade === grade || item.grade === 'ALL').map(item => item.standard));
     return dataset.standards.filter(standard => used.has(standard.id));
   }
 
@@ -83,7 +88,7 @@
     const standardMap = new Map(dataset.standards.map(standard => [standard.id, standard]));
 
     return dataset.indicators.filter(item => {
-      if (grade && item.grade !== grade) return false;
+      if (grade && item.grade !== grade && item.grade !== 'ALL') return false;
       if (unitId !== 'all' && item.unitId !== unitId) return false;
       if (standardId !== 'all' && item.standard !== standardId) return false;
       if (!terms.length) return true;
@@ -105,6 +110,10 @@
     return getSubject(subjectId).dataset?.standards.find(standard => standard.id === standardId) || null;
   }
 
+  function getReference(subjectId) {
+    return getSubject(subjectId).dataset?.reference || null;
+  }
+
   function getStats() {
     return subjects.reduce((summary, subject) => {
       const count = subject.dataset?.indicators.length || 0;
@@ -115,15 +124,54 @@
     }, { subjects: 0, availableSubjects: 0, indicators: 0 });
   }
 
+  async function loadFromSupabase(client) {
+    if (hydrated) return true;
+    if (!client?.from) return false;
+    if (hydrationPromise) return hydrationPromise;
+    hydrationPromise = (async () => {
+      const sourceId = 'TH-BEC-GUIDANCE-2559';
+      const [sourceResult, standardResult, unitResult, outcomeResult, referenceResult] = await Promise.all([
+        client.from('curriculum_sources').select('*').eq('source_id', sourceId).maybeSingle(),
+        client.from('curriculum_standards').select('*').eq('source_id', sourceId).eq('subject_id', 'guidance'),
+        client.from('curriculum_units').select('*').eq('source_id', sourceId).eq('subject_id', 'guidance'),
+        client.from('curriculum_outcomes').select('*').eq('source_id', sourceId).eq('subject_id', 'guidance'),
+        client.from('curriculum_references').select('*').eq('source_id', sourceId).eq('subject_id', 'guidance')
+      ]);
+      if ([sourceResult, standardResult, unitResult, outcomeResult, referenceResult].some(result => result.error)) return false;
+      const sourceRow = sourceResult.data;
+      const outcomes = outcomeResult.data || [];
+      if (!sourceRow || !outcomes.length) return false;
+      const referenceRow = (referenceResult.data || [])[0];
+      const dataset = {
+        id:'guidance', title:'กิจกรรมแนะแนว', scoreCompatible:false,
+        source:{ id:sourceRow.source_id, title:sourceRow.title, framework:sourceRow.framework, revisionYear:sourceRow.revision_year, publisher:sourceRow.publisher, fileName:sourceRow.file_name, status:sourceRow.status, notice:sourceRow.notice, relatedSources:sourceRow.related_sources || [] },
+        grades:['P1','P2','P3','P4','P5','P6','M1','M2','M3','M4','M5','M6','M4_6'],
+        standards:(standardResult.data || []).map(row => ({ id:row.standard_id, code:row.code, title:row.title, strand:row.strand })),
+        units:(unitResult.data || []).map(row => ({ id:row.unit_id, grade:row.grade, title:row.title, description:row.description })),
+        indicators:outcomes.map(row => ({ id:row.outcome_id, code:row.code, standard:row.standard_id, grade:row.grade, unitId:row.unit_id, text:row.outcome_text, sourcePage:row.source_page, sourcePdfPage:row.source_pdf_page })),
+        reference:referenceRow?.reference_payload || null
+      };
+      datasets.guidance = dataset;
+      const guidanceSubject = subjects.find(subject => subject.id === 'guidance');
+      if (guidanceSubject) { guidanceSubject.dataset = dataset; guidanceSubject.available = true; guidanceSubject.grades = dataset.grades; }
+      hydrated = true;
+      window.dispatchEvent(new CustomEvent('classkru:curriculum-catalog-updated', { detail:{ subjectId:'guidance' } }));
+      return true;
+    })().catch(() => false).finally(() => { hydrationPromise = null; });
+    return hydrationPromise;
+  }
+
   window.CKCurriculumCatalog = {
     subjects,
     getGrades,
+    getReference,
     getStandard,
     getStandards,
     getStats,
     getSubject,
     getUnit,
     getUnits,
+    loadFromSupabase,
     search
   };
 })();

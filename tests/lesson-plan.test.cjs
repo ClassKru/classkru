@@ -18,7 +18,11 @@ function response() {
 test('lesson plan API follows teacher-selected frame and normalizes draft sections', async () => {
   const originalFetch = global.fetch;
   const originalKey = process.env.OPENROUTER_API_KEY;
+  const originalSupabaseSecret = process.env.SUPABASE_SECRET_KEY;
+  const originalSupabaseUrl = process.env.SUPABASE_URL;
   process.env.OPENROUTER_API_KEY = 'test-placeholder';
+  process.env.SUPABASE_SECRET_KEY = 'test-service-role';
+  process.env.SUPABASE_URL = 'https://test.supabase.co';
   const handler = require('../api/ai/generate-lesson-plan');
   let openRouterRequest;
   const generatedPlan = {
@@ -33,6 +37,7 @@ test('lesson plan API follows teacher-selected frame and normalizes draft sectio
   };
   global.fetch = async (url, init = {}) => {
     if (String(url).includes('/auth/v1/user')) return {ok:true, json:async () => ({id:'teacher-1'})};
+    if (String(url).includes('/rest/v1/rpc/consume_ai_daily_generation_quota')) return {ok:true, json:async () => ({allowed:true, date:'2026-10-29', limit:15, used:1, remaining:14})};
     openRouterRequest = JSON.parse(init.body);
     return {ok:true, json:async () => ({choices:[{message:{content:JSON.stringify({plan:generatedPlan, warnings:['ครูควรตรวจความเหมาะสมของเวลา']})}}]})};
   };
@@ -43,8 +48,9 @@ test('lesson plan API follows teacher-selected frame and normalizes draft sectio
     assert.equal(res.code, 200);
     assert.equal(res.body.plan.title, 'แผนเรื่องระบบนิเวศ');
     assert.deepEqual(res.body.warnings, ['ครูควรตรวจความเหมาะสมของเวลา']);
+    assert.equal(res.body.quota.remaining, 14);
     assert.match(openRouterRequest.messages[0].content, /ใช้เฉพาะตัวชี้วัดและบริบทที่ได้รับ/);
-    assert.match(openRouterRequest.messages[1].content, /วิชา: วิทยาศาสตร์และเทคโนโลยี/);
+    assert.match(openRouterRequest.messages[1].content, /รายวิชาที่สอนจริง: วิทยาศาสตร์และเทคโนโลยี/);
     assert.match(openRouterRequest.messages[1].content, /ระดับชั้น: ม\.3/);
     assert.match(openRouterRequest.messages[1].content, /หัวข้อ: ระบบนิเวศ/);
     assert.match(openRouterRequest.messages[1].content, /ว 1\.1 ม\.3\/1/);
@@ -53,6 +59,10 @@ test('lesson plan API follows teacher-selected frame and normalizes draft sectio
     global.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.OPENROUTER_API_KEY;
     else process.env.OPENROUTER_API_KEY = originalKey;
+    if (originalSupabaseSecret === undefined) delete process.env.SUPABASE_SECRET_KEY;
+    else process.env.SUPABASE_SECRET_KEY = originalSupabaseSecret;
+    if (originalSupabaseUrl === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = originalSupabaseUrl;
   }
 });
 
@@ -72,7 +82,7 @@ test('lesson plan Word export includes plan frame, indicators and editable teach
     assert.match(xml, /แผนการจัดการเรียนรู้/);
     assert.match(xml, /แผนเรื่องระบบนิเวศ/);
     assert.match(xml, /ว 1\.1 ม\.3\/1/);
-    assert.match(xml, /บันทึกหลังสอน/);
+    assert.match(xml, /บันทึกหลังการจัดการเรียนรู้/);
     assert.match(xml, /w:ascii="TH SarabunPSK"/);
   } finally {
     global.fetch = originalFetch;

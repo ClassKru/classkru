@@ -112,6 +112,6 @@ module.exports = async function handler(req, res) {
     if (reservedQuota && teacherId) await releaseAiQuota(teacherId, reservedQuota.date).catch(releaseError => console.error('AI quota release failed:', releaseError));
     if (error.code !== 'AI_DAILY_LIMIT_REACHED') console.error('Quiz generation error:', error);
     const status = error.code === 'AI_DAILY_LIMIT_REACHED' ? 429 : error.code === 'SUPABASE_NOT_CONFIGURED' ? 503 : error.code === 'DATABASE_REQUEST_FAILED' ? 502 : 500;
-    return sendJson(res, status, { error: error.code || 'server_error', message: error.code === 'AI_DAILY_LIMIT_REACHED' ? 'วันนี้ใช้โควตาการสร้างข้อสอบ/ใบงานครบแล้ว กรุณาลองใหม่พรุ่งนี้' : error.code === 'SUPABASE_NOT_CONFIGURED' ? 'ระบบโควตา AI ยังไม่พร้อมใช้งาน' : 'เกิดข้อผิดพลาดขณะสร้างข้อสอบ', ...(error.quota ? { quota: error.quota } : {}) });
+    return sendJson(res, status, { error: error.code || 'server_error', message: error.code === 'AI_DAILY_LIMIT_REACHED' ? 'วันนี้ใช้โควตาการสร้างข้อสอบ/ใบงาน/แผนการสอนครบแล้ว กรุณาลองใหม่พรุ่งนี้' : error.code === 'SUPABASE_NOT_CONFIGURED' ? 'ระบบโควตา AI ยังไม่พร้อมใช้งาน' : 'เกิดข้อผิดพลาดขณะสร้างข้อสอบ', ...(error.quota ? { quota: error.quota } : {}) });
   }
 };
