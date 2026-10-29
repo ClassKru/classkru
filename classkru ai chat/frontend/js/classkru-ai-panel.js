@@ -11,7 +11,6 @@
   const starters = document.getElementById('ck-ai-starters');
   const minimize = document.getElementById('ck-ai-minimize');
   const expand = document.getElementById('ck-ai-expand');
-  const tokenTotalElement = document.getElementById('ck-ai-token-total');
   let history = [];
   let owner = null;
   let busy = false;
@@ -20,6 +19,7 @@
   let conversationTokenTotal = 0;
 
   function renderTokenTotal() {
+    const tokenTotalElement = document.getElementById('ck-ai-token-total');
     if (!tokenTotalElement) return;
     const isDeveloper = Boolean(window.classKruAiDeveloper);
     tokenTotalElement.hidden = !isDeveloper;
