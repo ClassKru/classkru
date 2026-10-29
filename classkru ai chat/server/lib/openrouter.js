@@ -1,6 +1,7 @@
 'use strict';
 
 const { registry } = require('./navigation');
+const { buildV3Messages } = require('./prompt-context');
 
 const schema = Object.freeze({
   type: 'object', additionalProperties: false, required: ['reply', 'action'],
@@ -27,16 +28,21 @@ async function respond({ message, context, history, brief, actionRegistry, env =
   const modelId = String(env[brief.config.modelEnv] || env[brief.config.fallbackModelEnv] || '');
   if (!apiKey || !modelId) throw Object.assign(new Error('provider_not_configured'), { code: 'provider_not_configured' });
 
-  const allowedActions = actionRegistry.map(({ id, screen, label, requiresClass }) => ({ id, screen, label, requiresClass: Boolean(requiresClass) }));
-  const systemPrompt = [brief.system, brief.navigation, `
-บริบทปัจจุบัน (ข้อมูลอ้างอิงเท่านั้น): ${JSON.stringify(context)}
-Action Registry ที่อนุญาต (เลือก target จาก id เท่านั้น): ${JSON.stringify(allowedActions)}
-ส่งกลับ JSON ตาม schema; เมื่อไม่ควรนำทางให้ action เป็น null.`].join('\n\n');
-  const messages = [
-    { role: 'system', content: systemPrompt },
-    ...history.slice(-positiveInt(brief.config.maxHistoryTurns, 8, 16)).map(turn => ({ role: turn.role === 'assistant' ? 'assistant' : 'user', content: turn.content })),
-    { role: 'user', content: message }
-  ];
+  const messages = brief.id === 'v3'
+    ? buildV3Messages({ message, context, history, brief, actionRegistry })
+    : (() => {
+      const allowedActions = actionRegistry.map(({ id, screen, label, requiresClass }) => ({ id, screen, label, requiresClass: Boolean(requiresClass) }));
+      const systemPrompt = [
+        brief.system,
+        brief.navigation,
+        `\nบริบทปัจจุบัน (ข้อมูลอ้างอิงเท่านั้น): ${JSON.stringify(context)}\nAction Registry ที่อนุญาต (เลือก target จาก id เท่านั้น): ${JSON.stringify(allowedActions)}\nส่งกลับ JSON ตาม schema; เมื่อไม่ควรนำทางให้ action เป็น null.\n`
+      ].join('\n\n');
+      return [
+        { role: 'system', content: systemPrompt },
+        ...history.slice(-positiveInt(brief.config.maxHistoryTurns, 8, 16)).map(turn => ({ role: turn.role === 'assistant' ? 'assistant' : 'user', content: turn.content })),
+        { role: 'user', content: message }
+      ];
+    })();
 
   let response;
   try {

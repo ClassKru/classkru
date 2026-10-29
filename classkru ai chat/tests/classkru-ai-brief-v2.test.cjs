@@ -15,7 +15,7 @@ const actionRegistry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
 const evaluation = JSON.parse(fs.readFileSync(casesPath, 'utf8'));
 const intents = new Set(['INFORMATION', 'EXPLANATION', 'NAVIGATION', 'UI_GUIDANCE', 'GENERAL_CHAT', 'ACTION_REQUEST', 'AMBIGUOUS', 'UNSUPPORTED']);
 
-test('deployed server loads both briefs without the excluded source folder and package matches sources', () => {
+test('deployed server loads every registered brief without the excluded source folder and package matches sources', () => {
   const packed = require('../../api/_lib/classkru-ai-briefs.cjs');
   assert.deepEqual(packed.registry, versionRegistry);
   for (const { id } of versionRegistry.versions) assert.deepEqual(packed.versions[id], briefs.load(id));
@@ -29,14 +29,15 @@ test('deployed server loads both briefs without the excluded source folder and p
   assert.throws(() => sandbox.module.exports.load('unknown'), /invalid_brief_version/);
 });
 
-test('V2 is registered for Developer testing while V1 remains both active and default', () => {
+test('V2 and V3 are registered for Developer testing while V1 remains active and default', () => {
   assert.equal(versionRegistry.activeVersion, 'v1');
   assert.equal(versionRegistry.defaultVersion, 'v1');
-  assert.deepEqual(versionRegistry.versions.map(version => version.id), ['v1', 'v2']);
-  assert.deepEqual(briefs.catalog().versions.map(version => version.id), ['v1', 'v2']);
+  assert.deepEqual(versionRegistry.versions.map(version => version.id), ['v1', 'v2', 'v3']);
+  assert.deepEqual(briefs.catalog().versions.map(version => version.id), ['v1', 'v2', 'v3']);
   assert.match(briefs.load('v1').system, /ClassKru AI/);
   assert.match(briefs.load('v2').system, /INFORMATION/);
   assert.match(briefs.load('v2').navigation, /ClassKru AI Navigation Brief V2/);
+  assert.match(briefs.load('v3').navigation, /Action Registry/);
 });
 
 test('V2 preserves the existing JSON response contract and navigation allowlist', () => {
@@ -84,8 +85,8 @@ test('a mocked transport receives V2 policy and the existing strict reply/action
   assert.match(requestBody.messages[1].content, /ฉันสอนวิชาอะไรบ้าง/);
 });
 
-test('mocked AI answers for both versions remain constrained to the existing response contract', async t => {
-  for (const version of ['v1', 'v2']) {
+test('mocked AI answers for all versions remain constrained to the existing response contract', async t => {
+  for (const version of ['v1', 'v2', 'v3']) {
     await t.test(version, async () => {
       const brief = briefs.load(version);
       const answer = navigation.validateAnswer({

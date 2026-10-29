@@ -3,6 +3,7 @@
   "activeVersion": "v1",
   "versions": [
     { "id": "v1", "label": "V1 · Production" },
-    { "id": "v2", "label": "V2 · Intent Test" }
+    { "id": "v2", "label": "V2 · Intent Test" },
+    { "id": "v3", "label": "V3 · Context Test" }
   ]
 }
