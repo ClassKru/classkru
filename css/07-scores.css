@@ -1236,10 +1236,7 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
 }
 
 .curriculum-source-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  padding: 10px 12px;
+  margin: 8px 0 0;
   border-left: 3px solid var(--primary);
   border-radius: var(--radius-sm);
   background: var(--primary-light);
@@ -1248,14 +1245,43 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
   line-height: 1.55;
 }
 
-.curriculum-source-note > i {
-  margin-top: 2px;
+.curriculum-source-note > summary {
+  min-height: 42px;
+  padding: 7px 11px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.curriculum-source-note > summary::-webkit-details-marker {
+  display: none;
+}
+
+.curriculum-source-note > summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -3px;
+  border-radius: var(--radius-sm);
+}
+
+.curriculum-source-note > summary > i {
+  flex: 0 0 auto;
   color: var(--primary);
 }
 
+.curriculum-source-note > summary > span:nth-child(2) {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+
 .curriculum-source-note strong,
-.curriculum-source-note p,
-.curriculum-source-note a {
+.curriculum-source-note small,
+.curriculum-source-details p,
+.curriculum-source-details a {
   display: block;
   margin: 0;
 }
@@ -1265,11 +1291,36 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
   font-weight: 800;
 }
 
-.curriculum-source-note p {
-  margin-top: 2px;
+.curriculum-source-note small {
+  color: var(--text-muted);
+  font-size: 0.7rem;
 }
 
-.curriculum-source-note a {
+.curriculum-source-chevron {
+  width: 8px;
+  height: 8px;
+  margin: 0 2px 4px auto;
+  flex: 0 0 auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 160ms ease, margin 160ms ease;
+}
+
+.curriculum-source-note[open] .curriculum-source-chevron {
+  margin-bottom: -4px;
+  transform: rotate(225deg);
+}
+
+.curriculum-source-details {
+  padding: 0 12px 11px 34px;
+}
+
+.curriculum-source-details p {
+  margin-bottom: 5px;
+}
+
+.curriculum-source-details a {
   margin-top: 5px;
   color: var(--primary);
   font-weight: 750;
