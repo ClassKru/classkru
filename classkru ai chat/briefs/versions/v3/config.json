@@ -1,0 +1,11 @@
+{
+  "label": "V3 · Context Test",
+  "modelEnv": "CLASSKRU_AI_NAV_MODEL",
+  "fallbackModelEnv": "OPENROUTER_MODEL",
+  "modelSettingsPathEnv": "CLASSKRU_AI_NAV_MODEL_SETTINGS_PATH",
+  "modelSettingsRole": "conversation",
+  "timeoutMs": 25000,
+  "maxTokens": 650,
+  "maxHistoryTurns": 8,
+  "maxMessageLength": 1000
+}

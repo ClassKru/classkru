@@ -41,9 +41,10 @@ test('private brief catalog loads only registered, complete versions', () => {
   const catalog = briefs.catalog();
   assert.equal(catalog.defaultVersion, 'v1');
   assert.equal(catalog.activeVersion, 'v1');
-  assert.deepEqual(catalog.versions.map(version => version.id), ['v1', 'v2']);
+  assert.deepEqual(catalog.versions.map(version => version.id), ['v1', 'v2', 'v3']);
   assert.match(briefs.load('v1').system, /ClassKru AI/);
-  assert.throws(() => briefs.load('v3'), /invalid_brief_version/);
+  assert.match(briefs.load('v3').system, /ClassKru AI/);
+  assert.throws(() => briefs.load('v4'), /invalid_brief_version/);
 });
 
 test('private brief files are excluded from static deployment and bundled only into AI functions', () => {
@@ -72,7 +73,7 @@ test('developer version catalog is private and returns metadata only', async () 
   const result = await exchange(handler, 'GET');
   assert.equal(result.statusCode, 200);
   assert.equal(result.payload.activeVersion, 'v1');
-  assert.deepEqual(result.payload.versions.map(version => version.id), ['v1', 'v2']);
+  assert.deepEqual(result.payload.versions.map(version => version.id), ['v1', 'v2', 'v3']);
   assert.equal(JSON.stringify(result.payload).includes('System Prompt'), false);
   const denied = versionsApi.createHandler({ authenticate: async () => ({ id: 'another-teacher', email: 'teacher@example.test' }), originIsValid: () => true, env });
   assert.equal((await exchange(denied, 'GET')).statusCode, 403);
