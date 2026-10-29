@@ -1070,7 +1070,7 @@ function renderCurriculumCatalogResults(c, holderId = 'curriculum-catalog-result
     <div><strong>พบ ${results.length} ตัวชี้วัด</strong><span>${escapeScore(subject.name)} · ${curriculumGradeLabel(scoreCurriculumFilters.grade)}</span></div>
     ${source?.url ? `<a href="${source.url}" target="_blank" rel="noopener"><i class="hgi-stroke hgi-book-open-01"></i> เอกสารต้นฉบับ</a>` : ''}
   </div>
-  ${source?.notice ? `<aside class="curriculum-source-note" role="note"><i class="hgi-stroke hgi-information-circle"></i><div><strong>ที่มาและสถานะข้อมูล</strong><p>${escapeScore(source.notice)}</p>${(source.relatedSources || []).map(item => item.url ? `<a href="${escapeScore(item.url)}" target="_blank" rel="noopener">${escapeScore(item.title)} · ${escapeScore(item.publisher || '')}</a>` : '').join('')}</div></aside>` : ''}
+  ${source?.notice ? `<details class="curriculum-source-note"><summary><i class="hgi-stroke hgi-information-circle" aria-hidden="true"></i><span><strong>ที่มาและสถานะข้อมูล</strong><small>กดเพื่อดูรายละเอียดและเอกสารอ้างอิง</small></span><span class="curriculum-source-chevron" aria-hidden="true"></span></summary><div class="curriculum-source-details"><p>${escapeScore(source.notice)}</p>${(source.relatedSources || []).map(item => item.url ? `<a href="${escapeScoreAttr(item.url)}" target="_blank" rel="noopener">${escapeScore(item.title)} · ${escapeScore(item.publisher || '')}</a>` : '').join('')}</div></details>` : ''}
   ${results.length ? `<div class="curriculum-indicator-list">${results.map(item => {
     const unit = unitMap.get(item.unitId);
     const standard = catalog.getStandard(subject.id, item.standard);
