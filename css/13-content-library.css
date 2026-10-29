@@ -2,7 +2,7 @@
    CONTENT LIBRARY — สร้างสื่อการสอน
    Desktop = สร้าง/ตรวจร่าง, Mobile = เลือกและสร้างให้จบทีละขั้น
    ========================================== */
-:root { --export-word:#2563eb; --export-word-bg:#eff6ff; --export-word-border:#bfdbfe; --export-pdf:#dc4b46; --export-pdf-hover:#bd332f; --export-pdf-focus:#dc4b4666; --library-interactive:#6d5ce7; --library-interactive-bg:#f1efff; --library-interactive-border:#d9d2ff; --library-quiz:#3b82f6; --library-quiz-bg:#eff6ff; --library-quiz-border:#bfdbfe; --library-worksheet:#f59e0b; --library-worksheet-bg:#fffbeb; --library-worksheet-border:#fde68a; --library-plan:#8b5cf6; --library-plan-bg:#f5f3ff; --library-plan-border:#ddd6fe; }
+:root { --export-word:#2563eb; --export-word-bg:#f2f7ff; --export-word-border:#c9dcff; --export-word-hover:#e5efff; --export-word-focus:#2563eb55; --export-pdf:#c84640; --export-pdf-bg:#fff4f2; --export-pdf-border:#f2c7c3; --export-pdf-hover:#ffe9e6; --export-pdf-focus:#c8464055; --library-interactive:#6d5ce7; --library-interactive-bg:#f1efff; --library-interactive-border:#d9d2ff; --library-quiz:#3b82f6; --library-quiz-bg:#eff6ff; --library-quiz-border:#bfdbfe; --library-worksheet:#f59e0b; --library-worksheet-bg:#fffbeb; --library-worksheet-border:#fde68a; --library-plan:#8b5cf6; --library-plan-bg:#f5f3ff; --library-plan-border:#ddd6fe; }
 .cl-hero { position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:220px; box-sizing:border-box; padding:34px 36px 30px; margin-bottom:18px; border-color:#cceee0; background:linear-gradient(125deg,#fff 0%,#f0fdf7 58%,#effbf7 100%); }
 .cl-hero::after { content:''; position:absolute; right:-62px; top:-88px; width:240px; height:240px; border:34px solid rgba(29,158,117,.08); border-radius:50%; }
 .cl-hero-copy { position:relative; z-index:1; width:100%; text-align:center; }
@@ -127,6 +127,12 @@
 .cl-plan-grid article p,.cl-plan-grid article ul { margin:0; color:var(--text-secondary); font-size:.84rem; line-height:1.7; }
 .cl-plan-grid article ul { padding-left:19px; }
 .cl-plan-grid article li + li { margin-top:5px; }
+.cl-plan-activity-stages { display:flex; flex-direction:column; gap:12px; margin:0; padding-left:24px; }
+.cl-plan-activity-stages > li { padding:12px 14px; border:1px solid #d9e9e1; border-radius:12px; background:#fff; }
+.cl-plan-activity-stage-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:7px; color:var(--primary-deep); }
+.cl-plan-activity-stage-heading span { flex:none; padding:3px 9px; border-radius:999px; background:#eaf6f1; color:var(--primary-deep); font-size:.78rem; font-weight:800; }
+.cl-plan-grid article .cl-plan-activity-stages p { margin:5px 0 0; }
+.cl-plan-activity-stages p b { color:#53635d; }
 .cl-guidance-unit-summary { padding:16px; margin-bottom:14px; border:1px solid var(--border-color); border-radius:14px; background:var(--primary-light); }
 .cl-guidance-unit-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 0 12px; border-bottom:1px solid var(--border-color); }
 .cl-guidance-unit-heading > div > span { color:var(--primary); font-size:.78rem; font-weight:800; }
@@ -144,6 +150,13 @@
 .cl-plan-edit-field { display:flex; flex-direction:column; gap:7px; padding:16px; border:1px solid var(--border-color); border-radius:13px; background:#fbfffd; color:var(--primary-deep); font-size:.92rem; font-weight:800; }
 .cl-plan-edit-field small { color:var(--text-muted); font-size:.75rem; font-weight:600; }
 .cl-plan-edit-field textarea { min-height:138px; resize:vertical; line-height:1.65; }
+.cl-plan-activity-edit { grid-column:1 / -1; }
+.cl-plan-activity-edit-stage { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:0 0 12px; padding:14px; border:1px solid var(--border-color); border-radius:12px; }
+.cl-plan-activity-edit-stage legend { padding:0 7px; color:var(--primary-deep); font-weight:800; }
+.cl-plan-activity-edit-stage label { display:flex; flex-direction:column; gap:6px; color:var(--text-secondary); font-size:.82rem; font-weight:700; }
+.cl-plan-activity-edit-stage label:nth-of-type(n+3) { grid-column:1 / -1; }
+.cl-plan-activity-edit-stage textarea { min-height:70px; resize:vertical; }
+.cl-plan-activity-edit-stage > button { justify-self:start; }
 .cl-plan-detail-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:22px; margin-bottom:16px; }
 .cl-plan-detail-head > div:first-child { min-width:0; flex:1 1 auto; }
 .cl-plan-detail-head h2 { margin:10px 0 4px; font-size:1.4rem; }
@@ -303,12 +316,13 @@
 .cl-detail-edit-form textarea { min-height:120px; resize:vertical; }
 .cl-detail-edit-dialog-actions { display:flex; justify-content:flex-end; gap:9px; padding:0 22px 22px; }
 .cl-detail-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
-.cl-export-btn { min-height:42px; font-weight:800; }
+.cl-export-btn { min-height:38px; padding:7px 13px; font-size:.82rem; font-weight:800; }
 .cl-export-btn.word { color:var(--export-word); border-color:var(--export-word-border); background:var(--export-word-bg); }
-.cl-export-btn.word:hover { color:#fff; border-color:var(--export-word); background:var(--export-word); }
-.cl-export-btn.pdf { color:#fff; border-color:var(--export-pdf); background:var(--export-pdf); box-shadow:0 3px 9px #dc4b4629; }
-.cl-export-btn.pdf:hover { color:#fff; border-color:var(--export-pdf-hover); background:var(--export-pdf-hover); }
-.cl-export-btn.pdf:focus-visible { outline:3px solid var(--export-pdf-focus); outline-offset:2px; }
+.cl-export-btn.word:hover { color:var(--export-word); border-color:var(--export-word); background:var(--export-word-hover); }
+.cl-export-btn.pdf { color:var(--export-pdf); border-color:var(--export-pdf-border); background:var(--export-pdf-bg); }
+.cl-export-btn.pdf:hover { color:var(--export-pdf); border-color:var(--export-pdf); background:var(--export-pdf-hover); }
+.cl-export-btn.word:focus-visible,.cl-export-btn.pdf:focus-visible { outline:3px solid var(--export-word-focus); outline-offset:2px; }
+.cl-export-btn.pdf:focus-visible { outline-color:var(--export-pdf-focus); }
 .cl-export-btn:disabled { opacity:.7; cursor:wait; }
 .cl-detail-indicators { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
 .cl-detail-indicators span { padding:3px 8px; border-radius:99px; color:var(--primary-deep); background:var(--primary-light); font-size:.73rem; font-weight:800; }
@@ -357,6 +371,7 @@
   .cl-detail-head { flex-direction:column; padding:18px; }
   .cl-detail-actions { width:100%; }
   .cl-detail-actions .btn { flex:1; justify-content:center; }
+  .cl-detail-actions .cl-export-btn { min-height:42px; }
   .cl-detail-question { padding:17px; }
   .cl-plan-grid,.cl-worksheet-grid { grid-template-columns:1fr; }
   .cl-plan-form-metadata { grid-template-columns:1fr; }
@@ -366,6 +381,8 @@
   .cl-worksheet-options-head { flex-direction:column; }
   .cl-worksheet-guide-badge { align-self:flex-start; }
   .cl-plan-wide { grid-column:auto; }
+  .cl-plan-activity-edit-stage { grid-template-columns:1fr; }
+  .cl-plan-activity-edit-stage label:nth-of-type(n) { grid-column:auto; }
   .cl-worksheet-wide { grid-column:auto; }
   .cl-plan-edit-grid { grid-template-columns:1fr; }
   .cl-plan-detail-head,.cl-plan-next,.cl-plan-section-head { align-items:flex-start; flex-direction:column; }

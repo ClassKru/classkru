@@ -5,8 +5,8 @@ const { sendJson, parseBody, requestOriginIsValid } = require('../http');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
-const BODY_SIZE = 28;
-const TITLE_SIZE = 36;
+const BODY_SIZE = 32;
+const TITLE_SIZE = 32;
 
 const clean = (value, max = 2200) => String(value || '').trim().slice(0, max);
 const asList = (value, maxItems = 18) => (Array.isArray(value) ? value : []).map(item => clean(item, 1500)).filter(Boolean).slice(0, maxItems);
@@ -19,7 +19,7 @@ async function authenticatedUser(req) {
 }
 
 function paragraph(text, options = {}) {
-  return new Paragraph({ ...options, children: [new TextRun({ text: clean(text), font: 'TH SarabunPSK', size: options.size || BODY_SIZE, bold: Boolean(options.bold) })] });
+  return new Paragraph({ ...options, children: [new TextRun({ text: clean(text, 3000), font: 'TH SarabunPSK', size: options.size || BODY_SIZE, bold: Boolean(options.bold) })] });
 }
 
 function sectionBlocks(title, values) {
@@ -28,6 +28,26 @@ function sectionBlocks(title, values) {
     paragraph(title, { bold:true, spacing:{ before:170, after:60 } }),
     ...(list.length ? list.map(item => new Paragraph({ numbering:{ reference:'plan-bullets', level:0 }, children:[new TextRun({ text:item, font:'TH SarabunPSK', size:BODY_SIZE })] })) : [paragraph('........................................................................................................................', { spacing:{ after:50 } })])
   ];
+}
+
+function proseSectionBlocks(title, value, legacyValues) {
+  const prose = clean(value, 3000) || asList(legacyValues, 8).join(' ');
+  return [paragraph(title, { bold:true, spacing:{ before:170, after:60 } }), prose ? paragraph(prose, { spacing:{ after:50 } }) : paragraph('........................................................................................................................', { spacing:{ after:50 } })];
+}
+
+function activityBlocks(title, stages, legacyActivities) {
+  const items = Array.isArray(stages) ? stages.filter(item => item && typeof item === 'object') : [];
+  const blocks = [paragraph(title, { bold:true, spacing:{ before:170, after:60 } })];
+  if (!items.length) return [...blocks, ...asList(legacyActivities, 16).map(item => new Paragraph({ numbering:{ reference:'plan-bullets', level:0 }, children:[new TextRun({ text:item, font:'TH SarabunPSK', size:BODY_SIZE })] }))];
+  for (const [index, item] of items.entries()) {
+    const heading = `${index + 1}. ${clean(item.title, 180) || 'ขั้นกิจกรรม'}${Number(item.durationMinutes) > 0 ? ` (${Number(item.durationMinutes)} นาที)` : ''}`;
+    blocks.push(paragraph(heading, { bold:true, spacing:{ before:90, after:30 } }));
+    if (clean(item.teacherActions)) blocks.push(paragraph(`ครู: ${clean(item.teacherActions, 1600)}`, { spacing:{ after:25 } }));
+    if (clean(item.learnerActions)) blocks.push(paragraph(`ผู้เรียน: ${clean(item.learnerActions, 1600)}`, { spacing:{ after:25 } }));
+    if (clean(item.materials)) blocks.push(paragraph(`สื่อ/อุปกรณ์: ${clean(item.materials, 800)}`, { spacing:{ after:25 } }));
+    if (clean(item.assessmentEvidence)) blocks.push(paragraph(`การตรวจสอบ/หลักฐาน: ${clean(item.assessmentEvidence, 1000)}`, { spacing:{ after:45 } }));
+  }
+  return blocks;
 }
 
 const tableBorders = { top:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, bottom:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, left:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, right:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, insideHorizontal:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'}, insideVertical:{style:BorderStyle.SINGLE,size:1,color:'D9E2DD'} };
@@ -74,7 +94,10 @@ module.exports = async function handler(req, res) {
     const plan = lessonPlan.plan && typeof lessonPlan.plan === 'object' ? lessonPlan.plan : {};
     const title = clean(plan.title || lessonPlan.title || lessonPlan.topic, 240);
     if (!title) return sendJson(res, 400, { error:'invalid_lesson_plan', message:'ไม่พบข้อมูลแผนการสอนสำหรับส่งออก' });
-    const planTitle = clean(lessonPlan.planTitle, 120) || `แผนการจัดการเรียนรู้ที่ ${clean(lessonPlan.planNumber,12) || '1'}`;
+    const defaultPlanTitle = `${lessonPlan.subjectId === 'guidance' ? 'แผนการจัดกิจกรรมแนะแนวที่' : 'แผนการจัดการเรียนรู้ที่'} ${clean(lessonPlan.planNumber,12) || '1'}`;
+    const planTitle = clean(lessonPlan.planTitle, 240) || defaultPlanTitle;
+    const documentTitle = clean(lessonPlan.planTitle || plan.title || planTitle, 240);
+    const keyEssence = clean(plan.keyEssence, 3000) || asList(plan.keyConcepts, 8).join(' ');
     const indicators = Array.isArray(lessonPlan.indicators) ? lessonPlan.indicators.slice(0, 18).map(item => `${clean(item.code, 80)} ${clean(item.text, 1000)}`.trim()).filter(Boolean) : [];
     const document = new Document({
       styles:{ default:{ document:{ run:{ font:'TH SarabunPSK', size:BODY_SIZE } } } },
@@ -82,8 +105,7 @@ module.exports = async function handler(req, res) {
       sections:[{
         properties:{ page:{ size:{ width:11906, height:16838 }, margin:{ top:1134, right:1134, bottom:1134, left:1134 } } },
         children:[
-          paragraph(planTitle, { size:TITLE_SIZE, bold:true, alignment:AlignmentType.CENTER, spacing:{ after:40 } }),
-          paragraph(title, { size:TITLE_SIZE, bold:true, alignment:AlignmentType.CENTER, spacing:{ after:160 } }),
+          paragraph(documentTitle || planTitle, { size:TITLE_SIZE, bold:true, alignment:AlignmentType.CENTER, spacing:{ after:160 } }),
           metadataTable(lessonPlan),
           paragraph('________________________________________________________________________________', { spacing:{ before:75, after:30 } }),
           ...(lessonPlan.subjectId === 'guidance' ? [
@@ -93,19 +115,19 @@ module.exports = async function handler(req, res) {
             ...sectionBlocks('ผลลัพธ์ที่เลือกสำหรับหน่วย', indicators),
             ...sectionBlocks('วัตถุประสงค์ชั้นปี', lessonPlan.yearObjective ? [lessonPlan.yearObjective] : []),
             ...sectionBlocks('วัตถุประสงค์ของหน่วย', lessonPlan.unitObjective || plan.unitObjective ? [lessonPlan.unitObjective || plan.unitObjective] : []),
-            ...sectionBlocks('1. สาระสำคัญ', plan.keyConcepts),
+            ...proseSectionBlocks('1. สาระสำคัญ', keyEssence, plan.keyConcepts),
             ...sectionBlocks('2. จุดประสงค์การเรียนรู้', plan.objectives),
             ...sectionBlocks('3. สาระการเรียนรู้', [...asList(plan.contentKnowledge).map(item => `ความรู้: ${item}`), ...asList(plan.contentSkills).map(item => `ทักษะ/กระบวนการ: ${item}`)])
           ] : [
             ...sectionBlocks('มาตรฐานการเรียนรู้', Array.isArray(lessonPlan.standards) ? lessonPlan.standards.map(item => `${clean(item.code,100)} ${clean(item.title,900)}`.trim()) : []),
             ...sectionBlocks('ตัวชี้วัด / ผลการเรียนรู้', indicators),
-            ...sectionBlocks('สาระสำคัญ', plan.keyConcepts),
+            ...proseSectionBlocks('สาระสำคัญ', keyEssence, plan.keyConcepts),
             ...sectionBlocks('จุดประสงค์การเรียนรู้', plan.objectives),
             ...sectionBlocks('สาระการเรียนรู้: ความรู้', plan.contentKnowledge),
             ...sectionBlocks('สาระการเรียนรู้: ทักษะ/กระบวนการ', plan.contentSkills)
           ]),
           ...(lessonPlan.subjectId === 'guidance' ? [
-            ...sectionBlocks('4. วิธีดำเนินกิจกรรม', plan.activities),
+            ...activityBlocks('4. วิธีดำเนินกิจกรรม', plan.activityStages, plan.activities),
             ...sectionBlocks('5. ชิ้นงาน/ภาระงาน', plan.workProducts),
             ...sectionBlocks('6. สื่อ/อุปกรณ์/แหล่งเรียนรู้', plan.resources),
             paragraph('7. การวัดและประเมินผล', { bold:true, spacing:{ before:170, after:60 } }),
@@ -118,8 +140,7 @@ module.exports = async function handler(req, res) {
             ...sectionBlocks('คุณลักษณะอันพึงประสงค์', plan.desirableCharacteristics),
             ...sectionBlocks('ความสามารถและทักษะในศตวรรษที่ 21', plan.skills21),
             ...sectionBlocks('ชิ้นงาน / ภาระงาน', plan.workProducts),
-            paragraph('ขั้นตอนการจัดกิจกรรมการเรียนรู้', { bold:true, spacing:{ before:170, after:60 } }),
-            ...sectionBlocks('วิธีดำเนินกิจกรรม', plan.activities),
+            ...activityBlocks('ขั้นตอนการจัดกิจกรรมการเรียนรู้', plan.activityStages, plan.activities),
             ...sectionBlocks('สื่อและแหล่งเรียนรู้', plan.resources),
             paragraph('การวัดและประเมินผล', { bold:true, spacing:{ before:170, after:60 } }),
             assessmentTable(plan)
@@ -140,7 +161,7 @@ module.exports = async function handler(req, res) {
       }]
     });
     const buffer = await Packer.toBuffer(document);
-    const fileName = encodeURIComponent(`${title}.docx`);
+    const fileName = encodeURIComponent(`${documentTitle || title}.docx`);
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', `attachment; filename="lesson-plan.docx"; filename*=UTF-8''${fileName}`);
     res.setHeader('Cache-Control', 'no-store, private');
