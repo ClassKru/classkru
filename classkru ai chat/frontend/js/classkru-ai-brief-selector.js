@@ -12,6 +12,21 @@
   function cacheKey() { return `classkru-ai-brief:${currentSession?.user?.id || ''}`; }
   function cachedVersion() { try { return localStorage.getItem(cacheKey()); } catch (_) { return null; } }
 
+  function ensureTokenTotal() {
+    let total = document.getElementById('ck-ai-token-total');
+    if (total) return total;
+    const dock = document.getElementById('classkru-ai-dock');
+    if (!dock) return null;
+    total = document.createElement('output');
+    total.id = 'ck-ai-token-total';
+    total.className = 'ck-ai-token-total';
+    total.setAttribute('aria-live', 'polite');
+    total.setAttribute('aria-label', 'ยอดโทเคนรวมของบทสนทนาชั่วคราว');
+    total.textContent = 'โทเคนรวม 0';
+    dock.appendChild(total);
+    return total;
+  }
+
   function updateToggle(version) {
     const shortVersion = version.toUpperCase();
     if (label) label.textContent = `Brief ${shortVersion}`;
@@ -28,6 +43,8 @@
     const version = activeVersion || window.classKruAiBriefVersion;
     window.configureClassKruAiDeveloper?.(true, version);
     window.configureClassKruAiModelSelector?.(true, currentSession?.user?.id);
+    const tokenTotal = ensureTokenTotal();
+    if (tokenTotal) tokenTotal.hidden = false;
     if (version) updateToggle(window.classKruAiBriefVersion || version);
     controls.hidden = false;
   }
@@ -35,6 +52,8 @@
   function hideDeveloperControls() {
     controls.hidden = true;
     menu.hidden = true;
+    const tokenTotal = document.getElementById('ck-ai-token-total');
+    if (tokenTotal) tokenTotal.hidden = true;
     window.configureClassKruAiDeveloper?.(false);
     window.configureClassKruAiModelSelector?.(false);
   }
