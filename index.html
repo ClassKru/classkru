@@ -35,9 +35,9 @@
   <link rel="stylesheet" href="css/media-studio.css?v=548">
   <link rel="stylesheet" href="css/13-content-library.css?v=555">
   <link rel="stylesheet" href="css/15-subscription.css?v=548">
-  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/16-classkru-ai-launcher.css?v=2">
-  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/17-classkru-ai-panel.css?v=1">
-  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/18-classkru-ai-brief-selector.css?v=2">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/16-classkru-ai-launcher.css?v=3">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/17-classkru-ai-panel.css?v=2">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/18-classkru-ai-brief-selector.css?v=3">
   <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/19-classkru-ai-model-selector.css?v=1">
   <link rel="stylesheet" href="css/login.css?v=548">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -245,42 +245,6 @@
           <div class="decor-books"><i></i><i></i><i></i></div>
           <div class="decor-cup"><b></b><b></b><b></b></div>
         </div>
-      </div>
-      <div class="classkru-ai-topbar">
-        <div id="ck-ai-brief-controls" class="ck-ai-brief-controls" hidden>
-          <button id="ck-ai-brief-toggle" type="button" aria-label="เลือกชุดบรีฟ" title="เลือกชุดบรีฟ" aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">▤</span><span class="ck-ai-brief-label">Brief V1</span></button>
-          <div id="ck-ai-brief-menu" class="ck-ai-brief-menu" role="listbox" aria-label="เลือก AI Brief Version" hidden></div>
-        </div>
-        <div id="ck-ai-model-controls" class="ck-ai-model-controls" hidden>
-          <button id="ck-ai-model-open" class="ck-ai-tool-button" type="button" aria-label="เลือก API และโมเดล" title="ตั้งค่า API และโมเดล" aria-haspopup="dialog">⚙</button>
-        </div>
-        <button id="classkru-ai-launcher" class="classkru-ai-launcher" type="button" aria-label="เปิด ClassKru AI">
-          <span class="classkru-ai-launcher__surface">
-            <svg class="classkru-ai-launcher__mark" viewBox="0 0 44 44" aria-hidden="true" focusable="false">
-              <defs>
-                <linearGradient id="ck-ai-spark-color" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="#66eeff"/>
-                  <stop offset=".35" stop-color="#246bff"/>
-                  <stop offset=".67" stop-color="#9651ff"/>
-                  <stop offset="1" stop-color="#ed7cfa"/>
-                </linearGradient>
-                <radialGradient id="ck-ai-spark-light">
-                  <stop offset="0" stop-color="#fff"/>
-                  <stop offset=".48" stop-color="#d5eaff"/>
-                  <stop offset="1" stop-color="#d5adff" stop-opacity="0"/>
-                </radialGradient>
-              </defs>
-              <g class="classkru-ai-launcher__spark-main">
-                <path fill="url(#ck-ai-spark-color)" d="M18 8c1.8 0 2.4 7.5 6.7 11.8C29 24.1 36 24.6 36 26.4S29 28.7 24.7 33c-4.3 4.3-4.9 11-6.7 11s-2.4-6.7-6.7-11C7 28.7 0 28.2 0 26.4s7-2.3 11.3-6.6C15.6 15.5 16.2 8 18 8Z" transform="translate(2 -3) scale(.94)"/>
-                <path fill="url(#ck-ai-spark-light)" d="M19 10c2 8 5 11 13 14-8 2-11 5-13 13-2-8-5-11-13-13 8-3 11-6 13-14Z"/>
-                <path d="M19 12c-1.6 6.5-4.4 9.5-10 12 5.6 2 8.4 5 10 11" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="1.2" stroke-linecap="round"/>
-              </g>
-              <path class="classkru-ai-launcher__spark-small" fill="url(#ck-ai-spark-color)" d="M34 1c1.3 5 2 6 7 7-5 1.4-5.7 2-7 7-1.3-5-2-5.6-7-7 5-1 5.7-2 7-7Z"/>
-              <path fill="#fff" fill-opacity=".9" d="m5 7 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z"/>
-            </svg>
-            <span class="classkru-ai-launcher__label">ClassKru <strong>AI</strong></span>
-          </span>
-        </button>
       </div>
       <div class="app-content">
 
@@ -798,9 +762,42 @@
 
     <!-- ปุ่มคู่มือการใช้งาน (เล่นทัวร์สอนใช้งานซ้ำได้ทุกเมื่อ) -->
     <button class="tour-fab" onclick="navigateToWebScreen('help')" aria-label="เปิดศูนย์ช่วยเหลือ" title="ศูนย์ช่วยเหลือ"><i class="hgi-stroke hgi-help-circle"></i></button>
-    <button class="report-mascot-fab" type="button" onclick="openIssueReportForm('feature')" aria-label="เสนอฟีเจอร์ใหม่โดยตรง" title="เสนอฟีเจอร์ใหม่โดยตรง">
-      <img src="assets/classkru-mascot-support.png?v=1" alt="มาสคอตสำหรับเสนอฟีเจอร์ใหม่">
-    </button>
+      <div id="classkru-ai-dock" class="classkru-ai-topbar" role="group" aria-label="ClassKru AI และการตั้งค่า">
+        <div id="ck-ai-brief-controls" class="ck-ai-brief-controls" hidden>
+          <button id="ck-ai-brief-toggle" type="button" aria-label="เลือกชุดบรีฟ" title="เลือกชุดบรีฟ" aria-haspopup="listbox" aria-expanded="false"><span aria-hidden="true">▤</span><span class="ck-ai-brief-label">Brief V1</span></button>
+          <div id="ck-ai-brief-menu" class="ck-ai-brief-menu" role="listbox" aria-label="เลือก AI Brief Version" hidden></div>
+        </div>
+        <div id="ck-ai-model-controls" class="ck-ai-model-controls" hidden>
+          <button id="ck-ai-model-open" class="ck-ai-tool-button" type="button" aria-label="เลือก API และโมเดล" title="ตั้งค่า API และโมเดล" aria-haspopup="dialog">⚙</button>
+        </div>
+        <button id="classkru-ai-launcher" class="classkru-ai-launcher" type="button" aria-label="เปิด ClassKru AI">
+          <span class="classkru-ai-launcher__surface">
+            <svg class="classkru-ai-launcher__mark" viewBox="0 0 44 44" aria-hidden="true" focusable="false">
+              <defs>
+                <linearGradient id="ck-ai-spark-color" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#66eeff"/>
+                  <stop offset=".35" stop-color="#246bff"/>
+                  <stop offset=".67" stop-color="#9651ff"/>
+                  <stop offset="1" stop-color="#ed7cfa"/>
+                </linearGradient>
+                <radialGradient id="ck-ai-spark-light">
+                  <stop offset="0" stop-color="#fff"/>
+                  <stop offset=".48" stop-color="#d5eaff"/>
+                  <stop offset="1" stop-color="#d5adff" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <g class="classkru-ai-launcher__spark-main">
+                <path fill="url(#ck-ai-spark-color)" d="M18 8c1.8 0 2.4 7.5 6.7 11.8C29 24.1 36 24.6 36 26.4S29 28.7 24.7 33c-4.3 4.3-4.9 11-6.7 11s-2.4-6.7-6.7-11C7 28.7 0 28.2 0 26.4s7-2.3 11.3-6.6C15.6 15.5 16.2 8 18 8Z" transform="translate(2 -3) scale(.94)"/>
+                <path fill="url(#ck-ai-spark-light)" d="M19 10c2 8 5 11 13 14-8 2-11 5-13 13-2-8-5-11-13-13 8-3 11-6 13-14Z"/>
+                <path d="M19 12c-1.6 6.5-4.4 9.5-10 12 5.6 2 8.4 5 10 11" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="1.2" stroke-linecap="round"/>
+              </g>
+              <path class="classkru-ai-launcher__spark-small" fill="url(#ck-ai-spark-color)" d="M34 1c1.3 5 2 6 7 7-5 1.4-5.7 2-7 7-1.3-5-2-5.6-7-7 5-1 5.7-2 7-7Z"/>
+              <path fill="#fff" fill-opacity=".9" d="m5 7 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z"/>
+            </svg>
+            <span class="classkru-ai-launcher__label">ClassKru <strong>AI</strong></span>
+          </span>
+        </button>
+      </div>
 
     <section id="ck-ai-panel" class="ck-ai-panel" aria-label="สนทนากับ ClassKru AI" hidden>
       <header class="ck-ai-panel-head">

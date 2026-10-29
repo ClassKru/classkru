@@ -8,8 +8,9 @@
 .ck-ai-brief-menu { position: absolute; z-index: 191; top: calc(100% + 7px); right: 0; width: min(250px, calc(100vw - 24px)); max-height: min(55vh, 320px); overflow: auto; padding: 6px; border: 1px solid #e1daf0; border-radius: 13px; background: var(--bg-card, #fff); box-shadow: 0 12px 35px #25204428; }
 .ck-ai-brief-menu button { display: flex; width: 100%; align-items: center; gap: 8px; padding: 9px 10px; border: 0; border-radius: 8px; background: transparent; color: var(--text-main, #24243a); text-align: left; cursor: pointer; font: inherit; font-size: .8rem; }
 .ck-ai-brief-menu button:hover, .ck-ai-brief-menu button[aria-selected="true"] { background: #f1edff; color: #4f35a3; }
+.classkru-ai-topbar .ck-ai-brief-menu { top: auto; bottom: calc(100% + 8px); left: 0; right: auto; }
 @media (max-width: 768px) {
-  .classkru-ai-topbar { gap: 7px; padding-right: 12px; }
+  .classkru-ai-topbar { gap: 7px; }
   #ck-ai-brief-toggle { min-height:34px; padding:6px 8px; font-size:.7rem; }
   .ck-ai-tool-button { width:34px; height:34px; }
 }
