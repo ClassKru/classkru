@@ -8,6 +8,21 @@ const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_pub
 
 function clean(value, max = 1200) { return String(value || '').trim().slice(0, max); }
 function asList(value, maxItems = 12) { return (Array.isArray(value) ? value : []).map(item => clean(item, 800)).filter(Boolean).slice(0, maxItems); }
+function asActivityStages(value) {
+  return (Array.isArray(value) ? value : []).slice(0, 16).filter(item => item && typeof item === 'object' && !Array.isArray(item)).map((item, index) => ({
+    title: clean(item?.title, 180) || `ขั้นที่ ${index + 1}`,
+    durationMinutes: Number.isInteger(Number(item?.durationMinutes)) ? Number(item.durationMinutes) : 0,
+    teacherActions: clean(item?.teacherActions, 1600),
+    learnerActions: clean(item?.learnerActions, 1600),
+    materials: clean(item?.materials, 800),
+    assessmentEvidence: clean(item?.assessmentEvidence, 1000)
+  })).filter(item => item.title || item.teacherActions || item.learnerActions);
+}
+function asParagraph(value, legacyValues) {
+  const text = clean(value, 2400);
+  if (text) return text;
+  return asList(legacyValues, 8).join(' ');
+}
 function legacyDurationMinutes(value) {
   const text = clean(value, 120);
   const minutes = text.match(/(\d{1,3})\s*นาที/u);
@@ -37,6 +52,7 @@ function normalizePlan(value) {
   return {
     title: clean(plan.title, 240),
     unitObjective: clean(plan.unitObjective, 1200),
+    keyEssence: asParagraph(plan.keyEssence, plan.keyConcepts),
     keyConcepts: asList(plan.keyConcepts),
     objectives: asList(plan.objectives),
     contentKnowledge: asList(plan.contentKnowledge),
@@ -45,6 +61,7 @@ function normalizePlan(value) {
     desirableCharacteristics: asList(plan.desirableCharacteristics),
     skills21: asList(plan.skills21),
     workProducts: asList(plan.workProducts),
+    activityStages: asActivityStages(plan.activityStages),
     activities: asList(plan.activities, 16),
     resources: asList(plan.resources),
     assessment: asList(plan.assessment, 12),
@@ -117,13 +134,18 @@ ${clean(body.standardOverride, 1200) ? `ข้อความมาตรฐา�
 ${indicators.map(item => `- ${item}`).join('\n')}
 ${guidancePlanNote}
 
-ตอบกลับเป็น JSON ล้วนตาม schema นี้ ห้ามมี markdown; กิจกรรมต้องแจกแจงเวลาแต่ละช่วงรวมกันไม่เกิน ${durationMinutes} นาที:
-{"plan":{"title":"ชื่อหัวข้อ ไม่ต้องใส่เลขแผน","unitObjective":"วัตถุประสงค์ภาพรวมของหน่วยกิจกรรม แยกจากเป้าหมายรายคาบ","keyConcepts":["..."],"objectives":["จุดประสงค์รายคาบที่สังเกตและประเมินได้"],"contentKnowledge":["สาระการเรียนรู้ด้านความรู้"],"contentSkills":["สาระการเรียนรู้ด้านทักษะ/กระบวนการ"],"competencies":["สมรรถนะสำคัญ"],"desirableCharacteristics":["คุณลักษณะอันพึงประสงค์"],"skills21":["ทักษะในศตวรรษที่ 21"],"workProducts":["ชิ้นงาน/ภาระงาน"],"activities":["ขั้นนำ (5 นาที): ...","ขั้นสอน (... นาที): ...","ขั้นสรุป (... นาที): ..."],"resources":["..."],"assessmentMatrix":[{"domain":"สิ่งที่ประเมิน","target":"พฤติกรรมหรือผลงาน","instrument":"วิธี/เครื่องมือ","criterion":"เกณฑ์ผ่านที่ตรวจสอบได้"}],"assessment":["รายละเอียดเสริมการประเมิน"],"evidence":["หลักฐานที่เก็บ"],"suggestedActivities":["กิจกรรมเสนอแนะ"],"adaptations":["ข้อเสนอแนะสำหรับครู"]},"warnings":["ข้อมูลที่ครูควรตรวจสอบ"]}`;
+ตอบกลับเป็น JSON ล้วนตาม schema นี้ ห้ามมี markdown:
+- keyEssence ต้องเป็นย่อหน้าอธิบายแนวคิดหลัก ความสัมพันธ์ของสาระ และความสำคัญต่อหัวข้อ เขียนเป็นประโยคต่อเนื่องชัดเจน ไม่ส่งเป็นรายการคำหรือวลี
+- activityStages ต้องแบ่งเป็นช่วงกิจกรรมที่ครูนำไปใช้สอนได้จริง ทุกช่วงระบุเวลาและรายละเอียดแยกบทบาทครูกับผู้เรียน ใช้กริยาที่สังเกตได้ บอกคำถาม/คำชี้แจงหรือสิ่งที่ครูจัดเตรียมตามจำเป็น และระบุหลักฐานที่ใช้ตรวจความเข้าใจ หลีกเลี่ยงคำกว้าง ๆ เช่น “ทำกิจกรรม” โดยไม่บอกวิธีทำ
+- แบ่งกิจกรรมยาวเป็นช่วงย่อยอย่างเหมาะสม โดยเฉพาะแผนที่ยาวเกิน 1 ชั่วโมง ไม่รวมการบรรยายหรือกิจกรรมต่อเนื่องยาวไว้ในขั้นเดียว หากช่วงใดเกิน 45 นาทีให้แบ่งเป็นช่วงย่อย เว้นแต่มีเหตุผลทางการสอนที่ชัดเจน
+- เวลาในทุกช่วงต้องเป็นจำนวนนาทีบวกกันได้เท่ากับ ${durationMinutes} นาทีพอดี และเรียงจากขั้นนำ/กระตุ้นความรู้เดิม ไปสู่การเรียนรู้และฝึกใช้ แล้วสรุป/สะท้อนคิดตามความเหมาะสมกับหัวข้อและเวลา
+- เนื้อหา กิจกรรม ชิ้นงาน และการประเมินต้องสอดคล้องกับจุดประสงค์และตัวชี้วัด ห้ามรับประกันผลร้อยละ 100 หรือแต่งข้อมูลหลักสูตร
+{"plan":{"title":"ชื่อหัวข้อ ไม่ต้องใส่เลขแผน","unitObjective":"วัตถุประสงค์ภาพรวมของหน่วยกิจกรรม แยกจากเป้าหมายรายคาบ","keyEssence":"ย่อหน้าอธิบายแนวคิดหลัก ความสัมพันธ์ของสาระ และความสำคัญของหัวข้อ","objectives":["จุดประสงค์รายคาบที่สังเกตและประเมินได้"],"contentKnowledge":["สาระการเรียนรู้ด้านความรู้"],"contentSkills":["สาระการเรียนรู้ด้านทักษะ/กระบวนการ"],"competencies":["สมรรถนะสำคัญ"],"desirableCharacteristics":["คุณลักษณะอันพึงประสงค์"],"skills21":["ทักษะในศตวรรษที่ 21"],"workProducts":["ชิ้นงาน/ภาระงาน"],"activityStages":[{"title":"ขั้นนำ: กระตุ้นความรู้เดิม","durationMinutes":5,"teacherActions":"ครูแสดง... ตั้งคำถาม... และรับฟังคำตอบ...","learnerActions":"ผู้เรียนสังเกต... แลกเปลี่ยนคำตอบ...","materials":"ภาพ/อุปกรณ์ที่ใช้ หรือ ไม่ใช้","assessmentEvidence":"คำตอบหรือข้อสังเกตที่ครูใช้ตรวจความเข้าใจ"}],"resources":["..."],"assessmentMatrix":[{"domain":"สิ่งที่ประเมิน","target":"พฤติกรรมหรือผลงาน","instrument":"วิธี/เครื่องมือ","criterion":"เกณฑ์ผ่านที่ตรวจสอบได้"}],"assessment":["รายละเอียดเสริมการประเมิน"],"evidence":["หลักฐานที่เก็บ"],"suggestedActivities":["กิจกรรมเสนอแนะ"],"adaptations":["ข้อเสนอแนะสำหรับครู"]},"warnings":["ข้อมูลที่ครูควรตรวจสอบ"]}`;
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://classkru-kohl.vercel.app', 'X-Title': 'ClassKru' },
       signal: AbortSignal.timeout(90000),
-      body: JSON.stringify({ model: process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature: 0.25, max_tokens: 5200, messages: [{ role:'system', content:rules }, { role:'user', content:prompt }] })
+      body: JSON.stringify({ model: process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature: 0.25, max_tokens: 6800, messages: [{ role:'system', content:rules }, { role:'user', content:prompt }] })
     });
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -138,9 +160,10 @@ ${guidancePlanNote}
       return sendJson(res, 502, { error: 'invalid_ai_response', message: 'AI ส่งรูปแบบแผนไม่ถูกต้อง กรุณาลองใหม่', quota });
     }
     const plan = normalizePlan(raw?.plan || raw);
-    const missing = ['title', 'objectives', 'activities'].filter(field => field === 'title' ? !plan.title : !plan[field].length);
+    const missing = ['title', 'objectives'].filter(field => field === 'title' ? !plan.title : !plan[field].length);
+    if (!plan.keyEssence) missing.push('keyEssence');
+    if (!plan.activityStages.length && !plan.activities.length) missing.push('activityStages');
     if (isGuidance) {
-      if (!plan.keyConcepts.length) missing.push('keyConcepts');
       if (!plan.contentKnowledge.length && !plan.contentSkills.length) missing.push('content');
       if (!plan.workProducts.length) missing.push('workProducts');
       if (!plan.resources.length) missing.push('resources');
@@ -152,11 +175,13 @@ ${guidancePlanNote}
       return sendJson(res, 502, { error: 'empty_ai_response', message: isGuidance ? 'ร่างแผนแนะแนวยังขาดหัวข้อหลักบางส่วน กรุณาลองสร้างใหม่' : 'AI ยังสร้างแผนที่มีข้อมูลไม่ครบ กรุณาลองใหม่', missing, quota });
     }
     const warnings = asList(raw?.warnings, 8);
-    if (isGuidance) {
-      const activityMinutes = plan.activities.reduce((sum, item) => sum + Number((String(item).match(/\b(\d{1,3})\s*นาที/u) || [])[1] || 0), 0);
-      const timedActivities = plan.activities.filter(item => /\b\d{1,3}\s*นาที/u.test(String(item))).length;
-      if (timedActivities < plan.activities.length) warnings.push('บางขั้นของกิจกรรมยังไม่ระบุเวลา ครูควรตรวจให้ครบก่อนนำไปใช้');
-      if (activityMinutes > durationMinutes) warnings.push(`เวลาที่ AI ระบุรวม ${activityMinutes} นาที มากกว่าเวลาแผน ${durationMinutes} นาที กรุณาปรับก่อนใช้`);
+    if (plan.activityStages.length) {
+      const activityMinutes = plan.activityStages.reduce((sum, item) => sum + item.durationMinutes, 0);
+      if (plan.activityStages.some(item => item.durationMinutes < 1)) warnings.push('บางขั้นยังไม่ระบุเวลาเป็นนาที กรุณาตรวจและปรับก่อนใช้');
+      if (plan.activityStages.some(item => !item.teacherActions || !item.learnerActions)) warnings.push('บางขั้นยังระบุบทบาทครูหรือผู้เรียนไม่ครบ กรุณาตรวจรายละเอียดกิจกรรม');
+      if (activityMinutes !== durationMinutes) warnings.push(`เวลาของกิจกรรมรวม ${activityMinutes} นาที ไม่ตรงกับเวลาแผน ${durationMinutes} นาที กรุณาปรับก่อนใช้`);
+    } else if (plan.activities.length) {
+      warnings.push('กิจกรรมที่ AI ส่งกลับยังไม่อยู่ในรูปแบบแยกขั้นและบทบาท กรุณาตรวจรายละเอียดก่อนใช้');
     }
     const quota = reservedQuota;
     reservedQuota = null;
