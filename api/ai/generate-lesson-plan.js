@@ -1,12 +1,20 @@
 'use strict';
 
 const { sendJson, parseBody, requestOriginIsValid } = require('../_lib/http');
+const { getAiQuota, consumeAiQuota, releaseAiQuota } = require('../_lib/ai-quota');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dzntiiuyqvkaxqpqzxeh.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_SePLBF-dsJfx5T6Yvvcuew_vntSr3Vc';
 
 function clean(value, max = 1200) { return String(value || '').trim().slice(0, max); }
 function asList(value, maxItems = 12) { return (Array.isArray(value) ? value : []).map(item => clean(item, 800)).filter(Boolean).slice(0, maxItems); }
+function legacyDurationMinutes(value) {
+  const text = clean(value, 120);
+  const minutes = text.match(/(\d{1,3})\s*นาที/u);
+  if (minutes) return Number(minutes[1]);
+  const periods = text.match(/(\d{1,2})\s*คาบ/u);
+  return periods ? Number(periods[1]) * 50 : NaN;
+}
 function parsePlan(text) {
   const stripped = String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
   return JSON.parse(stripped);
@@ -20,61 +28,144 @@ async function authenticatedUser(req) {
 }
 function normalizePlan(value) {
   const plan = value && typeof value === 'object' ? value : {};
+  const assessmentMatrix = (Array.isArray(plan.assessmentMatrix) ? plan.assessmentMatrix : []).slice(0, 12).map(item => ({
+    domain: clean(item?.domain, 240),
+    target: clean(item?.target, 500),
+    instrument: clean(item?.instrument, 500),
+    criterion: clean(item?.criterion, 500)
+  })).filter(item => item.domain || item.target || item.instrument || item.criterion);
   return {
     title: clean(plan.title, 240),
+    unitObjective: clean(plan.unitObjective, 1200),
     keyConcepts: asList(plan.keyConcepts),
     objectives: asList(plan.objectives),
+    contentKnowledge: asList(plan.contentKnowledge),
+    contentSkills: asList(plan.contentSkills),
+    competencies: asList(plan.competencies),
+    desirableCharacteristics: asList(plan.desirableCharacteristics),
+    skills21: asList(plan.skills21),
+    workProducts: asList(plan.workProducts),
     activities: asList(plan.activities, 16),
     resources: asList(plan.resources),
     assessment: asList(plan.assessment, 12),
+    assessmentMatrix,
     evidence: asList(plan.evidence, 12),
+    suggestedActivities: asList(plan.suggestedActivities, 10),
     adaptations: asList(plan.adaptations, 10)
   };
 }
 
 module.exports = async function handler(req, res) {
+  if (req.method === 'GET') {
+    if (!requestOriginIsValid(req)) return sendJson(res, 403, { error: 'invalid_origin' });
+    try {
+      const user = await authenticatedUser(req);
+      if (!user?.id) return sendJson(res, 401, { error: 'authentication_required', message: 'กรุณาเข้าสู่ระบบใหม่ก่อนใช้งาน AI' });
+      return sendJson(res, 200, { quota: await getAiQuota(user.id) });
+    } catch (error) {
+      const status = error.code === 'SUPABASE_NOT_CONFIGURED' ? 503 : error.code === 'DATABASE_REQUEST_FAILED' ? 502 : 500;
+      return sendJson(res, status, { error: error.code || 'ai_quota_failed', message: 'ยังตรวจสอบโควตา AI ไม่ได้' });
+    }
+  }
   if (req.method !== 'POST') return sendJson(res, 405, { error: 'method_not_allowed' });
   if (!requestOriginIsValid(req)) return sendJson(res, 403, { error: 'invalid_origin' });
   if (!process.env.OPENROUTER_API_KEY) return sendJson(res, 503, { error: 'ai_not_configured', message: 'ยังไม่ได้ตั้งค่า OPENROUTER_API_KEY' });
+  let reservedQuota = null;
+  let teacherId = '';
   try {
     const user = await authenticatedUser(req);
+    teacherId = user?.id || '';
     if (!user?.id) return sendJson(res, 401, { error: 'authentication_required', message: 'กรุณาเข้าสู่ระบบใหม่ก่อนใช้งาน AI' });
     const body = parseBody(req);
     const topic = clean(body.topic, 240);
     const indicators = Array.isArray(body.indicators) ? body.indicators.slice(0, 12).map(item => `${clean(item.code, 80)}: ${clean(item.text, 800)}`).filter(Boolean) : [];
     if (topic.length < 3 || !indicators.length) return sendJson(res, 400, { error: 'invalid_request', message: 'กรุณาระบุหัวข้อและตัวชี้วัดอย่างน้อย 1 ข้อ' });
-    const rules = 'กติกาคุณภาพ: ใช้เฉพาะตัวชี้วัดและบริบทที่ได้รับ ห้ามสร้างรหัสตัวชี้วัดหรือผลคะแนนขึ้นเอง กิจกรรมต้องทำได้จริงตามเวลาและทรัพยากรที่ระบุ ทุกการประเมินต้องบอกหลักฐานที่ครูเก็บได้ และต้องให้ครูตรวจสอบก่อนใช้';
-    const prompt = `คุณเป็นผู้ช่วยออกแบบการเรียนรู้สำหรับครูไทย จัดทำร่างแผนการสอนฉบับใช้งานได้จริง โดยไม่อ้างว่าเป็นแผนทางการ
+    const hasExplicitDuration = body.durationMinutes !== undefined && body.durationMinutes !== null && body.durationMinutes !== '';
+    const durationMinutes = hasExplicitDuration ? Number(body.durationMinutes) : legacyDurationMinutes(body.duration);
+    if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 600) return sendJson(res, 400, { error: 'invalid_duration', message: 'กรุณาระบุเวลาเรียนเป็นจำนวนนาทีตั้งแต่ 1 ถึง 600 นาที' });
+    const isGuidance = body.subjectId === 'guidance';
+    reservedQuota = await consumeAiQuota(user.id);
+    const rules = 'กติกาคุณภาพ: ใช้เฉพาะตัวชี้วัดและบริบทที่ได้รับ ห้ามสร้างรหัสตัวชี้วัดหรือผลคะแนนขึ้นเอง กิจกรรมต้องทำได้จริงตามเวลาและทรัพยากรที่ระบุ ทุกการประเมินต้องบอกหลักฐานที่ครูเก็บได้ และต้องให้ครูตรวจสอบก่อนใช้' + (isGuidance ? '\nสำหรับกิจกรรมแนะแนว: ถือเป็นกิจกรรมพัฒนาผู้เรียน ไม่ใช่กลุ่มสาระวิชาหลัก เชื่อมกับด้านการศึกษา ด้านอาชีพ หรือด้านส่วนตัวและสังคมตามผลลัพธ์ที่ครูเลือก ออกแบบให้เหมาะกับวัย ให้ผู้เรียนมีส่วนร่วม สะท้อนคิด และเชื่อมโยงไปใช้ในชีวิตจริง ประเมินจากพฤติกรรมหรือชิ้นงานที่สังเกตได้ ห้ามวินิจฉัยสุขภาพจิตหรือบังคับเปิดเผยข้อมูลส่วนตัว/ครอบครัวที่อ่อนไหว' : '');
+    const guidancePlanNote = isGuidance ? '\nกรอบอ้างอิงแผนกิจกรรมแนะแนว: เชื่อมสาระสำคัญ จุดประสงค์ที่สังเกตได้ สาระการเรียนรู้ ขั้นกิจกรรม สื่อ และการประเมินให้สอดคล้องกัน; ระบุสมรรถนะหรือคุณลักษณะที่มุ่งพัฒนาโดยไม่แต่งตัวชี้วัดใหม่; ให้ข้อเสนอแนะสำหรับครู และเว้นบันทึกหลังจัดกิจกรรมไว้ให้ครูบันทึกผลจริง ตัวอย่างจากเอกสาร พ.ศ. 2559 ใช้เป็นแบบรูปแบบ ไม่ใช่การยืนยันว่าเป็นมาตรฐานฉบับล่าสุด. แยกวัตถุประสงค์ชั้นปีและวัตถุประสงค์หน่วยไว้เป็นบริบทระดับหน่วย ไม่ให้นำมานับเป็นข้อ 1 ของแผนรายครั้ง; แผนรายครั้งให้เรียง 1 สาระสำคัญ 2 จุดประสงค์การเรียนรู้ที่สังเกตได้ 3 สาระการเรียนรู้ 4 วิธีดำเนินกิจกรรม 5 ชิ้นงาน/ภาระงาน 6 สื่อ/อุปกรณ์ 7 การวัดและประเมินผล. หากครูกรอกวัตถุประสงค์หน่วยมา ให้รักษาความหมายเดิม หากเว้นว่างจึงช่วยเสนอเป็นร่าง; ห้ามแต่งวัตถุประสงค์ชั้นปีขึ้นเอง' : '';
+    const selectedStandards = Array.isArray(body.standards) ? body.standards.slice(0, 8).map(item => `${clean(item.code, 100)} ${clean(item.title, 800)}`).filter(Boolean) : [];
+    const prompt = `คุณเป็นผู้ช่วยออกแบบการเรียนรู้สำหรับครูไทย จัดทำร่างแผนการจัดการเรียนรู้รายคาบฉบับใช้งานได้จริง โดยไม่อ้างว่าเป็นแผนทางการ
 
 บริบท
-- วิชา: ${clean(body.subject, 160)}
+- กลุ่มสาระ/กิจกรรมสำหรับค้นหลักสูตร: ${clean(body.subject, 160)}
+- รายวิชาที่สอนจริง: ${clean(body.courseName, 180) || clean(body.subject, 160)}${clean(body.courseCode, 80) ? ` (${clean(body.courseCode, 80)})` : ''}
 - ระดับชั้น: ${clean(body.grade, 80)}
+- ภาคเรียน/ปีการศึกษา: ${clean(body.semester, 30) || 'ไม่ระบุ'} / ${clean(body.academicYear, 10) || 'ไม่ระบุ'}
+- เลขแผน: ${clean(body.planNumber, 12) || '1'}
+- ${isGuidance ? 'หน่วยการจัดกิจกรรม' : 'หน่วยการเรียนรู้'}: ${clean(body.unitNumber, 40)} ${clean(body.unitName, 200)}
+- วัตถุประสงค์ชั้นปีจากครู/หลักสูตรสถานศึกษา: ${clean(body.yearObjective, 1200) || 'ไม่ได้ระบุ ห้ามแต่งเพิ่ม'}
+- วัตถุประสงค์ภาพรวมของหน่วย: ${clean(body.unitObjective, 1200) || 'ครูยังไม่ได้ระบุ ให้ช่วยร่างจากหัวข้อและผลลัพธ์ที่เลือก'}
+${isGuidance ? `- เวลาเรียนรวมของหน่วย: ${clean(body.unitHours, 12) ? `${clean(body.unitHours, 12)} ชั่วโมง` : 'ไม่ได้ระบุ'}` : ''}
+- ห้องที่ใช้แผน: ${clean(Array.isArray(body.classSections) ? body.classSections.join(', ') : body.classSections, 240)}
 - หัวข้อ: ${topic}
-- เวลาเรียน: ${clean(body.duration, 80)}
+- เวลาเรียน: ${durationMinutes} นาที
 - วิธีเรียนที่ต้องการ: ${clean(body.method, 100)}
+- ชื่อผู้สอน: ${clean(body.teacherName, 160) || 'ไม่ระบุ'}
 - ลักษณะผู้เรียน/ปัญหา: ${clean(body.learnerContext, 1600) || 'ไม่ระบุ'}
-- อุปกรณ์และข้อจำกัด: ${clean(body.resources, 1000) || 'ไม่ระบุ'}
+- อุปกรณ์และข้อจำกัด: ${clean(body.resourceContext, 1000) || 'ไม่ระบุ'}
 - สิ่งที่ครูอยากเน้น: ${clean(body.focus, 1000) || 'ไม่ระบุ'}
+
+มาตรฐานการเรียนรู้ที่เลือกจากคลัง (ยึดข้อความนี้ ห้ามสร้างเพิ่ม):
+${selectedStandards.length ? selectedStandards.map(item => `- ${item}`).join('\n') : '- ยังไม่มีข้อมูลมาตรฐานจากคลัง'}
+${clean(body.standardOverride, 1200) ? `ข้อความมาตรฐานที่ครูแก้ไขเพิ่มเติม:\n${clean(body.standardOverride, 1200)}` : ''}
 
 ตัวชี้วัดที่ ClassKru เลือกไว้:
 ${indicators.map(item => `- ${item}`).join('\n')}
+${guidancePlanNote}
 
-ตอบกลับเป็น JSON ล้วนตาม schema นี้ ห้ามมี markdown:
-{"plan":{"title":"...","keyConcepts":["..."],"objectives":["..."],"activities":["ขั้นนำ: ...","ขั้นสอน: ...","ขั้นสรุป: ..."],"resources":["..."],"assessment":["วิธีประเมิน: ... | เครื่องมือ: ... | เกณฑ์: ..."],"evidence":["..."],"adaptations":["..."]},"warnings":["ข้อควรให้ครูตรวจสอบ"]}`;
+ตอบกลับเป็น JSON ล้วนตาม schema นี้ ห้ามมี markdown; กิจกรรมต้องแจกแจงเวลาแต่ละช่วงรวมกันไม่เกิน ${durationMinutes} นาที:
+{"plan":{"title":"ชื่อหัวข้อ ไม่ต้องใส่เลขแผน","unitObjective":"วัตถุประสงค์ภาพรวมของหน่วยกิจกรรม แยกจากเป้าหมายรายคาบ","keyConcepts":["..."],"objectives":["จุดประสงค์รายคาบที่สังเกตและประเมินได้"],"contentKnowledge":["สาระการเรียนรู้ด้านความรู้"],"contentSkills":["สาระการเรียนรู้ด้านทักษะ/กระบวนการ"],"competencies":["สมรรถนะสำคัญ"],"desirableCharacteristics":["คุณลักษณะอันพึงประสงค์"],"skills21":["ทักษะในศตวรรษที่ 21"],"workProducts":["ชิ้นงาน/ภาระงาน"],"activities":["ขั้นนำ (5 นาที): ...","ขั้นสอน (... นาที): ...","ขั้นสรุป (... นาที): ..."],"resources":["..."],"assessmentMatrix":[{"domain":"สิ่งที่ประเมิน","target":"พฤติกรรมหรือผลงาน","instrument":"วิธี/เครื่องมือ","criterion":"เกณฑ์ผ่านที่ตรวจสอบได้"}],"assessment":["รายละเอียดเสริมการประเมิน"],"evidence":["หลักฐานที่เก็บ"],"suggestedActivities":["กิจกรรมเสนอแนะ"],"adaptations":["ข้อเสนอแนะสำหรับครู"]},"warnings":["ข้อมูลที่ครูควรตรวจสอบ"]}`;
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'HTTP-Referer': process.env.APP_URL || 'https://classkru-kohl.vercel.app', 'X-Title': 'ClassKru' },
-      body: JSON.stringify({ model: process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature: 0.25, max_tokens: 3200, messages: [{ role:'system', content:rules }, { role:'user', content:prompt }] })
+      signal: AbortSignal.timeout(90000),
+      body: JSON.stringify({ model: process.env.OPENROUTER_MODEL || 'qwen/qwen3-30b-a3b-instruct-2507', temperature: 0.25, max_tokens: 5200, messages: [{ role:'system', content:rules }, { role:'user', content:prompt }] })
     });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) return sendJson(res, 502, { error: 'generation_failed', message: 'AI ยังสร้างแผนการสอนไม่ได้ กรุณาลองใหม่อีกครั้ง' });
+    if (!response.ok) {
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(error => { console.error('AI quota release failed:', error); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error: 'generation_failed', message: 'AI ยังสร้างแผนการสอนไม่ได้ กรุณาลองใหม่อีกครั้ง', quota });
+    }
     let raw;
-    try { raw = parsePlan(payload?.choices?.[0]?.message?.content); } catch (_) { return sendJson(res, 502, { error: 'invalid_ai_response', message: 'AI ส่งรูปแบบแผนไม่ถูกต้อง กรุณาลองใหม่' }); }
+    try { raw = parsePlan(payload?.choices?.[0]?.message?.content); } catch (_) {
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(error => { console.error('AI quota release failed:', error); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error: 'invalid_ai_response', message: 'AI ส่งรูปแบบแผนไม่ถูกต้อง กรุณาลองใหม่', quota });
+    }
     const plan = normalizePlan(raw?.plan || raw);
-    if (!plan.title || !plan.objectives.length || !plan.activities.length) return sendJson(res, 502, { error: 'empty_ai_response', message: 'AI ยังสร้างแผนที่มีข้อมูลไม่ครบ กรุณาลองใหม่' });
-    return sendJson(res, 200, { plan, warnings: asList(raw?.warnings, 8) });
+    const missing = ['title', 'objectives', 'activities'].filter(field => field === 'title' ? !plan.title : !plan[field].length);
+    if (isGuidance) {
+      if (!plan.keyConcepts.length) missing.push('keyConcepts');
+      if (!plan.contentKnowledge.length && !plan.contentSkills.length) missing.push('content');
+      if (!plan.workProducts.length) missing.push('workProducts');
+      if (!plan.resources.length) missing.push('resources');
+      if (!plan.assessmentMatrix.length && !plan.assessment.length) missing.push('assessment');
+    }
+    if (missing.length) {
+      const quota = await releaseAiQuota(user.id, reservedQuota.date).catch(error => { console.error('AI quota release failed:', error); return reservedQuota; });
+      reservedQuota = null;
+      return sendJson(res, 502, { error: 'empty_ai_response', message: isGuidance ? 'ร่างแผนแนะแนวยังขาดหัวข้อหลักบางส่วน กรุณาลองสร้างใหม่' : 'AI ยังสร้างแผนที่มีข้อมูลไม่ครบ กรุณาลองใหม่', missing, quota });
+    }
+    const warnings = asList(raw?.warnings, 8);
+    if (isGuidance) {
+      const activityMinutes = plan.activities.reduce((sum, item) => sum + Number((String(item).match(/\b(\d{1,3})\s*นาที/u) || [])[1] || 0), 0);
+      const timedActivities = plan.activities.filter(item => /\b\d{1,3}\s*นาที/u.test(String(item))).length;
+      if (timedActivities < plan.activities.length) warnings.push('บางขั้นของกิจกรรมยังไม่ระบุเวลา ครูควรตรวจให้ครบก่อนนำไปใช้');
+      if (activityMinutes > durationMinutes) warnings.push(`เวลาที่ AI ระบุรวม ${activityMinutes} นาที มากกว่าเวลาแผน ${durationMinutes} นาที กรุณาปรับก่อนใช้`);
+    }
+    const quota = reservedQuota;
+    reservedQuota = null;
+    return sendJson(res, 200, { plan, warnings: [...new Set(warnings)].slice(0, 10), quota });
   } catch (error) {
-    console.error('Lesson plan generation error:', error);
-    return sendJson(res, 500, { error: 'server_error', message: 'เกิดข้อผิดพลาดขณะสร้างแผนการสอน' });
+    if (reservedQuota && teacherId) await releaseAiQuota(teacherId, reservedQuota.date).catch(releaseError => console.error('AI quota release failed:', releaseError));
+    if (error.code !== 'AI_DAILY_LIMIT_REACHED') console.error('Lesson plan generation error:', error);
+    const status = error.code === 'AI_DAILY_LIMIT_REACHED' ? 429 : error.code === 'SUPABASE_NOT_CONFIGURED' ? 503 : error.code === 'DATABASE_REQUEST_FAILED' ? 502 : error.name === 'TimeoutError' || error.name === 'AbortError' ? 504 : 500;
+    const message = error.code === 'AI_DAILY_LIMIT_REACHED' ? 'วันนี้ใช้โควตาการสร้างข้อสอบ/ใบงาน/แผนการสอนครบแล้ว กรุณาลองใหม่พรุ่งนี้' : error.code === 'SUPABASE_NOT_CONFIGURED' ? 'ระบบโควตา AI ยังไม่พร้อมใช้งาน' : error.name === 'TimeoutError' || error.name === 'AbortError' ? 'AI ใช้เวลาสร้างแผนนานเกินไป กรุณาลองอีกครั้ง' : 'เกิดข้อผิดพลาดขณะสร้างแผนการสอน';
+    return sendJson(res, status, { error: error.code || 'server_error', message, ...(error.quota ? { quota: error.quota } : {}) });
   }
 };

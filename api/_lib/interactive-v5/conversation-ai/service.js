@@ -20,7 +20,7 @@ function createConversationService({ provider, config, buildRequest: selectedBui
     const history = message ? [...state.turns, { id: idFactory(), role: 'teacher', content: message, created_at: nowIso(clock) }] : [...state.turns];
     const context = state.card_context ? guidance(state.card_context) : null;
     const requestHistory = message ? history : [...history, { role:'teacher', content:state.idea_discovery_context ? 'ช่วยเริ่มสนทนาเพื่อค้นหาไอเดีย โดยยังไม่ได้ระบุหัวข้อหรือบทเรียน' : 'เริ่มช่วยคิดตามแนวทางที่เลือก โดยยังไม่มีหัวข้อจากครู' }];
-    const request = selectedBuildRequest({ history:requestHistory, draft: state.draft, maxHistoryTurns: config.maxHistoryTurns, cardContext:context, ideaDiscoveryContext:state.idea_discovery_context || null, mediaMode:normalizeMediaMode(state.media_mode) });
+    const request = selectedBuildRequest({ history:requestHistory, draft: state.draft, maxHistoryTurns: config.maxHistoryTurns, cardContext:context, lessonContext:state.lesson_context || null, ideaDiscoveryContext:state.idea_discovery_context || null, mediaMode:normalizeMediaMode(state.media_mode) });
     const result = await provider.respond({ config, request });
     const response = validateAssistantResponse(result.data);
     const draft = mergeDraft(state.draft, response.brief, { replaceAssumptions:true });
@@ -42,7 +42,7 @@ function createConversationService({ provider, config, buildRequest: selectedBui
     const confirmedAt = nowIso(clock);
     const baseBrief = confirmedBrief({ briefId: idFactory(), revision: Number(conversation.revision || 0) + 1, draft, confirmedAt });
     const recentConversation = (conversation.turns || []).slice(-16).map(({role,content}) => ({role,content}));
-    const brief = Object.freeze({ ...baseBrief, design_context: { media_mode:normalizeMediaMode(conversation.media_mode), selected_cards: conversation.card_context ? guidance(conversation.card_context) : null, recent_conversation:recentConversation, ai_proposals:recentConversation.filter(turn => turn.role === 'assistant').map(turn => turn.content), unconfirmed_suggestions: draft.assumptions } });
+    const brief = Object.freeze({ ...baseBrief, design_context: { media_mode:normalizeMediaMode(conversation.media_mode), selected_cards: conversation.card_context ? guidance(conversation.card_context) : null, lesson_context:conversation.lesson_context || null, recent_conversation:recentConversation, ai_proposals:recentConversation.filter(turn => turn.role === 'assistant').map(turn => turn.content), unconfirmed_suggestions: draft.assumptions } });
     return Object.freeze({
       conversation: Object.freeze({ ...conversation, draft, status: 'confirmed', revision: brief.revision, confirmed_brief: brief, updated_at: confirmedAt }),
       brief
