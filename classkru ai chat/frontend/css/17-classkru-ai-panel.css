@@ -26,10 +26,11 @@
 .ck-ai-guide-ring { position:fixed; z-index:8501; pointer-events:none; border:3px solid #7754eb; border-radius:12px; box-shadow:0 0 0 5px #fff9,0 0 0 9px #aa87fa55,0 8px 24px #45329b35; }
 .ck-ai-guide-note { position:fixed; z-index:8502; display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px; border:1px solid #d7c9f6; border-radius:11px; background:#fff; color:#362663; box-shadow:0 9px 28px #29234b30; font-size:.78rem; }
 .ck-ai-guide-note button { padding:5px 7px; border:0; border-radius:7px; background:#eee7ff; color:#5035a0; cursor:pointer; font-size:.7rem; }
+.ck-ai-panel, .ck-ai-panel.is-minimized { bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
 @media (max-width:768px) {
-  .ck-ai-panel { top:auto; right:0; bottom:calc(68px + env(safe-area-inset-bottom,0px)); left:0; width:100%; height:min(60dvh,540px); border-radius:20px 20px 0 0; }
+  .ck-ai-panel { top:auto; right:0; bottom:calc(208px + env(safe-area-inset-bottom,0px)); left:0; width:100%; height:min(60dvh,540px,calc(100dvh - 224px)); border-radius:20px 20px 0 0; }
   .ck-ai-panel.is-expanded { bottom:0; height:100dvh; border-radius:0; padding-bottom:env(safe-area-inset-bottom,0px); }
-  .ck-ai-panel.is-minimized { left:auto; right:12px; bottom:calc(76px + env(safe-area-inset-bottom,0px)); width:230px; border-radius:16px; }
+  .ck-ai-panel.is-minimized { left:auto; right:12px; bottom:calc(208px + env(safe-area-inset-bottom,0px)); width:230px; border-radius:16px; }
 }
 @media (min-width:769px) { #ck-ai-expand { display:none; } }
 @media (prefers-reduced-motion:reduce) { .ck-ai-guide-ring { transition:none; } }
