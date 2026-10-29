@@ -43,6 +43,7 @@ let scoreCurriculumFilters = {
 let scoreIndicatorSearchOpen = false;
 let scoreIndicatorEditingId = null;
 let curriculumCatalogContext = 'score';
+let curriculumCatalogHydrationRequested = false;
 const SCORE_INDICATOR_BOARD_MIN_WIDTH = 760;
 
 function defaultScoreConfig() {
@@ -689,6 +690,7 @@ function setCurriculumCatalogSubject(subjectId) {
   if (!catalog) return;
   const grades = catalog.getGrades(subjectId);
   scoreCurriculumFilters.subjectId = subjectId;
+  curriculumCatalogHydrationRequested = false;
   scoreCurriculumFilters.grade = grades[0] || '';
   scoreCurriculumFilters.unitId = 'all';
   scoreCurriculumFilters.standardId = 'all';
@@ -721,9 +723,12 @@ function refreshCurriculumCatalogView() {
   if (c) renderCurriculumCatalog(c);
 }
 
-function curriculumSubjectRailHtml(catalog) {
+function curriculumSubjectRailHtml(catalog, options = {}) {
+  const subjects = options.scoreCompatibleOnly
+    ? catalog.subjects.filter(subject => subject.scoreCompatible !== false)
+    : catalog.subjects;
   return `<div class="curriculum-subject-rail" aria-label="เลือกกลุ่มสาระ">
-    ${catalog.subjects.map(subject => {
+    ${subjects.map(subject => {
       const active = subject.id === scoreCurriculumFilters.subjectId;
       const count = subject.dataset?.indicators.length || 0;
       return `<button class="curriculum-subject-btn${active ? ' active' : ''}" type="button" onclick="setCurriculumCatalogSubject('${subject.id}')" aria-pressed="${active}">
@@ -744,6 +749,10 @@ function renderMainCurriculumCatalog() {
     return;
   }
   const subject = catalog.getSubject(scoreCurriculumFilters.subjectId);
+  if (subject.id === 'guidance' && !curriculumCatalogHydrationRequested && typeof supabaseClient !== 'undefined') {
+    curriculumCatalogHydrationRequested = true;
+    void catalog.loadFromSupabase(supabaseClient).then(updated => { if (updated && curriculumCatalogContext === 'main') renderMainCurriculumCatalog(); });
+  }
   const grades = catalog.getGrades(subject.id);
   if (subject.available && !grades.includes(scoreCurriculumFilters.grade)) scoreCurriculumFilters.grade = grades[0] || '';
   const grade = scoreCurriculumFilters.grade;
@@ -800,7 +809,7 @@ function renderCurriculumCatalog(c) {
     ${scoreIndicatorSearchOpen && subject.available ? `<div class="indicator-search-overlay" onclick="if(event.target===this) closeScoreIndicatorSearch('${c.id}')">
       <section class="indicator-search-panel">
         <header><div><span>คลังหลักสูตร ClassKru</span><h3>เพิ่มตัวชี้วัด</h3></div><button type="button" onclick="closeScoreIndicatorSearch('${c.id}')" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button></header>
-        ${curriculumSubjectRailHtml(catalog)}
+        ${curriculumSubjectRailHtml(catalog, { scoreCompatibleOnly:true })}
           <div class="curriculum-filter-bar">
             <label><span>ระดับชั้น</span><select onchange="setCurriculumCatalogFilter('grade',this.value)">${grades.map(value => `<option value="${value}"${value === grade ? ' selected' : ''}>${curriculumGradeLabel(value)}</option>`).join('')}</select></label>
             <label><span>หน่วย / สาระ</span><select onchange="setCurriculumCatalogFilter('unitId',this.value)"><option value="all">ทุกหน่วย</option>${units.map(unit => `<option value="${unit.id}"${unit.id === scoreCurriculumFilters.unitId ? ' selected' : ''}>${escapeScore(unit.title)} (${unit.indicatorCount})</option>`).join('')}</select></label>
@@ -1061,6 +1070,7 @@ function renderCurriculumCatalogResults(c, holderId = 'curriculum-catalog-result
     <div><strong>พบ ${results.length} ตัวชี้วัด</strong><span>${escapeScore(subject.name)} · ${curriculumGradeLabel(scoreCurriculumFilters.grade)}</span></div>
     ${source?.url ? `<a href="${source.url}" target="_blank" rel="noopener"><i class="hgi-stroke hgi-book-open-01"></i> เอกสารต้นฉบับ</a>` : ''}
   </div>
+  ${source?.notice ? `<details class="curriculum-source-note"><summary><i class="hgi-stroke hgi-information-circle" aria-hidden="true"></i><span><strong>ที่มาและสถานะข้อมูล</strong><small>กดเพื่อดูรายละเอียดและเอกสารอ้างอิง</small></span><span class="curriculum-source-chevron" aria-hidden="true"></span></summary><div class="curriculum-source-details"><p>${escapeScore(source.notice)}</p>${(source.relatedSources || []).map(item => item.url ? `<a href="${escapeScoreAttr(item.url)}" target="_blank" rel="noopener">${escapeScore(item.title)} · ${escapeScore(item.publisher || '')}</a>` : '').join('')}</div></details>` : ''}
   ${results.length ? `<div class="curriculum-indicator-list">${results.map(item => {
     const unit = unitMap.get(item.unitId);
     const standard = catalog.getStandard(subject.id, item.standard);

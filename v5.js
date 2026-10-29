@@ -21,6 +21,30 @@ let authClient = null;
 let loadedUserId = null;
 let initialization = null;
 let serviceReady = false;
+let linkedLessonContext = readLinkedLessonContext();
+
+function readLinkedLessonContext() {
+  const token = new URLSearchParams(window.location.search).get('lessonContext');
+  if (!token || !/^[a-zA-Z0-9_-]{8,100}$/.test(token)) return null;
+  try {
+    const key = `classkru.lesson-plan-context.${token}`;
+    const context = JSON.parse(localStorage.getItem(key) || 'null');
+    localStorage.removeItem(key);
+    if (context && typeof context === 'object') {
+      window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.hash}`);
+      return context;
+    }
+  } catch (_) { /* Continue without optional lesson metadata. */ }
+  return null;
+}
+
+function lessonContextMessage(context) {
+  if (!context) return '';
+  const standards = (context.standards || []).map(item => `${item.code || ''} ${item.title || ''}`.trim()).filter(Boolean).join('\n- ');
+  const indicators = (context.indicators || []).map(item => `${item.code || ''} ${item.text || ''}`.trim()).filter(Boolean).join('\n- ');
+  const objectives = (context.learningObjectives || []).map(item => `- ${item}`).join('\n');
+  return `ช่วยสร้างสื่อการเรียนรู้ประกอบแผน “${context.title || context.topic || ''}”\nรายวิชา: ${context.courseName || context.subjectGroup || 'ไม่ระบุ'}${context.courseCode ? ` (${context.courseCode})` : ''}\nระดับชั้น: ${context.grade || 'ไม่ระบุ'}\nหัวข้อ: ${context.topic || context.title || ''}\n${standards ? `มาตรฐานอ้างอิง:\n- ${standards}\n` : ''}${indicators ? `ตัวชี้วัด/ผลลัพธ์ที่เลือก:\n- ${indicators}\n` : ''}${objectives ? `จุดประสงค์จากแผน:\n${objectives}\n` : ''}ช่วยเสนอรูปแบบสื่อและกิจกรรมให้สอดคล้องกับข้อมูลนี้ โดยไม่แต่งรหัสมาตรฐานหรือตัวชี้วัดเพิ่ม`;
+}
 
 function setAccountStorageKeys(userId) {
   const suffix = userId ? `.${userId}` : '';
@@ -516,9 +540,12 @@ async function refreshLibrary() {
       const isConversationOnly = item.type === 'conversation';
       const details = document.createElement('small');
       const createdAt = item.created_at ? new Date(item.created_at).toLocaleString('th-TH') : '';
+      const planLabel = item.lesson_plan_id
+        ? ` · สื่อประกอบแผน${item.lesson_plan_number ? `ที่ ${item.lesson_plan_number}` : ''}${item.lesson_plan_title ? `: ${item.lesson_plan_title}` : ''}`
+        : '';
       details.textContent = isConversationOnly
         ? `ยังไม่สร้างสื่อ${createdAt ? ` · ${createdAt}` : ''}`
-        : `${item.parent_job_id ? 'ฉบับล่าสุด' : 'ฉบับแรก'}${createdAt ? ` · ${createdAt}` : ''}`;
+        : `${item.parent_job_id ? 'ฉบับล่าสุด' : 'ฉบับแรก'}${planLabel}${createdAt ? ` · ${createdAt}` : ''}`;
       info.append(title, details);
       const actions = document.createElement('div'); actions.className = 'library-actions';
       const edit = document.createElement('button'); edit.type = 'button'; edit.textContent = isConversationOnly ? 'เปิดบทสนทนา' : 'แก้ไข';
@@ -815,7 +842,7 @@ async function sendConversation({ context = null, allowEmpty = false } = {}) {
   setBusy(true, 'AI กำลังตอบ รอคำตอบก่อนสร้างสื่อ…');
   let pendingNode, slowTimer, finalStatus = '';
   try {
-    if (!state.conversation) { pendingStart ||= { context, mediaMode:selectedMediaMode(), startKey:crypto.randomUUID() }; const result = await api('/api/local/v5/conversations', { method: 'POST', body: JSON.stringify({card_context:pendingStart.context, start_key:pendingStart.startKey, media_mode:pendingStart.mediaMode}) }); state.conversation = result.conversation; localStorage.setItem(CONVERSATION_KEY, state.conversation.id); localStorage.removeItem(JOB_KEY); }
+    if (!state.conversation) { pendingStart ||= { context, lessonContext:linkedLessonContext, mediaMode:selectedMediaMode(), startKey:crypto.randomUUID() }; const result = await api('/api/local/v5/conversations', { method: 'POST', body: JSON.stringify({card_context:pendingStart.context, lesson_context:pendingStart.lessonContext, start_key:pendingStart.startKey, media_mode:pendingStart.mediaMode}) }); state.conversation = result.conversation; linkedLessonContext = null; localStorage.setItem(CONVERSATION_KEY, state.conversation.id); localStorage.removeItem(JOB_KEY); }
     $('.app-shell').dataset.view = 'session';
     renderDirections(state.conversation.card_context);
     clearSuggestedActions();
@@ -999,6 +1026,7 @@ async function initialize() {
     if (loadedUserId && loadedUserId !== session.user.id) clearAccountView();
     loadedUserId = session.user.id;
     setAccountStorageKeys(session.user.id);
+    if (linkedLessonContext) { localStorage.removeItem(CONVERSATION_KEY); localStorage.removeItem(JOB_KEY); }
     setDeveloperControls(false);
     serviceReady = false;
     $('#send-button').disabled = true;
@@ -1018,6 +1046,12 @@ async function initialize() {
       await refreshLibrary();
       updateContinueButton();
       await refreshTaskUsage();
+      if (linkedLessonContext) {
+        $('#message-input').value = lessonContextMessage(linkedLessonContext);
+        resizeMessageInput();
+        $('#idea-discovery-notice').textContent = 'เชื่อมบริบทจากแผนการสอนแล้ว ตรวจข้อความและกดส่งเพื่อเริ่มสร้างสื่อได้เลย';
+        $('#idea-discovery-notice').hidden = false;
+      }
       if (status.ready !== true) {
         const missing = [];
         if (status.database_ready !== true) missing.push('ฐานข้อมูล V5');

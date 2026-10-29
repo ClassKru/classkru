@@ -9,12 +9,21 @@ function response() {
 
 test('quiz generation requests concise explanations tailored to each question', async t => {
   const oldKey = process.env.OPENROUTER_API_KEY;
+  const oldSupabaseSecret = process.env.SUPABASE_SECRET_KEY;
+  const oldSupabaseUrl = process.env.SUPABASE_URL;
   process.env.OPENROUTER_API_KEY = 'test-key';
-  t.after(() => { if (oldKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = oldKey; });
+  process.env.SUPABASE_SECRET_KEY = 'test-service-role';
+  process.env.SUPABASE_URL = 'https://test.supabase.co';
+  t.after(() => {
+    if (oldKey === undefined) delete process.env.OPENROUTER_API_KEY; else process.env.OPENROUTER_API_KEY = oldKey;
+    if (oldSupabaseSecret === undefined) delete process.env.SUPABASE_SECRET_KEY; else process.env.SUPABASE_SECRET_KEY = oldSupabaseSecret;
+    if (oldSupabaseUrl === undefined) delete process.env.SUPABASE_URL; else process.env.SUPABASE_URL = oldSupabaseUrl;
+  });
 
   let aiRequest;
   t.mock.method(globalThis, 'fetch', async (url, options) => {
     if (String(url).endsWith('/auth/v1/user')) return { ok:true, json:async () => ({ id:'teacher-test' }) };
+    if (String(url).includes('/rest/v1/rpc/consume_ai_daily_generation_quota')) return { ok:true, json:async () => ({allowed:true, date:'2026-10-29', limit:15, used:1, remaining:14}) };
     aiRequest = JSON.parse(options.body);
     return { ok:true, json:async () => ({ choices:[{ message:{ content:JSON.stringify({ questions:[
       { type:'multiple_choice', prompt:'คำนวณระยะทางเมื่อเดินทาง 3 ชั่วโมงด้วยความเร็ว 4 เมตรต่อวินาที', options:['12 เมตร','43,200 เมตร','7 เมตร','1.3 เมตร'], answerIndex:1, explanation:'ระยะทาง = ความเร็ว × เวลา = 4 × (3 × 3,600) = 43,200 เมตร' },

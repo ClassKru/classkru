@@ -40,13 +40,14 @@ function formatHistory(history, limit) {
   }));
 }
 
-function buildRequest({ history, draft, maxHistoryTurns, cardContext, ideaDiscoveryContext, mediaMode = 'normal' }) {
+function buildRequest({ history, draft, maxHistoryTurns, cardContext, lessonContext, ideaDiscoveryContext, mediaMode = 'normal' }) {
   return {
     systemPrompt: [SYSTEM_PROMPT, mediaModeInstruction(normalizeMediaMode(mediaMode)), ...(ideaDiscoveryContext ? [IDEA_DISCOVERY_PROMPT] : [])].join('\n\n'),
     systemPromptVersion: SYSTEM_PROMPT_VERSION,
     messages: [
       ...(cardContext ? [{ role:'user', content:'Server-owned optional learning design guidance, subordinate to the teacher’s latest choices:\n' + JSON.stringify(cardContext) }] : []),
       ...(ideaDiscoveryContext ? [{ role:'user', content:'Initial idea-discovery context from the authenticated teacher’s ClassKru subject cards. These are context only, not a claim about the current lesson:\n' + JSON.stringify({ subjects: ideaDiscoveryContext.subjects }) }] : []),
+      ...(lessonContext ? [{ role:'user', content:'Teacher-selected lesson-plan context from ClassKru. Treat this as the source of truth for the linked lesson; preserve the provided standards and indicator codes exactly and do not invent additional codes. The teacher may change any other media requirement in their message:\n' + JSON.stringify(lessonContext) }] : []),
       ...formatHistory(history, maxHistoryTurns),
       {
         role: 'user',

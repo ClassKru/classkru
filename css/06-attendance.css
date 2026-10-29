@@ -189,6 +189,7 @@
   .swipe-compact-header .s-pill { flex-direction: row; align-items: baseline; justify-content: center; gap: 7px; padding: 6px 14px; }
   .swipe-compact-header .s-pill-num { font-size: 1.35rem; }
   .swipe-compact-header .s-pill-label { font-size: 0.9rem; }
+
 }
 
 /* Summary Pills Row */
@@ -246,6 +247,51 @@
 .swipe-mini-btn.primary:hover { background: var(--primary-light); filter: brightness(0.97); }
 .swipe-mini-btn.danger { color: var(--color-absent); border-color: #ffc7c4; background: var(--color-absent-bg); }
 .swipe-mini-btn.danger:hover { background: var(--color-absent-bg); filter: brightness(0.98); }
+
+/* Desktop: keep the bulk action beside its progress count, centered in the toolbar. */
+@media (min-width: 769px) {
+  .swipe-progress-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-areas: "qr center clear";
+    align-items: center;
+    gap: 8px 12px;
+  }
+  .swipe-progress-actions > .swipe-mini-btn.qr { grid-area: qr; justify-self: start; }
+  .swipe-progress-center {
+    grid-area: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+  }
+  .swipe-progress-actions .swipe-progress-center .swipe-mini-btn.primary {
+    min-height: 0;
+    padding: 5px 10px;
+    border: 1px solid var(--primary);
+    border-radius: 999px;
+    background: var(--primary-light);
+    color: var(--primary);
+    box-shadow: none;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+  .swipe-progress-actions .swipe-progress-center .swipe-mini-btn.primary:hover { background: var(--primary-light); filter: brightness(0.97); }
+  .swipe-progress-actions .swipe-progress-center .swipe-mini-btn.primary:focus-visible {
+    outline: 3px solid var(--primary-light-border);
+    outline-offset: 2px;
+  }
+  .swipe-progress-actions .swipe-progress-center .swipe-progress-checked {
+    flex: none;
+    font-size: 0.9rem;
+    color: var(--text-main);
+  }
+  .swipe-progress-actions > .swipe-mini-btn.danger { grid-area: clear; justify-self: end; }
+}
+
+@media (max-width: 768px) {
+  .swipe-progress-center { display: contents; }
+}
 
 /* SWIPE CARD AREA */
 .swipe-card-area {

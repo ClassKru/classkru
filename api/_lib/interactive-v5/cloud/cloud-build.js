@@ -19,7 +19,7 @@ function jobError(error, code) {
   return { code, retryable: RETRYABLE.has(code), ...(attempts ? { attempts } : {}) };
 }
 
-function createCloudBuild({store,conversationClient,architectClient,builderClient,artifactStore,clock=()=>Date.now(),idFactory=crypto.randomUUID,leaseMs=300000}={}) {
+function createCloudBuild({store,conversationClient,architectClient,builderClient,artifactStore,lessonPlanMediaLinks=null,clock=()=>Date.now(),idFactory=crypto.randomUUID,leaseMs=300000}={}) {
   async function task(id) { const row=await store.get(id); if (!row) throw fail('conversation_not_found'); if(row.state.deletion_pending) throw fail('task_deletion_pending'); return row; }
   async function find(jobId) {
     const row=store.findByJobId ? await store.findByJobId(jobId) : (await store.list()).find(item=>(item.state.jobs||[]).some(job=>job.id===jobId));
@@ -28,10 +28,26 @@ function createCloudBuild({store,conversationClient,architectClient,builderClien
   }
   const locked = row => Boolean(row.state.active_operation && row.state.active_operation.expires_at > clock());
   const replaceJob = (row,job,patch={}) => store.update(row.id,row.revision,{...row.state,...patch,jobs:(row.state.jobs||[]).map(item=>item.id===job.id?job:item)});
+  async function linkLessonPlanMedia(row, job) {
+    const context = row.state.conversation?.lesson_context;
+    if (!lessonPlanMediaLinks || !context?.lessonPlanId || job.state !== 'succeeded' || !job.artifact_id) return;
+    try {
+      await lessonPlanMediaLinks.link({
+        lessonPlanId: context.lessonPlanId,
+        conversationId: row.id,
+        jobId: job.id,
+        artifactId: job.artifact_id,
+        title: job.specification?.media?.title || job.brief?.learning?.topic || 'สื่อการเรียนรู้'
+      });
+    } catch (error) {
+      // A failed relation write must not turn a successfully generated artifact into a failed job.
+      console.error('Lesson plan media link failed:', error?.code || error?.message || 'unknown_error');
+    }
+  }
   async function execute(jobId) {
     let {row,job}=await find(jobId);
     if (row.state.deletion_pending) throw fail('task_deletion_pending');
-    if (job.state==='succeeded') return job;
+    if (job.state==='succeeded') { await linkLessonPlanMedia(row,job); return job; }
     if (locked(row)) throw fail('conversation_request_in_progress');
     const operation={id:idFactory(),expires_at:clock()+leaseMs};
     row=await store.update(row.id,row.revision,{...row.state,active_operation:operation});
@@ -66,8 +82,16 @@ function createCloudBuild({store,conversationClient,architectClient,builderClien
         const result=await builderClient.build({specification:job.specification,revision:job.revision||null});
         job={...job,state:'succeeded',artifact_id:result.artifact_id,error:null,failed_stage:null};
         row=await replaceJob(row,job);
+        await linkLessonPlanMedia(row,job);
         const obsolete=[...new Set((row.state.jobs||[]).filter(item=>item.id!==job.id&&item.state==='succeeded'&&item.artifact_id&&item.artifact_id!==job.artifact_id).map(item=>item.artifact_id))];
-        for(const artifactId of obsolete) { try { await artifactStore.deleteValidated(artifactId); } catch (_) {} }
+        for(const artifactId of obsolete) {
+          try {
+            const deleted = await artifactStore.deleteValidated(artifactId);
+            if (deleted && lessonPlanMediaLinks?.unlinkArtifacts) await lessonPlanMediaLinks.unlinkArtifacts([artifactId]);
+          } catch (error) {
+            console.error('Obsolete lesson plan media cleanup failed:', error?.code || error?.message || 'unknown_error');
+          }
+        }
         return job;
       } catch(error) {
         const code=safeCode(error); job={...job,state:RETRYABLE.has(code)?'retryable_failed':'failed',error:jobError(error,code),failed_stage:'builder'};
@@ -148,7 +172,15 @@ function createCloudBuild({store,conversationClient,architectClient,builderClien
         if(row.state.deletion_pending) return null;
         const jobs=row.state.jobs||[];
         const latest=jobs.filter(job=>job.state==='succeeded').at(-1);
-        if(latest) return {type:'media',id:latest.id,job_id:latest.id,artifact_id:latest.artifact_id,conversation_id:latest.conversation_id||row.id,title:latest.specification?.media?.title||latest.brief?.learning?.topic||'สื่อการเรียนรู้',created_at:latest.created_at||row.updated_at,parent_job_id:latest.revision?.parent_job_id||null};
+        if(latest) {
+          const lessonContext = row.state.conversation?.lesson_context || {};
+          const linkedPlan = lessonContext.lessonPlanId ? {
+            lesson_plan_id: lessonContext.lessonPlanId,
+            ...(lessonContext.planNumber ? { lesson_plan_number: lessonContext.planNumber } : {}),
+            ...(lessonContext.title ? { lesson_plan_title: lessonContext.title } : {})
+          } : {};
+          return {type:'media',id:latest.id,job_id:latest.id,artifact_id:latest.artifact_id,conversation_id:latest.conversation_id||row.id,title:latest.specification?.media?.title||latest.brief?.learning?.topic||'สื่อการเรียนรู้',created_at:latest.created_at||row.updated_at,parent_job_id:latest.revision?.parent_job_id||null,...linkedPlan};
+        }
 
         const conversation=row.state.conversation;
         if(!conversation) return null;
@@ -156,7 +188,13 @@ function createCloudBuild({store,conversationClient,architectClient,builderClien
         const messageTitle=typeof firstTeacherMessage==='string' ? firstTeacherMessage.trim().replace(/\s+/g,' ') : '';
         const draftTitle=typeof conversation.draft?.topic==='string' ? conversation.draft.topic.trim() : '';
         const title=draftTitle||messageTitle.slice(0,90)||'บทสนทนาที่ยังไม่สร้างสื่อ';
-        return {type:'conversation',id:row.id,conversation_id:row.id,job_id:jobs.at(-1)?.id||null,title,created_at:conversation.created_at||row.created_at||row.updated_at};
+        const lessonContext = conversation.lesson_context || {};
+        const linkedPlan = lessonContext.lessonPlanId ? {
+          lesson_plan_id: lessonContext.lessonPlanId,
+          ...(lessonContext.planNumber ? { lesson_plan_number: lessonContext.planNumber } : {}),
+          ...(lessonContext.title ? { lesson_plan_title: lessonContext.title } : {})
+        } : {};
+        return {type:'conversation',id:row.id,conversation_id:row.id,job_id:jobs.at(-1)?.id||null,title,created_at:conversation.created_at||row.created_at||row.updated_at,...linkedPlan};
       }).filter(Boolean);
     },
     async process(jobId) { return execute(jobId); }

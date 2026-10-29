@@ -1,4 +1,4 @@
-// Canonical persistence for the eight ClassKru relational tables.
+// Canonical persistence for the ClassKru relational tables.
 // localStorage remains the local-first working copy; queued writes stay in this browser only.
 let relationalMode = localStorage.getItem('classkru_relational_v1') === '1' ? 'ready' : 'unknown';
 let relationalBaseline = null;
@@ -11,12 +11,16 @@ let relationalLegacyProbePromise = null;
 
 const RELATIONAL_QUEUE_KEY = 'classkru_relational_queue_v1';
 const RELATIONAL_TABLES = [
-  'teacher_profiles', 'classrooms', 'students', 'classroom_students',
+  'teacher_profiles', 'lesson_units', 'teaching_library_items', 'lesson_plan_assets',
+  'classrooms', 'students', 'classroom_students',
   'timetable_entries', 'attendance_records', 'score_items', 'student_scores'
 ];
 const RELATIONAL_CHILD_TABLES = RELATIONAL_TABLES.slice(1);
 const RELATIONAL_CONFLICTS = {
   teacher_profiles: 'teacher_id',
+  lesson_units: 'teacher_id,unit_key',
+  teaching_library_items: 'teacher_id,id',
+  lesson_plan_assets: 'teacher_id,lesson_plan_id,asset_id',
   classrooms: 'teacher_id,id',
   students: 'teacher_id,id',
   classroom_students: 'teacher_id,classroom_id,student_id',
@@ -29,7 +33,7 @@ const RELATIONAL_KEYS = Object.fromEntries(Object.entries(RELATIONAL_CONFLICTS)
   .map(([table, columns]) => [table, columns.split(',')]));
 const RELATIONAL_TOP_KEYS = new Set([
   'classes', 'timetable', 'lastModified', '_deletedRecords', 'teacherName',
-  'profileImageBase64', 'periodSettings', 'onboarding', 'holidays',
+  'profileImageBase64', 'periodSettings', 'onboarding', 'holidays', 'mediaLibrary',
   'timetableWeek', 'activeWebScreen'
 ]);
 
@@ -90,6 +94,21 @@ function relationalPreferences(state) {
     .filter(([key]) => !RELATIONAL_TOP_KEYS.has(key)));
 }
 
+function relationalGuidanceUnitKey(item = {}) {
+  const unitNumber = String(item.unitNumber || '').trim();
+  const unitName = String(item.unitName || '').trim();
+  if (item.type !== 'lesson_plan' || item.subjectId !== 'guidance' || (!unitNumber && !unitName)) return '';
+  if (String(item.unitKey || '').trim()) return String(item.unitKey).trim();
+  return [
+    String(item.courseCode || item.courseName || item.subjectId || '').trim().toLocaleLowerCase(),
+    String(item.grade || '').trim().toLocaleLowerCase(),
+    String(item.academicYear || ''),
+    String(item.semester || '1'),
+    unitNumber.toLocaleLowerCase(),
+    unitName.toLocaleLowerCase()
+  ].join('|');
+}
+
 function relationalRows(state, teacherId, email = relationalTeacherEmail) {
   const safeState = state || {};
   const rows = Object.fromEntries(RELATIONAL_TABLES.map(table => [table, new Map()]));
@@ -107,6 +126,64 @@ function relationalRows(state, teacherId, email = relationalTeacherEmail) {
     active_web_screen: safeState.activeWebScreen || 'dashboard',
     preferences: relationalPreferences(safeState),
     deleted_at: null
+  });
+
+  const mediaLibrary = Array.isArray(safeState.mediaLibrary) ? safeState.mediaLibrary : [];
+  const mediaItemsById = new Map(mediaLibrary.filter(item => item?.id).map(item => [String(item.id), item]));
+  mediaLibrary.forEach(item => {
+    if (!item?.id) return;
+    const id = String(item.id);
+    const unitKey = relationalGuidanceUnitKey(item);
+    if (unitKey) {
+      const hours = Number(item.unitHours);
+      put('lesson_units', [unitKey], {
+        teacher_id: teacherId,
+        unit_key: unitKey,
+        subject_id: 'guidance',
+        course_name: String(item.courseName || ''),
+        course_code: String(item.courseCode || ''),
+        grade: String(item.grade || ''),
+        academic_year: String(item.academicYear || ''),
+        semester: String(item.semester || '1'),
+        unit_number: String(item.unitNumber || ''),
+        unit_name: String(item.unitName || ''),
+        year_objective: String(item.yearObjective || ''),
+        unit_objective: String(item.unitObjective || ''),
+        unit_hours: Number.isFinite(hours) && hours > 0 ? hours : null,
+        deleted_at: null
+      });
+    }
+    put('teaching_library_items', [id], {
+      teacher_id: teacherId,
+      id,
+      item_type: String(item.type || 'other'),
+      title: String(item.title || item.plan?.title || item.topic || ''),
+      item_data: item,
+      unit_key: unitKey || null,
+      deleted_at: null
+    });
+  });
+
+  const putPlanAsset = (planId, assetId) => {
+    const plan = mediaItemsById.get(String(planId));
+    const asset = mediaItemsById.get(String(assetId));
+    if (!plan || plan.type !== 'lesson_plan' || !asset || !['worksheet', 'quiz'].includes(asset.type)) return;
+    put('lesson_plan_assets', [String(planId), String(assetId)], {
+      teacher_id: teacherId,
+      lesson_plan_id: String(planId),
+      asset_id: String(assetId),
+      asset_type: String(asset.type),
+      deleted_at: null
+    });
+  };
+  mediaLibrary.forEach(item => {
+    if (!item?.id) return;
+    if (item.type === 'lesson_plan') {
+      (Array.isArray(item.linkedWorksheetIds) ? item.linkedWorksheetIds : []).forEach(id => putPlanAsset(item.id, id));
+      (Array.isArray(item.linkedQuizIds) ? item.linkedQuizIds : []).forEach(id => putPlanAsset(item.id, id));
+    } else if (item.lessonPlanId) {
+      putPlanAsset(item.lessonPlanId, item.id);
+    }
   });
 
   (Array.isArray(safeState.classes) ? safeState.classes : []).forEach((classroom, classIndex) => {
@@ -419,6 +496,10 @@ async function detectRelationalMode(email) {
     const { error } = await supabaseClient.from('teacher_profiles')
       .select('teacher_id').eq('teacher_id', user.id).limit(1);
     if (error) throw error;
+    for (const table of ['lesson_units', 'teaching_library_items', 'lesson_plan_assets', 'lesson_plan_media_assets']) {
+      const { error: tableError } = await supabaseClient.from(table).select('teacher_id').limit(1);
+      if (tableError) throw tableError;
+    }
     relationalMode = 'ready';
     localStorage.setItem('classkru_relational_v1', '1');
     await flushRelationalQueue();
@@ -540,6 +621,30 @@ function relationalStateFromRows(data) {
       classId: entry.classroom_id || '', subject: entry.subject_snapshot || '',
       className: entry.class_name_snapshot || ''
     }));
+  const assetsByLessonPlan = new Map();
+  (data.lesson_plan_assets || []).forEach(row => {
+    const planId = String(row.lesson_plan_id || '');
+    if (!planId) return;
+    if (!assetsByLessonPlan.has(planId)) assetsByLessonPlan.set(planId, { worksheets: [], quizzes: [] });
+    const links = assetsByLessonPlan.get(planId);
+    if (row.asset_type === 'worksheet') links.worksheets.push(String(row.asset_id));
+    if (row.asset_type === 'quiz') links.quizzes.push(String(row.asset_id));
+  });
+  state.mediaLibrary = (data.teaching_library_items || [])
+    .slice().sort((a, b) => String(a.item_data?.createdAt || '').localeCompare(String(b.item_data?.createdAt || '')))
+    .map(row => {
+      const item = row.item_data && typeof row.item_data === 'object' ? relationalClone(row.item_data) : {};
+      if (!item.id) item.id = row.id;
+      if (!item.type) item.type = row.item_type || 'other';
+      if (!item.title) item.title = row.title || '';
+      if (row.unit_key && item.type === 'lesson_plan') item.unitKey = row.unit_key;
+      if (item.type === 'lesson_plan') {
+        const links = assetsByLessonPlan.get(String(item.id)) || { worksheets: [], quizzes: [] };
+        item.linkedWorksheetIds = links.worksheets;
+        item.linkedQuizIds = links.quizzes;
+      }
+      return item;
+    });
   state.lastModified = relationalMaxModified(data);
   return state;
 }

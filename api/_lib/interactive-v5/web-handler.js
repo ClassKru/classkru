@@ -10,6 +10,7 @@ const storage = require('../media-db');
 const { createTaskStore } = require('./cloud/task-store');
 const { createCloudConversation } = require('./cloud/cloud-conversation');
 const { createCloudBuild } = require('./cloud/cloud-build');
+const { createLessonPlanMediaLinks } = require('./cloud/lesson-plan-media-links');
 const { createPreviewTickets } = require('./cloud/preview-tickets');
 const { createTeacherSettingsStore } = require('./cloud/teacher-settings');
 const { createBriefVersionCatalog } = require('./cloud/brief-version-catalog');
@@ -127,7 +128,10 @@ function createServices(teacherId, env = process.env) {
       settings,
       store,
       conversation: createCloudConversation({ store, conversationClient, teacherId }),
-      build: createCloudBuild({ store, conversationClient, architectClient, builderClient, artifactStore })
+      build: createCloudBuild({
+        store, conversationClient, architectClient, builderClient, artifactStore,
+        lessonPlanMediaLinks: createLessonPlanMediaLinks({ db, teacherId })
+      })
     };
   });
 }
@@ -231,7 +235,7 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
       }
       if (parts[0] === 'conversations') {
         const body = req.method === 'POST' ? bodyOf(req) : {};
-        if (req.method === 'POST' && parts.length === 1) return respond(res, 201, { conversation: await services.conversation.start(body.card_context || null, body.start_key || null, body.media_mode) });
+        if (req.method === 'POST' && parts.length === 1) return respond(res, 201, { conversation: await services.conversation.start(body.card_context || null, body.start_key || null, body.media_mode, body.lesson_context || null) });
         if (req.method === 'GET' && parts.length === 2) return respond(res, 200, { conversation: await services.conversation.get(parts[1]) });
         if (req.method === 'POST' && parts.length === 3 && parts[2] === 'card-context') return respond(res, 200, { conversation: await services.conversation.changeCards(parts[1], body.card_context || {}) });
         if (req.method === 'POST' && parts.length === 3 && parts[2] === 'messages') return respond(res, 200, { conversation: await services.conversation.send(parts[1], body.message, body.request_key || require('node:crypto').randomUUID()) });

@@ -24,8 +24,8 @@
   <link rel="stylesheet" href="css/03-reports.css?v=548">
   <link rel="stylesheet" href="css/04-modal-misc.css?v=548">
   <link rel="stylesheet" href="css/05-home.css?v=548">
-  <link rel="stylesheet" href="css/06-attendance.css?v=548">
-  <link rel="stylesheet" href="css/07-scores.css?v=548">
+  <link rel="stylesheet" href="css/06-attendance.css?v=551">
+  <link rel="stylesheet" href="css/07-scores.css?v=550">
   <link rel="stylesheet" href="css/pp5.css?v=548">
   <link rel="stylesheet" href="css/08-responsive-toast.css?v=548">
     <link rel="stylesheet" href="css/09-games.css?v=548">
@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="css/11-public-help.css?v=548">
   <link rel="stylesheet" href="css/12-qr-scores.css?v=548">
   <link rel="stylesheet" href="css/media-studio.css?v=548">
-  <link rel="stylesheet" href="css/13-content-library.css?v=548">
+  <link rel="stylesheet" href="css/13-content-library.css?v=555">
   <link rel="stylesheet" href="css/15-subscription.css?v=548">
   <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/16-classkru-ai-launcher.css?v=3">
   <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/17-classkru-ai-panel.css?v=2">
@@ -881,9 +881,11 @@
       </div>
       <div class="swipe-progress">
         <div class="swipe-progress-actions">
-          <button class="swipe-mini-btn primary" onclick="setAllSwipePresent()"><i class="hgi-stroke hgi-tick-02"></i> มาทุกคน</button>
           <button class="swipe-mini-btn qr desktop-only-flex" onclick="openAttendanceActivity()"><i class="hgi-stroke hgi-qr-code-01"></i> เช็คชื่อด้วย QR</button>
-          <span class="swipe-progress-checked">เช็คแล้ว <span id="swipe-checked-count">0</span> / <span id="swipe-total-count">0</span></span>
+          <div class="swipe-progress-center">
+            <button class="swipe-mini-btn primary" onclick="setAllSwipePresent()"><i class="hgi-stroke hgi-tick-02"></i> มาทุกคน</button>
+            <span class="swipe-progress-checked">เช็คแล้ว <span id="swipe-checked-count">0</span> / <span id="swipe-total-count">0</span></span>
+          </div>
           <button class="swipe-mini-btn danger" onclick="clearSwipeChecks()"><i class="hgi-stroke hgi-delete-02"></i> ล้างข้อมูล</button>
         </div>
       </div>
@@ -1075,9 +1077,9 @@
       <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:12px;">ลากไฟล์ .xlsx หรือ .csv มาวางในกรอบด้านล่างนี้ได้เลย หรือคลิกเพื่อเลือกไฟล์ ระบบจะดึงรายชื่อเข้าห้องเรียนนี้ทันที</p>
 
       <div style="background:var(--primary-light);border:1px solid var(--primary-light-border);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <span style="font-size:0.82rem;color:var(--text-main);">ไม่แน่ใจว่าไฟล์ต้องมีช่องอะไรบ้าง? ดาวน์โหลดไฟล์ตัวอย่างไปกรอกได้เลย</span>
+        <span style="font-size:0.82rem;color:var(--text-main);">ใช้ไฟล์เทมเพลตนี้เป็นต้นแบบสำหรับจัดเตรียมรายชื่อนักเรียน</span>
         <button class="btn" onclick="downloadStudentsTemplate()" style="font-size:0.82rem;padding:8px 14px;background:var(--bg-card);border:1px solid var(--primary-light-border);color:var(--primary);display:inline-flex;align-items:center;gap:6px;white-space:nowrap;">
-          <i class="hgi-stroke hgi-file-download"></i> ดาวน์โหลดไฟล์ตัวอย่าง (.xlsx)
+          <i class="hgi-stroke hgi-file-download"></i> ดาวน์โหลดไฟล์เทมเพลต (.xlsx)
         </button>
       </div>
 
@@ -1441,6 +1443,11 @@
           <button class="ps-chip ps-brk-chip" data-val="5" onclick="selectPsBreak(5,this)">5 นาที</button>
           <button class="ps-chip ps-brk-chip" data-val="10" onclick="selectPsBreak(10,this)">10 นาที</button>
           <button class="ps-chip ps-brk-chip" data-val="15" onclick="selectPsBreak(15,this)">15 นาที</button>
+          <button class="ps-chip ps-brk-chip" data-val="custom" onclick="selectPsBreak('custom',this)">กำหนดเอง</button>
+        </div>
+        <div id="ps-custom-break-wrap" style="display:none;align-items:center;gap:8px;margin-top:10px;">
+          <input type="number" id="ps-custom-break" class="form-control" style="width:90px;" min="1" max="120" step="1" value="10" oninput="renderPeriodPreview()">
+          <span style="font-size:0.82rem;color:var(--text-muted);"> นาที</span>
         </div>
       </div>
 
@@ -1581,13 +1588,13 @@
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
   <script defer src="js/core.js?v=548"></script>
-  <script defer src="js/relational-sync.js?v=548"></script>
+  <script defer src="js/relational-sync.js?v=549"></script>
   <script defer src="js/auth.js?v=548"></script>
   <script defer src="js/shell.js?v=548"></script>
   <script defer src="js/dashboard.js?v=548"></script>
   <script defer src="js/classrooms.js?v=548"></script>
-  <script defer src="js/students.js?v=548"></script>
-  <script defer src="js/timetable.js?v=548"></script>
+  <script defer src="js/students.js?v=549"></script>
+  <script defer src="js/timetable.js?v=549"></script>
   <script defer src="js/reports.js?v=548"></script>
   <script defer src="js/attendance.js?v=548"></script>
   <script defer src="js/curriculum-thai-2551.js?v=548"></script>
@@ -1598,23 +1605,24 @@
   <script defer src="js/curriculum-art-2551.js?v=548"></script>
   <script defer src="js/curriculum-career-2551.js?v=548"></script>
   <script defer src="js/curriculum-foreign-2551.js?v=548"></script>
-  <script defer src="js/curriculum-catalog.js?v=548"></script>
+  <script defer src="js/curriculum-guidance-2559.js?v=549"></script>
+  <script defer src="js/curriculum-catalog.js?v=551"></script>
   <script defer src="js/worksheet-layout.js?v=548"></script>
-  <script defer src="js/content-library.js?v=548"></script>
+  <script defer src="js/content-library.js?v=557"></script>
   <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-actions.js?v=1"></script>
   <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-panel.js?v=1"></script>
   <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-launcher.js?v=1"></script>
   <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-brief-selector.js?v=6"></script>
   <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-model-selector.js?v=2"></script>
   <script defer src="js/subscription.js?v=548"></script>
-  <script defer src="js/scores.js?v=548"></script>
+  <script defer src="js/scores.js?v=551"></script>
   <script defer src="js/pp5.js?v=548"></script>
   <script defer src="js/qr-scores.js?v=548"></script>
   <script defer src="js/tools.js?v=548"></script>
   <script defer src="js/games.js?v=548"></script>
   <script defer src="js/media-studio.js?v=548"></script>
   <script defer src="js/shared-utils.js?v=548"></script>
-  <script defer src="js/extras.js?v=548"></script>
+  <script defer src="js/extras.js?v=553"></script>
   <script defer src="js/help.js?v=548"></script>
 </body>
 </html>

@@ -4,6 +4,16 @@ const crypto = require('node:crypto');
 const { resolveContext } = require('../conversation-ai/card-registry');
 const { normalizeSubjects } = require('../teacher-context/idea-discovery-context');
 function fail(code) { return Object.assign(new Error(code), { code }); }
+function normalizeLessonContext(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const text = (input, max) => String(input || '').trim().slice(0, max);
+  const rows = (input, limit, maxText) => (Array.isArray(input) ? input : []).slice(0, limit).map(item => typeof item === 'string' ? text(item, maxText) : Object.fromEntries(['id','code','title','text','standardId','unitId','sourceId'].filter(key => item?.[key] != null).map(key => [key, text(item[key], maxText)])));
+  return {
+    lessonPlanId:text(value.lessonPlanId, 100), planNumber:text(value.planNumber, 12), title:text(value.title, 240), topic:text(value.topic, 240),
+    courseName:text(value.courseName, 180), courseCode:text(value.courseCode, 80), grade:text(value.grade, 80), duration:text(value.duration, 80),
+    subjectGroup:text(value.subjectGroup, 180), standards:rows(value.standards, 8, 900), indicators:rows(value.indicators, 12, 900), learningObjectives:rows(value.learningObjectives, 8, 700)
+  };
+}
 
 function createCloudConversation({ store, conversationClient, teacherId, clock = () => Date.now(), idFactory = crypto.randomUUID, leaseMs = 180000 } = {}) {
   if (!store || !conversationClient) throw fail('conversation_configuration_invalid');
@@ -33,7 +43,7 @@ function createCloudConversation({ store, conversationClient, teacherId, clock =
     return { conversation: result, context_status: result.idea_discovery_status || contextStatus };
   }
   return Object.freeze({
-    async start(context = null, startKey = null, mediaMode = 'normal') {
+    async start(context = null, startKey = null, mediaMode = 'normal', lessonContextInput = null) {
       if (startKey !== null && (typeof startKey !== 'string' || !/^[a-zA-Z0-9-]{1,100}$/.test(startKey) || !teacherId)) throw fail('start_key_invalid');
       const cardContext = context ? resolveContext(context) : null;
       let deterministicId = null;
@@ -44,7 +54,8 @@ function createCloudConversation({ store, conversationClient, teacherId, clock =
         const existing = await store.get(deterministicId);
         if (existing?.state?.start_key === startKey) return existing.state.conversation;
       }
-      const conversation = {...conversationClient.createConversation(),media_mode:mediaMode === '3d' ? '3d' : 'normal',...(deterministicId ? {id:deterministicId} : {}),...(cardContext ? {card_context:cardContext} : {})};
+      const lessonContext = normalizeLessonContext(lessonContextInput);
+      const conversation = {...conversationClient.createConversation(),media_mode:mediaMode === '3d' ? '3d' : 'normal',...(deterministicId ? {id:deterministicId} : {}),...(cardContext ? {card_context:cardContext} : {}),...(lessonContext ? {lesson_context:lessonContext} : {})};
       try { await store.create(conversation.id,{conversation,active_operation:null,...(startKey ? {start_key:startKey} : {})}); }
       catch (error) {
         const existing = deterministicId && await store.get(deterministicId);
