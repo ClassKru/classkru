@@ -182,7 +182,7 @@ function toggleStudentsActionMenu(ev) {
     <button onclick="closeClassMenu();openStudentModal()"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียน</span></button>
     <button onclick="closeClassMenu();openStudentQrCardsFromRoster()"><i class="hgi-stroke hgi-qr-code"></i><span>พิมพ์ QR นักเรียน</span></button>
     <button disabled title="ฟีเจอร์นี้อยู่ระหว่างปรับปรุง"><i class="hgi-stroke hgi-user-add-01"></i><span>เพิ่มนักเรียนผ่านกิจกรรม (พักไว้ชั่วคราว)</span></button>
-    <button onclick="closeClassMenu();triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i><span>นำเข้า Excel</span></button>
+    <button class="student-menu-import-excel" onclick="closeClassMenu();triggerDirectClassExcelImport(currentClassId)"><i class="hgi-stroke hgi-google-sheet"></i><span>นำเข้า Excel</span></button>
     <button class="danger" onclick="closeClassMenu();deleteAllStudentsInClass(currentClassId)"><i class="hgi-stroke hgi-delete-02"></i><span>ลบทั้งหมด</span></button>`;
   document.body.appendChild(menu);
   menu.style.top = (r.bottom + window.scrollY + 6) + 'px';

@@ -189,6 +189,44 @@
   .swipe-compact-header .s-pill { flex-direction: row; align-items: baseline; justify-content: center; gap: 7px; padding: 6px 14px; }
   .swipe-compact-header .s-pill-num { font-size: 1.35rem; }
   .swipe-compact-header .s-pill-label { font-size: 0.9rem; }
+
+  /* จัดแถบเครื่องมือบนคอมเป็นสามตำแหน่ง และยกปุ่มมาทุกคนให้เด่นตรงกลาง */
+  .swipe-progress-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-areas:
+      "qr mark clear"
+      "checked checked checked";
+    align-items: center;
+    justify-content: stretch;
+    gap: 5px 12px;
+  }
+  .swipe-progress-actions .swipe-mini-btn.qr { grid-area: qr; justify-self: start; }
+  .swipe-progress-actions .swipe-mini-btn.primary {
+    grid-area: mark;
+    justify-self: center;
+    min-height: 42px;
+    padding: 9px 22px;
+    border: 1px solid var(--primary);
+    border-radius: 12px;
+    background: var(--primary);
+    color: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.92rem;
+    font-weight: 800;
+  }
+  .swipe-progress-actions .swipe-mini-btn.primary:hover { background: var(--primary); filter: brightness(0.94); }
+  .swipe-progress-actions .swipe-mini-btn.primary:focus-visible {
+    outline: 3px solid var(--primary-light-border);
+    outline-offset: 2px;
+  }
+  .swipe-progress-actions .swipe-progress-checked {
+    grid-area: checked;
+    justify-self: center;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .swipe-progress-actions .swipe-mini-btn.danger { grid-area: clear; justify-self: end; }
 }
 
 /* Summary Pills Row */

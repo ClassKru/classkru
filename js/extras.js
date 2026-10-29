@@ -496,16 +496,14 @@ function ensureQrScoreGuideSetup() {
   if (classId && typeof openQrScoreScanner === 'function') openQrScoreScanner(classId);
 }
 
+function ensureStudentModalOpen() {
+  if (!document.getElementById('modal-student')?.classList.contains('show')) openStudentModal();
+}
+
 function notifyTourAction(name) {
   if (typeof Tour !== 'undefined' && Tour && typeof Tour.action === 'function') {
     Tour.action(name);
   }
-}
-
-function prepareStudentGuideResult() {
-  const searchInput = document.getElementById('web-student-search-input');
-  if (searchInput && searchInput.value) searchInput.value = '';
-  if (typeof renderWebStudents === 'function') renderWebStudents();
 }
 
 const GUIDE_STEPS = {
@@ -529,7 +527,7 @@ const GUIDE_STEPS = {
   ],
   'add-student': [
     { nav: 'students', target: '#btn-add-student-roster', title: 'เริ่มเพิ่มนักเรียน',
-      body: 'กดปุ่มนี้เพื่อเพิ่มนักเรียนทีละคน เหมาะกับเริ่มต้นหรือเพิ่มเด็กใหม่ระหว่างเทอม ถ้ามีรายชื่อหลายคน ใช้ปุ่ม “นำเข้า Excel” เพื่อเพิ่มแบบรวดเร็วได้เลย',
+      body: 'เปิดฟอร์มเพิ่มนักเรียนเพื่อดูภาพรวมได้ แต่ถ้ามีรายชื่อทั้งห้องอยู่ในไฟล์แล้ว คุณครูนำเข้าจาก Excel ได้รวดเร็วกว่าการเพิ่มทีละคน',
       desktopOnly: true,
       advance: 'action:student-modal-opened' },
     { target: '#btn-students-actions-mobile', title: 'เปิดเมนูจัดการรายชื่อ',
@@ -541,25 +539,21 @@ const GUIDE_STEPS = {
       mobileOnly: true,
       advance: 'action:student-modal-opened' },
     { target: '#modal-student .bottom-sheet', title: 'ฟอร์มเพิ่มนักเรียน',
-      body: 'เลขที่จะเติมให้ถัดจากคนล่าสุดโดยอัตโนมัติ ส่วนช่องที่สำคัญที่สุดคือชื่อ-นามสกุล',
-      allowInteraction: true, noMask: true },
-    { target: '#input-student-name', title: 'กรอกชื่อ-นามสกุล',
-      body: 'ช่องนี้จำเป็นต้องกรอกก่อนบันทึก ส่วนรหัส ชื่อเล่น และหมายเหตุเป็นข้อมูลเสริม ใส่ภายหลังได้',
-      allowInteraction: true, noMask: true },
-    { target: '#btn-student-submit', title: 'บันทึกรายชื่อ',
-      body: 'เมื่อกรอกชื่อแล้ว กด “เพิ่ม” เพื่อบันทึกนักเรียนเข้าห้องนี้ ระบบจะนำไปใช้ต่อในเช็คชื่อ คะแนน และรายงาน',
-      advance: 'action:student-added', hideOnClick: false, allowInteraction: true, noMask: true },
-    { target: '.student-roster-card', title: 'เพิ่มแล้วจะอยู่ตรงนี้', before: prepareStudentGuideResult,
-      body: 'รายชื่อที่เพิ่มจะแสดงในพื้นที่นี้ ถ้ามีนักเรียนหลายคน ใช้ “นำเข้า Excel” จากปุ่มด้านบนบนจอใหญ่ หรือเปิดเมนูจัดการบนมือถือเพื่อเพิ่มแบบรวดเร็ว',
-      blockTarget: true },
+      body: 'นี่คือฟอร์มสำหรับเพิ่มนักเรียนทีละคน เลขที่ถัดไปจะเติมให้อัตโนมัติ หากมีรายชื่อทั้งห้องในไฟล์อยู่แล้ว สามารถนำเข้า Excel ได้รวดเร็วกว่า',
+      before: ensureStudentModalOpen, allowInteraction: true, noMask: true },
     { target: '#btn-students-import-excel', title: 'มีรายชื่อหลายคน? นำเข้าได้เลย',
-      body: 'ถ้ามีรายชื่อนักเรียนอยู่ในไฟล์แล้ว กด “นำเข้า Excel” เพื่อเพิ่มหลายคนพร้อมกันได้ทันที รองรับไฟล์ .xlsx และ .csv',
+      body: 'ถ้ามีรายชื่อนักเรียนอยู่ใน Excel หรือ CSV แล้ว กดปุ่มนี้เพื่อนำเข้าหลายคนพร้อมกัน รองรับไฟล์ .xlsx และ .csv',
+      before: () => { if (document.getElementById('modal-student')?.classList.contains('show')) closeStudentModal(); },
       desktopOnly: true },
     { target: '#btn-students-join-activity', title: 'เพิ่มนักเรียนผ่านกิจกรรม',
       body: 'ถ้าต้องการให้นักเรียนกรอกข้อมูลผ่านมือถือ ให้กดปุ่มนี้ ระบบจะเปิดแท็บกิจกรรมใหม่พร้อม QR Code และลิงก์เข้าร่วมให้ครูนำไปแชร์ได้ทันที',
       desktopOnly: true, advance: 'click' },
     { target: '#btn-students-actions-mobile', title: 'ทางเลือกเพิ่มรายชื่อแบบเร็ว',
-      body: 'บนมือถือ เปิดเมนูจัดการรายชื่อ แล้วเลือก “นำเข้า Excel” เพื่อเพิ่มนักเรียนหลายคนพร้อมกัน',
+      body: 'บนมือถือ ปิดฟอร์มตัวอย่างแล้วเปิดเมนูจัดการรายชื่อ เพื่อเลือกนำเข้าจาก Excel',
+      before: () => { if (document.getElementById('modal-student')?.classList.contains('show')) closeStudentModal(); },
+      mobileOnly: true, advance: 'action:student-menu-opened' },
+    { target: '#ck-class-menu .student-menu-import-excel', title: 'นำเข้ารายชื่อจาก Excel',
+      body: 'เลือก “นำเข้า Excel” เพื่อเพิ่มรายชื่อหลายคนพร้อมกัน รองรับไฟล์ .xlsx และ .csv',
       mobileOnly: true }
   ],
   checkin: [
@@ -583,6 +577,15 @@ const GUIDE_STEPS = {
       desktopOnly: true, blockTarget: true },
     { target: '#modal-qr-attendance .qr-attendance-live', title: 'ดูสถานะแบบสด',
       body: 'ด้านขวาจะแสดงจำนวนคนที่เช็คชื่อแล้วและรายชื่อที่ส่งเข้ามาแบบอัตโนมัติ',
+      desktopOnly: true, blockTarget: true },
+    { target: '#modal-qr-attendance .modal-header .btn', title: 'กลับไปหน้าเช็คชื่อ',
+      body: 'เมื่อดู QR และรายชื่อที่ส่งเข้ามาเรียบร้อยแล้ว กดปุ่มปิดตรงมุมขวาบนเพื่อกลับมาจัดการเช็คชื่อในห้อง',
+      desktopOnly: true, advance: 'click' },
+    { target: '.swipe-progress-actions', title: 'ตำแหน่งแถบเครื่องมือเช็คชื่อ',
+      body: 'แถบนี้อยู่ใต้สรุปจำนวน มา · สาย · ขาด · ลา — ปุ่ม QR อยู่ฝั่งซ้าย, “มาทุกคน” อยู่ตรงกลาง และ “ล้างข้อมูล” อยู่ฝั่งขวา ส่วนตัวนับจำนวนที่เช็คแล้วอยู่ด้านล่าง',
+      desktopOnly: true, blockTarget: true },
+    { target: '.swipe-progress-actions .swipe-mini-btn.primary', title: 'ใช้ “มาทุกคน” เมื่อทั้งห้องมา',
+      body: 'ปุ่มสีเขียวตรงกลางตั้งสถานะนักเรียนทุกคนเป็น “มา” พร้อมกัน และแทนที่สถานะเดิมของทั้งห้อง หากต้องเช็คสถานะไม่เหมือนกัน ให้เลือก มา · สาย · ขาด · ลา ในแถวของนักเรียนแต่ละคนแทน',
       desktopOnly: true, blockTarget: true }
   ],
   scores: [
