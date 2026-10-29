@@ -11,11 +11,33 @@
   const starters = document.getElementById('ck-ai-starters');
   const minimize = document.getElementById('ck-ai-minimize');
   const expand = document.getElementById('ck-ai-expand');
+  const tokenTotalElement = document.getElementById('ck-ai-token-total');
   let history = [];
   let owner = null;
   let busy = false;
   let activeBriefVersion = null;
   let conversationId = null;
+  let conversationTokenTotal = 0;
+
+  function renderTokenTotal() {
+    if (!tokenTotalElement) return;
+    const isDeveloper = Boolean(window.classKruAiDeveloper);
+    tokenTotalElement.hidden = !isDeveloper;
+    if (!isDeveloper) return;
+    const formattedTotal = conversationTokenTotal.toLocaleString('en-US');
+    tokenTotalElement.textContent = `โทเคนรวม ${formattedTotal}`;
+    tokenTotalElement.title = `ยอดรวม input และ output tokens ตาม API ในบทสนทนานี้ · ${formattedTotal} tokens`;
+  }
+
+  function addTokenUsage(usage) {
+    if (!window.classKruAiDeveloper || !usage || typeof usage !== 'object') return;
+    const total = Number.isFinite(Number(usage.total_tokens))
+      ? Number(usage.total_tokens)
+      : Number(usage.prompt_tokens || 0) + Number(usage.completion_tokens || 0);
+    if (!Number.isFinite(total) || total < 0) return;
+    conversationTokenTotal += total;
+    renderTokenTotal();
+  }
 
   function newConversationId() {
     if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
@@ -27,6 +49,8 @@
 
   function resetConversation(version = null) {
     history = [];
+    conversationTokenTotal = 0;
+    renderTokenTotal();
     historyElement.replaceChildren();
     activeBriefVersion = version;
     conversationId = newConversationId();
@@ -43,6 +67,7 @@
   window.configureClassKruAiDeveloper = function (enabled, activeVersion) {
     const wasDeveloper = Boolean(window.classKruAiDeveloper);
     window.classKruAiDeveloper = Boolean(enabled);
+    renderTokenTotal();
     if (!enabled) {
       window.classKruAiBriefVersion = null;
       if (wasDeveloper) resetConversation(null);
@@ -68,6 +93,8 @@
     const nextOwner = localStorage.getItem('classkru_state_owner_v1') || '';
     if (owner !== null && owner !== nextOwner) {
       history = [];
+      conversationTokenTotal = 0;
+      renderTokenTotal();
       historyElement.replaceChildren();
       conversationId = null;
       status('');
@@ -130,6 +157,7 @@
       if (typeof result.reply !== 'string' || !result.reply.trim()) throw new Error('คำตอบจากผู้ช่วยไม่ถูกต้อง');
       activeBriefVersion = result.briefVersion || activeBriefVersion;
       conversationId = result.conversationId || conversationId;
+      addTokenUsage(result.tokenUsage);
       addMessage('assistant', result.reply.slice(0, 1500));
       if (result.action) {
         const outcome = await ClassKruAiActions.execute(result.action);
