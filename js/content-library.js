@@ -929,10 +929,11 @@
   };
   function libraryA4PrintStyles() {
     return `<style>
-      @page { size: A4 portrait; margin: 13mm; }
+      /* Zero page margins hide Chrome's generated date, title, URL, and page-number chrome. */
+      @page { size: A4 portrait; margin: 0; }
       html, body { margin: 0; padding: 0; background: #fff !important; color: #202624; }
       body.cl-a4-print { font-family: "Sarabun", Tahoma, sans-serif; font-size: 11pt; line-height: 1.55; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .cl-a4-page { width: 100%; max-width: none !important; min-width: 0 !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #fff !important; color: #202624 !important; }
+      .cl-a4-page { width: 100%; max-width: none !important; min-width: 0 !important; margin: 0 !important; padding: 13mm !important; -webkit-box-decoration-break: clone; box-decoration-break: clone; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: #fff !important; color: #202624 !important; }
       .cl-a4-page *, .cl-a4-page *::before, .cl-a4-page *::after { box-sizing: border-box; }
       .cl-a4-page h1, .cl-a4-page h2, .cl-a4-page h3, .cl-a4-page h4 { color: #17211d; break-after: avoid-page; page-break-after: avoid; }
       .cl-a4-page p, .cl-a4-page li { overflow-wrap: anywhere; }
