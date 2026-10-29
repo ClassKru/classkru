@@ -157,6 +157,7 @@ function switchMobilePeriodSlot() {
 
 // ==================== PERIOD SETTINGS MODAL ====================
 let _psCustomDur = 50;
+let _psCustomBreak = 10;
 
 function openPeriodSettings() {
   const ps = appState.periodSettings || { startTime:'08:30', duration:50, breakTime:0, count:7 };
@@ -174,9 +175,15 @@ function openPeriodSettings() {
   document.getElementById('ps-custom-dur').value = ps.duration;
 
   // Select break chip
+  const breakPresets = [0, 5, 10, 15];
+  const savedBreak = Number(ps.breakTime) || 0;
+  const hasCustomBreak = !breakPresets.includes(savedBreak);
+  if (hasCustomBreak) _psCustomBreak = savedBreak;
   document.querySelectorAll('.ps-brk-chip').forEach(c => {
-    c.classList.toggle('active', Number(c.dataset.val) === ps.breakTime);
+    c.classList.toggle('active', c.dataset.val === 'custom' ? hasCustomBreak : Number(c.dataset.val) === savedBreak);
   });
+  document.getElementById('ps-custom-break-wrap').style.display = hasCustomBreak ? 'flex' : 'none';
+  document.getElementById('ps-custom-break').value = _psCustomBreak;
 
   document.getElementById('modal-period-settings').classList.add('show');
   renderPeriodPreview();
@@ -202,6 +209,7 @@ function selectPsDuration(val, el) {
 function selectPsBreak(val, el) {
   document.querySelectorAll('.ps-brk-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
+  document.getElementById('ps-custom-break-wrap').style.display = val === 'custom' ? 'flex' : 'none';
   renderPeriodPreview();
 }
 
@@ -212,13 +220,20 @@ function adjustPsCount(delta) {
   renderPeriodPreview();
 }
 
+function getSelectedPsBreak() {
+  const activeBreak = document.querySelector('.ps-brk-chip.active');
+  if (!activeBreak) return 0;
+  if (activeBreak.dataset.val !== 'custom') return Number(activeBreak.dataset.val) || 0;
+  const customValue = Number(document.getElementById('ps-custom-break').value);
+  return Number.isFinite(customValue) && customValue > 0 ? Math.max(1, Math.min(120, Math.round(customValue))) : 10;
+}
+
 function renderPeriodPreview() {
   const startTime = document.getElementById('ps-start-time').value || '08:00';
   const customVal = Number(document.getElementById('ps-custom-dur').value) || 50;
   const activeDur = document.querySelector('.ps-dur-chip.active');
   const dur = activeDur ? (activeDur.dataset.val === 'custom' ? customVal : Number(activeDur.dataset.val)) : 50;
-  const activeBreak = document.querySelector('.ps-brk-chip.active');
-  const brk = activeBreak ? Number(activeBreak.dataset.val) : 0;
+  const brk = getSelectedPsBreak();
   const count = Number(document.getElementById('ps-count').value) || 7;
 
   const [h, m] = startTime.split(':').map(Number);
@@ -241,8 +256,7 @@ function savePeriodSettings() {
   const customVal = Number(document.getElementById('ps-custom-dur').value) || 50;
   const activeDur = document.querySelector('.ps-dur-chip.active');
   const duration = activeDur ? (activeDur.dataset.val === 'custom' ? customVal : Number(activeDur.dataset.val)) : 50;
-  const activeBreak = document.querySelector('.ps-brk-chip.active');
-  const breakTime = activeBreak ? Number(activeBreak.dataset.val) : 0;
+  const breakTime = getSelectedPsBreak();
   const count = Math.max(1, Math.min(16, Number(document.getElementById('ps-count').value) || 7));
 
   appState.periodSettings = { startTime, duration, breakTime, count };

@@ -643,9 +643,15 @@ const GUIDE_STEPS = {
     { target: '#web-timetable-matrix-container td[onclick^="openPeriodModal"], .m-tt-add-btn, .m-tt-day-add', title: 'เพิ่มคาบสอน',
       body: 'กดช่องว่างหรือปุ่มเพิ่มคาบ แล้วเลือกวิชา/ห้องให้ตรงกับตารางจริง',
       blockTarget: true },
-    { target: '#tt-desktop-controls', title: 'จัดการตาราง',
-      body: 'บนจอใหญ่มีปุ่มนำเข้าและตั้งค่าคาบเรียน ช่วยจัดตารางจำนวนมากได้เร็วขึ้น',
-      desktopOnly: true, blockTarget: true }
+    { target: '.timetable-manage-btn', title: 'จัดการคาบเรียน',
+      body: 'กดปุ่มนี้เพื่อกำหนดเวลาเริ่ม ความยาวคาบ เวลาพัก และจำนวนคาบต่อวันให้ตรงกับตารางของโรงเรียน',
+      desktopOnly: true, advance: 'click' },
+    { target: '.ps-brk-chip[data-val="custom"]', title: 'กำหนดเวลาพักเอง',
+      body: 'เลือก “กำหนดเอง” หากเวลาพักของโรงเรียนไม่ใช่ 0, 5, 10 หรือ 15 นาที แล้วใส่จำนวนนาทีในช่องที่แสดงขึ้นมา',
+      desktopOnly: true, advance: 'click' },
+    { target: '#ps-custom-break', title: 'ใส่เวลาพักระหว่างคาบ',
+      body: 'ระบุเวลาพักเป็นนาทีได้ตั้งแต่ 1 ถึง 120 นาที ตารางตัวอย่างจะคำนวณเวลาเริ่มคาบถัดไปให้ทันที',
+      desktopOnly: true, allowInteraction: true }
   ],
   'add-period': [
     { nav: 'timetable', target: '#web-timetable-matrix-container td[onclick^="openPeriodModal"], .m-tt-add-btn, .m-tt-day-add, .m-tt-no-class', title: 'เลือกช่องคาบสอน',
@@ -826,6 +832,7 @@ function startGuide(key = 'classrooms', opts = {}) {
         markGuideSeen(key);
         if (completed) markGuideCompleted(key);
         if (typeof opts.onEnd === 'function') opts.onEnd(completed);
+        else if (completed && key === 'checkin') startGuide('timetable');
         else if (completed) showGuideComplete(key);
       }
     });

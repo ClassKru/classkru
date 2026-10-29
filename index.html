@@ -1446,6 +1446,11 @@
           <button class="ps-chip ps-brk-chip" data-val="5" onclick="selectPsBreak(5,this)">5 นาที</button>
           <button class="ps-chip ps-brk-chip" data-val="10" onclick="selectPsBreak(10,this)">10 นาที</button>
           <button class="ps-chip ps-brk-chip" data-val="15" onclick="selectPsBreak(15,this)">15 นาที</button>
+          <button class="ps-chip ps-brk-chip" data-val="custom" onclick="selectPsBreak('custom',this)">กำหนดเอง</button>
+        </div>
+        <div id="ps-custom-break-wrap" style="display:none;align-items:center;gap:8px;margin-top:10px;">
+          <input type="number" id="ps-custom-break" class="form-control" style="width:90px;" min="1" max="120" step="1" value="10" oninput="renderPeriodPreview()">
+          <span style="font-size:0.82rem;color:var(--text-muted);"> นาที</span>
         </div>
       </div>
 
@@ -1592,7 +1597,7 @@
   <script defer src="js/dashboard.js?v=548"></script>
   <script defer src="js/classrooms.js?v=548"></script>
   <script defer src="js/students.js?v=549"></script>
-  <script defer src="js/timetable.js?v=548"></script>
+  <script defer src="js/timetable.js?v=549"></script>
   <script defer src="js/reports.js?v=548"></script>
   <script defer src="js/attendance.js?v=548"></script>
   <script defer src="js/curriculum-thai-2551.js?v=548"></script>
@@ -1619,7 +1624,7 @@
   <script defer src="js/games.js?v=548"></script>
   <script defer src="js/media-studio.js?v=548"></script>
   <script defer src="js/shared-utils.js?v=548"></script>
-  <script defer src="js/extras.js?v=551"></script>
+  <script defer src="js/extras.js?v=552"></script>
   <script defer src="js/help.js?v=548"></script>
 </body>
 </html>
