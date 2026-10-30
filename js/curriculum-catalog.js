@@ -9,6 +9,7 @@
     thai: window.CK_CURRICULUM_THAI_2551 || null,
     math: window.CK_CURRICULUM_MATH_2560 || null,
     science: window.CK_CURRICULUM_SCIENCE_2560 || null,
+    physics: null, chemistry: null, biology: null,
     social: window.CK_CURRICULUM_SOCIAL_2560 || null,
     health: window.CK_CURRICULUM_HEALTH_2551 || null,
     art: window.CK_CURRICULUM_ART_2551 || null,
@@ -28,6 +29,9 @@
     { id: 'thai', code: 'ท', name: 'ภาษาไทย', shortName: 'ภาษาไทย' },
     { id: 'math', code: 'ค', name: 'คณิตศาสตร์', shortName: 'คณิตศาสตร์' },
     { id: 'science', code: 'ว', name: 'วิทยาศาสตร์และเทคโนโลยี', shortName: 'วิทยาศาสตร์' },
+    { id: 'physics', code: 'ฟ', name: 'ฟิสิกส์เพิ่มเติม', shortName: 'ฟิสิกส์', scoreCompatible: false },
+    { id: 'chemistry', code: 'ค', name: 'เคมีเพิ่มเติม', shortName: 'เคมี', scoreCompatible: false },
+    { id: 'biology', code: 'ช', name: 'ชีววิทยาเพิ่มเติม', shortName: 'ชีววิทยา', scoreCompatible: false },
     { id: 'social', code: 'ส', name: 'สังคมศึกษา ศาสนา และวัฒนธรรม', shortName: 'สังคมศึกษา' },
     { id: 'health', code: 'พ', name: 'สุขศึกษาและพลศึกษา', shortName: 'สุขศึกษา' },
     { id: 'art', code: 'ศ', name: 'ศิลปะ', shortName: 'ศิลปะ' },
@@ -124,11 +128,52 @@
     }, { subjects: 0, availableSubjects: 0, indicators: 0 });
   }
 
+  // Additional science is a separate source; its numeric labels are not national indicator codes.
+  let additionalScienceHydrated = false;
+  async function loadAdditionalScience(client) {
+    if (additionalScienceHydrated) return true;
+    const sourceId = 'TH-SCI-ADDITIONAL-2560';
+    const [sourceResult, standardResult, unitResult, outcomeResult] = await Promise.all([
+      client.from('curriculum_sources').select('*').eq('source_id', sourceId).maybeSingle(),
+      client.from('curriculum_standards').select('*').eq('source_id', sourceId),
+      client.from('curriculum_units').select('*').eq('source_id', sourceId),
+      client.from('curriculum_outcomes').select('*').eq('source_id', sourceId)
+    ]);
+    if ([sourceResult, standardResult, unitResult, outcomeResult].some(result => result.error)) return false;
+    const source = sourceResult.data;
+    if (!source || source.status !== 'reviewed' || !Array.isArray(outcomeResult.data)) return false;
+    const subjectIds = ['physics', 'chemistry', 'biology'];
+    for (const id of subjectIds) {
+      const subject = subjects.find(item => item.id === id);
+      const outcomes = outcomeResult.data.filter(row => row.subject_id === id);
+      const standards = (standardResult.data || []).filter(row => row.subject_id === id);
+      const units = (unitResult.data || []).filter(row => row.subject_id === id);
+      if (!subject || !outcomes.length || outcomes.some(row => !row.outcome_text?.trim()) || !standards.length || !units.length) return false;
+    }
+    for (const id of subjectIds) {
+      const subject = subjects.find(item => item.id === id);
+      const outcomes = outcomeResult.data.filter(row => row.subject_id === id).sort((a, b) => String(a.standard_id).localeCompare(String(b.standard_id)) || String(a.grade).localeCompare(String(b.grade)) || String(a.outcome_id).localeCompare(String(b.outcome_id)));
+      const dataset = {
+        id, title:subject.name, scoreCompatible:false,
+        source:{id:source.source_id,title:source.title,framework:source.framework,revisionYear:source.revision_year,publisher:source.publisher,fileName:source.file_name,status:source.status,notice:source.notice,url:(source.related_sources || []).find(item => item?.url)?.url || null,relatedSources:source.related_sources || []},
+        standards:(standardResult.data || []).filter(row => row.subject_id === id).map(row => ({id:row.standard_id,code:row.code,title:row.title,strand:row.strand})),
+        units:(unitResult.data || []).filter(row => row.subject_id === id).map(row => ({id:row.unit_id,grade:row.grade,title:row.title,description:row.description})),
+        indicators:outcomes.map(row => ({id:row.outcome_id,code:row.code,standard:row.standard_id,grade:row.grade,unitId:row.unit_id,text:row.outcome_text,sourcePage:row.source_page,sourcePdfPage:row.source_pdf_page})),
+        reference:null
+      };
+      datasets[id]=dataset; subject.dataset=dataset; subject.available=true; subject.grades=inferGrades(dataset);
+      window.dispatchEvent(new CustomEvent('classkru:curriculum-catalog-updated',{detail:{subjectId:id}}));
+    }
+    additionalScienceHydrated = true;
+    return true;
+  }
+
   async function loadFromSupabase(client) {
-    if (hydrated) return true;
+    if (hydrated) return loadAdditionalScience(client).catch(() => false);
     if (!client?.from) return false;
     if (hydrationPromise) return hydrationPromise;
     hydrationPromise = (async () => {
+      const scienceUpdated = await loadAdditionalScience(client).catch(() => false);
       const sourceId = 'TH-BEC-GUIDANCE-2559';
       const [sourceResult, standardResult, unitResult, outcomeResult, referenceResult] = await Promise.all([
         client.from('curriculum_sources').select('*').eq('source_id', sourceId).maybeSingle(),
@@ -137,10 +182,10 @@
         client.from('curriculum_outcomes').select('*').eq('source_id', sourceId).eq('subject_id', 'guidance'),
         client.from('curriculum_references').select('*').eq('source_id', sourceId).eq('subject_id', 'guidance')
       ]);
-      if ([sourceResult, standardResult, unitResult, outcomeResult, referenceResult].some(result => result.error)) return false;
+      if ([sourceResult, standardResult, unitResult, outcomeResult, referenceResult].some(result => result.error)) return scienceUpdated;
       const sourceRow = sourceResult.data;
       const outcomes = outcomeResult.data || [];
-      if (!sourceRow || !outcomes.length) return false;
+      if (!sourceRow || !outcomes.length) return scienceUpdated;
       const referenceRow = (referenceResult.data || [])[0];
       const dataset = {
         id:'guidance', title:'กิจกรรมแนะแนว', scoreCompatible:false,
