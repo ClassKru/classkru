@@ -47,7 +47,7 @@ test('lesson plan API follows teacher-selected frame and normalizes draft sectio
     await handler(req, res);
     assert.equal(res.code, 200);
     assert.equal(res.body.plan.title, 'แผนเรื่องระบบนิเวศ');
-    assert.deepEqual(res.body.warnings, ['ครูควรตรวจความเหมาะสมของเวลา']);
+    assert.deepEqual(res.body.warnings, ['ครูควรตรวจความเหมาะสมของเวลา', 'กิจกรรมที่ AI ส่งกลับยังไม่อยู่ในรูปแบบแยกขั้นและบทบาท กรุณาตรวจรายละเอียดก่อนใช้']);
     assert.equal(res.body.quota.remaining, 14);
     assert.match(openRouterRequest.messages[0].content, /ใช้เฉพาะตัวชี้วัดและบริบทที่ได้รับ/);
     assert.match(openRouterRequest.messages[1].content, /รายวิชาที่สอนจริง: วิทยาศาสตร์และเทคโนโลยี/);
@@ -71,7 +71,7 @@ test('lesson plan Word export includes plan frame, indicators and editable teach
   const handler = require('../api/_lib/exports/lesson-plan-docx');
   global.fetch = async () => ({ok:true, json:async () => ({id:'teacher-1'})});
   try {
-    const lessonPlan = {title:'แผนเรื่องระบบนิเวศ', subject:'วิทยาศาสตร์และเทคโนโลยี', grade:'ม.3', classLabel:'วิทยาศาสตร์และเทคโนโลยี · ม.3/1', duration:'2 คาบ (100 นาที)', method:'สืบเสาะหาความรู้', indicators:[{code:'ว 1.1 ม.3/1', text:'อธิบายปฏิสัมพันธ์ในระบบนิเวศ'}], plan:{title:'แผนเรื่องระบบนิเวศ', keyConcepts:['สิ่งมีชีวิตสัมพันธ์กับสิ่งแวดล้อม'], objectives:['อธิบายองค์ประกอบระบบนิเวศได้'], activities:['ขั้นนำ: ทบทวนภาพระบบนิเวศ'], resources:['ภาพระบบนิเวศ'], assessment:['วิธีประเมิน: ตรวจใบงาน | เครื่องมือ: รูบริก | เกณฑ์: ผ่าน 70%'], evidence:['ใบงาน'], adaptations:['ลดจำนวนตัวอย่างเมื่อเวลาไม่พอ']}};
+    const lessonPlan = {title:'แผนการจัดการเรียนรู้ที่ 1', topic:'ระบบนิเวศ', subject:'วิทยาศาสตร์และเทคโนโลยี', grade:'ม.3', classLabel:'วิทยาศาสตร์และเทคโนโลยี · ม.3/1', duration:'2 คาบ (100 นาที)', method:'สืบเสาะหาความรู้', indicators:[{code:'ว 1.1 ม.3/1', text:'อธิบายปฏิสัมพันธ์ในระบบนิเวศ'}], plan:{title:'แผนการจัดการเรียนรู้ที่ 1', keyConcepts:['สิ่งมีชีวิตสัมพันธ์กับสิ่งแวดล้อม'], objectives:['อธิบายองค์ประกอบระบบนิเวศได้'], activities:['ขั้นนำ: ทบทวนภาพระบบนิเวศ'], resources:['ภาพระบบนิเวศ'], assessment:['วิธีประเมิน: ตรวจใบงาน | เครื่องมือ: รูบริก | เกณฑ์: ผ่าน 70%'], evidence:['ใบงาน'], adaptations:['ลดจำนวนตัวอย่างเมื่อเวลาไม่พอ']}};
     const res = response();
     await handler({method:'POST', headers:{authorization:'Bearer test'}, body:{lessonPlan}}, res);
     assert.equal(res.code, 200);
@@ -80,7 +80,7 @@ test('lesson plan Word export includes plan frame, indicators and editable teach
     fs.writeFileSync(file, res.body);
     const xml = execFileSync('unzip', ['-p', file, 'word/document.xml'], {encoding:'utf8'});
     assert.match(xml, /แผนการจัดการเรียนรู้/);
-    assert.match(xml, /แผนเรื่องระบบนิเวศ/);
+    assert.match(xml, /เรื่อง ระบบนิเวศ/);
     assert.match(xml, /ว 1\.1 ม\.3\/1/);
     assert.match(xml, /บันทึกหลังการจัดการเรียนรู้/);
     assert.match(xml, /w:ascii="TH SarabunPSK"/);

@@ -726,7 +726,7 @@ function refreshCurriculumCatalogView() {
 function curriculumSubjectRailHtml(catalog, options = {}) {
   const subjects = options.scoreCompatibleOnly
     ? catalog.subjects.filter(subject => subject.scoreCompatible !== false)
-    : catalog.subjects;
+    : catalog.subjects.filter(subject => subject.available || !['physics', 'chemistry', 'biology'].includes(subject.id));
   return `<div class="curriculum-subject-rail" aria-label="เลือกกลุ่มสาระ">
     ${subjects.map(subject => {
       const active = subject.id === scoreCurriculumFilters.subjectId;
@@ -749,7 +749,11 @@ function renderMainCurriculumCatalog() {
     wrap.innerHTML = '<div class="score-empty-panel"><strong>ยังไม่พบข้อมูลหลักสูตร</strong><span>กรุณาเปิดหน้านี้ใหม่อีกครั้ง</span></div>';
     return;
   }
-  const subject = catalog.getSubject(scoreCurriculumFilters.subjectId);
+  let subject = catalog.getSubject(scoreCurriculumFilters.subjectId);
+  if (!subject.available && ['physics', 'chemistry', 'biology'].includes(subject.id)) {
+    scoreCurriculumFilters.subjectId = 'science';
+    subject = catalog.getSubject('science');
+  }
   if (!curriculumCatalogHydrationRequested && typeof supabaseClient !== 'undefined') {
     curriculumCatalogHydrationRequested = true;
     void catalog.loadFromSupabase(supabaseClient).then(updated => { if (updated && curriculumCatalogContext === 'main') renderMainCurriculumCatalog(); });
