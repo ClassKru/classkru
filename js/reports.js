@@ -679,17 +679,21 @@ function switchExcelImportTab(tab) {
 
 let directImportTargetClassId = null;
 let directExcelTourSuspended = false;
+let directStudentImportDraft = null;
 
 function triggerDirectClassExcelImport(classId) {
   directImportTargetClassId = classId;
   directExcelTourSuspended = typeof Tour !== 'undefined' && Tour && typeof Tour.suspend === 'function'
     ? Tour.suspend()
     : false;
+  const instruction = document.querySelector('#modal-direct-excel .bottom-sheet > p');
+  if (instruction) instruction.textContent = 'อัปโหลดไฟล์ Excel หรือ CSV ได้เลย ระบบจะช่วยหาแถวหัวตารางและจับคู่คอลัมน์ให้ จากนั้นตรวจตัวอย่างก่อนยืนยันนำเข้า';
   document.getElementById('modal-direct-excel').classList.add('show');
 }
 
 function closeDirectExcelModal() {
   document.getElementById('modal-direct-excel').classList.remove('show');
+  clearDirectStudentImportDraft();
   if (directExcelTourSuspended && typeof Tour !== 'undefined' && Tour && typeof Tour.resume === 'function') {
     directExcelTourSuspended = false;
     setTimeout(() => Tour.resume(), 60);
@@ -726,42 +730,17 @@ function handleDirectClassExcelUpload(event) {
   reader.onload = function(e) {
     try {
       const wb = XLSX.read(e.target.result, { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(ws, { header: 1 });
-      if (json.length < 2) { showToast('ไฟล์ไม่มีข้อมูล', 'warning'); return; }
-      
-      const headers = json[0].map(h => String(h || '').trim().toLowerCase());
-      let noIdx       = headers.findIndex(h => h.includes('เลขที่') || h.includes('ลำดับ') || h.includes('no'));
-      let codeIdx     = headers.findIndex(h => h.includes('รหัส') || h.includes('code') || h.includes('sid') || h === 'id');
-      let nameIdx     = headers.findIndex(h => h === 'ชื่อ' || h.includes('ชื่อ-') || h.includes('name'));
-      let lastnameIdx = headers.findIndex(h => h.includes('นามสกุล') || h.includes('last') || h.includes('surname'));
-
-      if (nameIdx === -1) {
-        showToast('ไม่พบคอลัมน์ "ชื่อ" ในไฟล์ Excel', 'warning'); return;
-      }
-
-      const targetClass = appState.classes.find(c => c.id === directImportTargetClassId);
-      if (!targetClass) return;
-
-      let added = 0;
-      json.slice(1).forEach(r => {
-        if (!r[nameIdx]) return;
-        let name = String(r[nameIdx]).trim();
-        if (lastnameIdx >= 0 && r[lastnameIdx]) name += ' ' + String(r[lastnameIdx]).trim();
-        const no = noIdx >= 0 ? (Number(r[noIdx]) || (targetClass.students.length + 1)) : (targetClass.students.length + 1);
-        const studentCode = codeIdx >= 0 ? String(r[codeIdx] || '').trim() : '';
-
-        // Skip only if same เลขที่ already exists (allow same name, different number)
-        if (noIdx >= 0 && targetClass.students.some(s => s.no === no)) return;
-
-        targetClass.students.push({ id: 's_' + Date.now() + Math.random().toString(36).substr(2, 5), name, no, studentCode, score: 0, comment: '' });
-        added++;
-      });
-      
-      saveState();
-      renderWebClassrooms();
-      refreshSwipeIfOpen();
-      showToast(`นำเข้านักเรียนเรียบร้อย ${added} คน`, 'success');
+      const sheets = wb.SheetNames.map(name => {
+        const grid = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: '', raw: false });
+        return { ...ClassKruStudentImport.detectTable(grid), sheetName: name };
+      }).filter(sheet => sheet.rows.length);
+      if (!sheets.length) { showToast('ไม่พบแถวข้อมูลนักเรียนในไฟล์นี้', 'warning'); return; }
+      directStudentImportDraft = {
+        ...ClassKruStudentImport.selectBestSheet(sheets),
+        fileName: file.name,
+        sheetOptions: sheets
+      };
+      renderDirectStudentImportReview(file.name);
     } catch (err) {
       showToast('อ่านไฟล์ไม่ได้: ' + err.message, 'error');
     } finally {
@@ -769,6 +748,157 @@ function handleDirectClassExcelUpload(event) {
     }
   };
   reader.readAsArrayBuffer(file);
+}
+
+function directStudentImportOptions(selected) {
+  return '<option value="">— ไม่ใช้ —</option>' + directStudentImportDraft.headers.map((header, index) =>
+    `<option value="${index}" ${selected !== undefined && selected !== null && selected !== '' && Number(selected) === index ? 'selected' : ''}>${escapeReportHtml(header)}</option>`
+  ).join('');
+}
+
+function directStudentImportColumn(field, label, selected, required = false) {
+  const options = directStudentImportOptions(selected);
+  return `<label style="display:grid;gap:5px;font-size:0.78rem;font-weight:700;color:var(--text-main);">${label}${required ? ' <span style="color:var(--text-muted)">*</span>' : ''}<select data-student-import-field="${field}" class="form-control" style="appearance:auto;min-width:0;">${options}</select></label>`;
+}
+
+function switchDirectStudentImportSheet(index) {
+  const draft = directStudentImportDraft;
+  const selected = draft?.sheetOptions?.[Number(index)];
+  if (!selected) return;
+  directStudentImportDraft = { ...selected, fileName: draft.fileName, sheetOptions: draft.sheetOptions };
+  renderDirectStudentImportReview(directStudentImportDraft.fileName);
+}
+
+function directStudentImportRecords() {
+  return ClassKruStudentImport.recordsFromTable(directStudentImportDraft);
+}
+
+function renderDirectStudentImportReview(fileName) {
+  const modal = document.querySelector('#modal-direct-excel .bottom-sheet');
+  if (!modal || !directStudentImportDraft) return;
+  let panel = document.getElementById('direct-student-import-review');
+  if (!panel) {
+    panel = document.createElement('section');
+    panel.id = 'direct-student-import-review';
+    panel.style.cssText = 'display:none;margin-top:16px;padding:14px;border:1px solid var(--border-color);border-radius:14px;background:var(--bg-card);';
+    document.getElementById('direct-excel-dropzone')?.after(panel);
+  }
+  const draft = directStudentImportDraft;
+  const mapping = draft.mapping;
+  const namesFound = mapping.fullName !== undefined || mapping.firstName !== undefined;
+  const headerDescription = draft.headerRow < 0
+    ? 'ไม่พบหัวตาราง จึงเดาคอลัมน์จากข้อมูล'
+    : `พบหัวตารางแถว ${draft.headerRow + 1}${draft.headerEndRow > draft.headerRow ? `–${draft.headerEndRow + 1}` : ''}`;
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;">
+      <div><strong style="font-size:1rem;">ตรวจรายชื่อก่อนนำเข้า</strong><div style="font-size:0.76rem;color:var(--text-muted);margin-top:3px;">${escapeReportHtml(fileName)} · ${draft.rows.length} แถวข้อมูล · ${headerDescription}</div></div>
+      <button class="btn btn-text" type="button" onclick="clearDirectStudentImportDraft()" aria-label="ปิดตัวอย่าง">ปิด</button>
+    </div>
+    ${draft.sheetOptions?.length > 1 ? `<label style="display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;margin-bottom:12px;font-size:0.78rem;font-weight:700;">ชีตในไฟล์<select class="form-control" onchange="switchDirectStudentImportSheet(this.value)">${draft.sheetOptions.map((sheet, index) => `<option value="${index}" ${sheet.sheetName === draft.sheetName ? 'selected' : ''}>${escapeReportHtml(sheet.sheetName)} · ${sheet.rows.length} แถว</option>`).join('')}</select></label>` : ''}
+    <p style="font-size:0.78rem;color:var(--text-muted);margin:0 0 12px;">เลือกคอลัมน์ชื่อได้ทั้งแบบชื่อ-นามสกุลช่องเดียว หรือแยกชื่อกับนามสกุล ระบบจะรวมชื่อให้ก่อนบันทึก</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin-bottom:12px;">
+      ${directStudentImportColumn('fullName', 'ชื่อ-นามสกุลช่องเดียว', mapping.fullName)}
+      ${directStudentImportColumn('firstName', 'ชื่อ', mapping.firstName, !namesFound)}
+      ${directStudentImportColumn('lastName', 'นามสกุล', mapping.lastName)}
+      ${directStudentImportColumn('title', 'คำนำหน้า', mapping.title)}
+      ${directStudentImportColumn('no', 'เลขที่', mapping.no)}
+      ${directStudentImportColumn('code', 'รหัสนักเรียน', mapping.code)}
+    </div>
+    <div id="direct-student-import-summary" style="font-size:0.8rem;margin:8px 0;color:var(--text-main);"></div>
+    <div style="max-height:230px;overflow:auto;border:1px solid var(--border-color);border-radius:10px;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.78rem;"><thead><tr style="position:sticky;top:0;background:var(--bg-light);"><th style="padding:8px;text-align:left;">เลขที่</th><th style="padding:8px;text-align:left;">ชื่อที่จะนำเข้า</th><th style="padding:8px;text-align:left;">รหัส</th><th style="padding:8px;text-align:left;">สถานะ</th></tr></thead><tbody id="direct-student-import-preview"></tbody></table>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+      <button type="button" class="btn" onclick="clearDirectStudentImportDraft()">ยกเลิก</button>
+      <button type="button" class="btn btn-primary" id="direct-student-import-confirm" onclick="confirmDirectStudentImport()">นำเข้ารายชื่อ</button>
+    </div>`;
+  panel.querySelectorAll('[data-student-import-field]').forEach(select => {
+    select.addEventListener('change', () => {
+      const field = select.dataset.studentImportField;
+      const value = select.value === '' ? undefined : Number(select.value);
+      if (field === 'fullName' && value !== undefined) {
+        draft.mapping.fullName = value;
+        draft.mapping.firstName = undefined;
+        draft.mapping.lastName = undefined;
+        panel.querySelector('[data-student-import-field="firstName"]').value = '';
+        panel.querySelector('[data-student-import-field="lastName"]').value = '';
+      } else {
+        draft.mapping[field] = value;
+        if ((field === 'firstName' || field === 'lastName') && value !== undefined) {
+          draft.mapping.fullName = undefined;
+          panel.querySelector('[data-student-import-field="fullName"]').value = '';
+        }
+      }
+      updateDirectStudentImportPreview();
+    });
+  });
+  updateDirectStudentImportPreview();
+}
+
+function updateDirectStudentImportPreview() {
+  const draft = directStudentImportDraft;
+  const tbody = document.getElementById('direct-student-import-preview');
+  const summary = document.getElementById('direct-student-import-summary');
+  const confirm = document.getElementById('direct-student-import-confirm');
+  if (!draft || !tbody || !summary || !confirm) return;
+  const targetClass = appState.classes.find(c => c.id === directImportTargetClassId);
+  const records = directStudentImportRecords();
+  const allNos = new Set((targetClass?.students || []).map(student => Number(student.no)).filter(Number.isFinite));
+  let nextGeneratedNo = Math.max(0, ...allNos);
+  let totalReady = 0, totalDuplicate = 0;
+  const resolved = records.map(record => {
+    let no = record.no;
+    if (!no) {
+      do { nextGeneratedNo++; } while (allNos.has(nextGeneratedNo));
+      no = nextGeneratedNo;
+    }
+    const isDuplicate = allNos.has(no);
+    if (isDuplicate) totalDuplicate++;
+    else { totalReady++; allNos.add(no); }
+    return { record, no, isDuplicate };
+  });
+  const preview = resolved.slice(0, 12).map(({ record, no, isDuplicate }) =>
+    `<tr><td style="padding:7px;border-top:1px solid var(--border-color);">${no}</td><td style="padding:7px;border-top:1px solid var(--border-color);">${escapeReportHtml(record.name)}</td><td style="padding:7px;border-top:1px solid var(--border-color);">${escapeReportHtml(record.studentCode || '—')}</td><td style="padding:7px;border-top:1px solid var(--border-color);color:${isDuplicate ? 'var(--text-muted)' : 'var(--primary)'};">${isDuplicate ? 'เลขที่ซ้ำ · ข้าม' : 'พร้อม'}</td></tr>`
+  ).join('');
+  const missingNameCount = draft.rows.length - records.length;
+  summary.textContent = `พร้อมนำเข้า ${totalReady} คน · ข้ามเลขที่ซ้ำ ${totalDuplicate} คน${missingNameCount ? ` · ไม่มีชื่อ ${missingNameCount} แถว` : ''}${records.length > 12 ? ` · แสดงตัวอย่าง 12 จาก ${records.length} คน` : ''}`;
+  tbody.innerHTML = preview || '<tr><td colspan="4" style="padding:12px;text-align:center;color:var(--text-muted);">ยังไม่พบชื่อ ลองเปลี่ยนคอลัมน์ชื่อด้านบน</td></tr>';
+  confirm.disabled = totalReady === 0;
+  confirm.style.opacity = totalReady === 0 ? '.55' : '1';
+}
+
+function clearDirectStudentImportDraft() {
+  directStudentImportDraft = null;
+  const panel = document.getElementById('direct-student-import-review');
+  if (panel) { panel.style.display = 'none'; panel.innerHTML = ''; }
+}
+
+function confirmDirectStudentImport() {
+  const targetClass = appState.classes.find(c => c.id === directImportTargetClassId);
+  if (!targetClass || !directStudentImportDraft) return;
+  const records = directStudentImportRecords();
+  const usedNos = new Set((targetClass.students || []).map(student => Number(student.no)).filter(Number.isFinite));
+  let nextNo = Math.max(0, ...usedNos);
+  let imported = 0, skipped = 0;
+  records.forEach(record => {
+    let no = record.no;
+    if (!no) {
+      do { nextNo++; } while (usedNos.has(nextNo));
+      no = nextNo;
+    }
+    if (usedNos.has(no)) { skipped++; return; }
+    usedNos.add(no);
+    targetClass.students.push({ id: 's_' + Date.now() + Math.random().toString(36).slice(2, 7), name: record.name, no, studentCode: record.studentCode, score: 0, comment: '' });
+    imported++;
+  });
+  if (!imported) { showToast('ไม่มีรายชื่อที่นำเข้าได้ กรุณาตรวจการจับคู่คอลัมน์', 'warning'); return; }
+  saveState();
+  renderWebClassrooms();
+  refreshSwipeIfOpen();
+  clearDirectStudentImportDraft();
+  closeDirectExcelModal();
+  showToast(`นำเข้าสำเร็จ ${imported} คน${skipped ? ` · ข้ามเลขที่ซ้ำ ${skipped} คน` : ''}`, 'success');
 }
 
 function handleExcelStudentsUpload(event) {
