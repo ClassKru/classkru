@@ -731,9 +731,10 @@ function curriculumSubjectRailHtml(catalog, options = {}) {
     ${subjects.map(subject => {
       const active = subject.id === scoreCurriculumFilters.subjectId;
       const count = subject.dataset?.indicators.length || 0;
+      const itemLabel = ['physics','chemistry','biology'].includes(subject.id) ? 'ผลการเรียนรู้' : 'ตัวชี้วัด';
       return `<button class="curriculum-subject-btn${active ? ' active' : ''}" type="button" onclick="setCurriculumCatalogSubject('${subject.id}')" aria-pressed="${active}">
         <span class="curriculum-subject-code">${subject.code}</span>
-        <span class="curriculum-subject-copy"><strong>${escapeScore(subject.shortName)}</strong><small>${subject.available ? `${count} ตัวชี้วัด` : 'รอเพิ่มข้อมูล'}</small></span>
+        <span class="curriculum-subject-copy"><strong>${escapeScore(subject.shortName)}</strong><small>${subject.available ? `${count} ${itemLabel}` : 'รอเพิ่มข้อมูล'}</small></span>
       </button>`;
     }).join('')}
   </div>`;
@@ -749,7 +750,7 @@ function renderMainCurriculumCatalog() {
     return;
   }
   const subject = catalog.getSubject(scoreCurriculumFilters.subjectId);
-  if (subject.id === 'guidance' && !curriculumCatalogHydrationRequested && typeof supabaseClient !== 'undefined') {
+  if (!curriculumCatalogHydrationRequested && typeof supabaseClient !== 'undefined') {
     curriculumCatalogHydrationRequested = true;
     void catalog.loadFromSupabase(supabaseClient).then(updated => { if (updated && curriculumCatalogContext === 'main') renderMainCurriculumCatalog(); });
   }
@@ -760,7 +761,7 @@ function renderMainCurriculumCatalog() {
   const standards = catalog.getStandards(subject.id, grade);
   const stats = catalog.getStats();
   wrap.innerHTML = `<section class="curriculum-browser main-curriculum-browser">
-    <header class="curriculum-browser-head"><div><span class="score-mode-label">ข้อมูลหลักสูตร</span><h3>คลังตัวชี้วัด</h3><p>อ่านรายละเอียดและค้นหาตัวชี้วัดจากฐานข้อมูล ClassKru</p></div><div class="curriculum-database-stat"><strong>${stats.indicators}</strong><span>ตัวชี้วัดพร้อมใช้</span></div></header>
+    <header class="curriculum-browser-head"><div><span class="score-mode-label">ข้อมูลหลักสูตร</span><h3>คลังตัวชี้วัดและผลการเรียนรู้</h3><p>อ่านรายละเอียดและค้นหาข้อมูลหลักสูตรจากฐานข้อมูล ClassKru</p></div><div class="curriculum-database-stat"><strong>${stats.indicators}</strong><span>รายการพร้อมใช้</span></div></header>
     ${curriculumSubjectRailHtml(catalog)}
     ${subject.available ? `<div class="curriculum-filter-bar">
       <label><span>ระดับชั้น</span><select onchange="setCurriculumCatalogFilter('grade',this.value)">${grades.map(value => `<option value="${value}"${value === grade ? ' selected' : ''}>${curriculumGradeLabel(value)}</option>`).join('')}</select></label>
@@ -1065,9 +1066,10 @@ function renderCurriculumCatalogResults(c, holderId = 'curriculum-catalog-result
   const results = catalog.search(scoreCurriculumFilters);
   const unitMap = new Map(catalog.getUnits(subject.id, scoreCurriculumFilters.grade).map(unit => [unit.id, unit]));
   const source = subject.dataset?.source;
+  const itemLabel = ['physics','chemistry','biology'].includes(subject.id) ? 'ผลการเรียนรู้' : 'ตัวชี้วัด';
 
   holder.innerHTML = `<div class="curriculum-results-head">
-    <div><strong>พบ ${results.length} ตัวชี้วัด</strong><span>${escapeScore(subject.name)} · ${curriculumGradeLabel(scoreCurriculumFilters.grade)}</span></div>
+    <div><strong>พบ ${results.length} ${itemLabel}</strong><span>${escapeScore(subject.name)} · ${curriculumGradeLabel(scoreCurriculumFilters.grade)}</span></div>
     ${source?.url ? `<a href="${source.url}" target="_blank" rel="noopener"><i class="hgi-stroke hgi-book-open-01"></i> เอกสารต้นฉบับ</a>` : ''}
   </div>
   ${source?.notice ? `<details class="curriculum-source-note"><summary><i class="hgi-stroke hgi-information-circle" aria-hidden="true"></i><span><strong>ที่มาและสถานะข้อมูล</strong><small>กดเพื่อดูรายละเอียดและเอกสารอ้างอิง</small></span><span class="curriculum-source-chevron" aria-hidden="true"></span></summary><div class="curriculum-source-details"><p>${escapeScore(source.notice)}</p>${(source.relatedSources || []).map(item => item.url ? `<a href="${escapeScoreAttr(item.url)}" target="_blank" rel="noopener">${escapeScore(item.title)} · ${escapeScore(item.publisher || '')}</a>` : '').join('')}</div></details>` : ''}
@@ -1079,7 +1081,7 @@ function renderCurriculumCatalogResults(c, holderId = 'curriculum-catalog-result
       <div class="curriculum-indicator-text"><p>${escapeScore(item.text)}</p><span><i class="hgi-stroke hgi-book-02"></i> ${escapeScore(unit?.title || 'ไม่ระบุหน่วย')} · ${escapeScore(standard?.strand || '')}</span></div>
       ${c ? `<button class="curriculum-readonly-badge curriculum-pick-btn" type="button" onclick="addScoreIndicatorBlock('${c.id}','${subject.id}','${item.id}')"><i class="hgi-stroke hgi-add-01"></i> เลือก</button>` : '<span class="curriculum-readonly-badge">ดูข้อมูล</span>'}
     </article>`;
-  }).join('')}</div>` : `<div class="curriculum-no-results"><i class="hgi-stroke hgi-search-01"></i><strong>ไม่พบตัวชี้วัด</strong><span>ลองเปลี่ยนหน่วย มาตรฐาน หรือคำค้นหา</span></div>`}`;
+  }).join('')}</div>` : `<div class="curriculum-no-results"><i class="hgi-stroke hgi-search-01"></i><strong>ไม่พบ${itemLabel}</strong><span>ลองเปลี่ยนหน่วย สาระ หรือคำค้นหา</span></div>`}`;
 }
 
 function quickScoreCompletion(sc, item, students) {
