@@ -3,7 +3,7 @@
    Desktop = สร้าง/ตรวจร่าง, Mobile = เลือกและสร้างให้จบทีละขั้น
    ========================================== */
 :root { --export-word:#2563eb; --export-word-bg:#f2f7ff; --export-word-border:#c9dcff; --export-word-hover:#e5efff; --export-word-focus:#2563eb55; --export-pdf:#c84640; --export-pdf-bg:#fff4f2; --export-pdf-border:#f2c7c3; --export-pdf-hover:#ffe9e6; --export-pdf-focus:#c8464055; --library-interactive:#6d5ce7; --library-interactive-bg:#f1efff; --library-interactive-border:#d9d2ff; --library-quiz:#3b82f6; --library-quiz-bg:#eff6ff; --library-quiz-border:#bfdbfe; --library-worksheet:#f59e0b; --library-worksheet-bg:#fffbeb; --library-worksheet-border:#fde68a; --library-plan:#8b5cf6; --library-plan-bg:#f5f3ff; --library-plan-border:#ddd6fe; }
-.cl-hero { position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:150px; box-sizing:border-box; padding:22px 30px; margin-bottom:14px; border-color:#cceee0; background:linear-gradient(125deg,#fff 0%,#f0fdf7 58%,#effbf7 100%); }
+.cl-hero { position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; min-height:112px; box-sizing:border-box; padding:18px 30px; margin-bottom:12px; border-color:#cceee0; background:linear-gradient(125deg,#fff 0%,#f0fdf7 58%,#effbf7 100%); }
 .cl-hero::after { content:''; position:absolute; right:-62px; top:-88px; width:240px; height:240px; border:34px solid rgba(29,158,117,.08); border-radius:50%; }
 .cl-hero-copy { position:relative; z-index:1; width:100%; text-align:center; }
 .cl-kicker { display:inline-flex; align-items:center; gap:6px; color:var(--primary); font-size:.8rem; font-weight:800; }
@@ -342,7 +342,7 @@
 .cl-danger-btn:hover { color:#fff; border-color:#b5473c; background:#b5473c; }
 
 @media (max-width:768px) {
-  .cl-hero { min-height:auto; padding:22px 19px; margin:-2px -2px 16px; }
+  .cl-hero { min-height:auto; padding:16px 19px; margin:-2px -2px 12px; }
   .cl-create-grid { grid-template-columns:1fr; }
   .cl-create-card { min-height:0; padding:17px; }
   .cl-create-icon { float:left; width:42px; height:42px; margin:0 13px 0 0; }
