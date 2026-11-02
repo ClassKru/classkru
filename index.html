@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f7f1ff">
+    <meta name="description" content="Math Wizard เกมผจญภัยดันเจี้ยนคณิตศาสตร์แบบ Isometric 2.5D">
+    <title>Math Wizard — Isometric Dungeon</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="page-heading">
+        <a class="brand-mark" href="../../index.html" aria-label="กลับไป ClassKru">✦</a>
+        <div>
+          <p class="eyebrow">CLASSKRU · MATH ADVENTURE</p>
+          <h1>Math Wizard <span>ห้องผจญภัยเวทมนตร์</span></h1>
+        </div>
+        <div class="offline-chip"><i></i> เล่นออฟไลน์</div>
+      </header>
+
+      <section class="game-shell" aria-label="เกม Math Wizard">
+        <div class="game-play-layout">
+        <div id="game-stage" class="game-stage">
+          <div id="game-canvas" class="game-canvas"></div>
+
+          <section class="hud-top" aria-label="สถานะผู้เล่น">
+            <div class="hud-card hero-card">
+              <div class="hero-avatar" aria-hidden="true">🧙🏻‍♂️</div>
+              <div class="hero-data">
+                <div class="hero-name-row"><strong>พ่อมดฝึกหัด</strong><span id="room-value">1</span></div>
+                <div class="meter-row"><span>HP</span><div class="meter hp-meter"><i id="player-hp-bar"></i></div><b id="player-hp-label">100 / 100</b></div>
+                <div class="meter-row"><span>MP</span><div class="meter mana-meter"><i id="mana-bar"></i></div><b id="mana-label">20 / 100</b></div>
+              </div>
+            </div>
+            <div class="hud-card run-card">
+              <div><span class="hud-caption">คะแนน</span><strong id="score-value">0</strong></div>
+              <div><span class="hud-caption">คอมโบ</span><strong><span id="combo-value">0</span><small> ✨</small></strong></div>
+              <div><span class="hud-caption">ห้อง</span><strong><span id="room-count">1</span><small> / 3</small></strong></div>
+            </div>
+          </section>
+
+          <div id="battle-status" class="battle-status" aria-live="polite">เตรียมตัวออกผจญภัย</div>
+          <section id="target-card" class="target-card" hidden aria-live="polite">
+            <div class="target-top"><span class="target-gem">✦</span><div><small>เป้าหมาย</small><strong id="target-name">สไลม์วุ้น</strong></div><span id="target-index">1 / 2</span></div>
+            <div class="target-meter"><i id="target-hp-bar"></i></div>
+            <small id="target-hp-label">48 / 48 HP</small>
+          </section>
+
+          <section id="intro-screen" class="screen-overlay">
+            <div class="intro-card">
+              <div class="intro-art" aria-hidden="true"><span class="sparkle">✦</span><span class="intro-wizard">🧙🏻‍♂️</span><span class="intro-slime">●</span><span class="sparkle sparkle-two">✧</span></div>
+              <p class="eyebrow">A LITTLE SPELL, A LITTLE MATH</p>
+              <h2>ประตูดันเจี้ยน<br><em>รอพ่อมดตัวจิ๋วอยู่!</em></h2>
+              <p class="intro-copy">ตอบโจทย์ให้ทันใน 10 วินาทีเพื่อสะสมมานาและคอมโบ แล้วใช้เวทบนแถบข้างสนามเพื่อช่วยเพื่อนตัวน้อยเปิดทางไปห้องถัดไป</p>
+              <div class="intro-meta"><span>🏰 3 ห้อง</span><span>🫧 มอนสเตอร์น่ารัก</span><span>📴 ไม่ต้องต่อเน็ต</span></div>
+              <button id="start-button" class="primary-button" type="button">เริ่มผจญภัย <span>→</span></button>
+              <p class="intro-controls">คลิกคำตอบหรือใช้ลูกศรแล้ว Enter · E/R/T ร่ายเวท · คลิกมอนสเตอร์เลือกเป้าหมาย · WASD เดิน · Space หลบ · เดินเข้าประตูหลังเคลียร์ห้อง</p>
+            </div>
+          </section>
+
+          <section id="end-screen" class="screen-overlay" hidden>
+            <div class="intro-card end-card">
+              <div id="end-emblem" class="end-emblem">🌟</div>
+              <p id="end-kicker" class="eyebrow">DUNGEON CLEAR</p>
+              <h2 id="end-title">เก่งมาก พ่อมดน้อย!</h2>
+              <p id="end-message" class="intro-copy">เคลียร์ครบทุกห้องแล้ว</p>
+              <div class="end-score">คะแนนรอบนี้ <strong id="final-score">0</strong></div>
+              <button id="restart-button" class="primary-button" type="button">เล่นอีกครั้ง <span>↻</span></button>
+            </div>
+          </section>
+
+          <div class="quick-actions">
+            <button id="door-button" class="action-button door-action" type="button"><span>🚪</span><b>เข้าประตู</b></button>
+            <button id="dodge-button" class="action-button dodge-action" type="button"><span>💨</span><b>หลบ</b><kbd>Space</kbd></button>
+            <button id="target-button" class="action-button target-action" type="button"><span>🎯</span><b>เป้าหมาย</b><kbd>Tab</kbd></button>
+            <button id="basic-button" class="action-button basic-action" type="button"><span>🪄</span><b>ไม้เท้า</b><kbd>Q</kbd></button>
+          </div>
+
+          <div class="touch-controls" aria-label="ปุ่มควบคุมบนจอสัมผัส">
+            <div class="touch-pad">
+              <button data-move="up" aria-label="เดินขึ้น">▲</button>
+              <button data-move="left" aria-label="เดินซ้าย">◀</button>
+              <button data-move="down" aria-label="เดินลง">▼</button>
+              <button data-move="right" aria-label="เดินขวา">▶</button>
+            </div>
+            <div class="touch-spells"><button id="touch-dodge" type="button">✧<br><small>หลบ</small></button></div>
+          </div>
+        </div>
+          <aside class="game-sidebar" aria-label="โจทย์และเวทมนตร์">
+            <section id="question-panel" class="question-panel" hidden aria-labelledby="question-title">
+              <div class="modal-card question-card">
+                <div class="modal-kicker"><span class="kicker-icon">✦</span><span id="question-room-label">คัมภีร์คณิตศาสตร์</span><span id="question-timer" class="question-timer">10.0</span></div>
+                <div class="timer-track"><i id="timer-bar"></i></div>
+                <h2 id="question-title">โจทย์สุ่ม</h2>
+                <p id="question-text" class="question-text">8 + 7 = ?</p>
+                <p id="question-help" class="question-help">คลิกตอบ หรือใช้ลูกศรแล้ว Enter</p>
+                <div id="answer-grid" class="answer-grid">
+                  <button class="answer-button" data-answer="0" type="button"><kbd>1</kbd><span>·</span></button>
+                  <button class="answer-button" data-answer="1" type="button"><kbd>2</kbd><span>·</span></button>
+                  <button class="answer-button" data-answer="2" type="button"><kbd>3</kbd><span>·</span></button>
+                  <button class="answer-button" data-answer="3" type="button"><kbd>4</kbd><span>·</span></button>
+                </div>
+                <p id="question-feedback" class="question-feedback" hidden aria-live="polite"></p>
+              </div>
+            </section>
+            <section id="attack-bar" class="attack-bar" aria-label="แถบโจมตีด้วยเวทมนตร์">
+              <div class="attack-label"><strong>แถบโจมตี · E R T</strong><small id="attack-help">เลือกเวทแล้วกดปุ่มหรือคลิก</small></div>
+              <div class="attack-actions">
+                <button class="attack-choice" data-spell="fireball" type="button" disabled><span>🔥</span><strong>Fireball <kbd>E</kbd></strong><small>เดี่ยว · 30 MP</small></button>
+                <button class="attack-choice" data-spell="lightning" type="button" disabled><span>⚡</span><strong>Lightning <kbd>R</kbd></strong><small>สายฟ้าเชื่อม · 50 MP</small></button>
+                <button class="attack-choice" data-spell="meteor" type="button" disabled><span>☄️</span><strong>Meteor <kbd>T</kbd></strong><small>วงกว้าง · 100 MP</small></button>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <footer class="page-footer">
+        <span>คณิตศาสตร์ · จินตนาการ · เวทมนตร์</span>
+        <span>สถิติรอบนี้จะหายเมื่อปิดเกม</span>
+      </footer>
+    </main>
+    <script src="./vendor/phaser.min.js"></script>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
