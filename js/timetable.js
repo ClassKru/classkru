@@ -156,114 +156,51 @@ function switchMobilePeriodSlot() {
 }
 
 // ==================== PERIOD SETTINGS MODAL ====================
-let _psCustomDur = 50;
-let _psCustomBreak = 10;
-
 function openPeriodSettings() {
   const ps = appState.periodSettings || { startTime:'08:30', duration:50, breakTime:0, count:7 };
-  _psCustomDur = ps.duration;
   document.getElementById('ps-start-time').value = ps.startTime;
+  document.getElementById('ps-duration').value = ps.duration;
+  document.getElementById('ps-break').value = ps.breakTime;
   document.getElementById('ps-count').value = ps.count;
-
-  // Select duration chip
-  document.querySelectorAll('.ps-dur-chip').forEach(c => {
-    c.classList.toggle('active', Number(c.dataset.val) === ps.duration);
-  });
-  // Show custom input only if not preset
-  const presets = [45, 50, 55, 60];
-  document.getElementById('ps-custom-dur-wrap').style.display = presets.includes(ps.duration) ? 'none' : 'flex';
-  document.getElementById('ps-custom-dur').value = ps.duration;
-
-  // Select break chip
-  const breakPresets = [0, 5, 10, 15];
-  const savedBreak = Number(ps.breakTime) || 0;
-  const hasCustomBreak = !breakPresets.includes(savedBreak);
-  if (hasCustomBreak) _psCustomBreak = savedBreak;
-  document.querySelectorAll('.ps-brk-chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.val === 'custom' ? hasCustomBreak : Number(c.dataset.val) === savedBreak);
-  });
-  document.getElementById('ps-custom-break-wrap').style.display = hasCustomBreak ? 'flex' : 'none';
-  document.getElementById('ps-custom-break').value = _psCustomBreak;
-
   document.getElementById('modal-period-settings').classList.add('show');
   renderPeriodPreview();
 }
-
-function closePeriodSettings() {
-  document.getElementById('modal-period-settings').classList.remove('show');
+function closePeriodSettings() { document.getElementById('modal-period-settings').classList.remove('show'); }
+function readPeriodSettings() {
+  const startTime = document.getElementById('ps-start-time').value;
+  const inputs = ['ps-duration','ps-break','ps-count'].map(id => document.getElementById(id).value);
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(startTime) || inputs.some(v => !/^\d+$/.test(v))) return null;
+  const [duration, breakTime, count] = inputs.map(Number);
+  if (duration < 10 || duration > 120 || breakTime < 0 || breakTime > 120 || count < 1 || count > 16) return null;
+  const [hour, minute] = startTime.split(':').map(Number);
+  if (hour * 60 + minute + duration * count + breakTime * (count - 1) > 1439) return null;
+  return { startTime, duration, breakTime, count };
 }
-
-function selectPsDuration(val, el) {
-  document.querySelectorAll('.ps-dur-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  if (val === 'custom') {
-    document.getElementById('ps-custom-dur-wrap').style.display = 'flex';
-  } else {
-    _psCustomDur = val;
-    document.getElementById('ps-custom-dur-wrap').style.display = 'none';
-    document.getElementById('ps-custom-dur').value = val;
-  }
-  renderPeriodPreview();
-}
-
-function selectPsBreak(val, el) {
-  document.querySelectorAll('.ps-brk-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('ps-custom-break-wrap').style.display = val === 'custom' ? 'flex' : 'none';
-  renderPeriodPreview();
-}
-
-function adjustPsCount(delta) {
-  const el = document.getElementById('ps-count');
-  let v = Math.max(1, Math.min(16, Number(el.value) + delta));
-  el.value = v;
-  renderPeriodPreview();
-}
-
-function getSelectedPsBreak() {
-  const activeBreak = document.querySelector('.ps-brk-chip.active');
-  if (!activeBreak) return 0;
-  if (activeBreak.dataset.val !== 'custom') return Number(activeBreak.dataset.val) || 0;
-  const customValue = Number(document.getElementById('ps-custom-break').value);
-  return Number.isFinite(customValue) && customValue > 0 ? Math.max(1, Math.min(120, Math.round(customValue))) : 10;
-}
-
 function renderPeriodPreview() {
-  const startTime = document.getElementById('ps-start-time').value || '08:00';
-  const customVal = Number(document.getElementById('ps-custom-dur').value) || 50;
-  const activeDur = document.querySelector('.ps-dur-chip.active');
-  const dur = activeDur ? (activeDur.dataset.val === 'custom' ? customVal : Number(activeDur.dataset.val)) : 50;
-  const brk = getSelectedPsBreak();
-  const count = Number(document.getElementById('ps-count').value) || 7;
-
-  const [h, m] = startTime.split(':').map(Number);
-  let cur = h * 60 + m;
-  let html = '';
-  for (let i = 1; i <= count; i++) {
-    const sH = Math.floor(cur/60), sM = cur % 60;
-    const end = cur + dur;
-    const eH = Math.floor(end/60), eM = end % 60;
-    const sStr = `${String(sH).padStart(2,'0')}:${String(sM).padStart(2,'0')}`;
-    const eStr = `${String(eH).padStart(2,'0')}:${String(eM).padStart(2,'0')}`;
-    html += `<div class="ps-preview-row"><span class="ps-preview-num">คาบ ${i}</span><span class="ps-preview-time">${sStr}–${eStr}</span></div>`;
-    cur = end + brk;
-  }
-  document.getElementById('ps-preview').innerHTML = html;
+  const ps = readPeriodSettings();
+  const preview = document.getElementById('ps-preview');
+  const error = document.getElementById('ps-settings-error');
+  document.getElementById('ps-save').disabled = !ps;
+  if (!ps) { preview.innerHTML = ''; error.textContent = 'ตรวจสอบเวลาและจำนวนคาบ โดยคาบสุดท้ายต้องสิ้นสุดภายในวันเดียวกัน'; return; }
+  error.textContent = '';
+  const [h,m] = ps.startTime.split(':').map(Number);
+  const format = n => `${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
+  let current = h * 60 + m;
+  preview.innerHTML = Array.from({length:ps.count}, (_,i) => {
+    const start = current, end = start + ps.duration;
+    current = end + ps.breakTime;
+    return `<div class="ps-preview-row"><span class="ps-preview-num">คาบ ${i+1}</span><span class="ps-preview-time">${format(start)}–${format(end)}</span></div>`;
+  }).join('');
 }
-
 function savePeriodSettings() {
-  const startTime = document.getElementById('ps-start-time').value || '08:00';
-  const customVal = Number(document.getElementById('ps-custom-dur').value) || 50;
-  const activeDur = document.querySelector('.ps-dur-chip.active');
-  const duration = activeDur ? (activeDur.dataset.val === 'custom' ? customVal : Number(activeDur.dataset.val)) : 50;
-  const breakTime = getSelectedPsBreak();
-  const count = Math.max(1, Math.min(16, Number(document.getElementById('ps-count').value) || 7));
-
-  appState.periodSettings = { startTime, duration, breakTime, count };
+  const ps = readPeriodSettings();
+  if (!ps) { renderPeriodPreview(); return; }
+  const hidden = (appState.timetable || []).filter(item => Number(item.period) > ps.count).length;
+  if (hidden && !confirm(`มีคาบสอน ${hidden} รายการที่อยู่นอกจำนวนคาบใหม่ รายการเหล่านี้จะไม่แสดงในตาราง แต่ยังเก็บไว้และจะแสดงอีกเมื่อเพิ่มจำนวนคาบ ต้องการบันทึกหรือไม่?`)) return;
+  appState.periodSettings = ps;
   saveState();
   closePeriodSettings();
   renderWebTimetable();
-  // Also re-render home if active
   if (appState.activeWebScreen === 'dashboard') renderWebDashboard();
 }
 

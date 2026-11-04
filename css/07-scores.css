@@ -1956,3 +1956,17 @@ button.score-report-band-card:focus-visible { outline: 2px solid var(--primary);
 .msc-nav-btn:active { transform: scale(0.98); }
 .msc-nav-btn:disabled { opacity: 0.38; cursor: default; transform: none; }
 .msc-nav-pos { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+/* Compact period settings */
+.ps-settings-sheet { width:500px; max-width:95vw; max-height:90vh; overflow-y:auto; }
+.ps-settings-intro, .ps-settings-hint { color:var(--text-muted); font-size:.82rem; line-height:1.5; }
+.ps-settings-intro { margin:0 0 18px; }
+.ps-settings-hint { margin:0 0 12px; }
+.ps-settings-fields { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.ps-settings-fields .form-group { min-width:0; }
+.ps-settings-fields label { display:block; min-height:2.5em; }
+.ps-settings-fields input { width:100%; min-width:0; }
+.ps-preview-title { font-size:.8rem; font-weight:800; color:var(--primary); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.ps-settings-error { color:var(--color-absent); font-size:.8rem; min-height:1em; }
+.ps-settings-actions { display:flex; justify-content:flex-end; gap:10px; margin-top:14px; }
+@media (max-width:420px) { .ps-settings-fields { gap:6px; } .ps-settings-fields label { font-size:.75rem; } .ps-settings-fields input { padding-left:8px; padding-right:4px; } .ps-settings-actions .btn { flex:1; } }

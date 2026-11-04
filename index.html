@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="css/04-modal-misc.css?v=560">
   <link rel="stylesheet" href="css/05-home.css?v=560">
   <link rel="stylesheet" href="css/06-attendance.css?v=560">
-  <link rel="stylesheet" href="css/07-scores.css?v=560">
+  <link rel="stylesheet" href="css/07-scores.css?v=561">
   <link rel="stylesheet" href="css/pp5.css?v=560">
   <link rel="stylesheet" href="css/08-responsive-toast.css?v=560">
     <link rel="stylesheet" href="css/09-games.css?v=560">
@@ -1409,65 +1409,19 @@
 
   <!-- PERIOD SETTINGS MODAL -->
   <div class="modal-overlay" id="modal-period-settings" onclick="if(event.target===this) closePeriodSettings()">
-    <div class="bottom-sheet" style="width:500px;max-width:95vw;max-height:90vh;overflow-y:auto;">
-      <div class="modal-header">
-        <h3><i class="hgi-stroke hgi-clock-01" style="color:var(--primary);"></i> ตั้งค่าคาบเรียน</h3>
-        <button class="btn btn-text" onclick="closePeriodSettings()"><i class="hgi-stroke hgi-cancel-01"></i></button>
+    <div class="bottom-sheet ps-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="ps-settings-title">
+      <div class="modal-header"><h3 id="ps-settings-title"><i class="hgi-stroke hgi-clock-01" style="color:var(--primary);"></i> ตั้งเวลาคาบเรียน</h3><button type="button" class="btn btn-text" onclick="closePeriodSettings()" aria-label="ปิด"><i class="hgi-stroke hgi-cancel-01"></i></button></div>
+      <p class="ps-settings-intro">ตั้งครั้งเดียว แล้วดูตัวอย่างเวลาทุกคาบได้เลย</p>
+      <div class="form-group"><label for="ps-start-time">เวลาเริ่มคาบแรก</label><input type="time" id="ps-start-time" class="form-control" oninput="renderPeriodPreview()"></div>
+      <div class="ps-settings-fields">
+        <div class="form-group"><label for="ps-duration">คาบละ (นาที)</label><input type="number" id="ps-duration" class="form-control" min="10" max="120" step="1" inputmode="numeric" oninput="renderPeriodPreview()"></div>
+        <div class="form-group"><label for="ps-break">พักระหว่างคาบ (นาที)</label><input type="number" id="ps-break" class="form-control" min="0" max="120" step="1" inputmode="numeric" oninput="renderPeriodPreview()"></div>
+        <div class="form-group"><label for="ps-count">จำนวนคาบ</label><input type="number" id="ps-count" class="form-control" min="1" max="16" step="1" inputmode="numeric" oninput="renderPeriodPreview()"></div>
       </div>
-
-      <div class="form-group">
-        <label for="ps-start-time">เวลาเริ่มคาบแรก</label>
-        <input type="time" id="ps-start-time" class="form-control" value="08:30" oninput="renderPeriodPreview()">
-      </div>
-
-      <div class="form-group">
-        <label>ความยาวแต่ละคาบ (นาที)</label>
-        <div class="ps-chip-group">
-          <button class="ps-chip ps-dur-chip" data-val="45" onclick="selectPsDuration(45,this)">45 นาที</button>
-          <button class="ps-chip ps-dur-chip active" data-val="50" onclick="selectPsDuration(50,this)">50 นาที</button>
-          <button class="ps-chip ps-dur-chip" data-val="55" onclick="selectPsDuration(55,this)">55 นาที</button>
-          <button class="ps-chip ps-dur-chip" data-val="60" onclick="selectPsDuration(60,this)">60 นาที</button>
-          <button class="ps-chip ps-dur-chip" data-val="custom" onclick="selectPsDuration('custom',this)">กำหนดเอง</button>
-        </div>
-        <div id="ps-custom-dur-wrap" style="display:none;align-items:center;gap:8px;margin-top:10px;">
-          <input type="number" id="ps-custom-dur" class="form-control" style="width:90px;" min="10" max="120" value="50" oninput="renderPeriodPreview()">
-          <span style="font-size:0.82rem;color:var(--text-muted);"> นาที</span>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>พักระหว่างคาบ (นาที)</label>
-        <div class="ps-chip-group">
-          <button class="ps-chip ps-brk-chip active" data-val="0" onclick="selectPsBreak(0,this)">ไม่มี</button>
-          <button class="ps-chip ps-brk-chip" data-val="5" onclick="selectPsBreak(5,this)">5 นาที</button>
-          <button class="ps-chip ps-brk-chip" data-val="10" onclick="selectPsBreak(10,this)">10 นาที</button>
-          <button class="ps-chip ps-brk-chip" data-val="15" onclick="selectPsBreak(15,this)">15 นาที</button>
-          <button class="ps-chip ps-brk-chip" data-val="custom" onclick="selectPsBreak('custom',this)">กำหนดเอง</button>
-        </div>
-        <div id="ps-custom-break-wrap" style="display:none;align-items:center;gap:8px;margin-top:10px;">
-          <input type="number" id="ps-custom-break" class="form-control" style="width:90px;" min="1" max="120" step="1" value="10" oninput="renderPeriodPreview()">
-          <span style="font-size:0.82rem;color:var(--text-muted);"> นาที</span>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>จำนวนคาบต่อวัน</label>
-        <div class="ps-count-control">
-          <button class="ps-count-btn" onclick="adjustPsCount(-1)">−</button>
-          <input type="number" id="ps-count" class="ps-count-input" min="1" max="16" value="7" oninput="renderPeriodPreview()">
-          <button class="ps-count-btn plus" onclick="adjustPsCount(1)">+</button>
-        </div>
-      </div>
-
-      <div class="ps-preview-box">
-        <div style="font-size:0.78rem;font-weight:800;color:var(--primary);margin-bottom:10px;letter-spacing:0.3px;display:flex;align-items:center;gap:6px;"><i class="hgi-stroke hgi-clock-01"></i> ตัวอย่างเวลาคาบ</div>
-        <div id="ps-preview"></div>
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:20px;">
-        <button class="btn" style="flex:1;" onclick="closePeriodSettings()">ยกเลิก</button>
-        <button class="btn btn-primary" style="flex:2;" onclick="savePeriodSettings()">บันทึก</button>
-      </div>
+      <p class="ps-settings-hint">พักระหว่างคาบจะใช้เท่ากันทุกคาบ</p>
+      <div class="ps-preview-box"><div class="ps-preview-title"><i class="hgi-stroke hgi-clock-01"></i> ตัวอย่างเวลาคาบ</div><div id="ps-preview" aria-live="polite"></div></div>
+      <p class="ps-settings-error" id="ps-settings-error" role="alert"></p>
+      <div class="ps-settings-actions"><button type="button" class="btn" onclick="closePeriodSettings()">ยกเลิก</button><button type="button" id="ps-save" class="btn btn-primary" onclick="savePeriodSettings()">บันทึก</button></div>
     </div>
   </div>
 
@@ -1593,7 +1547,7 @@
   <script defer src="js/dashboard.js?v=560"></script>
   <script defer src="js/classrooms.js?v=560"></script>
   <script defer src="js/students.js?v=560"></script>
-  <script defer src="js/timetable.js?v=560"></script>
+  <script defer src="js/timetable.js?v=561"></script>
   <script defer src="js/student-import.js?v=560"></script>
   <script defer src="js/reports.js?v=560"></script>
   <script defer src="js/attendance.js?v=560"></script>
