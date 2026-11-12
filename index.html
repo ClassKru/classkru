@@ -19,27 +19,27 @@
   <meta property="og:image:height" content="1024">
   <meta property="og:image:alt" content="โลโก้ ClassKru">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="css/01-base-layout.css?v=560">
-  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=560">
-  <link rel="stylesheet" href="css/03-reports.css?v=560">
-  <link rel="stylesheet" href="css/04-modal-misc.css?v=560">
-  <link rel="stylesheet" href="css/05-home.css?v=560">
-  <link rel="stylesheet" href="css/06-attendance.css?v=560">
-  <link rel="stylesheet" href="css/07-scores.css?v=561">
-  <link rel="stylesheet" href="css/pp5.css?v=560">
-  <link rel="stylesheet" href="css/08-responsive-toast.css?v=560">
-    <link rel="stylesheet" href="css/09-games.css?v=560">
-  <link rel="stylesheet" href="css/10-help.css?v=560">
-  <link rel="stylesheet" href="css/11-public-help.css?v=560">
-  <link rel="stylesheet" href="css/12-qr-scores.css?v=560">
-  <link rel="stylesheet" href="css/media-studio.css?v=560">
-  <link rel="stylesheet" href="css/13-content-library.css?v=560">
-  <link rel="stylesheet" href="css/15-subscription.css?v=560">
-  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/16-classkru-ai-launcher.css?v=560">
-  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/17-classkru-ai-panel.css?v=560">
-  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/18-classkru-ai-brief-selector.css?v=560">
-  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/19-classkru-ai-model-selector.css?v=560">
-  <link rel="stylesheet" href="css/login.css?v=560">
+  <link rel="stylesheet" href="css/01-base-layout.css?v=562">
+  <link rel="stylesheet" href="css/02-dashboard-tables.css?v=562">
+  <link rel="stylesheet" href="css/03-reports.css?v=562">
+  <link rel="stylesheet" href="css/04-modal-misc.css?v=562">
+  <link rel="stylesheet" href="css/05-home.css?v=562">
+  <link rel="stylesheet" href="css/06-attendance.css?v=562">
+  <link rel="stylesheet" href="css/07-scores.css?v=562">
+  <link rel="stylesheet" href="css/pp5.css?v=562">
+  <link rel="stylesheet" href="css/08-responsive-toast.css?v=562">
+    <link rel="stylesheet" href="css/09-games.css?v=562">
+  <link rel="stylesheet" href="css/10-help.css?v=562">
+  <link rel="stylesheet" href="css/11-public-help.css?v=562">
+  <link rel="stylesheet" href="css/12-qr-scores.css?v=562">
+  <link rel="stylesheet" href="css/media-studio.css?v=562">
+  <link rel="stylesheet" href="css/13-content-library.css?v=562">
+  <link rel="stylesheet" href="css/15-subscription.css?v=562">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/16-classkru-ai-launcher.css?v=562">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/17-classkru-ai-panel.css?v=562">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/18-classkru-ai-brief-selector.css?v=562">
+  <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/19-classkru-ai-model-selector.css?v=562">
+  <link rel="stylesheet" href="css/login.css?v=562">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -122,7 +122,7 @@
       <div class="ck-login-heading"><h2 id="auth-heading">เข้าสู่ระบบ</h2><p>เช็กชื่อไว จัดการห้องเรียนง่าย</p></div>
 
       <!-- Card form -->
-      <div class="ck-login-card" style="display:flex;flex-direction:column;gap:14px;">
+      <div class="ck-login-card" style="display:flex;flex-direction:column;gap:11px;">
 
         <!-- Tabs: เข้าสู่ระบบ / สมัครใหม่ — ให้ครูเห็นด้วยตาว่าอยู่โหมดไหน -->
         <div class="ck-auth-tabs" role="tablist" aria-label="ประเภทบัญชี">
@@ -163,6 +163,21 @@
         <!-- ลืมรหัสผ่าน (โหมดเข้าสู่ระบบ) -->
         <div id="forgot-pw-wrap" style="font-size:0.85rem;color:var(--text-muted);text-align:center;">
           <button type="button" onclick="sendPasswordReset()">ลืมรหัสผ่าน?</button>
+        </div>
+
+        <div class="ck-login-social-follow" aria-label="ช่องทางติดต่อและติดตาม ClassKru">
+          <span>ติดต่อหรือติดตาม ClassKru</span>
+          <div class="ck-login-social-links">
+            <a href="https://line.me/R/ti/p/@731idhsu" target="_blank" rel="noopener" aria-label="ติดต่อผ่าน LINE">
+              <img src="https://cdn.simpleicons.org/line/00b900" alt="" width="30" height="30">
+            </a>
+            <a href="https://www.facebook.com/share/1C847iKL1p/?mibextid=wwXIfr" target="_blank" rel="noopener" aria-label="ติดตาม ClassKru บน Facebook">
+              <img src="https://cdn.simpleicons.org/facebook/1877f2" alt="" width="30" height="30">
+            </a>
+            <a href="https://www.tiktok.com/@classkru.admin" target="_blank" rel="noopener" aria-label="ติดตาม ClassKru บน TikTok">
+              <img src="https://cdn.simpleicons.org/tiktok/111827" alt="" width="30" height="30">
+            </a>
+          </div>
         </div>
 
         <!-- หมายเหตุโหมดสมัคร -->
@@ -1540,43 +1555,43 @@
   <input type="file" id="direct-class-excel-input" style="display:none;" accept=".xlsx, .xls, .csv" onchange="handleDirectClassExcelUpload(event)">
 
   <!-- แยกไฟล์ตามหน้า (ดู OWNERSHIP.md) — ลำดับสำคัญ: core.js ต้องมาก่อน (มีตัวแปร/ค่าคงที่รวม) -->
-  <script defer src="js/core.js?v=560"></script>
-  <script defer src="js/relational-sync.js?v=560"></script>
-  <script defer src="js/auth.js?v=560"></script>
-  <script defer src="js/shell.js?v=560"></script>
-  <script defer src="js/dashboard.js?v=560"></script>
-  <script defer src="js/classrooms.js?v=560"></script>
-  <script defer src="js/students.js?v=560"></script>
-  <script defer src="js/timetable.js?v=561"></script>
-  <script defer src="js/student-import.js?v=560"></script>
-  <script defer src="js/reports.js?v=560"></script>
-  <script defer src="js/attendance.js?v=560"></script>
-  <script defer src="js/curriculum-thai-2551.js?v=560"></script>
-  <script defer src="js/curriculum-math-2560.js?v=560"></script>
-  <script defer src="js/curriculum-science-2560.js?v=560"></script>
-  <script defer src="js/curriculum-social-2560.js?v=560"></script>
-  <script defer src="js/curriculum-health-2551.js?v=560"></script>
-  <script defer src="js/curriculum-art-2551.js?v=560"></script>
-  <script defer src="js/curriculum-career-2551.js?v=560"></script>
-  <script defer src="js/curriculum-foreign-2551.js?v=560"></script>
-  <script defer src="js/curriculum-guidance-2559.js?v=560"></script>
-  <script defer src="js/curriculum-catalog.js?v=560"></script>
-  <script defer src="js/worksheet-layout.js?v=560"></script>
-  <script defer src="js/content-library.js?v=560"></script>
-  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-actions.js?v=560"></script>
-  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-panel.js?v=560"></script>
-  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-launcher.js?v=560"></script>
-  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-brief-selector.js?v=560"></script>
-  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-model-selector.js?v=560"></script>
-  <script defer src="js/subscription.js?v=560"></script>
-  <script defer src="js/scores.js?v=560"></script>
-  <script defer src="js/pp5.js?v=560"></script>
-  <script defer src="js/qr-scores.js?v=560"></script>
-  <script defer src="js/tools.js?v=560"></script>
-  <script defer src="js/games.js?v=560"></script>
-  <script defer src="js/media-studio.js?v=560"></script>
-  <script defer src="js/shared-utils.js?v=560"></script>
-  <script defer src="js/extras.js?v=560"></script>
-  <script defer src="js/help.js?v=560"></script>
+  <script defer src="js/core.js?v=562"></script>
+  <script defer src="js/relational-sync.js?v=562"></script>
+  <script defer src="js/auth.js?v=562"></script>
+  <script defer src="js/shell.js?v=562"></script>
+  <script defer src="js/dashboard.js?v=562"></script>
+  <script defer src="js/classrooms.js?v=562"></script>
+  <script defer src="js/students.js?v=562"></script>
+  <script defer src="js/timetable.js?v=562"></script>
+  <script defer src="js/student-import.js?v=562"></script>
+  <script defer src="js/reports.js?v=562"></script>
+  <script defer src="js/attendance.js?v=562"></script>
+  <script defer src="js/curriculum-thai-2551.js?v=562"></script>
+  <script defer src="js/curriculum-math-2560.js?v=562"></script>
+  <script defer src="js/curriculum-science-2560.js?v=562"></script>
+  <script defer src="js/curriculum-social-2560.js?v=562"></script>
+  <script defer src="js/curriculum-health-2551.js?v=562"></script>
+  <script defer src="js/curriculum-art-2551.js?v=562"></script>
+  <script defer src="js/curriculum-career-2551.js?v=562"></script>
+  <script defer src="js/curriculum-foreign-2551.js?v=562"></script>
+  <script defer src="js/curriculum-guidance-2559.js?v=562"></script>
+  <script defer src="js/curriculum-catalog.js?v=562"></script>
+  <script defer src="js/worksheet-layout.js?v=562"></script>
+  <script defer src="js/content-library.js?v=562"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-actions.js?v=562"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-panel.js?v=562"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-launcher.js?v=562"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-brief-selector.js?v=562"></script>
+  <script defer src="classkru%20ai%20chat/frontend/js/classkru-ai-model-selector.js?v=562"></script>
+  <script defer src="js/subscription.js?v=562"></script>
+  <script defer src="js/scores.js?v=562"></script>
+  <script defer src="js/pp5.js?v=562"></script>
+  <script defer src="js/qr-scores.js?v=562"></script>
+  <script defer src="js/tools.js?v=562"></script>
+  <script defer src="js/games.js?v=562"></script>
+  <script defer src="js/media-studio.js?v=562"></script>
+  <script defer src="js/shared-utils.js?v=562"></script>
+  <script defer src="js/extras.js?v=562"></script>
+  <script defer src="js/help.js?v=562"></script>
 </body>
 </html>
