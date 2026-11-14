@@ -421,6 +421,45 @@
   text-underline-offset: 3px;
 }
 
+.ck-login-social-follow {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  margin-top: -3px;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.ck-login-social-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ck-login-social-links a {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.ck-login-social-links a:hover,
+.ck-login-social-links a:focus-visible {
+  transform: translateY(-2px);
+  background: rgba(29, 158, 117, 0.07);
+}
+
+.ck-login-social-links img {
+  display: block;
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
 .ck-demo-link {
   display: flex;
   align-items: center;
@@ -543,6 +582,68 @@
 @media (min-width: 481px) {
   .ck-login-social {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-height: 900px) and (min-width: 481px) {
+  #login-overlay.ck-login-stage {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .ck-login-shell {
+    padding-top: 0;
+    padding-bottom: 2px;
+  }
+
+  .ck-login-brand {
+    margin-bottom: 6px;
+  }
+
+  .ck-login-card {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  .ck-login-heading {
+    margin-bottom: 8px;
+  }
+
+  .ck-login-divider {
+    margin-top: 8px;
+    margin-bottom: 7px;
+  }
+
+  .ck-login-fields {
+    gap: 7px;
+  }
+
+  .ck-login-submit {
+    min-height: 42px;
+    margin-top: 7px;
+  }
+
+  .ck-demo-link {
+    min-height: 34px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  #forgot-pw-wrap button {
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  .ck-login-social-follow {
+    gap: 2px;
+  }
+
+  .ck-login-note {
+    margin-top: 3px;
+  }
+
+  .ck-login-home {
+    margin-top: 6px;
   }
 }
 
