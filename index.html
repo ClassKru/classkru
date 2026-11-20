@@ -40,6 +40,7 @@
   <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/18-classkru-ai-brief-selector.css?v=562">
   <link rel="stylesheet" href="classkru%20ai%20chat/frontend/css/19-classkru-ai-model-selector.css?v=562">
   <link rel="stylesheet" href="css/login.css?v=562">
+  <link rel="stylesheet" href="css/16-sidebar-redesign.css?v=1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
@@ -224,7 +225,7 @@
     <aside class="sidebar" id="app-sidebar">
       <div class="sidebar-brand">
         <div class="sidebar-brand-main">
-          <span class="sidebar-brand-mark" aria-hidden="true"><img src="assets/classkru-mascot-support.png?v=1" alt=""></span>
+          <span class="sidebar-brand-mark" aria-hidden="true"><img src="logo.png?v=2" alt=""></span>
           <span class="sidebar-brand-copy">
             <strong class="sidebar-brand-name"><span>Class</span><b>Kru</b></strong>
             <span class="sidebar-tagline">เว็บครู · สู่อนาคต</span>
@@ -232,10 +233,10 @@
         </div>
       </div>
       <nav class="sidebar-menu" id="desktop-navigation" aria-label="เมนูหลัก"></nav>
-      <div class="sidebar-profile" onclick="navigateToWebScreen('settings')" style="cursor:pointer;">
-        <img src="logo.png?v=2" id="sidebar-profile-img" alt="Profile" style="object-fit:contain; background-color:white; padding: 2px;">
+      <button class="sidebar-profile" type="button" onclick="navigateToWebScreen('settings')" aria-label="บัญชีผู้ใช้">
+        <img src="logo.png?v=2" id="sidebar-profile-img" alt="" style="object-fit:contain; background-color:white; padding: 2px;">
         <div class="profile-info"><span class="profile-name" id="sidebar-profile-name">คุณครู</span><span class="profile-role" id="sidebar-profile-email">teacher@school.com</span></div>
-      </div>
+      </button>
     </aside>
 
     <!-- MAIN CONTENT -->
@@ -1558,7 +1559,7 @@
   <script defer src="js/core.js?v=562"></script>
   <script defer src="js/relational-sync.js?v=562"></script>
   <script defer src="js/auth.js?v=562"></script>
-  <script defer src="js/shell.js?v=562"></script>
+  <script defer src="js/shell.js?v=563"></script>
   <script defer src="js/dashboard.js?v=562"></script>
   <script defer src="js/classrooms.js?v=562"></script>
   <script defer src="js/students.js?v=562"></script>
