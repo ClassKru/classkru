@@ -244,3 +244,7 @@ html.dark-mode .sidebar-menu .nav-item.active i {
   .sidebar-menu .nav-item,
   .sidebar-profile { transition: none; }
 }
+
+/* Keep the workspace clear of the repeated title/date bar on every app screen. */
+#app-header { display: none; }
+.app-background-decor { inset: 0; }
