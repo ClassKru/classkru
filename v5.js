@@ -63,6 +63,7 @@ function clearAccountView() {
   $('#task-usage-panel').hidden = true;
   $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true;
   $('#runtime-link').removeAttribute('href'); $('#runtime-link').hidden = true;
+  hideSharePanel();
   $('#result-panel').hidden = true;
   $('#idea-discovery-notice').hidden = true;
   $('#retry-conversation').hidden = true;
@@ -508,6 +509,114 @@ async function openPreviewInNewTab(jobId, statusElement = $('#library-status')) 
   }
 }
 
+function hideSharePanel() {
+  const panel = $('#share-panel');
+  if (!panel) return;
+  panel.hidden = true;
+  $('#share-status').textContent = '';
+  $('#share-create').hidden = true;
+  $('#share-create').disabled = false;
+  $('#share-link-row').hidden = true;
+  $('#share-url').value = '';
+  $('#share-open').removeAttribute('href');
+  $('#share-open').hidden = true;
+  $('#share-copy').disabled = false;
+  $('#share-revoke').disabled = false;
+}
+
+function renderShareStatus(jobId, result, message) {
+  if (state.previewJob?.id !== jobId) return;
+  const shared = result?.shared === true && typeof result.share_url === 'string';
+  const status = $('#share-status');
+  const create = $('#share-create');
+  const row = $('#share-link-row');
+  const open = $('#share-open');
+  const linkInput = $('#share-url');
+  if (shared) {
+    const shareUrl = new URL(result.share_url, window.location.origin);
+    if (shareUrl.origin !== window.location.origin || !shareUrl.pathname.startsWith('/api/v5/share/')) {
+      status.textContent = 'ลิงก์แชร์ไม่ถูกต้อง กรุณาลองใหม่';
+      create.hidden = false;
+      row.hidden = true;
+      return;
+    }
+    linkInput.value = shareUrl.href;
+    open.href = shareUrl.href;
+    open.hidden = false;
+  } else {
+    linkInput.value = '';
+    open.removeAttribute('href');
+    open.hidden = true;
+  }
+  status.textContent = message || (shared ? 'แชร์อยู่แล้ว ลิงก์นี้ไม่มีวันหมดอายุ' : 'ยังไม่ได้แชร์สื่อนี้');
+  create.hidden = shared;
+  row.hidden = !shared;
+}
+
+async function refreshShareStatus(jobId) {
+  $('#share-panel').hidden = false;
+  $('#share-status').textContent = 'กำลังตรวจสอบสถานะการแชร์…';
+  $('#share-create').hidden = true;
+  $('#share-link-row').hidden = true;
+  try {
+    const result = await api(`/api/local/v5/jobs/${encodeURIComponent(jobId)}/share`);
+    renderShareStatus(jobId, result);
+  } catch (error) {
+    if (state.previewJob?.id !== jobId) return;
+    $('#share-status').textContent = `ตรวจสอบลิงก์แชร์ไม่สำเร็จ (${error.code || 'share_unavailable'})`;
+    $('#share-create').hidden = false;
+  }
+}
+
+async function createShareLink() {
+  const jobId = state.previewJob?.id;
+  if (!jobId) return;
+  const button = $('#share-create');
+  button.disabled = true;
+  $('#share-status').textContent = 'กำลังสร้างลิงก์แชร์ถาวร…';
+  try {
+    const result = await api(`/api/local/v5/jobs/${encodeURIComponent(jobId)}/share`, { method:'POST', body:'{}' });
+    renderShareStatus(jobId, result, 'ลิงก์นี้ไม่มีวันหมดอายุ เปิดได้จนกว่าจะยกเลิกการแชร์หรือลบงาน');
+  } catch (error) {
+    if (state.previewJob?.id === jobId) {
+      $('#share-status').textContent = `สร้างลิงก์แชร์ไม่สำเร็จ (${error.code || 'share_unavailable'})`;
+      button.hidden = false;
+    }
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function revokeShareLink() {
+  const jobId = state.previewJob?.id;
+  if (!jobId) return;
+  const button = $('#share-revoke');
+  button.disabled = true;
+  $('#share-status').textContent = 'กำลังยกเลิกการแชร์…';
+  try {
+    const result = await api(`/api/local/v5/jobs/${encodeURIComponent(jobId)}/share`, { method:'DELETE' });
+    renderShareStatus(jobId, result, 'ยกเลิกการแชร์แล้ว ลิงก์เดิมเปิดไม่ได้อีกต่อไป');
+  } catch (error) {
+    if (state.previewJob?.id === jobId) $('#share-status').textContent = `ยกเลิกการแชร์ไม่สำเร็จ (${error.code || 'share_unavailable'})`;
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function copyShareLink() {
+  const value = $('#share-url').value;
+  if (!value) return;
+  const status = $('#share-status');
+  try {
+    await navigator.clipboard.writeText(value);
+    status.textContent = 'คัดลอกลิงก์แล้ว';
+  } catch (_) {
+    const input = $('#share-url');
+    input.focus(); input.select();
+    status.textContent = document.execCommand('copy') ? 'คัดลอกลิงก์แล้ว' : 'คัดลอกไม่สำเร็จ กรุณาเลือกและคัดลอกลิงก์';
+  }
+}
+
 function renderPreview(job) {
   if (!job?.artifact_id || job.state !== 'succeeded') return;
   state.previewJob = job;
@@ -517,6 +626,7 @@ function renderPreview(job) {
   $('#runtime-link').hidden = true;
   $('#result-summary').textContent = 'กำลังเตรียมตัวอย่างที่ปลอดภัย…';
   $('#result-panel').hidden = false;
+  void refreshShareStatus(job.id);
   void api(`/api/local/v5/jobs/${encodeURIComponent(job.id)}/preview`, { method:'POST', body:'{}' }).then(({ preview_url }) => {
     if (state.previewJob?.id !== job.id || typeof preview_url !== 'string') return;
     frame.src = preview_url; frame.hidden = false;
@@ -576,6 +686,7 @@ async function refreshLibrary() {
           else localStorage.removeItem(JOB_KEY);
           $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true;
           $('#runtime-link').removeAttribute('href'); $('#runtime-link').hidden = true;
+          hideSharePanel();
           $('#result-panel').hidden = true;
           renderBuildStatus(job);
           savedDraft = '';
@@ -631,7 +742,7 @@ async function refreshLibrary() {
             const deleted = await api(`/api/local/v5/jobs/${encodeURIComponent(item.job_id || item.id)}`, { method: 'DELETE' });
             const deletedJobIds = new Set(deleted.deleted_job_ids || [item.job_id || item.id]);
             if (state.previewJob && deletedJobIds.has(state.previewJob.id)) {
-              state.previewJob = null; $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true; $('#runtime-link').hidden = true; $('#result-panel').hidden = true;
+              state.previewJob = null; $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true; $('#runtime-link').hidden = true; hideSharePanel(); $('#result-panel').hidden = true;
             }
             if (state.job && deletedJobIds.has(state.job.id)) {
               state.job = null; renderBuildStatus(null);
@@ -761,6 +872,7 @@ function showHome(newWork = false) {
   pendingStart = null; $('#retry-conversation').hidden = true; renderDirections(null);
   $('#chat-log').replaceChildren(); $('.app-shell').dataset.view = 'landing'; renderBrief(null); renderBuildStatus(null);
   $('#result-panel').hidden = true; $('#preview-frame').removeAttribute('src'); $('#preview-frame').hidden = true; $('#runtime-link').hidden = true; $('#task-usage-panel').hidden = true;
+  hideSharePanel();
   $('#message-input').value = ''; resizeMessageInput(); $('#revision-instruction').value = ''; $('#revision-status').textContent = '';
   updateContinueButton(); setBusy(false); window.scrollTo(0, 0);
   if (newWork) $('#message-input').focus();
@@ -950,6 +1062,9 @@ $('#runtime-link').addEventListener('click', event => {
   event.preventDefault();
   if (state.previewJob?.id) void openPreviewInNewTab(state.previewJob.id, $('#result-summary'));
 });
+$('#share-create').addEventListener('click', () => void createShareLink());
+$('#share-revoke').addEventListener('click', () => void revokeShareLink());
+$('#share-copy').addEventListener('click', () => void copyShareLink());
 $('#library-open').addEventListener('click', openLibrary);
 $('#library-close').addEventListener('click', closeLibrary);
 $('#library-dialog').addEventListener('click', event => { if (event.target === $('#library-dialog')) closeLibrary(); });

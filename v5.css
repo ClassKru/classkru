@@ -2,7 +2,7 @@
 .brief-card > div,.brief-card > small { grid-column:1; }
 .brief-card > button { grid-column:2; grid-row:1 / span 2; min-height:36px; padding:0 12px; border:0; border-radius:9px; background:#2867ee; color:#fff; font:inherit; font-size:.75rem; font-weight:800; cursor:pointer; }
 .brief-card > button:hover,.brief-card > button:focus-visible { background:#1554df; }
-.brief-card[hidden],.build-status[hidden],#result-panel[hidden],#preview-frame[hidden] { display:none!important; }
+.brief-card[hidden],.build-status[hidden],#result-panel[hidden],#preview-frame[hidden],#share-panel[hidden],#share-link-row[hidden] { display:none!important; }
 #continue-last[hidden], .app-shell[data-view="session"] #continue-last { display:none!important; }
 .app-shell[data-view="landing"] #review-brief { display:none; }
 .idea-card.goal-card:nth-child(1) { background:#f1ebff; }
@@ -41,6 +41,17 @@
 .revision-form button, .library-item button { justify-self:start; padding:9px 14px; border:0; border-radius:9px; background:#2867ee; color:white; font:inherit; cursor:pointer; }
 .revision-form small, .library-panel p { color:#65728a; }
 .revision-status { color:#315eaf; font-size:.85rem; }
+.share-panel { display:grid; gap:10px; margin-top:16px; padding:14px; border:1px solid #dce5f2; border-radius:12px; background:#f9fbff; }
+.share-panel-copy strong { display:block; color:#17233e; }
+.share-panel-copy p { margin:5px 0 0; color:#315eaf; font-size:.8rem; }
+.share-panel-copy small { display:block; margin-top:4px; color:#65728a; font-size:.74rem; }
+.share-panel-actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.share-panel input { flex:1 1 280px; min-width:0; min-height:38px; padding:8px 10px; border:1px solid #cad6e9; border-radius:9px; background:#fff; color:#17233e; font:inherit; font-size:.8rem; }
+.share-panel button,.share-panel a { display:inline-flex; align-items:center; justify-content:center; min-height:36px; padding:8px 12px; border:0; border-radius:9px; background:#2867ee; color:#fff; font:inherit; font-size:.75rem; font-weight:750; cursor:pointer; text-decoration:none; }
+.share-panel .share-revoke { border:1px solid #f0cfd2; background:#fff6f6; color:#a43846; }
+.share-panel .share-revoke:hover { border-color:#d99aa2; background:#fff0f1; }
+.share-panel [hidden] { display:none!important; }
+.share-panel button:disabled { cursor:wait; opacity:.6; }
 .revision-form button:disabled { opacity:.6; cursor:wait; }
 .library-panel { margin-top:24px; padding:22px; border:1px solid #e2e9f3; border-radius:16px; background:#fff; }
 .library-item { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; align-items:center; padding:12px 0; border-top:1px solid #edf1f6; }
@@ -304,6 +315,7 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 :root[data-theme="dark"] .studio-hero h1 > span { color:#a48aff; }
 :root[data-theme="dark"] .chat-card,
 :root[data-theme="dark"] .result-panel,
+:root[data-theme="dark"] .share-panel,
 :root[data-theme="dark"] .idea-starters,
 :root[data-theme="dark"] .usage-panel,
 :root[data-theme="dark"] .library-panel,
@@ -320,7 +332,8 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 :root[data-theme="dark"] .settings-dialog textarea,
 :root[data-theme="dark"] .settings-dialog input,
 :root[data-theme="dark"] .settings-dialog select,
-:root[data-theme="dark"] .auth-card input { border-color:#3b4253; background:#11141c; color:#eef0f8; }
+:root[data-theme="dark"] .auth-card input,
+:root[data-theme="dark"] .share-panel input { border-color:#3b4253; background:#11141c; color:#eef0f8; }
 :root[data-theme="dark"] .composer textarea::placeholder,
 :root[data-theme="dark"] .revision-form textarea::placeholder,
 :root[data-theme="dark"] .settings-dialog input::placeholder,
@@ -380,10 +393,15 @@ button:disabled { cursor:not-allowed; opacity:.55; }
 :root[data-theme="dark"] .task-usage-metrics span,
 :root[data-theme="dark"] .usage-note,
 :root[data-theme="dark"] .result-heading p,
+:root[data-theme="dark"] .share-panel-copy p,
+:root[data-theme="dark"] .share-panel-copy small,
 :root[data-theme="dark"] .revision-form label,
 :root[data-theme="dark"] .revision-form small,
 :root[data-theme="dark"] .library-panel p { color:#aab2c7; }
 :root[data-theme="dark"] .usage-details { color:#c5cbda; }
+:root[data-theme="dark"] .share-panel-copy strong { color:#eeeaff; }
+:root[data-theme="dark"] .share-panel .share-revoke { border-color:#68434b; background:#302126; color:#ffb7b7; }
+:root[data-theme="dark"] .share-panel .share-revoke:hover { border-color:#9a5963; background:#40262d; }
 :root[data-theme="dark"] .task-usage-service { border-bottom-color:#353a49; }
 :root[data-theme="dark"] .task-usage-service strong { color:#e6e2f7; }
 :root[data-theme="dark"] .work-row { border-color:#363b4a; background:#20232d; }
