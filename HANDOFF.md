@@ -630,3 +630,6 @@ Learning Goal Card แนบเป้าหมายและ pattern เป็�
 
 สถานะ: branch `feature/sidebar-expanded-labels-20261121`, commit `ad91c36`, rebase บน `origin/main` `d322d7c`; รอ push/PR และผล CI/Preview ก่อน merge/deploy Production.
 อัปเดต 2026-11-21: push branch ขึ้น origin สำเร็จแล้ว (`b16eea3`). แต่การสร้าง PR ผ่าน GitHub REST API ทำไม่ได้ในสภาพแวดล้อมนี้ เพราะไม่มี stored GitHub credential ให้ `git credential fill` และไม่มี `gh` CLI; GitHub connector พบว่าไม่ได้ติดตั้ง/เชื่อมต่อ. จึงยังไม่มี PR, merge หรือ Production deploy. เมื่อต่อในครั้งถัดไปให้ใช้ GitHub connector/CLI ที่ authenticated กับ `ClassKru/classkru`, เปิด PR จาก branch นี้เข้า `main`, ตรวจ CI/Vercel Preview แล้วค่อย merge/deploy ตาม flow ปกติ.
+
+### สถานะล่าสุด — แทนบันทึกที่ยังรอ PR/merge/deploy (2026-11-21)
+PR #188 `Redesign sidebar with animated navigation labels` squash-merge เข้า `main` ที่ commit `f37135c9c2f36912763355a3245412335422ccfa`; GitHub checks ผ่าน 5/5. Vercel แสดง Preview ของทั้งสองโปรเจกต์ว่า Ready แต่การเปิด Preview โดยตรงต้องผ่าน Vercel SSO. ยืนยัน Production ที่ `https://www.classkru.com/index.html?demo=1&preview=demo#classrooms`: ชื่อเมนูซ่อนเมื่อไม่ได้ชี้ และเผย inline ที่แถวห้องเรียนเมื่อ hover/focus โดยไม่มี floating tooltip.
