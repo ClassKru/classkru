@@ -6,8 +6,7 @@ const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const home = fs.readFileSync(path.join(root, 'home.html'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'js', 'shell.js'), 'utf8');
-const baseCss = fs.readFileSync(path.join(root, 'css', '01-base-layout.css'), 'utf8');
-const responsiveCss = fs.readFileSync(path.join(root, 'css', '08-responsive-toast.css'), 'utf8');
+const sidebarCss = fs.readFileSync(path.join(root, 'css', '16-sidebar-redesign.css'), 'utf8');
 
 assert.match(html, /id="desktop-navigation"/, 'desktop navigation has one generated mount point');
 assert.match(html, /id="mobile-bottom-nav"/, 'mobile quick navigation has one generated mount point');
@@ -22,10 +21,20 @@ assert.match(js, /screens: \['checkin'\][^\n]+mobileOrder: 3/, 'mobile check-in 
 assert.match(js, /id: 'curriculum'[^\n]+screens: \['curriculum'\]/, 'curriculum catalog is available from the shared main navigation');
 assert.match(html, /id="web-screen-curriculum"/, 'curriculum catalog has a dedicated screen');
 
-assert.match(baseCss, /--sidebar-rail-width: 80px/, 'desktop sidebar defaults to a compact rail');
-assert.match(baseCss, /\.sidebar:hover,[\s\S]{0,100}\.sidebar:has\(:focus-visible\)[\s\S]{0,100}width: var\(--sidebar-open-width\)/, 'sidebar expands for mouse and keyboard users');
-assert.match(baseCss, /\.main-content \{[\s\S]{0,100}margin-left: 80px/, 'desktop content aligns with the compact rail');
-assert.match(responsiveCss, /@media \(min-width: 769px\) and \(max-width: 1024px\)[\s\S]*--sidebar-rail-width: 72px/, 'tablet rail uses the compact breakpoint width');
+assert.match(sidebarCss, /--sidebar-rail-width: 220px/, 'desktop sidebar keeps a fixed expanded width');
+assert.match(sidebarCss, /--sidebar-open-width: 220px/, 'hover and focus do not change sidebar width');
+assert.match(sidebarCss, /\.main-content \{ margin-left: 220px; \}/, 'workspace aligns with the expanded sidebar');
+assert.match(sidebarCss, /\.swipe-overlay \{ left: 220px; \}/, 'desktop overlays align with the expanded sidebar');
+assert.match(sidebarCss, /clip-path: inset\(0 100% 0 0\)[\s\S]*transition:[^;]*300ms ease-out/, 'labels reveal through a smooth left-to-right CSS clip');
+assert.match(sidebarCss, /\.nav-item:hover > span,[\s\S]*\.nav-item:focus-visible > span/, 'hover and keyboard focus reveal only the current label');
+assert.doesNotMatch(sidebarCss, /\.nav-item:focus > span/, 'pointer click does not leave a menu label revealed');
+assert.match(sidebarCss, /\.sidebar:hover \.sidebar-menu \.nav-item:not\(:hover\) > span/, 'legacy sidebar hover rules cannot reveal every menu label at once');
+assert.doesNotMatch(sidebarCss, /\.nav-item:focus > span/, 'pointer click does not leave a menu label revealed');
+assert.match(sidebarCss, /@media \(hover: none\) and \(min-width: 769px\)[\s\S]*opacity: 1/, 'touch-first desktop layouts show labels without hover');
+assert.match(sidebarCss, /\.sidebar\.is-click-collapsed \.sidebar-menu \.nav-item > span/, 'touch labels stay available when the legacy collapsed class is present');
+assert.match(sidebarCss, /prefers-reduced-motion: reduce[\s\S]*transition: none/, 'reduced-motion preference disables sidebar transitions');
+assert.doesNotMatch(sidebarCss, /sidebar-tooltip/, 'floating tooltip styles are removed');
+assert.doesNotMatch(js, /sidebarTooltip|splitTooltipGraphemes/, 'navigation no longer types tooltip text in JavaScript');
 
 assert.match(home, /const appScreens = new Set\(\[/, 'landing page recognizes app deep-links');
 assert.match(home, /location\.replace\(`index\.html\$\{location\.search\}\$\{location\.hash\}`\)/, 'landing page forwards app deep-links to the SPA');
