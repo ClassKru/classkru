@@ -86,6 +86,8 @@ html.dark-mode .sidebar { background: var(--ck-sidebar-bg-middle); }
   transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
 }
 
+.sidebar-menu .nav-item.active > span { opacity: 0.72; }
+
 .sidebar-menu .nav-item > span {
   display: block;
   flex: 1 1 auto;
@@ -97,25 +99,22 @@ html.dark-mode .sidebar { background: var(--ck-sidebar-bg-middle); }
   line-height: 1.3;
   text-overflow: clip;
   white-space: nowrap;
-  opacity: 0;
-  transform: translateX(-8px);
-  clip-path: inset(0 100% 0 0);
-  transition: opacity 300ms ease-out, transform 300ms ease-out, clip-path 300ms ease-out;
+  opacity: 0.46;
+  transform: translateX(8px);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
 }
 
 .sidebar-menu .nav-item:hover > span,
 .sidebar-menu .nav-item:focus-visible > span {
   opacity: 1;
   transform: translateX(0);
-  clip-path: inset(0 0 0 0);
 }
 
-/* The legacy layout reveals every label while the sidebar has focus or hover. */
+/* Keep other labels as faint hints while the pointed row becomes clear. */
 .sidebar:hover .sidebar-menu .nav-item:not(:hover) > span,
 .sidebar:has(:focus-visible):not(:hover) .sidebar-menu .nav-item:not(:focus-visible) > span {
-  opacity: 0;
-  transform: translateX(-8px);
-  clip-path: inset(0 100% 0 0);
+  opacity: 0.46;
+  transform: translateX(8px);
 }
 
 .sidebar-menu .nav-item i {
@@ -245,6 +244,8 @@ html.dark-mode .sidebar-menu .nav-item.active i {
     transform: none;
     clip-path: none;
   }
+
+  .sidebar-menu .nav-item.active > span { opacity: 1; }
 
   .sidebar:hover .sidebar-menu .nav-item:not(:hover) > span,
   .sidebar:has(:focus-visible):not(:hover) .sidebar-menu .nav-item:not(:focus-visible) > span,

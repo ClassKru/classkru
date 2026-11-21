@@ -25,10 +25,12 @@ assert.match(sidebarCss, /--sidebar-rail-width: 220px/, 'desktop sidebar keeps a
 assert.match(sidebarCss, /--sidebar-open-width: 220px/, 'hover and focus do not change sidebar width');
 assert.match(sidebarCss, /\.main-content \{ margin-left: 220px; \}/, 'workspace aligns with the expanded sidebar');
 assert.match(sidebarCss, /\.swipe-overlay \{ left: 220px; \}/, 'desktop overlays align with the expanded sidebar');
-assert.match(sidebarCss, /clip-path: inset\(0 100% 0 0\)[\s\S]*transition:[^;]*300ms ease-out/, 'labels reveal through a smooth left-to-right CSS clip');
-assert.match(sidebarCss, /\.nav-item:hover > span,[\s\S]*\.nav-item:focus-visible > span/, 'hover and keyboard focus reveal only the current label');
+assert.match(sidebarCss, /\.nav-item\.active > span \{ opacity: 0\.72; \}/, 'active label is more visible at rest');
+assert.match(sidebarCss, /opacity: 0\.46;\s*transform: translateX\(8px\);/, 'all labels remain visible as faint hints while resting slightly offset');
+assert.match(sidebarCss, /\.nav-item:hover > span,[\s\S]*\.nav-item:focus-visible > span \{[\s\S]*opacity: 1;\s*transform: translateX\(0\);/, 'hover and keyboard focus clarify and align only the current label');
+assert.match(sidebarCss, /transition: opacity 300ms ease-out, transform 300ms ease-out/, 'label emphasis animates smoothly without changing sidebar width');
 assert.doesNotMatch(sidebarCss, /\.nav-item:focus > span/, 'pointer click does not leave a menu label revealed');
-assert.match(sidebarCss, /\.sidebar:hover \.sidebar-menu \.nav-item:not\(:hover\) > span/, 'legacy sidebar hover rules cannot reveal every menu label at once');
+assert.match(sidebarCss, /\.sidebar:hover \.sidebar-menu \.nav-item:not\(:hover\) > span,[\s\S]*opacity: 0\.46/, 'non-pointed labels stay faint while one label is highlighted');
 assert.doesNotMatch(sidebarCss, /\.nav-item:focus > span/, 'pointer click does not leave a menu label revealed');
 assert.match(sidebarCss, /@media \(hover: none\) and \(min-width: 769px\)[\s\S]*opacity: 1/, 'touch-first desktop layouts show labels without hover');
 assert.match(sidebarCss, /\.sidebar\.is-click-collapsed \.sidebar-menu \.nav-item > span/, 'touch labels stay available when the legacy collapsed class is present');

@@ -633,3 +633,11 @@ Learning Goal Card แนบเป้าหมายและ pattern เป็�
 
 ### สถานะล่าสุด — แทนบันทึกที่ยังรอ PR/merge/deploy (2026-11-21)
 PR #188 `Redesign sidebar with animated navigation labels` squash-merge เข้า `main` ที่ commit `f37135c9c2f36912763355a3245412335422ccfa`; GitHub checks ผ่าน 5/5. Vercel แสดง Preview ของทั้งสองโปรเจกต์ว่า Ready แต่การเปิด Preview โดยตรงต้องผ่าน Vercel SSO. ยืนยัน Production ที่ `https://www.classkru.com/index.html?demo=1&preview=demo#classrooms`: ชื่อเมนูซ่อนเมื่อไม่ได้ชี้ และเผย inline ที่แถวห้องเรียนเมื่อ hover/focus โดยไม่มี floating tooltip.
+
+## 30. Sidebar: muted labels at rest (2026-11-21)
+
+หลังตรวจหน้า Production และ Local Preview ตาม feedback ให้ชื่อเมนูแสดงจางๆ ตลอดเวลาเพื่อลดพื้นที่ว่าง: label ปกติ `opacity: 0.46` และเลื่อน `translateX(8px)`; เมนู Active `opacity: 0.72`; เฉพาะแถว Hover/Keyboard Focus แสดงชัด `opacity: 1` และเลื่อนเข้าตำแหน่ง `translateX(0)` ใช้ transition 300ms ease-out เดิม. แถวอื่นคงจางขณะชี้เมนูหนึ่งแถว. คง touch/reduced-motion และ Navigation เดิม.
+
+ผลตรวจ: `node --test tests/navigation-shell.test.cjs` ผ่าน 1/1; `node --check js/shell.js` ผ่าน; `git diff --check` ผ่าน. อัปเดต asset cache version 566 → 567 ใน HTML ชั้นราก 12 ไฟล์.
+
+สถานะ: แก้ใน branch `feature/sidebar-faint-labels-20261121` บนฐาน `8f0b319` (PR #189); ยังรอ push, PR, CI/Preview และ merge/deploy. Local Preview ยืนยันชื่อเมนูจางที่ idle และชัดเมื่อ hover; Production ยังไม่ได้รับ follow-up นี้.
