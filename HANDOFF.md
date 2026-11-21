@@ -641,3 +641,11 @@ PR #188 `Redesign sidebar with animated navigation labels` squash-merge เข�
 ผลตรวจ: `node --test tests/navigation-shell.test.cjs` ผ่าน 1/1; `node --check js/shell.js` ผ่าน; `git diff --check` ผ่าน. อัปเดต asset cache version 566 → 567 ใน HTML ชั้นราก 12 ไฟล์.
 
 สถานะ: แก้ใน branch `feature/sidebar-faint-labels-20261121` บนฐาน `8f0b319` (PR #189); ยังรอ push, PR, CI/Preview และ merge/deploy. Local Preview ยืนยันชื่อเมนูจางที่ idle และชัดเมื่อ hover; Production ยังไม่ได้รับ follow-up นี้.
+
+## 31. Mini Lab V5 — Permanent open/share links (2026-11-21)
+
+เพิ่มลิงก์เปิด/แชร์ถาวรสำหรับงานที่สร้างสำเร็จใน Mini Lab V5 ที่ `/mini-lab-v5`. ระบบสร้าง bearer token แบบสุ่ม 256 บิต เก็บข้อมูลลิงก์ใน encrypted storage และตรวจว่างาน/สื่อยังสำเร็จและไม่ถูกลบทุกครั้งที่เปิดลิงก์. ผู้ถือ URL เปิดสื่อได้โดยไม่ต้องล็อกอินจนกว่าครูจะกด “ยกเลิกการแชร์”; การลบงานจะล้าง share records ที่เกี่ยวข้อง และตัวตรวจงานจะปฏิเสธลิงก์ของงานที่ถูกลบ. หน้าแชร์ส่ง `no-store`, `noindex` และ CSP ของ runtime.
+
+ปุ่มแชร์เป็น explicit opt-in; หลังสร้างลิงก์มีปุ่มเปิด, คัดลอก และยกเลิก. Preview ticket เดิมยังมีอายุ 10 นาทีสำหรับการทดลองในกรอบ/ปุ่มตัวอย่าง; ให้ใช้ URL ถาวรใหม่สำหรับการเปิดซ้ำและแชร์. ปรับ asset query ของ `v5.js`/`v5.css` เป็น `567`.
+
+สถานะ: commit `f13aa2c` บน branch `feature/mini-lab-v5-permanent-sharing`, rebase บน `origin/main` ที่ `1cde7c0` หลัง GitHub แจ้งว่า merge กับ `main` ไม่อัตโนมัติ. ผู้ใช้สั่งให้จัดการ deploy เมื่อ 2026-11-21. ขั้นถัดไป: จบ rebase, push branch, เปิด PR, ตรวจ CI/Preview, merge ตามคำขอ แล้วตรวจ Production. ยังไม่ได้รันทดสอบ locally.
