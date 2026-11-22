@@ -642,8 +642,16 @@ PR #188 `Redesign sidebar with animated navigation labels` squash-merge เข�
 
 สถานะ: PR #190 merge และ deploy Production แล้วตามหลักฐานภาพ Vercel ที่ผู้ใช้ยืนยัน.
 
-## 31. Sidebar brand placement follow-up (2026-11-22)
+## 31. Mini Lab V5 — Permanent open/share links (2026-11-21)
+
+เพิ่มลิงก์เปิด/แชร์ถาวรสำหรับงานที่สร้างสำเร็จใน Mini Lab V5 ที่ `/mini-lab-v5`. ระบบสร้าง bearer token แบบสุ่ม 256 บิต เก็บข้อมูลลิงก์ใน encrypted storage และตรวจว่างาน/สื่อยังสำเร็จและไม่ถูกลบทุกครั้งที่เปิดลิงก์. ผู้ถือ URL เปิดสื่อได้โดยไม่ต้องล็อกอินจนกว่าครูจะกด “ยกเลิกการแชร์”; การลบงานจะล้าง share records ที่เกี่ยวข้อง และตัวตรวจงานจะปฏิเสธลิงก์ของงานที่ถูกลบ. หน้าแชร์ส่ง `no-store`, `noindex` และ CSP ของ runtime.
+
+ปุ่มแชร์เป็น explicit opt-in; หลังสร้างลิงก์มีปุ่มเปิด, คัดลอก และยกเลิก. Preview ticket เดิมยังมีอายุ 10 นาทีสำหรับการทดลองในกรอบ/ปุ่มตัวอย่าง; ให้ใช้ URL ถาวรใหม่สำหรับการเปิดซ้ำและแชร์. ปรับ asset query ของ `v5.js`/`v5.css` เป็น `568` ใน merge ล่าสุด.
+
+สถานะ: PR #191 merge เข้า `main` ที่ commit `6d9ee22`; GitHub รายงาน checks syntax และ Student Excel tests ผ่าน และ Vercel รายงาน `classkru`/`classkru-media` Production deployment completed.
+
+## 32. Sidebar brand placement follow-up (2026-11-22)
 
 ปรับแถบ Sidebar ตามภาพอ้างอิง: นำปุ่มตรา ClassKru ที่ท้าย Sidebar ออก (เป็น shortcut ไปหน้าตั้งค่าซ้ำกับเมนูหลัก) และคงเมนู “ตั้งค่าระบบ” ใน Navigation Registry ไว้; ขยายตราด้านบนจาก 46px เป็น 64px และเพิ่มพื้นที่หัว Sidebar จาก 58px เป็น 76px. รัน `bump-version.sh` อัปเดต asset cache 567 → 568 ครอบคลุม 76 references ใน HTML ชั้นราก 12 ไฟล์.
 
-สถานะปัจจุบัน: local change อยู่บน branch `feature/sidebar-brand-20261122`, ฐาน production commit `1cde7c0`. ตรวจ `git diff --check` ผ่าน; ไม่ได้รัน test suite หรือ browser visual QA. ยังไม่ได้ push/เปิด PR/merge/deploy.
+สถานะปัจจุบัน: PR #192 จาก branch `feature/sidebar-brand-20261122` กำลังรอ CI/Preview หลังอัปเดตฐานเป็น `main` commit `6d9ee22`. `git diff --check` ผ่าน; ไม่ได้รัน test suite หรือ browser visual QA.

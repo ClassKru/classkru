@@ -12,6 +12,7 @@ const { createCloudConversation } = require('./cloud/cloud-conversation');
 const { createCloudBuild } = require('./cloud/cloud-build');
 const { createLessonPlanMediaLinks } = require('./cloud/lesson-plan-media-links');
 const { createPreviewTickets } = require('./cloud/preview-tickets');
+const { createShareLinks } = require('./cloud/share-links');
 const { createTeacherSettingsStore } = require('./cloud/teacher-settings');
 const { createBriefVersionCatalog } = require('./cloud/brief-version-catalog');
 const conversation = require('./conversation-ai/service');
@@ -32,15 +33,17 @@ const briefVersions = createBriefVersionCatalog({ root: pathModule.resolve(proce
 const modelCatalog = createLocalModelCatalog();
 const artifactStoreForTeacher = teacherId => createCloudArtifactStore({ storage, teacherId });
 const taskStoreForTeacher = teacherId => createTaskStore({ db, teacherId });
+const previewAllowed = async (teacherId, jobId, artifactId) => {
+  const row = await taskStoreForTeacher(teacherId).findByJobId(jobId);
+  return Boolean(row && !row.state.deletion_pending && (row.state.jobs || []).some(job =>
+    job.id === jobId && job.state === 'succeeded' && job.artifact_id === artifactId));
+};
 const previewTickets = createPreviewTickets({
   storage,
   artifactStoreForTeacher,
-  previewAllowed: async (teacherId, jobId, artifactId) => {
-    const row = await taskStoreForTeacher(teacherId).findByJobId(jobId);
-    return Boolean(row && !row.state.deletion_pending && (row.state.jobs || []).some(job =>
-      job.id === jobId && job.state === 'succeeded' && job.artifact_id === artifactId));
-  }
+  previewAllowed
 });
+const shareLinks = createShareLinks({storage,artifactStoreForTeacher,previewAllowed});
 
 function fail(code) { return Object.assign(new Error(code), { code }); }
 function pathParts(req) {
@@ -164,6 +167,18 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
         return res.status(200).send(preview.html);
       } catch (_) { return respond(res, 404, { error: 'preview_not_found' }); }
     }
+    if (req.method === 'GET' && parts[0] === 'share' && parts.length === 4) {
+      try {
+        const shared = await shareLinks.load(parts[1], parts[2], parts[3]);
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'private, no-store');
+        res.setHeader('Content-Security-Policy', runtimeCspForHost(req.headers?.host, shared.csp || RUNTIME_CSP));
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+        res.setHeader('Referrer-Policy', 'no-referrer');
+        return res.status(200).send(shared.html);
+      } catch (_) { return respond(res, 404, { error: 'share_not_found' }); }
+    }
     if (!originIsValid(req)) return respond(res, 403, { error: 'invalid_origin' });
     try {
       const user = await authenticate(req);
@@ -243,7 +258,23 @@ function createInteractiveV5Handler({ authenticate = authenticatedUser, originIs
       }
       if (parts[0] === 'jobs' && parts.length >= 2) {
         if (req.method === 'GET' && parts.length === 2) return respond(res, 200, { job: await services.build.get(parts[1]) });
-        if (req.method === 'DELETE' && parts.length === 2) return respond(res, 200, await services.build.deleteTask(parts[1]));
+        if (req.method === 'DELETE' && parts.length === 2) {
+          const deleted = await services.build.deleteTask(parts[1]);
+          const deletedJobIds = Array.isArray(deleted.deleted_job_ids) && deleted.deleted_job_ids.length ? deleted.deleted_job_ids : [parts[1]];
+          await Promise.allSettled(deletedJobIds.map(jobId => shareLinks.revoke(user.id, jobId)));
+          return respond(res, 200, deleted);
+        }
+        if (parts.length === 3 && parts[2] === 'share') {
+          if (req.method === 'GET') {
+            await services.build.preview(parts[1]);
+            return respond(res, 200, await shareLinks.status(user.id, parts[1]));
+          }
+          if (req.method === 'POST') {
+            const artifact = await services.build.preview(parts[1]);
+            return respond(res, 200, await shareLinks.issue(user.id, parts[1], artifact.id));
+          }
+          if (req.method === 'DELETE') return respond(res, 200, await shareLinks.revoke(user.id, parts[1]));
+        }
         if (req.method === 'POST' && parts.length === 3 && parts[2] === 'preview') {
           const artifact = await services.build.preview(parts[1]);
           const ticket = await previewTickets.issue(user.id, artifact.id, parts[1]);

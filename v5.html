@@ -121,6 +121,16 @@
       <section id="result-panel" class="result-panel" hidden aria-live="polite">
         <div class="result-heading"><div><span class="eyebrow">YOUR LEARNING EXPERIENCE</span><h2 id="result-title">สื่อของคุณพร้อมให้ทดลองแล้ว</h2><p id="result-summary"></p></div><a id="runtime-link" class="runtime-link" target="_blank" rel="noopener" hidden><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14 3h7v7M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>เปิดสื่อในแท็บใหม่</a></div>
         <iframe id="preview-frame" title="ตัวอย่างสื่อการเรียนรู้" sandbox="allow-scripts" hidden></iframe>
+        <section id="share-panel" class="share-panel" hidden>
+          <div class="share-panel-copy"><strong>เปิดและแชร์สื่อนี้แบบไม่หมดอายุ</strong><p id="share-status" role="status" aria-live="polite">กำลังตรวจสอบสถานะการแชร์…</p><small>ทุกคนที่มีลิงก์จะเปิดสื่อได้จนกว่าคุณจะยกเลิกการแชร์</small></div>
+          <button id="share-create" type="button" hidden>สร้างลิงก์เปิดและแชร์ถาวร</button>
+          <div id="share-link-row" class="share-panel-actions" hidden>
+            <input id="share-url" type="url" readonly aria-label="ลิงก์สำหรับแชร์">
+            <a id="share-open" target="_blank" rel="noopener" hidden>เปิดลิงก์</a>
+            <button id="share-copy" type="button">คัดลอกลิงก์</button>
+            <button id="share-revoke" class="share-revoke" type="button">ยกเลิกการแชร์</button>
+          </div>
+        </section>
         <form id="revision-form" class="revision-form">
           <label for="revision-instruction">อยากแก้ไขสื่อฉบับนี้อย่างไร?</label>
           <textarea id="revision-instruction" rows="2" maxlength="6000" required placeholder="เช่น เปลี่ยนพื้นหลังเป็นสีฟ้า แต่คงกิจกรรมเดิม"></textarea>
