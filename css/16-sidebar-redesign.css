@@ -27,8 +27,8 @@
 html.dark-mode .sidebar { background: var(--ck-sidebar-bg-middle); }
 
 .sidebar-brand {
-  flex: 0 0 58px;
-  min-height: 58px;
+  flex: 0 0 76px;
+  min-height: 76px;
   margin: 0 0 12px;
   padding: 0 0 10px;
   align-items: center;
@@ -38,9 +38,9 @@ html.dark-mode .sidebar { background: var(--ck-sidebar-bg-middle); }
 .sidebar-brand-main { justify-content: center; }
 
 .sidebar-brand-mark {
-  flex: 0 0 46px;
-  width: 46px;
-  height: 46px;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
   border: 0;
   border-radius: 10px;
   background: transparent;
@@ -136,8 +136,7 @@ html.dark-mode .sidebar { background: var(--ck-sidebar-bg-middle); }
   transform: none;
 }
 
-.sidebar-menu .nav-item:focus-visible,
-.sidebar-profile:focus-visible {
+.sidebar-menu .nav-item:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--ck-sidebar-accent) 48%, transparent);
   outline-offset: 2px;
 }
@@ -175,39 +174,6 @@ html.dark-mode .sidebar-menu .nav-item.active i {
   background: var(--ck-sidebar-accent);
   box-shadow: none;
 }
-
-.sidebar-profile {
-  box-sizing: border-box;
-  flex: 0 0 52px;
-  width: 100%;
-  min-height: 52px;
-  margin: 12px 0 0;
-  padding: 5px;
-  justify-content: flex-start;
-  gap: 10px;
-  border: 1px solid var(--ck-sidebar-border);
-  border-radius: 14px;
-  color: var(--ck-sidebar-text);
-  background: var(--ck-sidebar-profile-bg);
-  font: inherit;
-  cursor: pointer;
-}
-
-.sidebar-profile:hover {
-  border-color: var(--ck-sidebar-hover-border);
-  background: var(--ck-sidebar-profile-hover-bg);
-  box-shadow: none;
-}
-
-.sidebar-profile img {
-  flex: 0 0 40px;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: 50%;
-}
-
-.sidebar-profile .profile-info { display: none; }
 
 .main-content { margin-left: 220px; }
 
@@ -258,8 +224,7 @@ html.dark-mode .sidebar-menu .nav-item.active i {
 
 @media (prefers-reduced-motion: reduce) {
   .sidebar-menu .nav-item,
-  .sidebar-menu .nav-item > span,
-  .sidebar-profile { transition: none; }
+  .sidebar-menu .nav-item > span { transition: none; }
 }
 
 /* Keep the workspace clear of the repeated title/date bar on every app screen. */
