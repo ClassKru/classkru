@@ -632,7 +632,7 @@ Learning Goal Card แนบเป้าหมายและ pattern เป็�
 อัปเดต 2026-11-21: push branch ขึ้น origin สำเร็จแล้ว (`b16eea3`). แต่การสร้าง PR ผ่าน GitHub REST API ทำไม่ได้ในสภาพแวดล้อมนี้ เพราะไม่มี stored GitHub credential ให้ `git credential fill` และไม่มี `gh` CLI; GitHub connector พบว่าไม่ได้ติดตั้ง/เชื่อมต่อ. จึงยังไม่มี PR, merge หรือ Production deploy. เมื่อต่อในครั้งถัดไปให้ใช้ GitHub connector/CLI ที่ authenticated กับ `ClassKru/classkru`, เปิด PR จาก branch นี้เข้า `main`, ตรวจ CI/Vercel Preview แล้วค่อย merge/deploy ตาม flow ปกติ.
 
 ### สถานะล่าสุด — แทนบันทึกที่ยังรอ PR/merge/deploy (2026-11-21)
-PR #188 `Redesign sidebar with animated navigation labels` squash-merge เข้า `main` ที่ commit `f37135c9c2f36912763355a3245412335422ccfa`; GitHub checks ผ่าน 5/5. Vercel แสดง Preview ของทั้งสองโปรเจกต์ว่า Ready แต่การเปิด Preview โดยตรงต้องผ่าน Vercel SSO. ยืนยัน Production ที่ `https://www.classkru.com/index.html?demo=1&preview=demo#classrooms`: ชื่อเมนูซ่อนเมื่อไม่ได้ชี้ และเผย inline ที่แถวห้องเรียนเมื่อ hover/focus โดยไม่มี floating tooltip.
+PR #188 `Redesign sidebar with animated navigation labels` squash-merge เข้า `main` ที่ commit `f37135c9c2f36912763355a3245412335422ccfa`; GitHub checks ผ่าน 5/5. ต่อมา PR #190 `Keep sidebar labels subtly visible at rest` squash-merge ที่ commit `1cde7c0d275dc68cc72c23ad1044d17007355b8b`. ภาพ Vercel ที่ผู้ใช้ส่งเมื่อ 2026-11-21 แสดง Production ของ `classkru` และ `classkru-media` Ready บน `main` commit `1cde7c0`.
 
 ## 30. Sidebar: muted labels at rest (2026-11-21)
 
@@ -640,12 +640,18 @@ PR #188 `Redesign sidebar with animated navigation labels` squash-merge เข�
 
 ผลตรวจ: `node --test tests/navigation-shell.test.cjs` ผ่าน 1/1; `node --check js/shell.js` ผ่าน; `git diff --check` ผ่าน. อัปเดต asset cache version 566 → 567 ใน HTML ชั้นราก 12 ไฟล์.
 
-สถานะ: แก้ใน branch `feature/sidebar-faint-labels-20261121` บนฐาน `8f0b319` (PR #189); ยังรอ push, PR, CI/Preview และ merge/deploy. Local Preview ยืนยันชื่อเมนูจางที่ idle และชัดเมื่อ hover; Production ยังไม่ได้รับ follow-up นี้.
+สถานะ: PR #190 merge และ deploy Production แล้วตามหลักฐานภาพ Vercel ที่ผู้ใช้ยืนยัน.
 
 ## 31. Mini Lab V5 — Permanent open/share links (2026-11-21)
 
 เพิ่มลิงก์เปิด/แชร์ถาวรสำหรับงานที่สร้างสำเร็จใน Mini Lab V5 ที่ `/mini-lab-v5`. ระบบสร้าง bearer token แบบสุ่ม 256 บิต เก็บข้อมูลลิงก์ใน encrypted storage และตรวจว่างาน/สื่อยังสำเร็จและไม่ถูกลบทุกครั้งที่เปิดลิงก์. ผู้ถือ URL เปิดสื่อได้โดยไม่ต้องล็อกอินจนกว่าครูจะกด “ยกเลิกการแชร์”; การลบงานจะล้าง share records ที่เกี่ยวข้อง และตัวตรวจงานจะปฏิเสธลิงก์ของงานที่ถูกลบ. หน้าแชร์ส่ง `no-store`, `noindex` และ CSP ของ runtime.
 
-ปุ่มแชร์เป็น explicit opt-in; หลังสร้างลิงก์มีปุ่มเปิด, คัดลอก และยกเลิก. Preview ticket เดิมยังมีอายุ 10 นาทีสำหรับการทดลองในกรอบ/ปุ่มตัวอย่าง; ให้ใช้ URL ถาวรใหม่สำหรับการเปิดซ้ำและแชร์. ปรับ asset query ของ `v5.js`/`v5.css` เป็น `567`.
+ปุ่มแชร์เป็น explicit opt-in; หลังสร้างลิงก์มีปุ่มเปิด, คัดลอก และยกเลิก. Preview ticket เดิมยังมีอายุ 10 นาทีสำหรับการทดลองในกรอบ/ปุ่มตัวอย่าง; ให้ใช้ URL ถาวรใหม่สำหรับการเปิดซ้ำและแชร์. ปรับ asset query ของ `v5.js`/`v5.css` เป็น `568` ใน merge ล่าสุด.
 
-สถานะ: commit `f13aa2c` บน branch `feature/mini-lab-v5-permanent-sharing`, rebase บน `origin/main` ที่ `1cde7c0` หลัง GitHub แจ้งว่า merge กับ `main` ไม่อัตโนมัติ. ผู้ใช้สั่งให้จัดการ deploy เมื่อ 2026-11-21. ขั้นถัดไป: จบ rebase, push branch, เปิด PR, ตรวจ CI/Preview, merge ตามคำขอ แล้วตรวจ Production. ยังไม่ได้รันทดสอบ locally.
+สถานะ: PR #191 merge เข้า `main` ที่ commit `6d9ee22`; GitHub รายงาน checks syntax และ Student Excel tests ผ่าน และ Vercel รายงาน `classkru`/`classkru-media` Production deployment completed.
+
+## 32. Sidebar brand placement follow-up (2026-11-22)
+
+ปรับแถบ Sidebar ตามภาพอ้างอิง: นำปุ่มตรา ClassKru ที่ท้าย Sidebar ออก (เป็น shortcut ไปหน้าตั้งค่าซ้ำกับเมนูหลัก) และคงเมนู “ตั้งค่าระบบ” ใน Navigation Registry ไว้; ขยายตราด้านบนจาก 46px เป็น 64px และเพิ่มพื้นที่หัว Sidebar จาก 58px เป็น 76px. รัน `bump-version.sh` อัปเดต asset cache 567 → 568 ครอบคลุม 76 references ใน HTML ชั้นราก 12 ไฟล์.
+
+สถานะปัจจุบัน: PR #192 จาก branch `feature/sidebar-brand-20261122` กำลังรอ CI/Preview หลังอัปเดตฐานเป็น `main` commit `6d9ee22`. `git diff --check` ผ่าน; ไม่ได้รัน test suite หรือ browser visual QA.
